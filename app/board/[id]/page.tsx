@@ -155,6 +155,11 @@ function BoardPageContent() {
   const [renamedBoard, setRenamedBoard] = useState<{ id: string; name: string } | null>(null);
   const [isOwner, setIsOwner] = useState(false);
 
+  // Add drag state tracking to prevent post-drag clicks
+  const [isDragInProgress, setIsDragInProgress] = useState(false);
+  const [recentDragEnd, setRecentDragEnd] = useState(false);
+  const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   logger.info({ boardId }, "BoardPage loading");
 
   const {
@@ -569,21 +574,64 @@ function BoardPageContent() {
   }, [boardId, addBoardAction, updateBoardTimestamp]);
 
   const handleStickyNoteSelect = useCallback((stickyNoteId: string) => {
-    // When clicking on a sticky note, select it if not already selected
-    // or deselect it if it's already selected (toggle behavior)
-    setSelectedStickyNote(prev => {
-      const newSelection = prev === stickyNoteId ? null : stickyNoteId;
-      logger.debug({ prevSelection: prev, newSelection }, 'Sticky note selection changed');
-      return newSelection;
-    });
+    // Always select the clicked sticky note (no toggle behavior)
+    setSelectedStickyNote(stickyNoteId);
+    logger.debug({ selectedStickyNote: stickyNoteId }, 'Sticky note selected');
   }, []);
 
+  // Enhanced drag state management
+  const handleStickyNoteDragStart = useCallback(() => {
+    setIsDragInProgress(true);
+    // Clear any existing timeout
+    if (dragTimeoutRef.current) {
+      clearTimeout(dragTimeoutRef.current);
+      dragTimeoutRef.current = null;
+    }
+  }, []);
+
+  const handleStickyNoteDragEnd = useCallback(() => {
+    setIsDragInProgress(false);
+    setRecentDragEnd(true);
+    
+    // Clear the recent drag flag after a short delay
+    dragTimeoutRef.current = setTimeout(() => {
+      setRecentDragEnd(false);
+      dragTimeoutRef.current = null;
+    }, 150); // 150ms delay to prevent immediate canvas clicks
+  }, []);
+
+  // Improved canvas click handler with better event detection
   const handleCanvasClick = useCallback((e: KonvaEventObject<MouseEvent>) => {
+    // Don't process clicks if drag is in progress or recently ended
+    if (isDragInProgress || recentDragEnd) {
+      logger.debug('Canvas click ignored due to drag state');
+      return;
+    }
+
     // Check if the click target is the Stage itself (background) or a sticky note
     const targetName = e.target.getClassName();
     const isBackgroundClick = targetName === 'Stage' || targetName === 'Layer';
     
-    // Only proceed if it's a background click (not on sticky note or other elements)
+    // If clicking on a sticky note, don't process as canvas click
+    if (!isBackgroundClick) {
+      // Check if it's a sticky note element by looking at target name
+      if (e.target.hasName && e.target.hasName('sticky-note')) {
+        logger.debug('Click detected on sticky note, ignoring canvas click');
+        return;
+      }
+      
+      // Check parent nodes as well
+      let parent = e.target.getParent();
+      while (parent) {
+        if (parent.hasName && parent.hasName('sticky-note')) {
+          logger.debug('Click detected on sticky note (via parent), ignoring canvas click');
+          return;
+        }
+        parent = parent.getParent();
+      }
+    }
+    
+    // Only proceed if it's a true background click
     if (!isBackgroundClick) {
       return;
     }
@@ -615,12 +663,22 @@ function BoardPageContent() {
         handleStickyNoteAdd(newStickyNote);
         // Auto-select the newly created sticky note for immediate editing
         setSelectedStickyNote(newStickyNote.id);
+        logger.debug({ newStickyNoteId: newStickyNote.id }, 'New sticky note created via canvas click');
       }
     } else {
       // Deselect sticky note when clicking on background (not on sticky notes)
       setSelectedStickyNote(null);
     }
-  }, [tool, boardId, session?.user?.id, handleStickyNoteAdd, currentStickyNoteColor]);
+  }, [tool, boardId, session?.user?.id, handleStickyNoteAdd, currentStickyNoteColor, isDragInProgress, recentDragEnd]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (dragTimeoutRef.current) {
+        clearTimeout(dragTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleUndo = useCallback(async () => {
     logger.debug('Undo action triggered');
@@ -1254,7 +1312,10 @@ function BoardPageContent() {
               onStickyNoteUpdateAction={handleStickyNoteUpdate}
               onStickyNoteDeleteAction={handleStickyNoteDelete}
               onStickyNoteSelectAction={handleStickyNoteSelect}
+              onStickyNoteDragStartAction={handleStickyNoteDragStart}
+              onStickyNoteDragEndAction={handleStickyNoteDragEnd}
               onCanvasClickAction={handleCanvasClick}
+              onToolChangeAction={setTool}
               cursors={realTimeCursors}
               moveCursorAction={broadcastCursorMovement}
               onRealTimeDrawingAction={(line: ILine) => {
@@ -1463,6 +1524,7 @@ function BoardPageContent() {
         </div>
       )}
       {/* Help Toggle Button */}
+            {/* Help Toggle Button */}
       {!showKeyboardShortcuts && (
         <button
           onClick={() => setShowKeyboardShortcuts(true)}
@@ -1475,6 +1537,7 @@ function BoardPageContent() {
           <span className="text-lg">⌨️</span>
         </button>
       )}
+      
       {/* Rename Board Modal */}
       <RenameBoardModal
         isOpen={showRenameModal}

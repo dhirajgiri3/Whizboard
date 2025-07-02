@@ -1,13 +1,12 @@
-"use client";
-
 import { Stage, Layer, Line, Circle } from 'react-konva';
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { Tool } from '../toolbar/MainToolbar';
 import type { KonvaEventObject } from 'konva/lib/Node';
 import { ILine } from '@/app/board/[id]/page';
-import { StickyNoteElement } from '@/types';
+import { StickyNoteElement, FrameElement } from '@/types';
 import LiveCursors, { Cursor } from './LiveCursors';
 import StickyNote from './StickyNote';
+import Frame from './Frame';
 import Konva from 'konva';
 import { 
   Grid, 
@@ -19,7 +18,8 @@ import {
   Move,
   Maximize2,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  PenTool
 } from 'lucide-react';
 
 function getDistance(p1: { x: number; y: number }, p2: { x: number; y: number }) {
@@ -27,7 +27,6 @@ function getDistance(p1: { x: number; y: number }, p2: { x: number; y: number })
 }
 
 function smoothPoints(points: number[] | undefined, smoothness: number = 0.3): number[] {
-  // Guard against undefined or null points
   if (!points || !Array.isArray(points) || points.length < 6) {
     return points || [];
   }
@@ -43,7 +42,6 @@ function smoothPoints(points: number[] | undefined, smoothness: number = 0.3): n
     const nextX = points[i + 2];
     const nextY = points[i + 3];
     
-    // Additional safety checks for individual point values
     if (typeof prevX !== 'number' || typeof prevY !== 'number' || 
         typeof currX !== 'number' || typeof currY !== 'number' ||
         typeof nextX !== 'number' || typeof nextY !== 'number') {
@@ -68,18 +66,30 @@ interface DrawingCanvasProps {
   strokeWidth: number;
   initialLines: ILine[];
   initialStickyNotes?: StickyNoteElement[];
+  initialFrames?: FrameElement[];
   selectedStickyNote?: string | null;
+  selectedFrame?: string | null;
   onDrawEndAction: (lines: ILine[]) => void;
   onEraseAction?: (lineId: string) => void;
   onStickyNoteAddAction?: (stickyNote: StickyNoteElement) => void;
   onStickyNoteUpdateAction?: (stickyNote: StickyNoteElement) => void;
   onStickyNoteDeleteAction?: (stickyNoteId: string) => void;
   onStickyNoteSelectAction?: (stickyNoteId: string) => void;
+  onStickyNoteDragStartAction?: () => void;
+  onStickyNoteDragEndAction?: () => void;
+  onFrameAddAction?: (frame: FrameElement) => void;
+  onFrameUpdateAction?: (frame: FrameElement) => void;
+  onFrameDeleteAction?: (frameId: string) => void;
+  onFrameSelectAction?: (frameId: string) => void;
+  onFrameDragStartAction?: () => void;
+  onFrameDragEndAction?: () => void;
   onCanvasClickAction?: (e: KonvaEventObject<MouseEvent>) => void;
+  onToolChangeAction?: (tool: Tool) => void; // New prop for tool activation
   cursors: Record<string, Cursor>;
   moveCursorAction: (x: number, y: number) => void;
   onRealTimeDrawingAction?: (line: ILine) => void;
   onRealTimeLineUpdateAction?: (line: ILine) => void;
+  onRealTimeFrameAction?: (frame: FrameElement) => void;
 }
 
 interface GridProps {
@@ -144,20 +154,33 @@ export default function DrawingCanvas({
   strokeWidth,
   initialLines,
   initialStickyNotes = [],
+  initialFrames = [],
   selectedStickyNote,
+  selectedFrame,
   onDrawEndAction,
   onEraseAction,
   onStickyNoteUpdateAction,
   onStickyNoteDeleteAction,
   onStickyNoteSelectAction,
+  onStickyNoteDragStartAction,
+  onStickyNoteDragEndAction,
+  onFrameAddAction,
+  onFrameUpdateAction,
+  onFrameDeleteAction,
+  onFrameSelectAction,
+  onFrameDragStartAction,
+  onFrameDragEndAction,
   onCanvasClickAction,
+  onToolChangeAction,
   cursors,
   moveCursorAction,
   onRealTimeDrawingAction,
   onRealTimeLineUpdateAction,
+  onRealTimeFrameAction,
 }: DrawingCanvasProps) {
   const [lines, setLines] = useState<ILine[]>(initialLines);
   const [stickyNotes, setStickyNotes] = useState<StickyNoteElement[]>(initialStickyNotes);
+  const [frames, setFrames] = useState<FrameElement[]>(initialFrames);
   const [stageScale, setStageScale] = useState(1);
   const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
   const [isDrawing, setIsDrawing] = useState(false);
@@ -169,33 +192,47 @@ export default function DrawingCanvas({
     height: typeof window !== 'undefined' ? window.innerHeight : 1080 
   });
   
+  const [hoveredLineIndex, setHoveredLineIndex] = useState<number | null>(null);
+  const [isStickyNoteDragging, setIsStickyNoteDragging] = useState(false);
+  const [isFrameDragging, setIsFrameDragging] = useState(false);
+  const [frameCreationMode, setFrameCreationMode] = useState<{
+    isCreating: boolean;
+    startPoint: { x: number; y: number } | null;
+    currentFrame: Partial<FrameElement> | null;
+  }>({
+    isCreating: false,
+    startPoint: null,
+    currentFrame: null,
+  });
   const lastPointer = useRef<{ x: number; y: number } | null>(null);
   const performanceMode = useRef(false);
   const isSpacePressed = useRef(false);
   const isPanning = useRef(false);
   
-  // Enhanced line rendering with improved visual quality
   const handleLineClick = useCallback(
     (lineIdx: number) => {
       if (tool === 'eraser' && onEraseAction) {
-        // Use the line's id if available, else use index
         const line = lines[lineIdx];
         if (line && 'id' in line) {
           onEraseAction(line.id as string);
         }
+      } else if (tool !== 'pen' && onToolChangeAction) {
+        // Activate pen tool when clicking on a pen-drawn line
+        const line = lines[lineIdx];
+        if (line && line.tool === 'pen') {
+          onToolChangeAction('pen');
+        }
       }
     },
-    [tool, onEraseAction, lines]
+    [tool, onEraseAction, onToolChangeAction, lines]
   );
 
   const memoizedLines = useMemo(() => {
     return lines.map((line, i) => {
-      // Ensure line exists and has valid points array
       if (!line || !line.points || !Array.isArray(line.points) || line.points.length === 0) {
         return null;
       }
       
-      // Ensure points contains valid numbers
       const validPoints = line.points.filter((point) => 
         typeof point === 'number' && !isNaN(point) && isFinite(point)
       );
@@ -205,10 +242,21 @@ export default function DrawingCanvas({
       }
       
       const points = performanceMode.current ? validPoints : smoothPoints(validPoints, 0.5);
-      
-      // Generate unique key by combining line id with array index to prevent duplicates
-      // Use a stable identifier that doesn't change unless the line actually changes
       const uniqueKey = line.id ? `line-${line.id}-idx-${i}` : `line-noId-${i}`;
+      
+      // Determine if line should be clickable
+      const isClickable = tool === 'eraser' || (tool !== 'pen' && line.tool === 'pen');
+      const isHovered = hoveredLineIndex === i;
+      const isPenLine = line.tool === 'pen';
+      
+      // Calculate shadow properties
+      const shadowColor = isPenLine && isHovered && tool !== 'eraser' 
+        ? '#3b82f6' 
+        : (line.tool === 'pen' ? line.color : undefined);
+      const shadowBlur = isPenLine && isHovered && tool !== 'eraser' 
+        ? 4 
+        : (line.tool === 'pen' ? 1 : 0);
+      const shadowOpacity = isPenLine && isHovered && tool !== 'eraser' ? 0.4 : 0.1;
       
       return (
         <Line
@@ -219,19 +267,25 @@ export default function DrawingCanvas({
           tension={0.4}
           lineCap="round"
           lineJoin="round"
-          shadowColor={line.tool === 'pen' ? line.color : undefined}
-          shadowBlur={line.tool === 'pen' ? 1 : 0}
-          shadowOpacity={0.1}
+          shadowColor={shadowColor}
+          shadowBlur={shadowBlur}
+          shadowOpacity={shadowOpacity}
           globalCompositeOperation={
             line.tool === 'eraser' ? 'destination-out' : 'source-over'
           }
           perfectDrawEnabled={false}
-          listening={tool === 'eraser'}
-          onClick={tool === 'eraser' ? () => handleLineClick(i) : undefined}
+          listening={isClickable}
+          onClick={isClickable ? () => handleLineClick(i) : undefined}
+          onTap={isClickable ? () => handleLineClick(i) : undefined} // For touch devices
+          onMouseEnter={isClickable && isPenLine && tool !== 'eraser' ? () => setHoveredLineIndex(i) : undefined}
+          onMouseLeave={isClickable && isPenLine && tool !== 'eraser' ? () => setHoveredLineIndex(null) : undefined}
+          hitStrokeWidth={Math.max(line.strokeWidth || 2, 8)} // Make lines easier to click
+          // Add hover effects for pen lines
+          opacity={isPenLine && isHovered && tool !== 'eraser' ? 0.8 : 1}
         />
       );
-    }).filter(Boolean); // Remove null entries
-  }, [lines, tool, handleLineClick]);
+    }).filter(Boolean);
+  }, [lines, tool, handleLineClick, hoveredLineIndex]);
 
   useEffect(() => {
     setLines(initialLines);
@@ -240,6 +294,10 @@ export default function DrawingCanvas({
   useEffect(() => {
     setStickyNotes(initialStickyNotes);
   }, [initialStickyNotes]);
+
+  useEffect(() => {
+    setFrames(initialFrames);
+  }, [initialFrames]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -300,7 +358,7 @@ export default function DrawingCanvas({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [showGrid, showControls]); // eslint-disable-line react-hooks/exhaustive-deps
+  });
 
   const resetZoom = useCallback(() => {
     const stage = stageRef.current;
@@ -396,7 +454,6 @@ export default function DrawingCanvas({
     const stage = stageRef.current;
     if (!stage || lines.length === 0) return;
     
-    // Calculate bounding box of all lines
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     
     lines.forEach(line => {
@@ -442,35 +499,77 @@ export default function DrawingCanvas({
   }, [stageRef, lines, dimensions]);
 
   const handleMouseDown = useCallback((e: KonvaEventObject<MouseEvent>) => {
+    const stage = e.currentTarget.getStage();
+    if (!stage) return;
+
     if (isSpacePressed.current || tool === 'select') {
       isPanning.current = true;
+      if (tool === 'select' && e.target === stage && onStickyNoteSelectAction) {
+        onStickyNoteSelectAction('');
+      }
+      return;
+    }
+
+    let clickedOnStickyNote = false;
+    let currentNode: Konva.Node | Konva.Stage | null = e.target;
+    while (currentNode && currentNode !== stage) {
+      if (typeof currentNode.hasName === 'function' && currentNode.hasName('sticky-note')) {
+        clickedOnStickyNote = true;
+        break;
+      }
+      currentNode = currentNode.getParent();
+    }
+
+    if (clickedOnStickyNote) {
       return;
     }
     
-    // Check if clicking on background (Stage/Layer) vs other elements
-    const targetName = e.target.getClassName();
-    const isBackgroundClick = targetName === 'Stage' || targetName === 'Layer';
-    
-    // For sticky note tool: only trigger canvas click on background, not on existing sticky notes
     if (tool === 'sticky-note') {
-      if (isBackgroundClick && onCanvasClickAction) {
+      if (onCanvasClickAction) {
         onCanvasClickAction(e);
       }
-      // Always return early for sticky note tool to prevent drawing
+      return;
+    }
+
+    if (tool === 'frame') {
+      // Start frame creation  
+      const framePos = stage.getPointerPosition();
+      if (framePos) {
+        const transform = stage.getAbsoluteTransform().copy();
+        transform.invert();
+        const stagePoint = transform.point(framePos);
+        
+        if (stagePoint) {
+          setFrameCreationMode({
+            isCreating: true,
+            startPoint: stagePoint,
+            currentFrame: {
+              id: `frame-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              x: stagePoint.x,
+              y: stagePoint.y,
+              width: 0,
+              height: 0,
+              name: 'New Frame',
+              frameType: 'basic',
+              style: {
+                fill: 'rgba(255, 255, 255, 0.8)',
+                stroke: '#3b82f6',
+                strokeWidth: 2,
+              },
+            },
+          });
+        }
+      }
       return;
     }
     
-    // Don't start drawing if clicking on sticky notes or other non-background elements
-    if (!isBackgroundClick && tool !== 'eraser') {
+    if (tool !== 'pen' && tool !== 'eraser') {
       return;
     }
-    
+
     setIsDrawing(true);
-    const pos = e.target.getStage()?.getPointerPosition();
+    const pos = stage.getPointerPosition();
     if (!pos) return;
-    
-    const stage = stageRef.current;
-    if (!stage) return;
     
     const transform = stage.getAbsoluteTransform().copy();
     transform.invert();
@@ -485,12 +584,10 @@ export default function DrawingCanvas({
     };
     
     setLines(prev => [...prev, newLine]);
-    
-    // Broadcast the start of drawing for real-time collaboration
     if (onRealTimeDrawingAction) {
       onRealTimeDrawingAction(newLine);
     }
-  }, [tool, color, strokeWidth, stageRef, onRealTimeDrawingAction, onCanvasClickAction]);
+  }, [tool, color, strokeWidth, onRealTimeDrawingAction, onCanvasClickAction, onStickyNoteSelectAction, isSpacePressed]);
 
   const handleMouseMove = useCallback((e: KonvaEventObject<MouseEvent>) => {
     const stage = e.target.getStage();
@@ -500,6 +597,35 @@ export default function DrawingCanvas({
     moveCursorAction(point.x, point.y);
 
     if (isPanning.current) {
+      return;
+    }
+
+    // Handle frame creation
+    if (frameCreationMode.isCreating && frameCreationMode.startPoint && frameCreationMode.currentFrame) {
+      const stage = e.target.getStage();
+      const transform = stage?.getAbsoluteTransform().copy();
+      if (transform) {
+        transform.invert();
+        const stagePoint = transform.point(point);
+        
+        if (stagePoint) {
+          const startX = Math.min(frameCreationMode.startPoint.x, stagePoint.x);
+          const startY = Math.min(frameCreationMode.startPoint.y, stagePoint.y);
+          const width = Math.abs(stagePoint.x - frameCreationMode.startPoint.x);
+          const height = Math.abs(stagePoint.y - frameCreationMode.startPoint.y);
+          
+          setFrameCreationMode(prev => ({
+            ...prev,
+            currentFrame: prev.currentFrame ? {
+              ...prev.currentFrame,
+              x: startX,
+              y: startY,
+              width,
+              height,
+            } : null,
+          }));
+        }
+      }
       return;
     }
 
@@ -528,7 +654,6 @@ export default function DrawingCanvas({
         };
         newLines[newLines.length - 1] = updatedLine;
         
-        // Broadcast real-time drawing update for live collaboration
         if (onRealTimeLineUpdateAction) {
           onRealTimeLineUpdateAction(updatedLine);
         }
@@ -538,11 +663,59 @@ export default function DrawingCanvas({
   }, [isDrawing, moveCursorAction, onRealTimeLineUpdateAction]);
 
   const handleMouseUp = useCallback(() => {
+    // Handle frame creation completion
+    if (frameCreationMode.isCreating && frameCreationMode.currentFrame) {
+      const currentFrame = frameCreationMode.currentFrame;
+      
+      // Only create frame if it has meaningful dimensions
+      if (currentFrame.width && currentFrame.height && 
+          currentFrame.width > 10 && currentFrame.height > 10) {
+        
+        const newFrame: FrameElement = {
+          ...currentFrame,
+          type: 'frame',
+          metadata: {
+            labels: [],
+            tags: [],
+            status: 'draft',
+            priority: 'low',
+            comments: [],
+          },
+          hierarchy: {
+            childIds: [],
+            level: 0,
+            order: frames.length,
+          },
+          createdBy: 'current-user', // You can get this from session
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          version: 1,
+        } as FrameElement;
+        
+        setFrames(prev => [...prev, newFrame]);
+        
+        if (onFrameAddAction) {
+          onFrameAddAction(newFrame);
+        }
+        
+        if (onRealTimeFrameAction) {
+          onRealTimeFrameAction(newFrame);
+        }
+      }
+      
+      // Reset frame creation mode
+      setFrameCreationMode({
+        isCreating: false,
+        startPoint: null,
+        currentFrame: null,
+      });
+    }
+
     setIsDrawing(false);
     lastPointer.current = null;
     isPanning.current = false;
     onDrawEndAction(lines);
-  }, [lines, onDrawEndAction]);
+  }, [frameCreationMode, frames, onFrameAddAction, onRealTimeFrameAction, lines, onDrawEndAction]);
 
   const handleWheel = useCallback((e: KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault();
@@ -577,6 +750,63 @@ export default function DrawingCanvas({
     performanceMode.current = newScale < 0.2;
   }, []);
 
+  const handleStickyNoteDragStart = useCallback(() => {
+    setIsStickyNoteDragging(true);
+    if (onStickyNoteDragStartAction) {
+      onStickyNoteDragStartAction();
+    }
+  }, [onStickyNoteDragStartAction]);
+
+  const handleStickyNoteDragEnd = useCallback(() => {
+    setIsStickyNoteDragging(false);
+    if (onStickyNoteDragEndAction) {
+      onStickyNoteDragEndAction();
+    }
+  }, [onStickyNoteDragEndAction]);
+
+  // Frame event handlers
+  const handleFrameSelect = useCallback((frameId: string) => {
+    if (onFrameSelectAction) {
+      onFrameSelectAction(frameId);
+    }
+  }, [onFrameSelectAction]);
+
+  const handleFrameUpdate = useCallback((updatedFrame: FrameElement) => {
+    setFrames(prev => prev.map(frame => 
+      frame.id === updatedFrame.id ? updatedFrame : frame
+    ));
+    
+    if (onFrameUpdateAction) {
+      onFrameUpdateAction(updatedFrame);
+    }
+    
+    if (onRealTimeFrameAction) {
+      onRealTimeFrameAction(updatedFrame);
+    }
+  }, [onFrameUpdateAction, onRealTimeFrameAction]);
+
+  const handleFrameDelete = useCallback((frameId: string) => {
+    setFrames(prev => prev.filter(frame => frame.id !== frameId));
+    
+    if (onFrameDeleteAction) {
+      onFrameDeleteAction(frameId);
+    }
+  }, [onFrameDeleteAction]);
+
+  const handleFrameDragStart = useCallback(() => {
+    setIsFrameDragging(true);
+    if (onFrameDragStartAction) {
+      onFrameDragStartAction();
+    }
+  }, [onFrameDragStartAction]);
+
+  const handleFrameDragEnd = useCallback(() => {
+    setIsFrameDragging(false);
+    if (onFrameDragEndAction) {
+      onFrameDragEndAction();
+    }
+  }, [onFrameDragEndAction]);
+
   const getCursor = () => {
     if (isSpacePressed.current) return 'grab';
     if (isPanning.current) return 'grabbing';
@@ -585,6 +815,8 @@ export default function DrawingCanvas({
       case 'select': return 'default';
       case 'pen': return 'crosshair';
       case 'eraser': return 'cell';
+      case 'sticky-note': return 'copy';
+      case 'frame': return frameCreationMode.isCreating ? 'crosshair' : 'copy';
       default: return 'crosshair';
     }
   };
@@ -598,10 +830,8 @@ export default function DrawingCanvas({
 
   return (
     <div className="relative w-full h-full bg-gradient-to-br from-slate-50 to-gray-100 overflow-hidden">
-      {/* Enhanced Controls Panel - Repositioned to avoid floating toolbar */}
       {showControls && (
         <div className="absolute top-6 right-6 z-30 flex flex-col gap-3 max-w-xs">
-          {/* Main Control Panel with improved design */}
           <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-white/30 overflow-hidden">
             <div className="p-4 border-b border-gray-100/50">
               <div className="flex items-center justify-between">
@@ -624,7 +854,6 @@ export default function DrawingCanvas({
             
             {!controlsCollapsed && (
               <div className="p-4 space-y-4">
-                {/* Zoom Controls */}
                 <div className="space-y-2">
                   <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Zoom</div>
                   <div className="flex gap-1">
@@ -652,7 +881,6 @@ export default function DrawingCanvas({
                   </div>
                 </div>
 
-                {/* View Controls */}
                 <div className="space-y-2">
                   <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">View</div>
                   <div className="flex gap-1">
@@ -690,7 +918,6 @@ export default function DrawingCanvas({
         </div>
       )}
 
-      {/* Show Controls Button */}
       {!showControls && (
         <button
           onClick={() => setShowControls(true)}
@@ -701,7 +928,6 @@ export default function DrawingCanvas({
         </button>
       )}
 
-      {/* Canvas Stage */}
       <Stage
         ref={stageRef}
         width={dimensions.width}
@@ -712,8 +938,8 @@ export default function DrawingCanvas({
         onWheel={handleWheel}
         draggable={tool === 'select' || isSpacePressed.current}
         style={{ cursor: getCursor() }}
+        hitOnDragEnabled={true}
       >
-        {/* Grid Layer */}
         <Layer>
           {showGrid && (
             <EnhancedGrid 
@@ -726,12 +952,43 @@ export default function DrawingCanvas({
           )}
         </Layer>
         
-        {/* Drawing Layer */}
         <Layer>
           {memoizedLines}
         </Layer>
         
-        {/* Sticky Notes Layer */}
+        <Layer>
+          {/* Render existing frames */}
+          {frames.map((frame, index) => (
+            <Frame
+              key={`frame-${frame.id}-idx-${index}`}
+              frame={frame}
+              isSelected={selectedFrame === frame.id}
+              isDraggable={tool === 'select' || tool === 'frame'}
+              onSelect={handleFrameSelect}
+              onUpdate={handleFrameUpdate}
+              onDelete={handleFrameDelete}
+              onDragStart={handleFrameDragStart}
+              onDragEnd={handleFrameDragEnd}
+              scale={stageScale}
+              stageRef={stageRef}
+            />
+          ))}
+          
+          {/* Render frame being created */}
+          {frameCreationMode.isCreating && frameCreationMode.currentFrame && (
+            <Frame
+              frame={frameCreationMode.currentFrame as FrameElement}
+              isSelected={true}
+              isDraggable={false}
+              onSelect={() => {}}
+              onUpdate={() => {}}
+              onDelete={() => {}}
+              scale={stageScale}
+              stageRef={stageRef}
+            />
+          )}
+        </Layer>
+        
         <Layer>
           {stickyNotes.map((stickyNote, index) => (
             <StickyNote
@@ -748,11 +1005,12 @@ export default function DrawingCanvas({
               onSelectAction={onStickyNoteSelectAction || (() => {})}
               onTextChangeAction={(id, text) => {
                 if (onStickyNoteUpdateAction) {
-                  onStickyNoteUpdateAction({
+                  const updatedStickyNote = {
                     ...stickyNote,
                     text,
                     updatedAt: Date.now(),
-                  });
+                  };
+                  onStickyNoteUpdateAction(updatedStickyNote);
                 }
               }}
               onPositionChangeAction={(id, x, y) => {
@@ -766,17 +1024,17 @@ export default function DrawingCanvas({
                 }
               }}
               onDeleteAction={onStickyNoteDeleteAction || (() => {})}
+              onDragStartAction={() => handleStickyNoteDragStart()}
+              onDragEndAction={() => handleStickyNoteDragEnd()}
               isDraggable={tool === 'select' || tool === 'sticky-note'}
             />
           ))}
         </Layer>
         
-        {/* Live Cursors Layer */}
         <Layer>
           <LiveCursors cursors={cursors} />
         </Layer>
         
-        {/* Tool Preview Layer */}
         <Layer>
           {tool === 'eraser' && lastPointer.current && (
             <Circle
@@ -792,9 +1050,7 @@ export default function DrawingCanvas({
         </Layer>
       </Stage>
 
-      {/* Enhanced Status Bar */}
       <div className="absolute bottom-6 left-6 right-6 z-30 flex items-center justify-between">
-        {/* Left side - Performance and Pan Mode */}
         <div className="flex items-center gap-3">
           {performanceMode.current && (
             <div className="bg-amber-50/90 backdrop-blur-sm text-amber-700 border border-amber-200/60 rounded-full px-4 py-2 text-xs font-medium shadow-sm">
@@ -806,6 +1062,34 @@ export default function DrawingCanvas({
             <div className="bg-blue-50/90 backdrop-blur-sm text-blue-700 border border-blue-200/60 rounded-full px-4 py-2 text-xs font-medium shadow-sm flex items-center gap-2">
               <Move size={12} />
               Pan Mode
+            </div>
+          )}
+
+          {isStickyNoteDragging && (
+            <div className="bg-purple-50/90 backdrop-blur-sm text-purple-700 border border-purple-200/60 rounded-full px-4 py-2 text-xs font-medium shadow-sm flex items-center gap-2">
+              <Move size={12} />
+              Dragging Note
+            </div>
+          )}
+
+          {isFrameDragging && (
+            <div className="bg-indigo-50/90 backdrop-blur-sm text-indigo-700 border border-indigo-200/60 rounded-full px-4 py-2 text-xs font-medium shadow-sm flex items-center gap-2">
+              <Move size={12} />
+              Moving Frame
+            </div>
+          )}
+
+          {frameCreationMode.isCreating && (
+            <div className="bg-blue-50/90 backdrop-blur-sm text-blue-700 border border-blue-200/60 rounded-full px-4 py-2 text-xs font-medium shadow-sm flex items-center gap-2 animate-pulse">
+              <Grid size={12} />
+              Creating Frame
+            </div>
+          )}
+
+          {hoveredLineIndex !== null && tool !== 'pen' && tool !== 'eraser' && (
+            <div className="bg-indigo-50/90 backdrop-blur-sm text-indigo-700 border border-indigo-200/60 rounded-full px-4 py-2 text-xs font-medium shadow-sm flex items-center gap-2 animate-pulse">
+              <PenTool size={12} />
+              Click to activate pen tool
             </div>
           )}
         </div>

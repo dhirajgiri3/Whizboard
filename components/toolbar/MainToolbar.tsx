@@ -12,13 +12,14 @@ import {
   PenTool,
   Trash2,
   StickyNote,
+  Square,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 const cn = (...classes: (string | undefined | null | boolean)[]) =>
   classes.filter(Boolean).join(" ");
 
-export type Tool = "pen" | "eraser" | "select" | "sticky-note";
+export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame";
 
 interface MainToolbarProps {
   tool: Tool;
@@ -75,6 +76,9 @@ export default function MainToolbar({
           break;
         case 'n':
           setToolAction('sticky-note');
+          break;
+        case 'f':
+          setToolAction('frame');
           break;
       }
 
@@ -220,6 +224,12 @@ export default function MainToolbar({
               label="Sticky Note (N)"
             />
             <ToolButton
+              isActive={tool === "frame"}
+              onClick={() => setToolAction("frame")}
+              icon={Square}
+              label="Frame (F)"
+            />
+            <ToolButton
               isActive={tool === "eraser"}
               onClick={() => setToolAction("eraser")}
               icon={Eraser}
@@ -298,6 +308,12 @@ export default function MainToolbar({
               onClick={() => setToolAction("sticky-note")}
               icon={StickyNote}
               label="Sticky Note (N)"
+            />
+            <ToolButton
+              isActive={tool === "frame"}
+              onClick={() => setToolAction("frame")}
+              icon={Square}
+              label="Frame (F)"
             />
             <ToolButton
               isActive={tool === "eraser"}

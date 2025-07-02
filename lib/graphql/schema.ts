@@ -302,13 +302,26 @@ builder.mutationType({
             const parsed = JSON.parse(act.data);
             elements.push({
               id: parsed.id || uuidv4(),
-              type: parsed.tool,
+              type: parsed.tool || parsed.type,
               data: parsed,
               style: { stroke: parsed.color, strokeWidth: parsed.strokeWidth },
               createdBy: session.user.id,
               createdAt: new Date(),
               updatedAt: new Date(),
             });
+          } else if (act.type === 'update') {
+            const parsed = JSON.parse(act.data);
+            const elementIndex = elements.findIndex(el => el.id === parsed.id);
+            if (elementIndex >= 0) {
+              // Update existing element
+              elements[elementIndex] = {
+                ...elements[elementIndex],
+                type: parsed.tool || parsed.type,
+                data: parsed,
+                style: { stroke: parsed.color, strokeWidth: parsed.strokeWidth },
+                updatedAt: new Date(),
+              };
+            }
           } else if (act.type === 'remove') {
             const removeId = JSON.parse(act.data).id;
             elements = elements.filter(el => el.id !== removeId);
@@ -366,13 +379,26 @@ builder.mutationType({
               const parsed = JSON.parse(act.data);
               elements.push({
                 id: parsed.id || uuidv4(),
-                type: parsed.tool,
+                type: parsed.tool || parsed.type,
                 data: parsed,
                 style: { stroke: parsed.color, strokeWidth: parsed.strokeWidth },
                 createdBy: session.user.id,
                 createdAt: new Date(),
                 updatedAt: new Date(),
               });
+            } else if (act.type === 'update') {
+              const parsed = JSON.parse(act.data);
+              const elementIndex = elements.findIndex(el => el.id === parsed.id);
+              if (elementIndex >= 0) {
+                // Update existing element
+                elements[elementIndex] = {
+                  ...elements[elementIndex],
+                  type: parsed.tool || parsed.type,
+                  data: parsed,
+                  style: { stroke: parsed.color, strokeWidth: parsed.strokeWidth },
+                  updatedAt: new Date(),
+                };
+              }
             } else if (act.type === 'remove') {
               const removeId = JSON.parse(act.data).id;
               elements = elements.filter(el => el.id !== removeId);
@@ -428,13 +454,26 @@ builder.mutationType({
             const parsed = JSON.parse(act.data);
             elements.push({
               id: parsed.id || uuidv4(),
-              type: parsed.tool,
+              type: parsed.tool || parsed.type,
               data: parsed,
               style: { stroke: parsed.color, strokeWidth: parsed.strokeWidth },
               createdBy: session.user.id,
               createdAt: new Date(),
               updatedAt: new Date(),
             });
+          } else if (act.type === 'update') {
+            const parsed = JSON.parse(act.data);
+            const elementIndex = elements.findIndex(el => el.id === parsed.id);
+            if (elementIndex >= 0) {
+              // Update existing element
+              elements[elementIndex] = {
+                ...elements[elementIndex],
+                type: parsed.tool || parsed.type,
+                data: parsed,
+                style: { stroke: parsed.color, strokeWidth: parsed.strokeWidth },
+                updatedAt: new Date(),
+              };
+            }
           } else if (act.type === 'remove') {
             const removeId = JSON.parse(act.data).id;
             elements = elements.filter(el => el.id !== removeId);
