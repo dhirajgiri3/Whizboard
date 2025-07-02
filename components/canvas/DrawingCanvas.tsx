@@ -195,7 +195,7 @@ export default function DrawingCanvas({
   const [hoveredLineIndex, setHoveredLineIndex] = useState<number | null>(null);
   const [isStickyNoteDragging, setIsStickyNoteDragging] = useState(false);
   const [isFrameDragging, setIsFrameDragging] = useState(false);
-  const [frameCreationMode, setFrameCreationMode] = useState<{
+  const frameCreationModeRef = useRef<{
     isCreating: boolean;
     startPoint: { x: number; y: number } | null;
     currentFrame: Partial<FrameElement> | null;
@@ -208,6 +208,9 @@ export default function DrawingCanvas({
   const performanceMode = useRef(false);
   const isSpacePressed = useRef(false);
   const isPanning = useRef(false);
+  const prevInitialFrames = useRef<FrameElement[]>(initialFrames);
+  const prevInitialLines = useRef<ILine[]>(initialLines);
+  const prevInitialStickyNotes = useRef<StickyNoteElement[]>(initialStickyNotes);
   
   const handleLineClick = useCallback(
     (lineIdx: number) => {
@@ -288,15 +291,25 @@ export default function DrawingCanvas({
   }, [lines, tool, handleLineClick, hoveredLineIndex]);
 
   useEffect(() => {
-    setLines(initialLines);
+    if (JSON.stringify(prevInitialLines.current) !== JSON.stringify(initialLines)) {
+      setLines(initialLines);
+      prevInitialLines.current = initialLines;
+    }
   }, [initialLines]);
 
   useEffect(() => {
-    setStickyNotes(initialStickyNotes);
+    if (JSON.stringify(prevInitialStickyNotes.current) !== JSON.stringify(initialStickyNotes)) {
+      setStickyNotes(initialStickyNotes);
+      prevInitialStickyNotes.current = initialStickyNotes;
+    }
   }, [initialStickyNotes]);
 
   useEffect(() => {
-    setFrames(initialFrames);
+    // Only update if frames actually changed, not just reference
+    if (JSON.stringify(prevInitialFrames.current) !== JSON.stringify(initialFrames)) {
+      setFrames(initialFrames);
+      prevInitialFrames.current = initialFrames;
+    }
   }, [initialFrames]);
 
   useEffect(() => {
@@ -310,55 +323,6 @@ export default function DrawingCanvas({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space') {
-        e.preventDefault();
-        isSpacePressed.current = true;
-      }
-      
-      if (e.ctrlKey || e.metaKey) {
-        switch (e.key) {
-          case '0':
-            e.preventDefault();
-            resetZoom();
-            break;
-          case 'g':
-            e.preventDefault();
-            setShowGrid(!showGrid);
-            break;
-          case '=':
-          case '+':
-            e.preventDefault();
-            zoomIn();
-            break;
-          case '-':
-            e.preventDefault();
-            zoomOut();
-            break;
-          case 'h':
-            e.preventDefault();
-            setShowControls(!showControls);
-            break;
-        }
-      }
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.code === 'Space') {
-        isSpacePressed.current = false;
-        isPanning.current = false;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  });
 
   const resetZoom = useCallback(() => {
     const stage = stageRef.current;
@@ -498,6 +462,55 @@ export default function DrawingCanvas({
     setStagePos(newPos);
   }, [stageRef, lines, dimensions]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        isSpacePressed.current = true;
+      }
+      
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key) {
+          case '0':
+            e.preventDefault();
+            resetZoom();
+            break;
+          case 'g':
+            e.preventDefault();
+            setShowGrid(prev => !prev);
+            break;
+          case '=':
+          case '+':
+            e.preventDefault();
+            zoomIn();
+            break;
+          case '-':
+            e.preventDefault();
+            zoomOut();
+            break;
+          case 'h':
+            e.preventDefault();
+            setShowControls(prev => !prev);
+            break;
+        }
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        isSpacePressed.current = false;
+        isPanning.current = false;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [resetZoom, zoomIn, zoomOut]);
+
   const handleMouseDown = useCallback((e: KonvaEventObject<MouseEvent>) => {
     const stage = e.currentTarget.getStage();
     if (!stage) return;
@@ -540,7 +553,7 @@ export default function DrawingCanvas({
         const stagePoint = transform.point(framePos);
         
         if (stagePoint) {
-          setFrameCreationMode({
+          frameCreationModeRef.current = {
             isCreating: true,
             startPoint: stagePoint,
             currentFrame: {
@@ -557,7 +570,7 @@ export default function DrawingCanvas({
                 strokeWidth: 2,
               },
             },
-          });
+          };
         }
       }
       return;
@@ -601,7 +614,7 @@ export default function DrawingCanvas({
     }
 
     // Handle frame creation
-    if (frameCreationMode.isCreating && frameCreationMode.startPoint && frameCreationMode.currentFrame) {
+    if (frameCreationModeRef.current.isCreating && frameCreationModeRef.current.startPoint && frameCreationModeRef.current.currentFrame) {
       const stage = e.target.getStage();
       const transform = stage?.getAbsoluteTransform().copy();
       if (transform) {
@@ -609,21 +622,21 @@ export default function DrawingCanvas({
         const stagePoint = transform.point(point);
         
         if (stagePoint) {
-          const startX = Math.min(frameCreationMode.startPoint.x, stagePoint.x);
-          const startY = Math.min(frameCreationMode.startPoint.y, stagePoint.y);
-          const width = Math.abs(stagePoint.x - frameCreationMode.startPoint.x);
-          const height = Math.abs(stagePoint.y - frameCreationMode.startPoint.y);
+          const startX = Math.min(frameCreationModeRef.current.startPoint.x, stagePoint.x);
+          const startY = Math.min(frameCreationModeRef.current.startPoint.y, stagePoint.y);
+          const width = Math.abs(stagePoint.x - frameCreationModeRef.current.startPoint.x);
+          const height = Math.abs(stagePoint.y - frameCreationModeRef.current.startPoint.y);
           
-          setFrameCreationMode(prev => ({
-            ...prev,
-            currentFrame: prev.currentFrame ? {
-              ...prev.currentFrame,
+          frameCreationModeRef.current = {
+            ...frameCreationModeRef.current,
+            currentFrame: frameCreationModeRef.current.currentFrame ? {
+              ...frameCreationModeRef.current.currentFrame,
               x: startX,
               y: startY,
               width,
               height,
             } : null,
-          }));
+          };
         }
       }
       return;
@@ -664,16 +677,28 @@ export default function DrawingCanvas({
 
   const handleMouseUp = useCallback(() => {
     // Handle frame creation completion
-    if (frameCreationMode.isCreating && frameCreationMode.currentFrame) {
-      const currentFrame = frameCreationMode.currentFrame;
+    if (frameCreationModeRef.current.isCreating && frameCreationModeRef.current.currentFrame) {
+      const currentFrame = frameCreationModeRef.current.currentFrame;
       
       // Only create frame if it has meaningful dimensions
       if (currentFrame.width && currentFrame.height && 
           currentFrame.width > 10 && currentFrame.height > 10) {
         
         const newFrame: FrameElement = {
-          ...currentFrame,
+          id: currentFrame.id || `frame-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           type: 'frame',
+          x: currentFrame.x || 0,
+          y: currentFrame.y || 0,
+          width: currentFrame.width,
+          height: currentFrame.height,
+          name: currentFrame.name || 'New Frame',
+          frameType: currentFrame.frameType || 'basic',
+          style: {
+            fill: 'rgba(255, 255, 255, 0.8)',
+            stroke: '#3b82f6',
+            strokeWidth: 2,
+            ...currentFrame.style,
+          },
           metadata: {
             labels: [],
             tags: [],
@@ -686,11 +711,11 @@ export default function DrawingCanvas({
             level: 0,
             order: frames.length,
           },
-          createdBy: 'current-user', // You can get this from session
+          createdBy: 'current-user',
           createdAt: Date.now(),
           updatedAt: Date.now(),
           version: 1,
-        } as FrameElement;
+        };
         
         setFrames(prev => [...prev, newFrame]);
         
@@ -704,18 +729,18 @@ export default function DrawingCanvas({
       }
       
       // Reset frame creation mode
-      setFrameCreationMode({
+      frameCreationModeRef.current = {
         isCreating: false,
         startPoint: null,
         currentFrame: null,
-      });
+      };
     }
 
     setIsDrawing(false);
     lastPointer.current = null;
     isPanning.current = false;
     onDrawEndAction(lines);
-  }, [frameCreationMode, frames, onFrameAddAction, onRealTimeFrameAction, lines, onDrawEndAction]);
+  }, [frames.length, onFrameAddAction, onRealTimeFrameAction, lines, onDrawEndAction]);
 
   const handleWheel = useCallback((e: KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault();
@@ -816,7 +841,7 @@ export default function DrawingCanvas({
       case 'pen': return 'crosshair';
       case 'eraser': return 'cell';
       case 'sticky-note': return 'copy';
-      case 'frame': return frameCreationMode.isCreating ? 'crosshair' : 'copy';
+      case 'frame': return frameCreationModeRef.current.isCreating ? 'crosshair' : 'copy';
       default: return 'crosshair';
     }
   };
@@ -964,9 +989,9 @@ export default function DrawingCanvas({
               frame={frame}
               isSelected={selectedFrame === frame.id}
               isDraggable={tool === 'select' || tool === 'frame'}
-              onSelect={handleFrameSelect}
-              onUpdate={handleFrameUpdate}
-              onDelete={handleFrameDelete}
+              onSelectAction={handleFrameSelect}
+              onUpdateAction={handleFrameUpdate}
+              onDeleteAction={handleFrameDelete}
               onDragStart={handleFrameDragStart}
               onDragEnd={handleFrameDragEnd}
               scale={stageScale}
@@ -975,14 +1000,14 @@ export default function DrawingCanvas({
           ))}
           
           {/* Render frame being created */}
-          {frameCreationMode.isCreating && frameCreationMode.currentFrame && (
+          {frameCreationModeRef.current.isCreating && frameCreationModeRef.current.currentFrame && (
             <Frame
-              frame={frameCreationMode.currentFrame as FrameElement}
+              frame={frameCreationModeRef.current.currentFrame as FrameElement}
               isSelected={true}
               isDraggable={false}
-              onSelect={() => {}}
-              onUpdate={() => {}}
-              onDelete={() => {}}
+              onSelectAction={() => {}}
+              onUpdateAction={() => {}}
+              onDeleteAction={() => {}}
               scale={stageScale}
               stageRef={stageRef}
             />
@@ -1079,7 +1104,7 @@ export default function DrawingCanvas({
             </div>
           )}
 
-          {frameCreationMode.isCreating && (
+          {frameCreationModeRef.current.isCreating && (
             <div className="bg-blue-50/90 backdrop-blur-sm text-blue-700 border border-blue-200/60 rounded-full px-4 py-2 text-xs font-medium shadow-sm flex items-center gap-2 animate-pulse">
               <Grid size={12} />
               Creating Frame

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Rect, Group, Text, Line, Circle, Path } from 'react-konva';
+import { Rect, Group, Text, Circle } from 'react-konva';
 import Konva from 'konva';
 import { FrameElement } from '@/types';
 import { KonvaEventObject } from 'konva/lib/Node';
@@ -10,9 +10,9 @@ interface FrameProps {
   frame: FrameElement;
   isSelected: boolean;
   isDraggable: boolean;
-  onSelect: (frameId: string) => void;
-  onUpdate: (frame: FrameElement) => void;
-  onDelete: (frameId: string) => void;
+  onSelectAction: (frameId: string) => void;
+  onUpdateAction: (frame: FrameElement) => void;
+  onDeleteAction: (frameId: string) => void;
   onDragStart?: () => void;
   onDragEnd?: () => void;
   onDoubleClick?: (frameId: string) => void;
@@ -32,9 +32,9 @@ export default function Frame({
   frame,
   isSelected,
   isDraggable,
-  onSelect,
-  onUpdate,
-  onDelete,
+  onSelectAction,
+  onUpdateAction,
+  onDeleteAction,
   onDragStart,
   onDragEnd,
   onDoubleClick,
@@ -118,8 +118,8 @@ export default function Frame({
   // Handle frame click
   const handleFrameClick = useCallback((e: KonvaEventObject<MouseEvent>) => {
     e.cancelBubble = true;
-    onSelect(frame.id);
-  }, [frame.id, onSelect]);
+    onSelectAction(frame.id);
+  }, [frame.id, onSelectAction]);
 
   // Handle frame double click
   const handleFrameDoubleClick = useCallback((e: KonvaEventObject<MouseEvent>) => {
@@ -130,7 +130,7 @@ export default function Frame({
   }, [frame.id, onDoubleClick]);
 
   // Handle frame drag
-  const handleFrameDragStart = useCallback((e: KonvaEventObject<DragEvent>) => {
+  const handleFrameDragStart = useCallback(() => {
     setIsDragging(true);
     if (onDragStart) onDragStart();
   }, [onDragStart]);
@@ -149,10 +149,10 @@ export default function Frame({
       version: frame.version + 1,
     };
 
-    onUpdate(updatedFrame);
-  }, [frame, onUpdate]);
+    onUpdateAction(updatedFrame);
+  }, [frame, onUpdateAction]);
 
-  const handleFrameDragEnd = useCallback((e: KonvaEventObject<DragEvent>) => {
+  const handleFrameDragEnd = useCallback(() => {
     setIsDragging(false);
     if (onDragEnd) onDragEnd();
   }, [onDragEnd]);
@@ -276,9 +276,9 @@ export default function Frame({
       version: frame.version + 1,
     };
 
-    onUpdate(updatedFrame);
+    onUpdateAction(updatedFrame);
     setLastPointer(pointer);
-  }, [isResizing, lastPointer, resizeHandle, frame, onUpdate]);
+  }, [isResizing, lastPointer, resizeHandle, frame, onUpdateAction]);
 
   const handleResizeEnd = useCallback(() => {
     setIsResizing(false);
@@ -315,13 +315,13 @@ export default function Frame({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
-        onDelete(frame.id);
+        onDeleteAction(frame.id);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isSelected, frame.id, onDelete]);
+  }, [isSelected, frame.id, onDeleteAction]);
 
   // Render frame border with enhanced styling
   const renderFrameBorder = () => {

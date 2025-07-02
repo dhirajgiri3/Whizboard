@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import MainToolbar, { Tool } from "@/components/toolbar/MainToolbar";
 import FloatingDrawingToolbar from "@/components/toolbar/FloatingDrawingToolbar";
 import FloatingStickyNoteToolbar from "@/components/toolbar/FloatingStickyNoteToolbar";
+import FloatingFrameToolbar from "@/components/toolbar/FloatingFrameToolbar";
 import CollaborationPanel from "@/components/layout/CollaborationPanel";
 import { useParams } from "next/navigation";
 import { Cursor } from "@/components/canvas/LiveCursors";
@@ -25,7 +26,7 @@ import { toast } from "sonner";
 import CanvasHeader from "@/components/layout/CanvasHeader";
 import { BoardProvider, useBoardContext } from "@/components/context/BoardContext";
 import useRealTimeCollaboration from "@/hooks/useRealTimeCollaboration";
-import { StickyNoteElement } from "@/types";
+import { StickyNoteElement, FrameElement } from "@/types";
 import { getRandomStickyNoteColor } from "@/components/canvas/StickyNote";
 import StickyNoteColorPicker, { useStickyNoteColorPicker } from "@/components/ui/StickyNoteColorPicker";
 
@@ -255,7 +256,9 @@ function BoardPageContent() {
 
   const [lines, setLines] = useState<ILine[]>([]);
   const [stickyNotes, setStickyNotes] = useState<StickyNoteElement[]>([]);
+  const [frames, setFrames] = useState<FrameElement[]>([]);
   const [selectedStickyNote, setSelectedStickyNote] = useState<string | null>(null);
+  const [selectedFrame, setSelectedFrame] = useState<string | null>(null);
   const [history, setHistory] = useState<unknown[]>([]); // BoardAction[]
   const [historyIndex, setHistoryIndex] = useState(0);
   
@@ -300,11 +303,11 @@ function BoardPageContent() {
       if (updatedBoard) {
         const allElements = updatedBoard.elements || [];
         
-        // Filter drawing lines (non-sticky-note elements)
+        // Filter drawing lines (non-sticky-note, non-frame elements)
         const lineElements = allElements
           .filter((el: { data: string }) => {
             const parsed = typeof el.data === 'string' ? JSON.parse(el.data) : el.data;
-            return parsed.type !== 'sticky-note';
+            return parsed.type !== 'sticky-note' && parsed.type !== 'frame';
           })
           .map((el: { data: string }) =>
             typeof el.data === 'string' ? JSON.parse(el.data) : el.data
@@ -320,8 +323,19 @@ function BoardPageContent() {
             typeof el.data === 'string' ? JSON.parse(el.data) : el.data
           );
         
+        // Filter frames
+        const frameElements = allElements
+          .filter((el: { data: string }) => {
+            const parsed = typeof el.data === 'string' ? JSON.parse(el.data) : el.data;
+            return parsed.type === 'frame';
+          })
+          .map((el: { data: string }) =>
+            typeof el.data === 'string' ? JSON.parse(el.data) : el.data
+          );
+        
         setLines(lineElements);
         setStickyNotes(stickyNoteElements);
+        setFrames(frameElements);
         
         // Only update history if it's provided (to preserve local state)
         if (updatedBoard.history !== undefined) {
@@ -342,11 +356,11 @@ function BoardPageContent() {
     if (initialData?.getBoard) {
       const allElements = initialData.getBoard.elements || [];
       
-      // Filter drawing lines (non-sticky-note elements)
+      // Filter drawing lines (non-sticky-note, non-frame elements)
       const lineElements = allElements
         .filter((el: { data: string }) => {
           const parsed = typeof el.data === 'string' ? JSON.parse(el.data) : el.data;
-          return parsed.type !== 'sticky-note';
+          return parsed.type !== 'sticky-note' && parsed.type !== 'frame';
         })
         .map((el: { data: string }) =>
           typeof el.data === 'string' ? JSON.parse(el.data) : el.data
@@ -362,8 +376,19 @@ function BoardPageContent() {
           typeof el.data === 'string' ? JSON.parse(el.data) : el.data
         );
       
+      // Filter frames
+      const frameElements = allElements
+        .filter((el: { data: string }) => {
+          const parsed = typeof el.data === 'string' ? JSON.parse(el.data) : el.data;
+          return parsed.type === 'frame';
+        })
+        .map((el: { data: string }) =>
+          typeof el.data === 'string' ? JSON.parse(el.data) : el.data
+        );
+      
       setLines(lineElements);
       setStickyNotes(stickyNoteElements);
+      setFrames(frameElements);
       setHistory(initialData.getBoard.history || []);
       setHistoryIndex(initialData.getBoard.historyIndex ?? 0);
     }
@@ -578,6 +603,175 @@ function BoardPageContent() {
     setSelectedStickyNote(stickyNoteId);
     logger.debug({ selectedStickyNote: stickyNoteId }, 'Sticky note selected');
   }, []);
+
+  // Frame Handlers
+  const handleFrameAdd = useCallback(async (frame: FrameElement) => {
+    if (boardId) {
+      try {
+        const { data } = await addBoardAction({
+          variables: {
+            boardId,
+            action: {
+              type: 'add',
+              data: JSON.stringify(frame),
+            },
+          },
+        });
+        if (data?.addBoardAction) {
+          // Update frames from server response
+          const allElements = data.addBoardAction.elements || [];
+          const frameElements = allElements
+            .filter((el: { type: string; data: string }) => 
+              (typeof el.data === 'string' ? JSON.parse(el.data) : el.data).type === 'frame'
+            )
+            .map((el: { data: string }) => 
+              typeof el.data === 'string' ? JSON.parse(el.data) : el.data
+            );
+          setFrames(frameElements);
+          setHistory(data.addBoardAction.history || []);
+          setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
+          updateBoardTimestamp(boardId);
+        }
+      } catch (err) {
+        logger.error({ err }, 'Failed to add frame');
+      }
+    }
+  }, [boardId, addBoardAction, updateBoardTimestamp]);
+
+  const handleFrameUpdate = useCallback(async (updatedFrame: FrameElement) => {
+    if (boardId) {
+      try {
+        const { data } = await addBoardAction({
+          variables: {
+            boardId,
+            action: {
+              type: 'update',
+              data: JSON.stringify(updatedFrame),
+            },
+          },
+        });
+        if (data?.addBoardAction) {
+          // Update frames from server response
+          const allElements = data.addBoardAction.elements || [];
+          const frameElements = allElements
+            .filter((el: { type: string; data: string }) => 
+              (typeof el.data === 'string' ? JSON.parse(el.data) : el.data).type === 'frame'
+            )
+            .map((el: { data: string }) => 
+              typeof el.data === 'string' ? JSON.parse(el.data) : el.data
+            );
+          setFrames(frameElements);
+          updateBoardTimestamp(boardId);
+        }
+      } catch (err) {
+        logger.error({ err }, 'Failed to update frame');
+      }
+    }
+  }, [boardId, addBoardAction, updateBoardTimestamp]);
+
+  const handleFrameDelete = useCallback(async (frameId: string) => {
+    if (!frameId || !boardId) {
+      logger.warn({ frameId, boardId }, 'Invalid frame delete request');
+      return;
+    }
+    
+    logger.debug({ frameId, boardId }, 'Attempting to delete frame');
+    
+    try {
+      const { data } = await addBoardAction({
+        variables: {
+          boardId,
+          action: {
+            type: 'remove',
+            data: JSON.stringify({ id: frameId, type: 'frame' }),
+          },
+        },
+      });
+      if (data?.addBoardAction) {
+        // Update frames from server response
+        const allElements = data.addBoardAction.elements || [];
+        const frameElements = allElements
+          .filter((el: { type: string; data: string }) => 
+            (typeof el.data === 'string' ? JSON.parse(el.data) : el.data).type === 'frame'
+          )
+          .map((el: { data: string }) => 
+            typeof el.data === 'string' ? JSON.parse(el.data) : el.data
+          );
+        setFrames(frameElements);
+        setHistory(data.addBoardAction.history || []);
+        setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
+        updateBoardTimestamp(boardId);
+        setSelectedFrame(null);
+        logger.debug({ deletedId: frameId }, 'Frame deleted successfully');
+      }
+    } catch (err) {
+      logger.error({ error: err, frameId }, 'Failed to delete frame');
+    }
+  }, [boardId, addBoardAction, updateBoardTimestamp]);
+
+  const handleFrameSelect = useCallback((frameId: string) => {
+    // Always select the clicked frame (no toggle behavior)
+    setSelectedFrame(frameId);
+    logger.debug({ selectedFrame: frameId }, 'Frame selected');
+  }, []);
+
+  const handleFrameDragStart = useCallback(() => {
+    setIsDragInProgress(true);
+    // Clear any existing timeout
+    if (dragTimeoutRef.current) {
+      clearTimeout(dragTimeoutRef.current);
+      dragTimeoutRef.current = null;
+    }
+  }, []);
+
+  const handleFrameDragEnd = useCallback(() => {
+    setIsDragInProgress(false);
+    setRecentDragEnd(true);
+    
+    // Clear the recent drag flag after a short delay
+    dragTimeoutRef.current = setTimeout(() => {
+      setRecentDragEnd(false);
+      dragTimeoutRef.current = null;
+    }, 150); // 150ms delay to prevent immediate canvas clicks
+  }, []);
+
+  // Frame preset creation handler for FloatingFrameToolbar
+  const handleFrameCreate = useCallback((preset: { dimensions: { width: number; height: number }; name: string; frameType: FrameElement['frameType']; defaultStyle: Partial<FrameElement['style']> }) => {
+    const newFrame: FrameElement = {
+      id: `frame-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type: 'frame',
+      x: 100, // Default position
+      y: 100,
+      width: preset.dimensions.width,
+      height: preset.dimensions.height,
+      name: preset.name,
+      frameType: preset.frameType,
+      style: {
+        fill: 'rgba(255, 255, 255, 0.8)',
+        stroke: '#3b82f6',
+        strokeWidth: 2,
+        ...preset.defaultStyle,
+      },
+      metadata: {
+        labels: [],
+        tags: [],
+        status: 'draft',
+        priority: 'low',
+        comments: [],
+      },
+      hierarchy: {
+        childIds: [],
+        level: 0,
+        order: frames.length,
+      },
+      createdBy: session?.user?.id || 'unknown',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      version: 1,
+    };
+    
+    handleFrameAdd(newFrame);
+  }, [handleFrameAdd, frames.length, session?.user?.id]);
 
   // Enhanced drag state management
   const handleStickyNoteDragStart = useCallback(() => {
