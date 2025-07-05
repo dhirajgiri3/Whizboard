@@ -1519,12 +1519,12 @@ function BoardPageContent() {
             type: "text",
             x: stagePos.x,
             y: stagePos.y,
-            width: 200,
-            height: 30,
+            width: 300,
+            height: 48,
             text: "Type your text here...",
             formatting: {
               fontFamily: "Arial",
-              fontSize: 16,
+              fontSize: 28,
               color: color,
               bold: false,
               italic: false,
@@ -2372,11 +2372,11 @@ function BoardPageContent() {
             className="max-lg:hidden"
           />
 
-          {/* Enhanced Floating Text Toolbar */}
-          {(selectedTextElement !== null && !editingTextElement) && (
+          {/* Floating Text Toolbar */}
+          {(tool === "text" || selectedTextElement !== null) && (
             <div className="max-lg:hidden">
               <FloatingTextToolbar
-                isActive={selectedTextElement !== null && !editingTextElement}
+                isActive={true}
                 selectedTextElements={
                   selectedTextElement
                     ? textElements.filter((t) => t.id === selectedTextElement)

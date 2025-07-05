@@ -55,13 +55,30 @@ const FONT_FAMILIES = [
 // Font size presets
 const FONT_SIZES = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 60, 72, 96];
 
-// Color presets
+// Color presets with better contrast and organization
 const COLOR_PRESETS = [
-  '#000000', '#374151', '#6b7280', '#9ca3af',
-  '#ef4444', '#f97316', '#f59e0b', '#eab308',
-  '#22c55e', '#10b981', '#06b6d4', '#0ea5e9',
-  '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7',
-  '#ec4899', '#f43f5e', '#ffffff', '#f3f4f6',
+  // Grays and blacks
+  '#000000', '#1f2937', '#374151', '#6b7280', '#9ca3af', '#d1d5db',
+  // Reds
+  '#dc2626', '#ef4444', '#f87171', '#fca5a5',
+  // Oranges
+  '#ea580c', '#f97316', '#fb923c', '#fdba74',
+  // Yellows
+  '#ca8a04', '#eab308', '#facc15', '#fde047',
+  // Greens
+  '#16a34a', '#22c55e', '#4ade80', '#86efac',
+  // Teals
+  '#0d9488', '#14b8a6', '#5eead4', '#99f6e4',
+  // Blues
+  '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd',
+  // Indigos
+  '#4f46e5', '#6366f1', '#818cf8', '#a5b4fc',
+  // Purples
+  '#7c3aed', '#8b5cf6', '#a78bfa', '#c4b5fd',
+  // Pinks
+  '#db2777', '#ec4899', '#f472b6', '#f9a8d4',
+  // White
+  '#ffffff', '#f9fafb',
 ];
 
 const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
@@ -210,17 +227,18 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
         }}
         style={eyeButtonStyles}
         className={cn(
-          "w-14 h-14 rounded-2xl bg-white/95 backdrop-blur-lg border border-gray-200/50",
-          "flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300",
-          "text-gray-600 hover:bg-white group cursor-grab active:cursor-grabbing",
-          "hover:scale-105 active:scale-95 hover:text-indigo-600 hover:border-indigo-300",
-          isDragging && "cursor-grabbing scale-105",
-          isHidden && "animate-pulse"
+          "w-14 h-14 rounded-2xl bg-white/98 backdrop-blur-xl border border-gray-200/80",
+          "flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300",
+          "text-gray-700 hover:bg-white group cursor-grab active:cursor-grabbing",
+          "hover:scale-105 active:scale-95 hover:text-blue-600 hover:border-blue-300/60",
+          "ring-1 ring-black/5",
+          isDragging && "cursor-grabbing scale-105 shadow-xl",
+          isHidden && "animate-pulse opacity-80"
         )}
         title="Click to show text toolbar • Drag to move"
         aria-label="Show text toolbar"
       >
-        <Type size={20} />
+        <Type size={20} className="drop-shadow-sm" />
       </button>
 
       {/* Main Toolbar */}
@@ -229,12 +247,12 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
         onClick={handleClick}
         style={toolbarStyles}
         className={cn(
-          "flex flex-col bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50",
+          "flex flex-col bg-white/98 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-200/60",
           "transition-all duration-300 ease-out w-[420px]",
           "max-h-[70vh] min-h-[180px]",
-          isDragging && "cursor-grabbing select-none shadow-3xl scale-[1.02]",
-          "ring-2 ring-indigo-500/20",
-          !isDragging && "hover:shadow-3xl hover:scale-[1.01]",
+          "ring-1 ring-black/5",
+          isDragging && "cursor-grabbing select-none shadow-2xl scale-[1.02]",
+          !isDragging && "hover:shadow-2xl hover:scale-[1.01]",
           isHidden && "opacity-0 pointer-events-none scale-95",
           className
         )}
@@ -242,45 +260,45 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
         aria-label="Text formatting tools"
       >
         {/* Header */}
-        <div className="flex-shrink-0 border-b border-gray-100/50 rounded-t-3xl bg-gradient-to-r from-gray-50/80 to-white/80 backdrop-blur-sm">
-          <div className="flex items-center justify-between px-6 py-4 group">
+        <div className="flex-shrink-0 border-b border-gray-100 rounded-t-2xl bg-gradient-to-r from-gray-50/90 to-white/90 backdrop-blur-sm">
+          <div className="flex items-center justify-between px-5 py-4 group">
             {/* Drag Handle Area */}
             <div 
               ref={dragHandleRef}
               onMouseDown={handleMouseDown}
               onDoubleClick={handleDoubleClick}
               className={cn(
-                "flex items-center gap-4 cursor-grab active:cursor-grabbing flex-1",
+                "flex items-center gap-3 cursor-grab active:cursor-grabbing flex-1",
                 "transition-all duration-300 rounded-xl p-3 -m-3 border-2 border-transparent",
-                "hover:bg-indigo-50/60 hover:border-indigo-200/50",
-                isDragging && "cursor-grabbing bg-indigo-50/80 border-indigo-300/50 scale-[1.02]"
+                "hover:bg-blue-50/80 hover:border-blue-200/60",
+                isDragging && "cursor-grabbing bg-blue-50/90 border-blue-300/60 scale-[1.02]"
               )}
               title="Drag to move • Double-click to reset position"
             >
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-indigo-500 to-purple-600 transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white shadow-md bg-gradient-to-br from-blue-500 to-blue-600 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg">
                 <Type size={18} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-semibold text-gray-800 text-base truncate">
+                <div className="font-semibold text-gray-900 text-base truncate">
                   Text Formatting
                 </div>
-                <div className="text-sm text-gray-500 flex items-center gap-2">
-                  <span className="font-mono text-xs">{currentFormatting.fontFamily}</span>
+                <div className="text-sm text-gray-600 flex items-center gap-2">
+                  <span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">{currentFormatting.fontFamily}</span>
                   <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-                  <span className="text-xs">{currentFormatting.fontSize}px</span>
+                  <span className="text-xs font-medium">{currentFormatting.fontSize}px</span>
                 </div>
               </div>
-              <div className="flex items-center text-gray-400 opacity-60 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center text-gray-500 opacity-60 group-hover:opacity-100 transition-opacity">
                 <Grip size={16} />
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-2 ml-4">
+            <div className="flex items-center gap-1 ml-4">
               <button
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={resetPosition}
-                className="p-2.5 rounded-xl transition-all duration-200 text-gray-400 hover:text-gray-600 hover:bg-gray-100/80 hover:scale-105"
+                className="p-2.5 rounded-xl transition-all duration-200 text-gray-500 hover:text-gray-700 hover:bg-gray-100 hover:scale-105 active:scale-95"
                 title="Reset position"
               >
                 <RotateCcw size={16} />
@@ -288,7 +306,7 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
               <button
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={toggleCollapsed}
-                className="p-2.5 rounded-xl transition-all duration-200 text-gray-400 hover:text-gray-600 hover:bg-gray-100/80 hover:scale-105"
+                className="p-2.5 rounded-xl transition-all duration-200 text-gray-500 hover:text-gray-700 hover:bg-gray-100 hover:scale-105 active:scale-95"
                 title={isCollapsed ? "Expand toolbar" : "Collapse toolbar"}
               >
                 {isCollapsed ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
@@ -296,7 +314,7 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
               <button
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={toggleHidden}
-                className="p-2.5 rounded-xl transition-all duration-200 text-gray-400 hover:text-gray-600 hover:bg-gray-100/80 hover:scale-105"
+                className="p-2.5 rounded-xl transition-all duration-200 text-gray-500 hover:text-gray-700 hover:bg-gray-100 hover:scale-105 active:scale-95"
                 title="Hide toolbar"
               >
                 <EyeOff size={16} />
@@ -307,19 +325,20 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
 
         {/* Collapsed State */}
         {isCollapsed && (
-          <div className="p-4 text-center">
-            <div className="text-sm text-gray-500">Text formatting tools collapsed</div>
+          <div className="p-6 text-center">
+            <div className="text-sm text-gray-600 font-medium">Text formatting tools collapsed</div>
+            <div className="text-xs text-gray-500 mt-1">Click expand to show all options</div>
           </div>
         )}
 
         {/* Main Content */}
         {!isCollapsed && (
           <div className="flex-1 overflow-y-auto custom-scrollbar">
-            <div className="p-6 space-y-6">
+            <div className="p-5 space-y-6">
               {/* Font and Size Controls */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                  <Type size={16} />
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                  <Type size={16} className="text-blue-600" />
                   Font & Size
                 </h3>
                 
@@ -328,20 +347,20 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
                   <select
                     value={currentFormatting.fontFamily}
                     onChange={(e) => setFontFamily(e.target.value)}
-                    className="flex-1 p-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="flex-1 p-2.5 text-gray-600 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   >
                     {FONT_FAMILIES.map(font => (
-                      <option key={font} value={font} style={{ fontFamily: font }}>
+                      <option className='text-gray-600' key={font} value={font} style={{ fontFamily: font }}>
                         {font}
                       </option>
                     ))}
                   </select>
 
                   {/* Font Size */}
-                  <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1">
+                  <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1 border border-gray-200">
                     <button
                       onClick={() => adjustFontSize(-2)}
-                      className="p-2 hover:bg-white rounded-md transition-colors"
+                      className="p-2 hover:bg-white rounded-md transition-colors text-gray-600 hover:text-gray-800 active:scale-95"
                       title="Decrease font size"
                     >
                       <Minus size={14} />
@@ -349,7 +368,7 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
                     <select
                       value={currentFormatting.fontSize}
                       onChange={(e) => setFontSize(Number(e.target.value))}
-                      className="w-16 p-1 bg-transparent text-center text-sm font-mono border-none focus:outline-none"
+                      className="w-16 p-1 bg-transparent text-center text-sm font-mono border-none focus:outline-none text-gray-800"
                     >
                       {FONT_SIZES.map(size => (
                         <option key={size} value={size}>{size}</option>
@@ -357,7 +376,7 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
                     </select>
                     <button
                       onClick={() => adjustFontSize(2)}
-                      className="p-2 hover:bg-white rounded-md transition-colors"
+                      className="p-2 hover:bg-white rounded-md transition-colors text-gray-600 hover:text-gray-800 active:scale-95"
                       title="Increase font size"
                     >
                       <Plus size={14} />
@@ -367,17 +386,20 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
               </div>
 
               {/* Text Formatting */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-700">Formatting</h3>
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                  <Bold size={16} className="text-blue-600" />
+                  Formatting
+                </h3>
                 
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={toggleBold}
                     className={cn(
-                      "p-2.5 rounded-lg transition-all duration-200",
+                      "p-2.5 rounded-lg transition-all duration-200 border",
                       currentFormatting.bold
-                        ? "bg-indigo-600 text-white shadow-lg"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        ? "bg-blue-600 text-white shadow-md border-blue-600 hover:bg-blue-700"
+                        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                     )}
                     title="Bold (Ctrl+B)"
                   >
@@ -387,10 +409,10 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
                   <button
                     onClick={toggleItalic}
                     className={cn(
-                      "p-2.5 rounded-lg transition-all duration-200",
+                      "p-2.5 rounded-lg transition-all duration-200 border",
                       currentFormatting.italic
-                        ? "bg-indigo-600 text-white shadow-lg"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        ? "bg-blue-600 text-white shadow-md border-blue-600 hover:bg-blue-700"
+                        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                     )}
                     title="Italic (Ctrl+I)"
                   >
@@ -400,10 +422,10 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
                   <button
                     onClick={toggleUnderline}
                     className={cn(
-                      "p-2.5 rounded-lg transition-all duration-200",
+                      "p-2.5 rounded-lg transition-all duration-200 border",
                       currentFormatting.underline
-                        ? "bg-indigo-600 text-white shadow-lg"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        ? "bg-blue-600 text-white shadow-md border-blue-600 hover:bg-blue-700"
+                        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                     )}
                     title="Underline (Ctrl+U)"
                   >
@@ -413,10 +435,10 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
                   <button
                     onClick={toggleStrikethrough}
                     className={cn(
-                      "p-2.5 rounded-lg transition-all duration-200",
+                      "p-2.5 rounded-lg transition-all duration-200 border",
                       currentFormatting.strikethrough
-                        ? "bg-indigo-600 text-white shadow-lg"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        ? "bg-blue-600 text-white shadow-md border-blue-600 hover:bg-blue-700"
+                        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                     )}
                     title="Strikethrough"
                   >
@@ -426,10 +448,10 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
                   <button
                     onClick={toggleHighlight}
                     className={cn(
-                      "p-2.5 rounded-lg transition-all duration-200",
+                      "p-2.5 rounded-lg transition-all duration-200 border",
                       currentFormatting.highlight
-                        ? "bg-yellow-500 text-white shadow-lg"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        ? "bg-yellow-500 text-white shadow-md border-yellow-500 hover:bg-yellow-600"
+                        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                     )}
                     title="Highlight"
                   >
@@ -439,10 +461,13 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
               </div>
 
               {/* Alignment */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-700">Alignment</h3>
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                  <AlignLeft size={16} className="text-blue-600" />
+                  Alignment
+                </h3>
                 
-                <div className="flex bg-gray-100 rounded-lg p-1">
+                <div className="flex bg-gray-50 rounded-lg p-1 border border-gray-200">
                   {[
                     { align: 'left' as const, icon: AlignLeft, label: 'Left' },
                     { align: 'center' as const, icon: AlignCenter, label: 'Center' },
@@ -455,8 +480,8 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
                       className={cn(
                         "flex-1 p-2.5 rounded-md transition-all duration-200",
                         currentFormatting.align === align
-                          ? "bg-white text-indigo-600 shadow-sm"
-                          : "text-gray-600 hover:bg-gray-50"
+                          ? "bg-white text-blue-600 shadow-sm border border-blue-200"
+                          : "text-gray-600 hover:bg-white/60 hover:text-gray-800"
                       )}
                       title={label}
                     >
@@ -467,27 +492,47 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
               </div>
 
               {/* Color Controls */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                  <Palette size={16} />
-                  Colors
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                  <Palette size={16} className="text-blue-600" />
+                  Text Color
                 </h3>
                 
-                <div className="grid grid-cols-10 gap-2">
+                <div className="grid grid-cols-8 gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
                   {COLOR_PRESETS.map(color => (
                     <button
                       key={color}
                       onClick={() => setColor(color)}
                       className={cn(
-                        "w-8 h-8 rounded-lg border-2 transition-all duration-200 hover:scale-110",
+                        "w-8 h-8 rounded-lg border-2 transition-all duration-200 hover:scale-110 active:scale-95",
+                        "shadow-sm hover:shadow-md",
                         currentFormatting.color === color
-                          ? "border-indigo-500 shadow-lg"
-                          : "border-gray-200 hover:border-gray-300"
+                          ? "border-blue-500 ring-2 ring-blue-200"
+                          : color === '#ffffff' 
+                            ? "border-gray-300 hover:border-gray-400"
+                            : "border-gray-200 hover:border-gray-300"
                       )}
-                      style={{ backgroundColor: color }}
-                      title={color}
+                      style={{ 
+                        backgroundColor: color,
+                        ...(color === '#ffffff' && { 
+                          backgroundImage: 'linear-gradient(45deg, #f3f4f6 25%, transparent 25%), linear-gradient(-45deg, #f3f4f6 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f3f4f6 75%), linear-gradient(-45deg, transparent 75%, #f3f4f6 75%)',
+                          backgroundSize: '8px 8px',
+                          backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px'
+                        })
+                      }}
+                      title={`Set color to ${color}`}
                     />
                   ))}
+                </div>
+                
+                {/* Current color indicator */}
+                <div className="flex items-center gap-2 text-xs text-gray-600 bg-white p-2 rounded border border-gray-200">
+                  <span>Current:</span>
+                  <div 
+                    className="w-4 h-4 rounded border border-gray-300"
+                    style={{ backgroundColor: currentFormatting.color }}
+                  />
+                  <span className="font-mono">{currentFormatting.color}</span>
                 </div>
               </div>
             </div>
