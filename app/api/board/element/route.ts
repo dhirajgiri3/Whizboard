@@ -9,7 +9,7 @@ interface ElementData {
   action: 'add' | 'update' | 'delete';
   element?: {
     id: string;
-    type: 'line' | 'shape';
+    type: 'line' | 'shape' | 'frame' | 'text';
     data: Record<string, unknown>;
     userId: string;
     timestamp: number;

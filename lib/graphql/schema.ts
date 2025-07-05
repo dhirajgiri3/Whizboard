@@ -25,6 +25,31 @@ interface DrawingEventPayload {
   timestamp: number;
 }
 
+interface TextEventPayload {
+  boardId: string;
+  userId: string;
+  userName: string;
+  textElement: {
+    id: string;
+    type: 'text';
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    text: string;
+    formatting: Record<string, unknown>;
+    style: Record<string, unknown>;
+    rotation: number;
+    isEditing: boolean;
+    isSelected: boolean;
+    createdBy: string;
+    createdAt: number;
+    updatedAt: number;
+    version: number;
+  };
+  timestamp: number;
+}
+
 export const pubSub = createPubSub<{
   boardUpdates: [boardId: string, payload: Board];
   userJoined: [boardId: string, payload: User];
@@ -36,6 +61,14 @@ export const pubSub = createPubSub<{
   drawingStarted: [boardId: string, payload: DrawingEventPayload];
   drawingUpdated: [boardId: string, payload: DrawingEventPayload];
   drawingCompleted: [boardId: string, payload: DrawingEventPayload];
+  elementAdded: [boardId: string, payload: { id: string; type: string; data: Record<string, unknown>; userId: string; timestamp: number }];
+  elementUpdated: [boardId: string, payload: { id: string; type: string; data: Record<string, unknown>; userId: string; timestamp: number }];
+  elementDeleted: [boardId: string, payload: { elementId: string; userId: string; timestamp: number }];
+  textElementCreated: [boardId: string, payload: TextEventPayload];
+  textElementUpdated: [boardId: string, payload: TextEventPayload];
+  textElementDeleted: [boardId: string, payload: { boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }];
+  textElementEditingStarted: [boardId: string, payload: { boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }];
+  textElementEditingFinished: [boardId: string, payload: { boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }];
 }>();
 
 interface Context extends YogaInitialContext {
@@ -602,6 +635,44 @@ builder.objectType(DrawingEventPayloadRef, {
   }),
 });
 
+// Define TextEventPayload object type
+const TextEventPayloadRef = builder.objectRef<TextEventPayload>('TextEventPayload');
+builder.objectType(TextEventPayloadRef, {
+  fields: (t) => ({
+    boardId: t.exposeString('boardId'),
+    userId: t.exposeString('userId'),
+    userName: t.exposeString('userName'),
+    textElement: t.field({
+      type: builder.objectRef<TextEventPayload['textElement']>('TextElementData').implement({
+        fields: (t) => ({
+          id: t.exposeString('id'),
+          type: t.exposeString('type'),
+          x: t.exposeFloat('x'),
+          y: t.exposeFloat('y'),
+          width: t.exposeFloat('width'),
+          height: t.exposeFloat('height'),
+          text: t.exposeString('text'),
+          formatting: t.string({
+            resolve: (el) => JSON.stringify(el.formatting),
+          }),
+          style: t.string({
+            resolve: (el) => JSON.stringify(el.style),
+          }),
+          rotation: t.exposeFloat('rotation'),
+          isEditing: t.exposeBoolean('isEditing'),
+          isSelected: t.exposeBoolean('isSelected'),
+          createdBy: t.exposeString('createdBy'),
+          createdAt: t.exposeFloat('createdAt'),
+          updatedAt: t.exposeFloat('updatedAt'),
+          version: t.exposeFloat('version'),
+        }),
+      }),
+      resolve: (payload) => payload.textElement,
+    }),
+    timestamp: t.exposeFloat('timestamp'),
+  }),
+});
+
 builder.inputType('BoardActionInput', {
   fields: (t) => ({
     type: t.string({ required: true }),
@@ -720,6 +791,70 @@ builder.subscriptionType({
       },
       subscribe: (_, { boardId }) => pubSub.subscribe('drawingCompleted', boardId),
       resolve: (payload: DrawingEventPayload) => payload,
+    }),
+    textElementCreated: t.field({
+      type: TextEventPayloadRef,
+      args: {
+        boardId: t.arg.string({ required: true }),
+      },
+      subscribe: (_, { boardId }) => pubSub.subscribe('textElementCreated', boardId),
+      resolve: (payload: TextEventPayload) => payload,
+    }),
+    textElementUpdated: t.field({
+      type: TextEventPayloadRef,
+      args: {
+        boardId: t.arg.string({ required: true }),
+      },
+      subscribe: (_, { boardId }) => pubSub.subscribe('textElementUpdated', boardId),
+      resolve: (payload: TextEventPayload) => payload,
+    }),
+    textElementDeleted: t.field({
+      type: builder.objectRef<{ boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }>('TextElementDeleted').implement({
+        fields: (t) => ({
+          boardId: t.exposeString('boardId'),
+          userId: t.exposeString('userId'),
+          userName: t.exposeString('userName'),
+          textElementId: t.exposeString('textElementId'),
+          timestamp: t.exposeFloat('timestamp'),
+        }),
+      }),
+      args: {
+        boardId: t.arg.string({ required: true }),
+      },
+      subscribe: (_, { boardId }) => pubSub.subscribe('textElementDeleted', boardId),
+      resolve: (payload: { boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }) => payload,
+    }),
+    textElementEditingStarted: t.field({
+      type: builder.objectRef<{ boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }>('TextElementEditingStarted').implement({
+        fields: (t) => ({
+          boardId: t.exposeString('boardId'),
+          userId: t.exposeString('userId'),
+          userName: t.exposeString('userName'),
+          textElementId: t.exposeString('textElementId'),
+          timestamp: t.exposeFloat('timestamp'),
+        }),
+      }),
+      args: {
+        boardId: t.arg.string({ required: true }),
+      },
+      subscribe: (_, { boardId }) => pubSub.subscribe('textElementEditingStarted', boardId),
+      resolve: (payload: { boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }) => payload,
+    }),
+    textElementEditingFinished: t.field({
+      type: builder.objectRef<{ boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }>('TextElementEditingFinished').implement({
+        fields: (t) => ({
+          boardId: t.exposeString('boardId'),
+          userId: t.exposeString('userId'),
+          userName: t.exposeString('userName'),
+          textElementId: t.exposeString('textElementId'),
+          timestamp: t.exposeFloat('timestamp'),
+        }),
+      }),
+      args: {
+        boardId: t.arg.string({ required: true }),
+      },
+      subscribe: (_, { boardId }) => pubSub.subscribe('textElementEditingFinished', boardId),
+      resolve: (payload: { boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }) => payload,
     }),
   }),
 });

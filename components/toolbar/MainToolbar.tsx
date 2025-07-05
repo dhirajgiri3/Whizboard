@@ -12,14 +12,16 @@ import {
   PenTool,
   Trash2,
   StickyNote,
-  Square,
+  Frame,
+  Highlighter,
+  Type,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 const cn = (...classes: (string | undefined | null | boolean)[]) =>
   classes.filter(Boolean).join(" ");
 
-export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame";
+export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame" | "highlighter" | "text";
 
 interface MainToolbarProps {
   tool: Tool;
@@ -74,11 +76,17 @@ export default function MainToolbar({
         case 'p':
           setToolAction('pen');
           break;
+        case 'h':
+          setToolAction('highlighter');
+          break;
         case 'n':
           setToolAction('sticky-note');
           break;
         case 'f':
           setToolAction('frame');
+          break;
+        case 't':
+          setToolAction('text');
           break;
       }
 
@@ -218,6 +226,12 @@ export default function MainToolbar({
               label="Pen (P)"
             />
             <ToolButton
+              isActive={tool === "highlighter"}
+              onClick={() => setToolAction("highlighter")}
+              icon={Highlighter}
+              label="Highlighter (H)"
+            />
+            <ToolButton
               isActive={tool === "sticky-note"}
               onClick={() => setToolAction("sticky-note")}
               icon={StickyNote}
@@ -226,8 +240,14 @@ export default function MainToolbar({
             <ToolButton
               isActive={tool === "frame"}
               onClick={() => setToolAction("frame")}
-              icon={Square}
+              icon={Frame}
               label="Frame (F)"
+            />
+            <ToolButton
+              isActive={tool === "text"}
+              onClick={() => setToolAction("text")}
+              icon={Type}
+              label="Text (T)"
             />
             <ToolButton
               isActive={tool === "eraser"}
@@ -304,6 +324,12 @@ export default function MainToolbar({
               label="Pen (P)"
             />
             <ToolButton
+              isActive={tool === "highlighter"}
+              onClick={() => setToolAction("highlighter")}
+              icon={Highlighter}
+              label="Highlighter (H)"
+            />
+            <ToolButton
               isActive={tool === "sticky-note"}
               onClick={() => setToolAction("sticky-note")}
               icon={StickyNote}
@@ -312,8 +338,14 @@ export default function MainToolbar({
             <ToolButton
               isActive={tool === "frame"}
               onClick={() => setToolAction("frame")}
-              icon={Square}
+              icon={Frame}
               label="Frame (F)"
+            />
+            <ToolButton
+              isActive={tool === "text"}
+              onClick={() => setToolAction("text")}
+              icon={Type}
+              label="Text (T)"
             />
             <ToolButton
               isActive={tool === "eraser"}

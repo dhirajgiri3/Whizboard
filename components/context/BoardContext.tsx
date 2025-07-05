@@ -116,7 +116,11 @@ export function BoardProvider({ children }: BoardProviderProps) {
       });
       
       if (!response.ok) {
-        throw new Error(`Failed to update board timestamp: ${response.statusText}`);
+        console.warn(`Failed to update board timestamp: ${response.statusText}`);
+        // Continue execution instead of throwing an error
+        // Just update the local timestamp
+        updateBoardUpdatedAt();
+        return;
       }
       
       const result = await response.json();

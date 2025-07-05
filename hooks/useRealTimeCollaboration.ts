@@ -31,7 +31,7 @@ interface RealTimeEvent {
 
 interface BoardElement {
   id: string;
-  type: 'line' | 'shape';
+  type: 'line' | 'shape' | 'frame' | 'text';
   data: Record<string, unknown>;
   userId: string;
   timestamp: number;
@@ -284,6 +284,81 @@ export function useRealTimeCollaboration({
             };
             onElementAdded(completedElement);
           }
+        }
+        break;
+
+      case 'textElementCreated':
+        if (typeof event.payload.userId === 'string' && 
+            event.payload.userId !== userId &&
+            event.payload.textElement) {
+          // Handle text element creation from other users
+          if (onElementAdded) {
+            const textElement: BoardElement = {
+              id: event.payload.textElement.id,
+              type: 'text',
+              data: event.payload.textElement as unknown as Record<string, unknown>,
+              userId: event.payload.userId,
+              timestamp: typeof event.payload.timestamp === 'number' ? event.payload.timestamp : Date.now(),
+            };
+            onElementAdded(textElement);
+          }
+          
+          toast.info(`${event.payload.userName || 'User'} added a text element`, {
+            duration: 2000,
+          });
+        }
+        break;
+
+      case 'textElementUpdated':
+        if (typeof event.payload.userId === 'string' && 
+            event.payload.userId !== userId &&
+            event.payload.textElement) {
+          // Handle text element updates from other users
+          if (onElementUpdated) {
+            const textElement: BoardElement = {
+              id: event.payload.textElement.id,
+              type: 'text',
+              data: event.payload.textElement as unknown as Record<string, unknown>,
+              userId: event.payload.userId,
+              timestamp: typeof event.payload.timestamp === 'number' ? event.payload.timestamp : Date.now(),
+            };
+            onElementUpdated(textElement);
+          }
+        }
+        break;
+
+      case 'textElementDeleted':
+        if (typeof event.payload.userId === 'string' && 
+            event.payload.userId !== userId &&
+            typeof event.payload.textElementId === 'string') {
+          // Handle text element deletion from other users
+          if (onElementDeleted) {
+            onElementDeleted(event.payload.textElementId);
+          }
+          
+          toast.info(`${event.payload.userName || 'User'} deleted a text element`, {
+            duration: 2000,
+          });
+        }
+        break;
+
+      case 'textElementEditingStarted':
+        if (typeof event.payload.userId === 'string' && 
+            event.payload.userId !== userId &&
+            typeof event.payload.textElementId === 'string') {
+          logger.debug(`User ${event.payload.userName} started editing text element ${event.payload.textElementId}`);
+          
+          toast.info(`${event.payload.userName || 'User'} started editing text`, {
+            duration: 2000,
+          });
+        }
+        break;
+
+      case 'textElementEditingFinished':
+        if (typeof event.payload.userId === 'string' && 
+            event.payload.userId !== userId &&
+            typeof event.payload.textElementId === 'string') {
+          logger.debug(`User ${event.payload.userName} finished editing text element ${event.payload.textElementId}`);
         }
         break;
 
@@ -595,6 +670,107 @@ export function useRealTimeCollaboration({
     };
   }, [boardId, userId]); // Capture current values but only run cleanup on unmount
 
+  // Broadcast text element events
+  const broadcastTextElementCreate = useCallback((textElement: any) => {
+    if (!isConnected || !userId || !userName) return;
+
+    fetch('/api/board/text', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        boardId,
+        userId,
+        userName,
+        textElement,
+        action: 'create',
+      }),
+    }).catch(error => {
+      logger.error('Failed to broadcast text element create:', error);
+    });
+  }, [isConnected, boardId, userId, userName]);
+
+  const broadcastTextElementUpdate = useCallback((textElement: any) => {
+    if (!isConnected || !userId || !userName) return;
+
+    fetch('/api/board/text', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        boardId,
+        userId,
+        userName,
+        textElement,
+        action: 'update',
+      }),
+    }).catch(error => {
+      logger.error('Failed to broadcast text element update:', error);
+    });
+  }, [isConnected, boardId, userId, userName]);
+
+  const broadcastTextElementDelete = useCallback((textElementId: string) => {
+    if (!isConnected || !userId || !userName) return;
+
+    fetch('/api/board/text', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        boardId,
+        userId,
+        userName,
+        textElement: { id: textElementId },
+        action: 'delete',
+      }),
+    }).catch(error => {
+      logger.error('Failed to broadcast text element delete:', error);
+    });
+  }, [isConnected, boardId, userId, userName]);
+
+  const broadcastTextElementEditStart = useCallback((textElementId: string) => {
+    if (!isConnected || !userId || !userName) return;
+
+    fetch('/api/board/text', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        boardId,
+        userId,
+        userName,
+        textElement: { id: textElementId },
+        action: 'startEdit',
+      }),
+    }).catch(error => {
+      logger.error('Failed to broadcast text element edit start:', error);
+    });
+  }, [isConnected, boardId, userId, userName]);
+
+  const broadcastTextElementEditFinish = useCallback((textElementId: string) => {
+    if (!isConnected || !userId || !userName) return;
+
+    fetch('/api/board/text', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        boardId,
+        userId,
+        userName,
+        textElement: { id: textElementId },
+        action: 'finishEdit',
+      }),
+    }).catch(error => {
+      logger.error('Failed to broadcast text element edit finish:', error);
+    });
+  }, [isConnected, boardId, userId, userName]);
+
   return {
     isConnected,
     cursors,
@@ -605,6 +781,11 @@ export function useRealTimeCollaboration({
     broadcastDrawingStart,
     broadcastDrawingUpdate,
     broadcastDrawingComplete,
+    broadcastTextElementCreate,
+    broadcastTextElementUpdate,
+    broadcastTextElementDelete,
+    broadcastTextElementEditStart,
+    broadcastTextElementEditFinish,
   };
 }
 

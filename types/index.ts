@@ -6,6 +6,9 @@ export interface User {
   cursor?: { x: number; y: number };
   isOnline: boolean;
 }
+
+export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame" | "highlighter" | "text";
+
 export interface DrawingElement {
   id: string;
   type: 'path' | 'rectangle' | 'circle' | 'line' | 'text' | 'sticky-note' | 'frame';
@@ -41,6 +44,7 @@ export interface FrameElement {
   name: string;
   description?: string;
   frameType: 'basic' | 'workflow' | 'design' | 'organization' | 'presentation' | 'collaboration';
+  isCreating?: boolean;
   style: {
     fill?: string;
     fillOpacity?: number;
@@ -105,6 +109,93 @@ export interface FrameElement {
   updatedAt: number;
   version: number;
 }
+
+export interface TextElement {
+  id: string;
+  type: 'text';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  text: string;
+  // Rich text formatting
+  formatting: {
+    // Character-level formatting
+    bold: boolean;
+    italic: boolean;
+    underline: boolean;
+    strikethrough: boolean;
+    highlight: boolean;
+    highlightColor: string;
+    
+    // Font properties
+    fontFamily: string;
+    fontSize: number;
+    color: string;
+    
+    // Paragraph-level formatting
+    align: 'left' | 'center' | 'right' | 'justify';
+    lineHeight: number;
+    letterSpacing: number;
+    textTransform: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+    
+    // Lists
+    listType: 'none' | 'bullet' | 'numbered';
+    listStyle: string; // bullet style or numbering format
+    listLevel: number;
+    
+    // Advanced typography
+    textShadow?: {
+      color: string;
+      blur: number;
+      offsetX: number;
+      offsetY: number;
+    };
+    textStroke?: {
+      width: number;
+      color: string;
+    };
+  };
+  
+  // Visual properties
+  style: {
+    // Background
+    backgroundColor?: string;
+    backgroundOpacity?: number;
+    
+    // Border
+    border?: {
+      width: number;
+      color: string;
+      style: 'solid' | 'dashed' | 'dotted';
+      radius: number;
+    };
+    
+    // Effects
+    shadow?: {
+      color: string;
+      blur: number;
+      offsetX: number;
+      offsetY: number;
+      opacity: number;
+    };
+    
+    // Opacity
+    opacity: number;
+  };
+  
+  // Positioning and interaction
+  rotation: number;
+  isEditing: boolean;
+  isSelected: boolean;
+  
+  // Metadata
+  createdBy: string;
+  createdAt: number;
+  updatedAt: number;
+  version: number;
+}
+
 export interface BoardAction {
   type: string;
   data: string; // JSON string of the action
@@ -135,4 +226,13 @@ export interface Board {
   history?: BoardAction[];
   historyIndex?: number;
   pendingInvitations?: BoardInvitation[];
+}
+
+export interface ILine {
+  id?: string;
+  points: number[];
+  tool: Tool;
+  strokeWidth: number;
+  color: string;
+  frameId?: string;
 }
