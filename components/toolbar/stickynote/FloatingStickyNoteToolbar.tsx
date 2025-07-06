@@ -21,7 +21,7 @@ import {
   Zap,
   Sparkles,
 } from "lucide-react";
-import { getStickyNoteColorPalette } from "../canvas/stickynote/StickyNote";
+import { getStickyNoteColorPalette } from "../../canvas/stickynote/StickyNote";
 import { useFloatingToolbarDrag } from "@/hooks/useFloatingToolbarDrag";
 import { cn } from "@/lib/utils";
 import { toast as sonnerToast } from "sonner";

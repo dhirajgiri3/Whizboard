@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { 
   Palette, 
   Minus, 
@@ -113,6 +113,13 @@ export default function EnhancedDrawingToolbar({
   const [strokeWidth, setStrokeWidth] = useState(initialStrokeWidth);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [customColor, setCustomColor] = useState(color);
+
+  // Sync with external tool changes
+  useEffect(() => {
+    if (initialTool !== currentTool) {
+      setCurrentTool(initialTool);
+    }
+  }, [initialTool, currentTool]);
 
   // Drag functionality
   const {

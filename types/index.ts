@@ -7,7 +7,7 @@ export interface User {
   isOnline: boolean;
 }
 
-export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame" | "highlighter" | "text";
+export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame" | "highlighter" | "text" | "ai";
 
 export interface DrawingElement {
   id: string;

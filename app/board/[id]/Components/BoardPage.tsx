@@ -5,7 +5,7 @@ import { useRef, useEffect, useCallback, useState } from "react";
 import { gql, useMutation, useSubscription, useQuery } from "@apollo/client";
 import { useSession } from "next-auth/react";
 import MainToolbar from "@/components/toolbar/MainToolbar";
-import FloatingStickyNoteToolbar from "@/components/toolbar/FloatingStickyNoteToolbar";
+import FloatingStickyNoteToolbar from "@/components/toolbar/stickynote/FloatingStickyNoteToolbar";
 import FloatingFrameToolbar from "@/components/toolbar/frame/FloatingFrameToolbar";
 import FloatingTextToolbar from "@/components/toolbar/text/FloatingTextToolbar";
 import CollaborationPanel from "@/components/layout/CollaborationPanel";
@@ -34,7 +34,7 @@ import StickyNoteColorPicker, {
 
 // Import hooks and components
 import KeyboardShortcuts from "@/components/boardshortcuts/KeyboardShortcuts";
-import DrawingToolbar from "@/components/toolbar/DrawingToolbar";
+import DrawingToolbar from "@/components/toolbar/pen/DrawingToolbar";
 
 const GET_BOARD = gql`
   query GetBoard($id: String!) {
@@ -2066,6 +2066,15 @@ function BoardPageContent() {
     });
   };
 
+  const handleAIAction = () => {
+    // Placeholder for AI functionality
+    toast.success("AI Assistant activated! 🤖", {
+      description: "AI features are coming soon. Stay tuned for intelligent drawing assistance!",
+      duration: 3000,
+    });
+    console.log("AI tool activated - ready for implementation");
+  };
+
   if (loading) {
     return (
       <PageLoading
@@ -2135,7 +2144,7 @@ function BoardPageContent() {
       {/* Main Content */}
       <div className="flex flex-1 pt-16">
         {/* Desktop Sidebar - Enhanced */}
-        <aside className="hidden lg:flex flex-col w-20 bg-white/90 backdrop-blur-sm border-r border-slate-200/60 shadow-sm z-10 transition-all duration-300 hover:w-22">
+        <aside className="hidden lg:flex flex-col w-24 bg-white/90 backdrop-blur-sm border-r border-slate-200/60 shadow-sm z-10 transition-all duration-300 hover:w-28">
           <div className="flex-1 flex flex-col items-center py-6 space-y-4">
             {/* Main Toolbar */}
             <MainToolbar
@@ -2147,6 +2156,7 @@ function BoardPageContent() {
               canRedo={canRedo}
               onExportAction={handleExport}
               onClearCanvasAction={handleClearCanvas}
+              onAIAction={handleAIAction}
               vertical
             />
             {/* Separator when pen tool is active */}
@@ -2201,6 +2211,7 @@ function BoardPageContent() {
                   canRedo={canRedo}
                   onExportAction={handleExport}
                   onClearCanvasAction={handleClearCanvas}
+                  onAIAction={handleAIAction}
                   vertical={false}
                 />
               </div>
@@ -2338,9 +2349,12 @@ function BoardPageContent() {
             onColorChange={setColor}
             initialStrokeWidth={strokeWidth}
             onStrokeWidthChange={setStrokeWidth}
-            className="lg:left-24 lg:top-20 max-lg:hidden"
+            className="lg:left-28 lg:top-20 max-lg:hidden"
             initialTool={tool === "highlighter" ? "highlighter" : "pen"}
-            onToolChange={setTool}
+            onToolChange={(drawingTool) => {
+              // Convert DrawingTool to Tool type and update
+              setTool(drawingTool as Tool);
+            }}
           />
 
           {/* Floating Sticky Note Toolbar */}
@@ -2402,6 +2416,7 @@ function BoardPageContent() {
             canRedo={canRedo}
             onExportAction={handleExport}
             onClearCanvasAction={handleClearCanvas}
+            onAIAction={handleAIAction}
             vertical={false}
           />
         </div>

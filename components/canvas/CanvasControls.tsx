@@ -12,7 +12,7 @@ import {
   ChevronDown,
   PenTool,
 } from "lucide-react";
-import { Tool } from "@/components/toolbar/MainToolbar";
+import { Tool } from "@/types";
 
 interface CanvasControlsProps {
   showControls: boolean;

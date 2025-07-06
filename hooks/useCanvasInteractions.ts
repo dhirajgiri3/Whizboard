@@ -25,6 +25,36 @@ interface UseCanvasInteractionsProps {
   moveCursorAction: (x: number, y: number) => void;
 }
 
+// Add point simplification utility
+const simplifyPoints = (points: number[], tolerance: number = 2): number[] => {
+  if (points.length <= 4) return points; // Need at least 2 points (4 values)
+  
+  const simplified: number[] = [];
+  simplified.push(points[0], points[1]); // Always keep first point
+  
+  for (let i = 2; i < points.length - 2; i += 2) {
+    const prevX = simplified[simplified.length - 2];
+    const prevY = simplified[simplified.length - 1];
+    const currX = points[i];
+    const currY = points[i + 1];
+    
+    // Calculate distance from previous point
+    const distance = Math.sqrt((currX - prevX) ** 2 + (currY - prevY) ** 2);
+    
+    // Only add point if it's far enough from the previous one
+    if (distance > tolerance) {
+      simplified.push(currX, currY);
+    }
+  }
+  
+  // Always keep last point
+  if (points.length >= 2) {
+    simplified.push(points[points.length - 2], points[points.length - 1]);
+  }
+  
+  return simplified;
+};
+
 export function useCanvasInteractions({
   stageRef,
   tool,
@@ -71,6 +101,7 @@ export function useCanvasInteractions({
     currentFrame: null,
   });
   const lastPointer = useRef<{ x: number; y: number } | null>(null);
+  const lastUpdatePoint = useRef<{ x: number; y: number } | null>(null); // Track last update point
   const performanceMode = useRef(false);
   const isSpacePressed = useRef(false);
   const isPanning = useRef(false);
@@ -85,6 +116,9 @@ export function useCanvasInteractions({
     isSelecting: false,
     lastClickTime: 0,
   });
+
+  // Constants
+  const MIN_UPDATE_DISTANCE = 5; // Minimum distance before sending real-time update
 
   // Helper functions
   const isPointInFrame = useCallback((point: { x: number; y: number }, frame: FrameElement): boolean => {
@@ -452,6 +486,7 @@ export function useCanvasInteractions({
     setLines([...lines, newLine]);
     setIsDrawing(true);
     lastPointer.current = stagePos;
+    lastUpdatePoint.current = null; // Reset for new drawing
 
     if (onRealTimeDrawingAction) {
       onRealTimeDrawingAction(newLine);
@@ -518,8 +553,21 @@ export function useCanvasInteractions({
           i === lines.length - 1 ? updatedLine : line
         ));
 
-        if (onRealTimeLineUpdateAction) {
-          onRealTimeLineUpdateAction(updatedLine);
+        // Check distance threshold before sending real-time update
+        const shouldSendUpdate = !lastUpdatePoint.current || 
+          Math.sqrt(
+            (clippedPoint.x - lastUpdatePoint.current.x) ** 2 + 
+            (clippedPoint.y - lastUpdatePoint.current.y) ** 2
+          ) > MIN_UPDATE_DISTANCE;
+
+        if (onRealTimeLineUpdateAction && shouldSendUpdate) {
+          // Send simplified points for real-time updates to reduce API calls
+          const simplifiedPoints = simplifyPoints(newPoints, 3); // Slightly higher tolerance for real-time
+          onRealTimeLineUpdateAction({
+            ...updatedLine,
+            points: simplifiedPoints,
+          });
+          lastUpdatePoint.current = clippedPoint;
         }
       }
     } else {
@@ -534,8 +582,21 @@ export function useCanvasInteractions({
         i === lines.length - 1 ? updatedLine : line
       ));
 
-      if (onRealTimeLineUpdateAction) {
-        onRealTimeLineUpdateAction(updatedLine);
+      // Check distance threshold before sending real-time update
+      const shouldSendUpdate = !lastUpdatePoint.current || 
+        Math.sqrt(
+          (stagePoint.x - lastUpdatePoint.current.x) ** 2 + 
+          (stagePoint.y - lastUpdatePoint.current.y) ** 2
+        ) > MIN_UPDATE_DISTANCE;
+
+      if (onRealTimeLineUpdateAction && shouldSendUpdate) {
+        // Send simplified points for real-time updates to reduce API calls
+        const simplifiedPoints = simplifyPoints(newPoints, 3); // Slightly higher tolerance for real-time
+        onRealTimeLineUpdateAction({
+          ...updatedLine,
+          points: simplifiedPoints,
+        });
+        lastUpdatePoint.current = stagePoint;
       }
     }
 
@@ -606,6 +667,7 @@ export function useCanvasInteractions({
     setIsDrawingInFrame(false);
     setActiveFrameId(null);
     lastPointer.current = null;
+    lastUpdatePoint.current = null; // Reset for next drawing
     isPanning.current = false;
     onDrawEndAction(lines);
   }, [lines, onDrawEndAction, addFrame, onFrameAddAction, onRealTimeFrameAction, frames.length]);

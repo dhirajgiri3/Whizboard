@@ -82,6 +82,15 @@ export function useRealTimeCollaboration({
   const handleRealTimeEventRef = useRef<((event: RealTimeEvent) => void) | null>(null);
   const hasJoinedRef = useRef(false);
 
+  // Add throttling refs for drawing updates
+  const drawingUpdateThrottleRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingDrawingUpdateRef = useRef<DrawingLineData | null>(null);
+  const lastDrawingUpdateRef = useRef<number>(0);
+  
+  // Constants for throttling
+  const DRAWING_UPDATE_THROTTLE_MS = 100; // Send updates every 100ms max
+  const CURSOR_THROTTLE_MS = 50; // Keep existing cursor throttle
+
   // Handle real-time events
   const handleRealTimeEvent = useCallback((event: RealTimeEvent) => {
     logger.debug('Received real-time event:', event);
@@ -474,7 +483,50 @@ export function useRealTimeCollaboration({
   const broadcastDrawingUpdate = useCallback((line: DrawingLineData) => {
     if (!isConnected || !userId || !userName) return;
 
-    // Throttle drawing updates to avoid spam
+    // Store the latest drawing update
+    pendingDrawingUpdateRef.current = line;
+    
+    // Check if we should throttle this update
+    const now = Date.now();
+    const timeSinceLastUpdate = now - lastDrawingUpdateRef.current;
+    
+    // If we recently sent an update, schedule this one for later
+    if (timeSinceLastUpdate < DRAWING_UPDATE_THROTTLE_MS) {
+      // Clear any existing throttle
+      if (drawingUpdateThrottleRef.current) {
+        clearTimeout(drawingUpdateThrottleRef.current);
+      }
+      
+      // Schedule the update for later
+      drawingUpdateThrottleRef.current = setTimeout(() => {
+        const pendingLine = pendingDrawingUpdateRef.current;
+        if (pendingLine && isConnected) {
+          // Send the most recent update
+          fetch('/api/board/drawing', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              boardId,
+              userId,
+              userName,
+              line: pendingLine,
+              action: 'update',
+            }),
+          }).catch(error => {
+            logger.error('Failed to broadcast drawing update:', error);
+          });
+          
+          lastDrawingUpdateRef.current = Date.now();
+          pendingDrawingUpdateRef.current = null;
+        }
+      }, DRAWING_UPDATE_THROTTLE_MS - timeSinceLastUpdate);
+      
+      return;
+    }
+    
+    // Send immediately if enough time has passed
     fetch('/api/board/drawing', {
       method: 'POST',
       headers: {
@@ -490,6 +542,9 @@ export function useRealTimeCollaboration({
     }).catch(error => {
       logger.error('Failed to broadcast drawing update:', error);
     });
+    
+    lastDrawingUpdateRef.current = now;
+    pendingDrawingUpdateRef.current = null;
   }, [isConnected, boardId, userId, userName]);
 
   const broadcastDrawingComplete = useCallback((line: DrawingLineData) => {
@@ -536,7 +591,7 @@ export function useRealTimeCollaboration({
       }).catch(error => {
         logger.error('Failed to broadcast cursor movement:', error);
       });
-    }, 50); // 50ms throttle for smooth movement
+    }, CURSOR_THROTTLE_MS);
   }, [isConnected, boardId, userId, userName]);
 
   // Broadcast board element changes
@@ -770,6 +825,25 @@ export function useRealTimeCollaboration({
       logger.error('Failed to broadcast text element edit finish:', error);
     });
   }, [isConnected, boardId, userId, userName]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+      if (cursorThrottleRef.current) {
+        clearTimeout(cursorThrottleRef.current);
+        cursorThrottleRef.current = null;
+      }
+      // Add cleanup for drawing throttle
+      if (drawingUpdateThrottleRef.current) {
+        clearTimeout(drawingUpdateThrottleRef.current);
+        drawingUpdateThrottleRef.current = null;
+      }
+    };
+  }, []);
 
   return {
     isConnected,

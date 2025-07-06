@@ -2,7 +2,7 @@ import React, { useMemo, useCallback, useRef } from 'react';
 import { Layer, Line, Circle, Group, Text, Rect } from 'react-konva';
 import { KonvaEventObject } from 'konva/lib/Node';
 import Konva from 'konva';
-import { Tool } from '@/components/toolbar/MainToolbar';
+import { Tool } from '@/types';
 import { StickyNoteElement, FrameElement, ILine, TextElement } from '@/types';
 import LiveCursors, { Cursor } from './LiveCursors';
 import StickyNote from './stickynote/StickyNote';
