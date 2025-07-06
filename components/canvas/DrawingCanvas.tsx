@@ -3,7 +3,7 @@ import { Stage, Layer } from 'react-konva';
 import { KonvaEventObject } from 'konva/lib/Node';
 import Konva from 'konva';
 import { Tool } from '@/types';
-import { StickyNoteElement, FrameElement, ILine, TextElement } from '@/types';
+import { StickyNoteElement, FrameElement, ILine, TextElement, ShapeElement } from '@/types';
 import { useFrameManager } from '@/hooks/useFrameManager';
 import { useCanvasInteractions } from '@/hooks/useCanvasInteractions';
 import { CanvasLayers } from './CanvasLayers';
@@ -20,10 +20,13 @@ interface DrawingCanvasProps {
   initialStickyNotes?: StickyNoteElement[];
   initialFrames?: FrameElement[];
   initialTextElements?: TextElement[];
+  initialShapes?: ShapeElement[];
   selectedStickyNote?: string | null;
   selectedFrame?: string | null;
   selectedTextElement?: string | null;
   editingTextElement?: string | null;
+  selectedShape?: string | null;
+  selectedShapes?: string[];
   onDrawEndAction: (lines: ILine[]) => void;
   onEraseAction?: (lineId: string) => void;
   onStickyNoteAddAction?: (stickyNote: StickyNoteElement) => void;
@@ -46,6 +49,12 @@ interface DrawingCanvasProps {
   onTextElementFinishEditAction?: () => void;
   onTextElementDragStartAction?: () => void;
   onTextElementDragEndAction?: () => void;
+  onShapeAddAction?: (shape: ShapeElement) => void;
+  onShapeUpdateAction?: (shape: ShapeElement) => void;
+  onShapeDeleteAction?: (shapeId: string) => void;
+  onShapeSelectAction?: (shapeId: string) => void;
+  onShapeDragStartAction?: () => void;
+  onShapeDragEndAction?: () => void;
   onCanvasClickAction?: (e: KonvaEventObject<MouseEvent>) => void;
   onToolChangeAction?: (tool: Tool) => void;
   cursors: Record<string, Cursor>;
@@ -67,10 +76,13 @@ export default function DrawingCanvas({
   initialStickyNotes = [],
   initialFrames = [],
   initialTextElements = [],
+  initialShapes = [],
   selectedStickyNote,
   selectedFrame,
   selectedTextElement,
   editingTextElement,
+  selectedShape,
+  selectedShapes,
   onDrawEndAction,
   onEraseAction,
   onStickyNoteAddAction,
@@ -93,6 +105,12 @@ export default function DrawingCanvas({
   onTextElementFinishEditAction,
   onTextElementDragStartAction,
   onTextElementDragEndAction,
+  onShapeAddAction,
+  onShapeUpdateAction,
+  onShapeDeleteAction,
+  onShapeSelectAction,
+  onShapeDragStartAction,
+  onShapeDragEndAction,
   onCanvasClickAction,
   onToolChangeAction,
   cursors,
@@ -108,6 +126,7 @@ export default function DrawingCanvas({
   const [lines, setLines] = useState<ILine[]>(initialLines);
   const [stickyNotes, setStickyNotes] = useState<StickyNoteElement[]>(initialStickyNotes);
   const [textElements, setTextElements] = useState<TextElement[]>(initialTextElements);
+  const [shapes, setShapes] = useState<ShapeElement[]>(initialShapes);
   const [dimensions, setDimensions] = useState({ 
     width: typeof window !== 'undefined' ? window.innerWidth : 1920, 
     height: typeof window !== 'undefined' ? window.innerHeight : 1080 
@@ -198,6 +217,10 @@ export default function DrawingCanvas({
   useEffect(() => {
     setLines(initialLines);
   }, [initialLines]);
+  
+  useEffect(() => {
+    setShapes(initialShapes);
+  }, [initialShapes]);
 
   useEffect(() => {
     setStickyNotes(initialStickyNotes);
@@ -339,9 +362,9 @@ export default function DrawingCanvas({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onWheel={handleWheel}
-        draggable={tool === 'select' || isSpacePressed}
+        draggable={(tool === 'select' && !isStickyNoteDragging && !isFrameDragging && !isDrawing.current) || isSpacePressed}
         style={{ cursor: getCursor() }}
-        hitOnDragEnabled={true}
+        hitOnDragEnabled={false}
       >
         <CanvasLayers
           showGrid={showGrid}
@@ -351,8 +374,14 @@ export default function DrawingCanvas({
           lines={lines}
           stickyNotes={stickyNotes}
           frames={frames}
+          textElements={textElements}
+          shapes={shapes}
           selectedFrameIds={selectedFrameIds}
           selectedStickyNote={selectedStickyNote}
+          selectedTextElement={selectedTextElement}
+          editingTextElement={editingTextElement}
+          selectedShape={selectedShape}
+          selectedShapes={selectedShapes}
           tool={tool}
           strokeWidth={strokeWidth}
           hoveredLineIndex={hoveredLineIndex}
@@ -371,11 +400,6 @@ export default function DrawingCanvas({
           onStickyNoteDeleteAction={onStickyNoteDeleteAction}
           handleStickyNoteDragStart={handleStickyNoteDragStart}
           handleStickyNoteDragEnd={handleStickyNoteDragEnd}
-          selectFrames={selectFrames}
-          stageRef={stageRef}
-          textElements={textElements}
-          selectedTextElement={selectedTextElement}
-          editingTextElement={editingTextElement}
           onTextElementSelectAction={onTextElementSelectAction}
           onTextElementUpdateAction={onTextElementUpdateAction}
           onTextElementDeleteAction={onTextElementDeleteAction}
@@ -383,6 +407,13 @@ export default function DrawingCanvas({
           onTextElementFinishEditAction={onTextElementFinishEditAction}
           handleTextElementDragStart={handleTextElementDragStart}
           handleTextElementDragEnd={handleTextElementDragEnd}
+          onShapeSelectAction={onShapeSelectAction}
+          onShapeUpdateAction={onShapeUpdateAction}
+          onShapeDeleteAction={onShapeDeleteAction}
+          handleShapeDragStart={onShapeDragStartAction}
+          handleShapeDragEnd={onShapeDragEndAction}
+          selectFrames={selectFrames}
+          stageRef={stageRef}
         />
       </Stage>
       

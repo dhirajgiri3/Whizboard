@@ -17,13 +17,14 @@ import {
   Type,
   Brain,
   Sparkles,
+  Shapes,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 const cn = (...classes: (string | undefined | null | boolean)[]) =>
   classes.filter(Boolean).join(" ");
 
-export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame" | "highlighter" | "text" | "ai";
+export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame" | "highlighter" | "text" | "shapes" | "ai";
 
 interface MainToolbarProps {
   tool: Tool;
@@ -92,6 +93,11 @@ export default function MainToolbar({
         case 't':
           setToolAction('text');
           break;
+        case 's':
+          if (e.shiftKey) {
+            setToolAction('shapes');
+          }
+          break;
         case 'a':
           setToolAction('ai');
           break;
@@ -142,9 +148,9 @@ export default function MainToolbar({
         aria-label={label}
         className={cn(
           "relative transition-all duration-300 ease-out",
-          "flex items-center justify-center rounded-2xl",
+          "flex items-center justify-center rounded-xl",
           "focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-2",
-          "w-12 h-12 overflow-hidden",
+          "w-10 h-10 overflow-hidden",
           "transform active:scale-95",
           isActive
             ? "bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 text-white shadow-2xl shadow-purple-500/30"
@@ -163,21 +169,21 @@ export default function MainToolbar({
         {/* Sparkle effect */}
         <div className="absolute inset-0 overflow-hidden">
           <div className={cn(
-            "absolute -top-1 -right-1 w-3 h-3 rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 opacity-0 transition-all duration-300",
+            "absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 opacity-0 transition-all duration-300",
             isActive ? "opacity-100 animate-pulse" : "group-hover:opacity-60"
           )}>
-            <Sparkles size={12} className="text-white" />
+            <Sparkles size={10} className="text-white" />
           </div>
         </div>
         
         {/* Main icon */}
         <div className="relative z-10 flex items-center justify-center">
-          <Brain size={20} className="transition-all duration-300 group-hover:scale-110" />
+          <Brain size={18} className="transition-all duration-300 group-hover:scale-110" />
         </div>
         
         {/* Glow effect */}
         <div className={cn(
-          "absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-500 via-violet-500 to-indigo-500 opacity-0 blur-xl transition-opacity duration-300",
+          "absolute inset-0 rounded-xl bg-gradient-to-r from-purple-500 via-violet-500 to-indigo-500 opacity-0 blur-xl transition-opacity duration-300",
           isActive ? "opacity-30" : "group-hover:opacity-20"
         )} />
       </button>
@@ -214,7 +220,7 @@ export default function MainToolbar({
     </div>
   );
 
-  // Enhanced Tool button component with modern styling
+  // Enhanced Tool button component with fixed tooltip z-index
   const ToolButton = ({
     isActive,
     onClick,
@@ -222,7 +228,6 @@ export default function MainToolbar({
     label,
     disabled = false,
     className = "",
-    variant = "default",
   }: {
     isActive?: boolean;
     onClick: () => void;
@@ -230,163 +235,88 @@ export default function MainToolbar({
     label: string;
     disabled?: boolean;
     className?: string;
-    variant?: "default" | "primary" | "secondary" | "danger";
-  }) => {
-    const getVariantStyles = () => {
-      switch (variant) {
-        case "primary":
-          return {
-            active: "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/30",
-            inactive: "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-600 hover:from-blue-100 hover:to-indigo-100 hover:text-blue-700 border border-blue-200/50 hover:border-blue-300/70 hover:shadow-lg hover:shadow-blue-500/20",
-          };
-        case "secondary":
-          return {
-            active: "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xl shadow-emerald-500/30",
-            inactive: "bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-600 hover:from-emerald-100 hover:to-teal-100 hover:text-emerald-700 border border-emerald-200/50 hover:border-emerald-300/70 hover:shadow-lg hover:shadow-emerald-500/20",
-          };
-        case "danger":
-          return {
-            active: "bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-xl shadow-red-500/30",
-            inactive: "bg-gradient-to-r from-red-50 to-rose-50 text-red-600 hover:from-red-100 hover:to-rose-100 hover:text-red-700 border border-red-200/50 hover:border-red-300/70 hover:shadow-lg hover:shadow-red-500/20",
-          };
-        default:
-          return {
-            active: "bg-gradient-to-r from-slate-700 to-gray-700 text-white shadow-xl shadow-slate-500/30",
-            inactive: "bg-white/80 text-slate-600 hover:bg-white hover:text-slate-700 border border-slate-200/60 hover:border-slate-300/70 hover:shadow-lg hover:shadow-slate-500/10",
-          };
-      }
-    };
-
-    const variantStyles = getVariantStyles();
-
-    return (
-      <div className="relative group">
-        <button
-          onClick={onClick}
-          disabled={disabled}
-          aria-label={label}
-          className={cn(
-            "relative transition-all duration-300 ease-out",
-            "flex items-center justify-center rounded-xl",
-            "focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2",
-            "w-11 h-11",
-            "transform active:scale-95",
-            isActive
-              ? variantStyles.active
-              : disabled
-              ? "text-gray-400 cursor-not-allowed bg-transparent"
-              : variantStyles.inactive,
-            "group-hover:scale-105",
-            className
-          )}
-        >
-          <Icon size={18} className="transition-all duration-300 group-hover:scale-110" />
-          
-          {/* Subtle glow effect */}
-          {isActive && (
-            <div className="absolute inset-0 rounded-xl bg-current opacity-20 blur-md" />
-          )}
-        </button>
-        
-        {/* Enhanced tooltip */}
+  }) => (
+    <div className="relative group">
+      <button
+        onClick={onClick}
+        disabled={disabled}
+        aria-label={label}
+        className={cn(
+          "relative transition-all duration-200 ease-out",
+          "flex items-center justify-center rounded-lg",
+          "focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2",
+          "w-10 h-10",
+          "transform active:scale-95",
+          isActive
+            ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25 hover:bg-blue-700"
+            : disabled
+            ? "text-gray-400 cursor-not-allowed bg-transparent"
+            : "text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 bg-transparent",
+          className
+        )}
+      >
+        <Icon size={18} className="transition-transform duration-200" />
+      </button>
+      
+      {/* Fixed tooltip with proper z-index */}
+      <div
+        className={cn(
+          "absolute z-[9999] px-2 py-1 bg-gray-900 text-white text-xs rounded-md shadow-lg",
+          "opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none",
+          "whitespace-nowrap font-medium",
+          // Dynamic positioning based on layout
+          vertical 
+            ? "left-full ml-2 top-1/2 -translate-y-1/2" 
+            : "bottom-full mb-2 left-1/2 -translate-x-1/2",
+          // Prevent tooltip from going off-screen
+          "max-w-xs"
+        )}
+        style={{ zIndex: 9999 }}
+      >
+        {label}
+        {/* Tooltip arrow */}
         <div
           className={cn(
-            "absolute z-[9999] px-3 py-2 bg-slate-900/95 backdrop-blur-sm text-white text-sm rounded-lg shadow-2xl",
-            "opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none",
-            "whitespace-nowrap font-medium border border-slate-700/50",
-            // Dynamic positioning based on layout
+            "absolute w-1.5 h-1.5 bg-gray-900 rotate-45",
             vertical 
-              ? "left-full ml-3 top-1/2 -translate-y-1/2" 
-              : "bottom-full mb-3 left-1/2 -translate-x-1/2",
-            // Prevent tooltip from going off-screen
-            "max-w-xs"
+              ? "-left-0.5 top-1/2 -translate-y-1/2" 
+              : "top-full left-1/2 -translate-x-1/2 -translate-y-0.5"
           )}
-          style={{ zIndex: 9999 }}
-        >
-          {label}
-          {/* Tooltip arrow */}
-          <div
-            className={cn(
-              "absolute w-2 h-2 bg-slate-900/95 rotate-45 border-l border-b border-slate-700/50",
-              vertical 
-                ? "-left-1 top-1/2 -translate-y-1/2" 
-                : "top-full left-1/2 -translate-x-1/2 -translate-y-1"
-            )}
-          />
-        </div>
+        />
       </div>
-    );
-  };
+    </div>
+  );
 
-  // Enhanced Divider component
-  const Divider = ({ vertical: isVertical = false, gradient = false }: { vertical?: boolean; gradient?: boolean }) => (
+  // Divider component
+  const Divider = ({ vertical: isVertical = false }: { vertical?: boolean }) => (
     <div
       className={cn(
-        gradient 
-          ? isVertical 
-            ? "bg-gradient-to-b from-transparent via-slate-300/60 to-transparent"
-            : "bg-gradient-to-r from-transparent via-slate-300/60 to-transparent"
-          : "bg-slate-200/60",
-        isVertical ? "w-px h-8" : "h-px w-12"
+        "bg-gray-200",
+        isVertical ? "w-px h-6" : "h-px w-6"
       )}
     />
   );
 
-  // Tool Group component for better organization
-  const ToolGroup = ({ 
-    children, 
-    className = "", 
-    variant = "default" 
-  }: { 
-    children: React.ReactNode; 
-    className?: string;
-    variant?: "default" | "primary" | "secondary";
-  }) => {
-    const getGroupStyles = () => {
-      switch (variant) {
-        case "primary":
-          return "bg-gradient-to-r from-blue-50/80 to-indigo-50/80 border border-blue-200/40";
-        case "secondary":
-          return "bg-gradient-to-r from-emerald-50/80 to-teal-50/80 border border-emerald-200/40";
-        default:
-          return "bg-slate-50/80 border border-slate-200/40";
-      }
-    };
-
-    return (
-      <div className={cn(
-        "flex items-center justify-center gap-1 rounded-xl p-2 backdrop-blur-sm",
-        getGroupStyles(),
-        vertical ? "flex-col w-full" : "flex-row",
-        className
-      )}>
-        {children}
-      </div>
-    );
-  };
-
   return (
     <div
       className={cn(
-        // Base styling - enhanced with modern glassmorphism
-        "bg-white/95 backdrop-blur-xl shadow-2xl border border-white/20 rounded-2xl",
-        "transition-all duration-300 relative select-none",
-        // Enhanced shadows and depth
-        "shadow-slate-200/50 hover:shadow-slate-300/60",
+        // Base styling - clean and minimal
+        "bg-white/95 backdrop-blur-sm shadow-lg border border-gray-200/60 rounded-xl",
+        "transition-all duration-200 relative select-none",
         // Fixed z-index to ensure proper layering
         "z-40",
-        // Layout variants with improved spacing and proper width
+        // Layout variants
         vertical 
-          ? "flex flex-col gap-3 w-16" 
-          : "flex flex-row items-center p-3 gap-2"
+          ? "flex flex-col p-2 gap-1 w-14" 
+          : "flex flex-row items-center p-2 gap-1"
       )}
       style={{ zIndex: 40 }}
     >
       {vertical ? (
-        // Vertical Layout - Enhanced with better grouping and alignment
+        // Vertical Layout - Minimalistic
         <>
           {/* AI Tool - Primary Focus */}
-          <div className="flex flex-col items-center gap-3 mb-3 w-full">
+          <div className="flex flex-col gap-2 mb-2">
             <AIToolButton
               isActive={tool === "ai"}
               onClick={() => {
@@ -395,78 +325,69 @@ export default function MainToolbar({
               }}
               label="AI Assistant (A)"
             />
-            {/* Enhanced separator */}
-            <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-300/60 to-transparent" />
+            {/* Subtle separator */}
+            <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-200 to-transparent" />
           </div>
 
-          {/* Primary Tools Group */}
-          <ToolGroup variant="primary" className="mb-3">
+          {/* Tools section */}
+          <div className="flex flex-col gap-1">
             <ToolButton
               isActive={tool === "select"}
               onClick={() => setToolAction("select")}
               icon={MousePointer2}
               label="Select (V)"
-              variant="primary"
             />
             <ToolButton
               isActive={tool === "pen"}
               onClick={() => setToolAction("pen")}
               icon={PenTool}
               label="Pen (P)"
-              variant="primary"
             />
             <ToolButton
               isActive={tool === "highlighter"}
               onClick={() => setToolAction("highlighter")}
               icon={Highlighter}
               label="Highlighter (H)"
-              variant="primary"
             />
-          </ToolGroup>
-
-          {/* Content Tools Group */}
-          <ToolGroup variant="secondary" className="mb-3">
             <ToolButton
               isActive={tool === "sticky-note"}
               onClick={() => setToolAction("sticky-note")}
               icon={StickyNote}
               label="Sticky Note (N)"
-              variant="secondary"
             />
             <ToolButton
               isActive={tool === "frame"}
               onClick={() => setToolAction("frame")}
               icon={Frame}
               label="Frame (F)"
-              variant="secondary"
             />
             <ToolButton
               isActive={tool === "text"}
               onClick={() => setToolAction("text")}
               icon={Type}
               label="Text (T)"
-              variant="secondary"
             />
-          </ToolGroup>
-
-          {/* Utility Tools */}
-          <ToolGroup className="mb-3">
+            <ToolButton
+              isActive={tool === "shapes"}
+              onClick={() => setToolAction("shapes")}
+              icon={Shapes}
+              label="Shapes (Shift+S)"
+            />
             <ToolButton
               isActive={tool === "eraser"}
               onClick={() => setToolAction("eraser")}
               icon={Eraser}
               label="Eraser (E)"
-              variant="danger"
             />
-          </ToolGroup>
+          </div>
 
-          {/* Enhanced divider */}
-          <div className="flex justify-center my-3 w-full">
-            <Divider gradient />
+          {/* Subtle divider */}
+          <div className="flex justify-center my-1">
+            <Divider />
           </div>
 
           {/* History section */}
-          <ToolGroup className="mb-3">
+          <div className="flex flex-col gap-1">
             <ToolButton
               onClick={undoAction}
               disabled={!canUndo}
@@ -479,15 +400,15 @@ export default function MainToolbar({
               icon={Redo2}
               label="Redo (⌘Y)"
             />
-          </ToolGroup>
+          </div>
 
-          {/* Enhanced divider */}
-          <div className="flex justify-center my-3 w-full">
-            <Divider gradient />
+          {/* Subtle divider */}
+          <div className="flex justify-center my-1">
+            <Divider />
           </div>
 
           {/* Actions section */}
-          <ToolGroup>
+          <div className="flex flex-col gap-1">
             <ToolButton
               onClick={onExportAction}
               icon={Download}
@@ -498,22 +419,22 @@ export default function MainToolbar({
                 onClick={onClearCanvasAction}
                 icon={Trash2}
                 label="Clear Canvas (Can be undone)"
-                variant="danger"
+                className="hover:bg-red-100 hover:text-red-600"
               />
             )}
             <ToolButton
               onClick={handleShare}
               icon={shareSuccess ? Check : Share2}
               label={shareSuccess ? "Copied!" : "Share"}
-              className={shareSuccess ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-xl shadow-green-500/30" : ""}
+              className={shareSuccess ? "bg-green-600 text-white shadow-lg shadow-green-600/25" : ""}
             />
-          </ToolGroup>
+          </div>
         </>
       ) : (
-        // Horizontal Layout - Enhanced with better grouping and alignment
+        // Horizontal Layout - Clean and organized
         <>
           {/* AI Tool - Primary Focus */}
-          <div className="flex items-center gap-3 mr-3">
+          <div className="flex items-center gap-2 mr-2">
             <AIToolButton
               isActive={tool === "ai"}
               onClick={() => {
@@ -522,79 +443,66 @@ export default function MainToolbar({
               }}
               label="AI Assistant (A)"
             />
-            {/* Enhanced separator */}
-            <div className="w-px h-10 bg-gradient-to-b from-transparent via-purple-300/60 to-transparent" />
+            {/* Subtle separator */}
+            <div className="w-px h-8 bg-gradient-to-b from-transparent via-purple-200 to-transparent" />
           </div>
 
-          {/* Primary Tools group */}
-          <ToolGroup variant="primary" className="mr-2">
+          {/* Tools group */}
+          <div className="flex items-center gap-1 bg-gray-50/60 rounded-lg p-1">
             <ToolButton
               isActive={tool === "select"}
               onClick={() => setToolAction("select")}
               icon={MousePointer2}
               label="Select (V)"
-              variant="primary"
             />
             <ToolButton
               isActive={tool === "pen"}
               onClick={() => setToolAction("pen")}
               icon={PenTool}
               label="Pen (P)"
-              variant="primary"
             />
             <ToolButton
               isActive={tool === "highlighter"}
               onClick={() => setToolAction("highlighter")}
               icon={Highlighter}
               label="Highlighter (H)"
-              variant="primary"
             />
-          </ToolGroup>
-
-          <Divider vertical gradient />
-
-          {/* Content Tools group */}
-          <ToolGroup variant="secondary" className="mx-2">
             <ToolButton
               isActive={tool === "sticky-note"}
               onClick={() => setToolAction("sticky-note")}
               icon={StickyNote}
               label="Sticky Note (N)"
-              variant="secondary"
             />
             <ToolButton
               isActive={tool === "frame"}
               onClick={() => setToolAction("frame")}
               icon={Frame}
               label="Frame (F)"
-              variant="secondary"
             />
             <ToolButton
               isActive={tool === "text"}
               onClick={() => setToolAction("text")}
               icon={Type}
               label="Text (T)"
-              variant="secondary"
             />
-          </ToolGroup>
-
-          <Divider vertical gradient />
-
-          {/* Utility Tools */}
-          <ToolGroup className="mx-2">
+            <ToolButton
+              isActive={tool === "shapes"}
+              onClick={() => setToolAction("shapes")}
+              icon={Shapes}
+              label="Shapes (Shift+S)"
+            />
             <ToolButton
               isActive={tool === "eraser"}
               onClick={() => setToolAction("eraser")}
               icon={Eraser}
               label="Eraser (E)"
-              variant="danger"
             />
-          </ToolGroup>
+          </div>
 
-          <Divider vertical gradient />
+          <Divider vertical />
 
           {/* History group */}
-          <ToolGroup className="mx-2">
+          <div className="flex items-center gap-1">
             <ToolButton
               onClick={undoAction}
               disabled={!canUndo}
@@ -607,12 +515,12 @@ export default function MainToolbar({
               icon={Redo2}
               label="Redo (⌘Y)"
             />
-          </ToolGroup>
+          </div>
 
-          <Divider vertical gradient />
+          <Divider vertical />
 
           {/* Actions group */}
-          <ToolGroup className="ml-2">
+          <div className="flex items-center gap-1">
             <ToolButton
               onClick={onExportAction}
               icon={Download}
@@ -623,16 +531,16 @@ export default function MainToolbar({
                 onClick={onClearCanvasAction}
                 icon={Trash2}
                 label="Clear Canvas (Can be undone)"
-                variant="danger"
+                className="hover:bg-red-100 hover:text-red-600"
               />
             )}
             <ToolButton
               onClick={handleShare}
               icon={shareSuccess ? Check : Share2}
               label={shareSuccess ? "Copied!" : "Share"}
-              className={shareSuccess ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-xl shadow-green-500/30" : ""}
+              className={shareSuccess ? "bg-green-600 text-white shadow-lg shadow-green-600/25" : ""}
             />
-          </ToolGroup>
+          </div>
         </>
       )}
     </div>

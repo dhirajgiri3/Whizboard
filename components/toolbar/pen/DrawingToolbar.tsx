@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { 
   Palette, 
   Minus, 
@@ -48,6 +48,7 @@ interface DrawingToolbarProps {
   onColorChange?: (color: string) => void;
   onStrokeWidthChange?: (width: number) => void;
   initialTool?: DrawingTool;
+  currentTool?: DrawingTool;
   initialColor?: string;
   initialStrokeWidth?: number;
   className?: string;
@@ -103,23 +104,27 @@ export default function EnhancedDrawingToolbar({
   onColorChange,
   onStrokeWidthChange,
   initialTool = 'pen',
+  currentTool,
   initialColor = '#3b82f6',
   initialStrokeWidth = 4,
   className,
 }: DrawingToolbarProps) {
   // State
-  const [currentTool, setCurrentTool] = useState<DrawingTool>(initialTool);
+  const [internalTool, setInternalTool] = useState<DrawingTool>(currentTool || initialTool);
   const [color, setColor] = useState(initialColor);
   const [strokeWidth, setStrokeWidth] = useState(initialStrokeWidth);
+
+  // Use the current tool from props if provided, otherwise use internal state
+  const activeTool = currentTool || internalTool;
+
+  // Sync with parent tool changes
+  React.useEffect(() => {
+    if (currentTool && currentTool !== internalTool) {
+      setInternalTool(currentTool);
+    }
+  }, [currentTool, internalTool]);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [customColor, setCustomColor] = useState(color);
-
-  // Sync with external tool changes
-  useEffect(() => {
-    if (initialTool !== currentTool) {
-      setCurrentTool(initialTool);
-    }
-  }, [initialTool, currentTool]);
 
   // Drag functionality
   const {
@@ -146,11 +151,11 @@ export default function EnhancedDrawingToolbar({
   });
 
   // Computed values
-  const toolConfig = useMemo(() => TOOL_CONFIGS[currentTool], [currentTool]);
+  const toolConfig = useMemo(() => TOOL_CONFIGS[activeTool], [activeTool]);
 
   // Handlers
   const handleToolChange = useCallback((tool: DrawingTool) => {
-    setCurrentTool(tool);
+    setInternalTool(tool);
     onToolChange?.(tool);
   }, [onToolChange]);
 
@@ -365,12 +370,12 @@ export default function EnhancedDrawingToolbar({
                       onClick={() => handleToolChange(key as DrawingTool)}
                       className={cn(
                         "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-sm",
-                        currentTool === key 
+                        activeTool === key 
                           ? `bg-white text-${config.theme}-600 shadow-lg shadow-${config.theme}-500/20 scale-105` 
                           : "text-gray-600 hover:text-gray-800 hover:bg-white/60"
                       )}
                       title={config.description}
-                      aria-pressed={currentTool === key}
+                      aria-pressed={activeTool === key}
                     >
                       {config.icon}
                       <span className="hidden sm:inline">{config.name.split(' ')[1] || config.name}</span>
@@ -473,7 +478,7 @@ export default function EnhancedDrawingToolbar({
               <div className="space-y-4">
                 <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                   <Settings size={16} />
-                  {currentTool === 'highlighter' ? 'Thickness' : 'Stroke Width'}
+                  {activeTool === 'highlighter' ? 'Thickness' : 'Stroke Width'}
                 </h3>
 
                 {/* Current Width Display */}
@@ -493,7 +498,7 @@ export default function EnhancedDrawingToolbar({
                       {strokeWidth}px
                     </div>
                     <div className="text-sm text-gray-500">
-                      Current {currentTool === 'highlighter' ? 'Thickness' : 'Width'}
+                      Current {activeTool === 'highlighter' ? 'Thickness' : 'Width'}
                     </div>
                   </div>
                 </div>
@@ -583,7 +588,7 @@ export default function EnhancedDrawingToolbar({
                         fill="none"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        opacity={currentTool === 'highlighter' ? 0.7 : 1}
+                        opacity={activeTool === 'highlighter' ? 0.7 : 1}
                       />
                     </svg>
                   </div>

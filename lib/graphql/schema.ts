@@ -50,6 +50,35 @@ interface TextEventPayload {
   timestamp: number;
 }
 
+interface ShapeEventPayload {
+  boardId: string;
+  userId: string;
+  userName: string;
+  shapeElement: {
+    id: string;
+    type: 'shape';
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    rotation: number;
+    shapeType: string;
+    shapeData: Record<string, unknown>;
+    style: Record<string, unknown>;
+    draggable: boolean;
+    resizable: boolean;
+    rotatable: boolean;
+    selectable: boolean;
+    locked: boolean;
+    zIndex: number;
+    createdBy: string;
+    createdAt: number;
+    updatedAt: number;
+    version: number;
+  };
+  timestamp: number;
+}
+
 export const pubSub = createPubSub<{
   boardUpdates: [boardId: string, payload: Board];
   userJoined: [boardId: string, payload: User];
@@ -69,6 +98,10 @@ export const pubSub = createPubSub<{
   textElementDeleted: [boardId: string, payload: { boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }];
   textElementEditingStarted: [boardId: string, payload: { boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }];
   textElementEditingFinished: [boardId: string, payload: { boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }];
+  shapeElementCreated: [boardId: string, payload: ShapeEventPayload];
+  shapeElementUpdated: [boardId: string, payload: ShapeEventPayload];
+  shapeElementDeleted: [boardId: string, payload: { boardId: string; userId: string; userName: string; shapeElementId: string; timestamp: number }];
+  shapeElementTransformed: [boardId: string, payload: ShapeEventPayload];
 }>();
 
 interface Context extends YogaInitialContext {
@@ -642,8 +675,9 @@ builder.objectType(TextEventPayloadRef, {
     boardId: t.exposeString('boardId'),
     userId: t.exposeString('userId'),
     userName: t.exposeString('userName'),
+    timestamp: t.exposeFloat('timestamp'),
     textElement: t.field({
-      type: builder.objectRef<TextEventPayload['textElement']>('TextElementData').implement({
+      type: builder.objectRef<TextEventPayload['textElement']>('TextElement').implement({
         fields: (t) => ({
           id: t.exposeString('id'),
           type: t.exposeString('type'),
@@ -669,7 +703,47 @@ builder.objectType(TextEventPayloadRef, {
       }),
       resolve: (payload) => payload.textElement,
     }),
+  }),
+});
+
+const ShapeEventPayloadRef = builder.objectRef<ShapeEventPayload>('ShapeEventPayload');
+builder.objectType(ShapeEventPayloadRef, {
+  fields: (t) => ({
+    boardId: t.exposeString('boardId'),
+    userId: t.exposeString('userId'),
+    userName: t.exposeString('userName'),
     timestamp: t.exposeFloat('timestamp'),
+    shapeElement: t.field({
+      type: builder.objectRef<ShapeEventPayload['shapeElement']>('ShapeElement').implement({
+        fields: (t) => ({
+          id: t.exposeString('id'),
+          type: t.exposeString('type'),
+          x: t.exposeFloat('x'),
+          y: t.exposeFloat('y'),
+          width: t.exposeFloat('width'),
+          height: t.exposeFloat('height'),
+          rotation: t.exposeFloat('rotation'),
+          shapeType: t.exposeString('shapeType'),
+          shapeData: t.string({
+            resolve: (el) => JSON.stringify(el.shapeData),
+          }),
+          style: t.string({
+            resolve: (el) => JSON.stringify(el.style),
+          }),
+          draggable: t.exposeBoolean('draggable'),
+          resizable: t.exposeBoolean('resizable'),
+          rotatable: t.exposeBoolean('rotatable'),
+          selectable: t.exposeBoolean('selectable'),
+          locked: t.exposeBoolean('locked'),
+          zIndex: t.exposeInt('zIndex'),
+          createdBy: t.exposeString('createdBy'),
+          createdAt: t.exposeFloat('createdAt'),
+          updatedAt: t.exposeFloat('updatedAt'),
+          version: t.exposeFloat('version'),
+        }),
+      }),
+      resolve: (payload) => payload.shapeElement,
+    }),
   }),
 });
 
@@ -855,6 +929,46 @@ builder.subscriptionType({
       },
       subscribe: (_, { boardId }) => pubSub.subscribe('textElementEditingFinished', boardId),
       resolve: (payload: { boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }) => payload,
+    }),
+    shapeElementCreated: t.field({
+      type: ShapeEventPayloadRef,
+      args: {
+        boardId: t.arg.string({ required: true }),
+      },
+      subscribe: (_, { boardId }) => pubSub.subscribe('shapeElementCreated', boardId),
+      resolve: (payload: ShapeEventPayload) => payload.shapeElement,
+    }),
+    shapeElementUpdated: t.field({
+      type: ShapeEventPayloadRef,
+      args: {
+        boardId: t.arg.string({ required: true }),
+      },
+      subscribe: (_, { boardId }) => pubSub.subscribe('shapeElementUpdated', boardId),
+      resolve: (payload: ShapeEventPayload) => payload.shapeElement,
+    }),
+    shapeElementDeleted: t.field({
+      type: builder.objectRef<{ boardId: string; userId: string; userName: string; shapeElementId: string; timestamp: number }>('ShapeElementDeleted').implement({
+        fields: (t) => ({
+          boardId: t.exposeString('boardId'),
+          userId: t.exposeString('userId'),
+          userName: t.exposeString('userName'),
+          shapeElementId: t.exposeString('shapeElementId'),
+          timestamp: t.exposeFloat('timestamp'),
+        }),
+      }),
+      args: {
+        boardId: t.arg.string({ required: true }),
+      },
+      subscribe: (_, { boardId }) => pubSub.subscribe('shapeElementDeleted', boardId),
+      resolve: (payload: { boardId: string; userId: string; userName: string; shapeElementId: string; timestamp: number }) => payload,
+    }),
+    shapeElementTransformed: t.field({
+      type: ShapeEventPayloadRef,
+      args: {
+        boardId: t.arg.string({ required: true }),
+      },
+      subscribe: (_, { boardId }) => pubSub.subscribe('shapeElementTransformed', boardId),
+      resolve: (payload: ShapeEventPayload) => payload.shapeElement,
     }),
   }),
 });

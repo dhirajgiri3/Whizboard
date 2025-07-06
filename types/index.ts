@@ -7,7 +7,7 @@ export interface User {
   isOnline: boolean;
 }
 
-export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame" | "highlighter" | "text" | "ai";
+export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame" | "highlighter" | "text" | "shapes" | "ai";
 
 export interface DrawingElement {
   id: string;
@@ -235,4 +235,166 @@ export interface ILine {
   strokeWidth: number;
   color: string;
   frameId?: string;
+}
+
+export interface ShapeElement {
+  id: string;
+  type: 'shape';
+  
+  // Position and dimensions
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+  radius?: number;
+  rotation: number;
+  
+  // Shape type and specific properties
+  shapeType: 'rectangle' | 'circle' | 'ellipse' | 'polygon' | 'star' | 'wedge' | 'arc' | 'ring' | 'line' | 'arrow' | 'custom-path';
+  
+  // Shape-specific properties
+  shapeData: {
+    // For polygons
+    sides?: number;
+    
+    // For stars
+    innerRadius?: number;
+    outerRadius?: number;
+    numPoints?: number;
+    
+    // For lines and arrows
+    points?: number[];
+    tension?: number;
+    
+    // For arcs and wedges
+    angle?: number;
+    innerRadius?: number;
+    outerRadius?: number;
+    clockwise?: boolean;
+    
+    // For custom paths
+    pathData?: string;
+    
+    // For ellipses
+    radiusX?: number;
+    radiusY?: number;
+    
+    // For arrows
+    pointerLength?: number;
+    pointerWidth?: number;
+    pointerAtBeginning?: boolean;
+    
+    // Line properties
+    lineCap?: 'butt' | 'round' | 'square';
+    lineJoin?: 'bevel' | 'round' | 'miter';
+    closed?: boolean;
+  };
+  
+  // Visual styling
+  style: {
+    // Fill
+    fill?: string;
+    fillOpacity?: number;
+    fillEnabled?: boolean;
+    
+    // Stroke
+    stroke: string;
+    strokeWidth: number;
+    strokeOpacity?: number;
+    strokeEnabled?: boolean;
+    strokeDasharray?: number[];
+    strokeLineCap?: 'butt' | 'round' | 'square';
+    strokeLineJoin?: 'bevel' | 'round' | 'miter';
+    
+    // Effects
+    shadow?: {
+      color: string;
+      blur: number;
+      offsetX: number;
+      offsetY: number;
+      opacity: number;
+      enabled: boolean;
+    };
+    
+    // Gradients
+    gradient?: {
+      type: 'linear' | 'radial';
+      colors: Array<{ color: string; offset: number }>;
+      start?: { x: number; y: number };
+      end?: { x: number; y: number };
+      radius?: number;
+      enabled: boolean;
+    };
+    
+    // Pattern fills
+    pattern?: {
+      type: 'image' | 'video';
+      src: string;
+      repeat: 'repeat' | 'repeat-x' | 'repeat-y' | 'no-repeat';
+      offset?: { x: number; y: number };
+      scale?: { x: number; y: number };
+      rotation?: number;
+      enabled: boolean;
+    };
+    
+    // Overall opacity
+    opacity: number;
+    
+    // Blend mode
+    globalCompositeOperation?: string;
+    
+    // Corner radius for rectangles
+    cornerRadius?: number | number[];
+  };
+  
+  // Interaction properties
+  draggable: boolean;
+  resizable: boolean;
+  rotatable: boolean;
+  selectable: boolean;
+  locked: boolean;
+  
+  // Transform constraints
+  constraints?: {
+    minWidth?: number;
+    minHeight?: number;
+    maxWidth?: number;
+    maxHeight?: number;
+    aspectRatio?: number;
+    keepAspectRatio?: boolean;
+    snapToGrid?: boolean;
+    snapToGuides?: boolean;
+  };
+  
+  // Grouping and hierarchy
+  groupId?: string;
+  parentId?: string;
+  childIds?: string[];
+  zIndex: number;
+  
+  // Animation properties (for future use)
+  animation?: {
+    type: 'none' | 'pulse' | 'rotate' | 'scale' | 'custom';
+    duration: number;
+    easing: string;
+    loop: boolean;
+    enabled: boolean;
+  };
+  
+  // Metadata
+  name?: string;
+  description?: string;
+  tags?: string[];
+  category?: string;
+  
+  // Collaboration and versioning
+  createdBy: string;
+  createdAt: number;
+  updatedAt: number;
+  version: number;
+  
+  // Real-time collaboration
+  isBeingEdited?: boolean;
+  editedBy?: string;
+  lastEditedAt?: number;
 }

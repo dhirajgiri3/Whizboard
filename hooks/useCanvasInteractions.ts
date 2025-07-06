@@ -455,6 +455,14 @@ export function useCanvasInteractions({
       }
       return;
     }
+
+    if (tool === 'shapes') {
+      // For shapes tool, pass the click to canvas click handler for shape creation
+      if (onCanvasClickAction) {
+        onCanvasClickAction(e);
+      }
+      return;
+    }
     
     if (tool !== 'pen' && tool !== 'eraser' && tool !== 'highlighter') return;
 

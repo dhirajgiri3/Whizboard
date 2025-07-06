@@ -8,6 +8,7 @@ import MainToolbar from "@/components/toolbar/MainToolbar";
 import FloatingStickyNoteToolbar from "@/components/toolbar/stickynote/FloatingStickyNoteToolbar";
 import FloatingFrameToolbar from "@/components/toolbar/frame/FloatingFrameToolbar";
 import FloatingTextToolbar from "@/components/toolbar/text/FloatingTextToolbar";
+import FloatingShapesToolbar from "@/components/toolbar/shape/FloatingShapesToolbar";
 import CollaborationPanel from "@/components/layout/CollaborationPanel";
 import { useParams } from "next/navigation";
 import Konva from "konva";
@@ -25,7 +26,7 @@ import {
   useBoardContext,
 } from "@/components/context/BoardContext";
 import useRealTimeCollaboration from "@/hooks/useRealTimeCollaboration";
-import { StickyNoteElement, FrameElement, ILine, Tool, TextElement } from "@/types";
+import { StickyNoteElement, FrameElement, ILine, Tool, TextElement, ShapeElement } from "@/types";
 import { Cursor } from "@/components/canvas/LiveCursors";
 import { getRandomStickyNoteColor } from "@/components/canvas/stickynote/StickyNote";
 import StickyNoteColorPicker, {
@@ -181,10 +182,20 @@ function BoardPageContent() {
   const [stickyNotes, setStickyNotes] = useState<StickyNoteElement[]>([]);
   const [frames, setFrames] = useState<FrameElement[]>([]);
   const [textElements, setTextElements] = useState<TextElement[]>([]);
+  const [shapes, setShapes] = useState<ShapeElement[]>([]);
   const [selectedStickyNote, setSelectedStickyNote] = useState<string | null>(null);
   const [selectedFrame, setSelectedFrame] = useState<string | null>(null);
   const [selectedTextElement, setSelectedTextElement] = useState<string | null>(null);
   const [editingTextElement, setEditingTextElement] = useState<string | null>(null);
+  const [selectedShape, setSelectedShape] = useState<string | null>(null);
+  const [selectedShapes, setSelectedShapes] = useState<string[]>([]);
+  const [selectionBox, setSelectionBox] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    visible: boolean;
+  }>({ x: 0, y: 0, width: 0, height: 0, visible: false });
   const [history, setHistory] = useState<unknown[]>([]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [tool, setTool] = useState<Tool>("pen");
@@ -203,6 +214,10 @@ function BoardPageContent() {
   const [recentDragEnd, setRecentDragEnd] = useState(false);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
   const [currentStickyNoteColor, setCurrentStickyNoteColor] = useState(getRandomStickyNoteColor());
+  
+  // Pending shape creation state for improved UX
+  const [pendingShapeType, setPendingShapeType] = useState<string | null>(null);
+  const [pendingShapeProps, setPendingShapeProps] = useState<Partial<ShapeElement> | null>(null);
 
   // Calculate canUndo and canRedo based on current state
   const canUndo = history.length > 0 && historyIndex >= 0;
@@ -216,6 +231,37 @@ function BoardPageContent() {
   const handleFrameSelect = useCallback((id: string | null) => {
     setSelectedFrame(id);
   }, []);
+
+  const handleShapeSelect = useCallback((id: string | null, e?: KonvaEventObject<MouseEvent>, multiSelect?: boolean) => {
+    if (!id) {
+      setSelectedShape(null);
+      setSelectedShapes([]);
+      return;
+    }
+
+    if (multiSelect) {
+      setSelectedShapes(prev => {
+        const isAlreadySelected = prev.includes(id);
+        if (isAlreadySelected) {
+          // Remove from selection
+          const newSelection = prev.filter(shapeId => shapeId !== id);
+          setSelectedShape(newSelection.length > 0 ? newSelection[0] : null);
+          return newSelection;
+        } else {
+          // Add to selection
+          const newSelection = [...prev, id];
+          setSelectedShape(id); // Set as primary selection
+          return newSelection;
+        }
+      });
+    } else {
+      // Single selection - clear others
+      setSelectedShape(id);
+      setSelectedShapes([id]);
+    }
+  }, []);
+
+
 
   const handleStickyNoteDragStart = useCallback(() => {
     setIsDragInProgress(true);
@@ -232,6 +278,16 @@ function BoardPageContent() {
   }, []);
 
   const handleFrameDragEnd = useCallback(() => {
+    setIsDragInProgress(false);
+    setRecentDragEnd(true);
+    setTimeout(() => setRecentDragEnd(false), 100);
+  }, []);
+
+  const handleShapeDragStart = useCallback(() => {
+    setIsDragInProgress(true);
+  }, []);
+
+  const handleShapeDragEnd = useCallback(() => {
     setIsDragInProgress(false);
     setRecentDragEnd(true);
     setTimeout(() => setRecentDragEnd(false), 100);
@@ -389,6 +445,9 @@ function BoardPageContent() {
     broadcastTextElementDelete,
     broadcastTextElementEditStart,
     broadcastTextElementEditFinish,
+    broadcastShapeElementCreate,
+    broadcastShapeElementUpdate,
+    broadcastShapeElementDelete,
   } = useRealTimeCollaboration({
     boardId,
     userId: session?.user?.id,
@@ -414,9 +473,17 @@ function BoardPageContent() {
         const newTextElement: TextElement = {
           id: element.id,
           type: 'text',
-          ...(element.data as any),
+          ...(element.data as Omit<TextElement, 'id' | 'type'>),
         };
         setTextElements(prev => [...prev, newTextElement]);
+      } else if (element.type === 'shape') {
+        // Handle shape element added
+        const newShapeElement: ShapeElement = {
+          id: element.id,
+          type: 'shape',
+          ...(element.data as Omit<ShapeElement, 'id' | 'type'>),
+        };
+        setShapes(prev => [...prev, newShapeElement]);
       } else {
         // Handle line element added
       const newLine: ILine = {
@@ -435,10 +502,20 @@ function BoardPageContent() {
         const updatedTextElement: TextElement = {
           id: element.id,
           type: 'text',
-          ...(element.data as any),
+          ...(element.data as Omit<TextElement, 'id' | 'type'>),
         };
         setTextElements(prev =>
           prev.map(text => text.id === element.id ? updatedTextElement : text)
+        );
+      } else if (element.type === 'shape') {
+        // Handle shape element updated
+        const updatedShapeElement: ShapeElement = {
+          id: element.id,
+          type: 'shape',
+          ...(element.data as Omit<ShapeElement, 'id' | 'type'>),
+        };
+        setShapes(prev =>
+          prev.map(shape => shape.id === element.id ? updatedShapeElement : shape)
         );
       } else {
         // Handle line element updated
@@ -457,6 +534,7 @@ function BoardPageContent() {
     onElementDeleted: (elementId) => {
       setLines((prev) => prev.filter((line) => line.id !== elementId));
       setTextElements(prev => prev.filter(text => text.id !== elementId));
+      setShapes(prev => prev.filter(shape => shape.id !== elementId));
     },
   });
 
@@ -575,6 +653,17 @@ function BoardPageContent() {
             typeof el.data === "string" ? JSON.parse(el.data) : el.data
           );
 
+        // Filter shapes
+        const shapeElements = allElements
+          .filter((el: { data: string }) => {
+            const parsed =
+              typeof el.data === "string" ? JSON.parse(el.data) : el.data;
+            return parsed.type === "shape";
+          })
+          .map((el: { data: string }) =>
+            typeof el.data === "string" ? JSON.parse(el.data) : el.data
+          );
+
         setLines(lineElements);
         setStickyNotes(stickyNoteElements);
         setFrames((prevFrames) => {
@@ -592,6 +681,14 @@ function BoardPageContent() {
             return textElementElements;
           }
           return prevTextElements;
+        });
+        setShapes((prevShapes) => {
+          const shapeElementsStr = JSON.stringify(shapeElements);
+          const prevShapesStr = JSON.stringify(prevShapes);
+          if (shapeElementsStr !== prevShapesStr) {
+            return shapeElements;
+          }
+          return prevShapes;
         });
 
         if (updatedBoard.history !== undefined) {
@@ -656,6 +753,17 @@ function BoardPageContent() {
           typeof el.data === "string" ? JSON.parse(el.data) : el.data
         );
 
+      // Filter shapes
+      const shapeElements = allElements
+        .filter((el: { data: string }) => {
+          const parsed =
+            typeof el.data === "string" ? JSON.parse(el.data) : el.data;
+          return parsed.type === "shape";
+        })
+        .map((el: { data: string }) =>
+          typeof el.data === "string" ? JSON.parse(el.data) : el.data
+        );
+
       setLines(lineElements);
       setStickyNotes(stickyNoteElements);
       setFrames((prevFrames) => {
@@ -674,10 +782,18 @@ function BoardPageContent() {
         }
         return prevTextElements;
       });
+      setShapes((prevShapes) => {
+        const shapeElementsStr = JSON.stringify(shapeElements);
+        const prevShapesStr = JSON.stringify(prevShapes);
+        if (shapeElementsStr !== prevShapesStr) {
+          return shapeElements;
+        }
+        return prevShapes;
+      });
       setHistory(initialData.getBoard.history || []);
       setHistoryIndex(initialData.getBoard.historyIndex ?? 0);
     }
-  }, [initialData, setLines, setStickyNotes, setFrames, setTextElements, setHistory, setHistoryIndex]);
+  }, [initialData, setLines, setStickyNotes, setFrames, setTextElements, setShapes, setHistory, setHistoryIndex]);
 
   // Fetch additional board metadata from API
   useEffect(() => {
@@ -1405,6 +1521,477 @@ function BoardPageContent() {
     }
   }, [setEditingTextElement, editingTextElement, broadcastTextElementEditFinish]);
 
+  // Shape Management Handlers
+  const handleShapeAdd = useCallback(
+    async (shape: ShapeElement) => {
+      if (boardId) {
+        try {
+          const { data } = await addBoardAction({
+            variables: {
+              boardId,
+              action: {
+                type: "add",
+                data: JSON.stringify(shape),
+              },
+            },
+          });
+          if (data?.addBoardAction) {
+            const allElements = data.addBoardAction.elements || [];
+            const shapeElements = allElements
+              .filter(
+                (el: { type: string; data: string }) =>
+                  (typeof el.data === "string" ? JSON.parse(el.data) : el.data)
+                    .type === "shape"
+              )
+              .map((el: { data: string }) =>
+                typeof el.data === "string" ? JSON.parse(el.data) : el.data
+              );
+            setShapes(shapeElements);
+            setHistory(data.addBoardAction.history || []);
+            setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
+            updateBoardTimestamp(boardId);
+            
+            // Broadcast shape creation for real-time collaboration
+            if (broadcastShapeElementCreate) {
+              broadcastShapeElementCreate(shape);
+            }
+          }
+        } catch (err) {
+          logger.error({ err }, "Failed to add shape");
+        }
+      }
+    },
+    [boardId, addBoardAction, updateBoardTimestamp, setShapes, setHistory, setHistoryIndex, broadcastShapeElementCreate]
+  );
+
+  const handleShapeUpdate = useCallback(
+    async (updatedShape: ShapeElement) => {
+      if (boardId) {
+        try {
+          const { data } = await addBoardAction({
+            variables: {
+              boardId,
+              action: {
+                type: "update",
+                data: JSON.stringify(updatedShape),
+              },
+            },
+          });
+          if (data?.addBoardAction) {
+            const allElements = data.addBoardAction.elements || [];
+            const shapeElements = allElements
+              .filter(
+                (el: { type: string; data: string }) =>
+                  (typeof el.data === "string" ? JSON.parse(el.data) : el.data)
+                    .type === "shape"
+              )
+              .map((el: { data: string }) =>
+                typeof el.data === "string" ? JSON.parse(el.data) : el.data
+              );
+            setShapes(shapeElements);
+            updateBoardTimestamp(boardId);
+            
+            // Broadcast shape update for real-time collaboration
+            if (broadcastShapeElementUpdate) {
+              broadcastShapeElementUpdate(updatedShape);
+            }
+          }
+        } catch (err) {
+          logger.error({ err }, "Failed to update shape");
+        }
+      }
+    },
+    [boardId, addBoardAction, updateBoardTimestamp, setShapes, broadcastShapeElementUpdate]
+  );
+
+  const handleShapeDelete = useCallback(
+    async (shapeId: string) => {
+      if (!shapeId || !boardId) {
+        logger.warn({ shapeId, boardId }, "Invalid shape delete request");
+        return;
+      }
+
+      logger.debug({ shapeId, boardId }, "Attempting to delete shape");
+
+      try {
+        const { data } = await addBoardAction({
+          variables: {
+            boardId,
+            action: {
+              type: "remove",
+              data: JSON.stringify({ id: shapeId, type: "shape" }),
+            },
+          },
+        });
+        if (data?.addBoardAction) {
+          const allElements = data.addBoardAction.elements || [];
+          const shapeElements = allElements
+            .filter(
+              (el: { type: string; data: string }) =>
+                (typeof el.data === "string" ? JSON.parse(el.data) : el.data)
+                  .type === "shape"
+            )
+            .map((el: { data: string }) =>
+              typeof el.data === "string" ? JSON.parse(el.data) : el.data
+            );
+          setShapes(shapeElements);
+          setHistory(data.addBoardAction.history || []);
+          setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
+          updateBoardTimestamp(boardId);
+          setSelectedShape(null);
+          setSelectedShapes([]);
+          
+          // Broadcast shape deletion for real-time collaboration
+          if (broadcastShapeElementDelete) {
+            broadcastShapeElementDelete(shapeId);
+          }
+          
+          logger.debug({ deletedId: shapeId }, "Shape deleted successfully");
+        }
+      } catch (err) {
+        logger.error({ error: err, shapeId }, "Failed to delete shape");
+      }
+    },
+    [boardId, addBoardAction, updateBoardTimestamp, setShapes, setHistory, setHistoryIndex, setSelectedShape, setSelectedShapes, broadcastShapeElementDelete]
+  );
+
+  const handleShapeDeleteMultiple = useCallback(
+    async (shapeIds: string[]) => {
+      if (!shapeIds.length || !boardId) {
+        logger.warn({ shapeIds, boardId }, "Invalid multiple shape delete request");
+        return;
+      }
+
+      logger.debug({ shapeIds, boardId }, "Attempting to delete multiple shapes");
+
+      try {
+        // Delete each shape
+        for (const shapeId of shapeIds) {
+          await addBoardAction({
+            variables: {
+              boardId,
+              action: {
+                type: "remove",
+                data: JSON.stringify({ id: shapeId, type: "shape" }),
+              },
+            },
+          });
+          
+          // Broadcast shape deletion for real-time collaboration
+          if (broadcastShapeElementDelete) {
+            broadcastShapeElementDelete(shapeId);
+          }
+        }
+
+        // Sync the board state
+        const { data } = await addBoardAction({
+          variables: {
+            boardId,
+            action: {
+              type: "sync",
+              data: JSON.stringify({ sync: true }),
+            },
+          },
+        });
+
+        if (data?.addBoardAction) {
+          const allElements = data.addBoardAction.elements || [];
+          const shapeElements = allElements
+            .filter(
+              (el: { type: string; data: string }) =>
+                (typeof el.data === "string" ? JSON.parse(el.data) : el.data)
+                  .type === "shape"
+            )
+            .map((el: { data: string }) =>
+              typeof el.data === "string" ? JSON.parse(el.data) : el.data
+            );
+          setShapes(shapeElements);
+          setHistory(data.addBoardAction.history || []);
+          setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
+          updateBoardTimestamp(boardId);
+          setSelectedShape(null);
+          setSelectedShapes([]);
+          
+          logger.debug({ deletedIds: shapeIds }, "Multiple shapes deleted successfully");
+        }
+      } catch (err) {
+        logger.error({ error: err, shapeIds }, "Failed to delete multiple shapes");
+      }
+    },
+    [boardId, addBoardAction, updateBoardTimestamp, setShapes, setHistory, setHistoryIndex, setSelectedShape, setSelectedShapes, broadcastShapeElementDelete]
+  );
+
+  const handleShapeCreate = useCallback(
+    (shapeType: string, props?: Partial<ShapeElement>) => {
+      if (!boardId || !session?.user?.id) return;
+
+      // Set pending shape creation instead of creating immediately
+      setPendingShapeType(shapeType);
+      setPendingShapeProps(props || null);
+      
+      // Change cursor to indicate shape placement mode
+      if (document.body.style) {
+        document.body.style.cursor = 'crosshair';
+      }
+      
+      logger.debug({ shapeType }, "Shape type selected, click on canvas to place");
+    },
+    [boardId, session?.user?.id]
+  );
+
+  // Helper function to actually create the shape at a specific position
+  const createShapeAtPosition = useCallback(
+    (x: number, y: number, shapeType: string, props?: Partial<ShapeElement>) => {
+      if (!boardId || !session?.user?.id) return null;
+
+      const newShape: ShapeElement = {
+        id: `shape-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        type: 'shape',
+        x,
+        y,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        shapeType: shapeType as ShapeElement['shapeType'],
+        shapeData: {},
+        style: {
+          fill: "#ffffff",
+          stroke: "#3b82f6",
+          strokeWidth: 2,
+          opacity: 1,
+          fillOpacity: 1,
+          strokeOpacity: 1,
+          fillEnabled: true,
+          strokeEnabled: true,
+        },
+        draggable: true,
+        resizable: true,
+        rotatable: true,
+        selectable: true,
+        locked: false,
+        zIndex: 0,
+        createdBy: session.user.id,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        version: 1,
+        ...props,
+      };
+
+      handleShapeAdd(newShape);
+      setSelectedShape(newShape.id);
+      setSelectedShapes([newShape.id]);
+      
+      return newShape;
+    },
+    [boardId, session?.user?.id, handleShapeAdd, setSelectedShape, setSelectedShapes]
+  );
+
+  // Shape alignment handler
+  const handleShapeAlign = useCallback(
+    async (alignment: string, shapeIds: string[]) => {
+      if (!boardId || shapeIds.length < 2) return;
+
+      try {
+        const shapesToAlign = shapes.filter(shape => shapeIds.includes(shape.id));
+        if (shapesToAlign.length < 2) return;
+
+        logger.debug({ alignment, shapeIds }, "Aligning shapes");
+
+        // Calculate bounding box of all selected shapes
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        
+        shapesToAlign.forEach(shape => {
+          const width = shape.width || 100;
+          const height = shape.height || 100;
+          minX = Math.min(minX, shape.x);
+          maxX = Math.max(maxX, shape.x + width);
+          minY = Math.min(minY, shape.y);
+          maxY = Math.max(maxY, shape.y + height);
+        });
+
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+
+        // Align shapes based on alignment type
+        for (const shape of shapesToAlign) {
+          let newX = shape.x;
+          let newY = shape.y;
+          const width = shape.width || 100;
+          const height = shape.height || 100;
+
+          switch (alignment) {
+            case 'left':
+              newX = minX;
+              break;
+            case 'center-horizontal':
+              newX = centerX - width / 2;
+              break;
+            case 'right':
+              newX = maxX - width;
+              break;
+            case 'top':
+              newY = minY;
+              break;
+            case 'center-vertical':
+              newY = centerY - height / 2;
+              break;
+            case 'bottom':
+              newY = maxY - height;
+              break;
+          }
+
+          if (newX !== shape.x || newY !== shape.y) {
+            const updatedShape: ShapeElement = {
+              ...shape,
+              x: newX,
+              y: newY,
+              updatedAt: Date.now(),
+              version: shape.version + 1,
+            };
+
+            await handleShapeUpdate(updatedShape);
+          }
+        }
+
+        toast.success(`Aligned ${shapesToAlign.length} shapes ${alignment}`);
+        logger.debug({ alignment, count: shapesToAlign.length }, "Shapes aligned successfully");
+      } catch (err) {
+        logger.error({ error: err, alignment, shapeIds }, "Failed to align shapes");
+        toast.error("Failed to align shapes");
+      }
+    },
+    [boardId, shapes, handleShapeUpdate]
+  );
+
+  // Shape distribution handler  
+  const handleShapeDistribute = useCallback(
+    async (distribution: string, shapeIds: string[]) => {
+      if (!boardId || shapeIds.length < 3) return;
+
+      try {
+        const shapesToDistribute = shapes.filter(shape => shapeIds.includes(shape.id));
+        if (shapesToDistribute.length < 3) return;
+
+        logger.debug({ distribution, shapeIds }, "Distributing shapes");
+
+        // Sort shapes by position
+        if (distribution === 'horizontal') {
+          shapesToDistribute.sort((a, b) => a.x - b.x);
+        } else if (distribution === 'vertical') {
+          shapesToDistribute.sort((a, b) => a.y - b.y);
+        }
+
+        if (shapesToDistribute.length < 3) return;
+
+        // Calculate total space and gap between shapes
+        let totalSpace, startPos, endPos;
+        const firstShape = shapesToDistribute[0];
+        const lastShape = shapesToDistribute[shapesToDistribute.length - 1];
+        
+        if (distribution === 'horizontal') {
+          startPos = firstShape.x + (firstShape.width || 100);
+          endPos = lastShape.x;
+          totalSpace = endPos - startPos;
+        } else {
+          startPos = firstShape.y + (firstShape.height || 100);
+          endPos = lastShape.y;
+          totalSpace = endPos - startPos;
+        }
+
+        // Calculate total width/height of middle shapes
+        let totalShapeSize = 0;
+        for (let i = 1; i < shapesToDistribute.length - 1; i++) {
+          const shape = shapesToDistribute[i];
+          totalShapeSize += distribution === 'horizontal' 
+            ? (shape.width || 100)
+            : (shape.height || 100);
+        }
+
+        // Calculate gap between shapes
+        const numGaps = shapesToDistribute.length - 1;
+        const gapSize = (totalSpace - totalShapeSize) / (numGaps - 1);
+
+        // Position middle shapes
+        let currentPos = startPos;
+        for (let i = 1; i < shapesToDistribute.length - 1; i++) {
+          const shape = shapesToDistribute[i];
+          let newX = shape.x;
+          let newY = shape.y;
+          const width = shape.width || 100;
+          const height = shape.height || 100;
+
+          if (distribution === 'horizontal') {
+            newX = currentPos;
+            currentPos += width + gapSize;
+          } else {
+            newY = currentPos;
+            currentPos += height + gapSize;
+          }
+
+          if (newX !== shape.x || newY !== shape.y) {
+            const updatedShape: ShapeElement = {
+              ...shape,
+              x: newX,
+              y: newY,
+              updatedAt: Date.now(),
+              version: shape.version + 1,
+            };
+
+            await handleShapeUpdate(updatedShape);
+          }
+        }
+
+        toast.success(`Distributed ${shapesToDistribute.length} shapes ${distribution}ly`);
+        logger.debug({ distribution, count: shapesToDistribute.length }, "Shapes distributed successfully");
+      } catch (err) {
+        logger.error({ error: err, distribution, shapeIds }, "Failed to distribute shapes");
+        toast.error("Failed to distribute shapes");
+      }
+    },
+    [boardId, shapes, handleShapeUpdate]
+  );
+
+  // Shape duplication handler
+  const handleShapeDuplicate = useCallback(
+    async (shapeIds: string[]) => {
+      if (!boardId || !session?.user?.id || shapeIds.length === 0) return;
+
+      try {
+        logger.debug({ shapeIds }, "Duplicating shapes");
+
+        const shapesToDuplicate = shapes.filter(shape => shapeIds.includes(shape.id));
+        const newShapeIds: string[] = [];
+
+        for (const shape of shapesToDuplicate) {
+          const duplicatedShape: ShapeElement = {
+            ...shape,
+            id: `shape-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            x: shape.x + 20, // Offset by 20px
+            y: shape.y + 20,
+            createdBy: session.user.id,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            version: 1,
+          };
+
+          await handleShapeAdd(duplicatedShape);
+          newShapeIds.push(duplicatedShape.id);
+        }
+
+        // Select the duplicated shapes
+        setSelectedShape(newShapeIds[0]);
+        setSelectedShapes(newShapeIds);
+
+        toast.success(`Duplicated ${shapesToDuplicate.length} shape${shapesToDuplicate.length > 1 ? 's' : ''}`);
+        logger.debug({ originalIds: shapeIds, newIds: newShapeIds }, "Shapes duplicated successfully");
+      } catch (err) {
+        logger.error({ error: err, shapeIds }, "Failed to duplicate shapes");
+        toast.error("Failed to duplicate shapes");
+      }
+    },
+    [boardId, session?.user?.id, shapes, handleShapeAdd, setSelectedShape, setSelectedShapes]
+  );
+
   const handleTextElementDragStart = useCallback(() => {
     setIsDragInProgress(true);
   }, [setIsDragInProgress]);
@@ -1419,7 +2006,7 @@ function BoardPageContent() {
     }, 150); // 150ms delay to prevent immediate canvas clicks
   }, [setIsDragInProgress, setRecentDragEnd]);
 
-  // Enhanced canvas click handler with improved text element detection
+  // Enhanced canvas click handler with improved element detection
   const handleCanvasClick = useCallback(
     (e: KonvaEventObject<MouseEvent>) => {
       if (isDragInProgress || recentDragEnd) {
@@ -1432,19 +2019,23 @@ function BoardPageContent() {
         targetName === "Stage" || targetName === "Layer";
 
       if (!isBackgroundClick) {
-        // Enhanced check for text element clicks
-        if (e.target.hasName && e.target.hasName("text-element")) {
-          logger.debug("Click detected on text element, allowing element to handle it");
-          return;
+        // Enhanced check for interactive elements
+        if (e.target.hasName) {
+          if (e.target.hasName("text-element")) {
+            logger.debug("Click detected on text element, allowing element to handle it");
+            return;
+          }
+          if (e.target.hasName("sticky-note")) {
+            logger.debug("Click detected on sticky note, ignoring canvas click");
+            return;
+          }
+          if (e.target.hasName("shape-group")) {
+            logger.debug("Click detected on shape, allowing shape to handle it");
+            return;
+          }
         }
 
-        // Check for sticky note clicks
-        if (e.target.hasName && e.target.hasName("sticky-note")) {
-          logger.debug("Click detected on sticky note, ignoring canvas click");
-          return;
-        }
-
-        // Enhanced parent element checking with better text element detection
+        // Enhanced parent element checking with better element detection
         let parent = e.target.getParent();
         while (parent) {
           if (parent.hasName) {
@@ -1456,14 +2047,26 @@ function BoardPageContent() {
               logger.debug("Click detected on sticky note (via parent), ignoring canvas click");
               return;
             }
+            if (parent.hasName("shape-group")) {
+              logger.debug("Click detected on shape (via parent), allowing shape to handle it");
+              return;
+            }
+            if (parent.hasName("frame") || parent.hasName("enhanced-frame")) {
+              logger.debug("Click detected on frame (via parent), allowing frame to handle it");
+              return;
+            }
           }
           parent = parent.getParent();
         }
 
-        // Check if the target is part of a text element by checking its ancestors
-        const isPartOfTextElement = e.target.findAncestor && e.target.findAncestor('.text-element');
-        if (isPartOfTextElement) {
-          logger.debug("Click detected on text element component, allowing element to handle it");
+        // Check if the target is part of an interactive element by checking its ancestors
+        const isPartOfInteractiveElement = e.target.findAncestor && (
+          e.target.findAncestor('.text-element') || 
+          e.target.findAncestor('.shape-group') || 
+          e.target.findAncestor('.sticky-note')
+        );
+        if (isPartOfInteractiveElement) {
+          logger.debug("Click detected on interactive element component, allowing element to handle it");
           return;
         }
       }
@@ -1567,12 +2170,58 @@ function BoardPageContent() {
               "New text element created via canvas click"
             );
           }
+        } else if (tool === "shapes" && pendingShapeType && boardId && session?.user?.id) {
+          // Handle shape creation when shapes tool is active and shape is pending
+          const stage = e.target.getStage();
+          const pointerPosition = stage?.getPointerPosition();
+          if (pointerPosition && stage) {
+            const transform = stage.getAbsoluteTransform().copy();
+            transform.invert();
+            const stagePos = transform.point(pointerPosition);
+
+            // Create the shape at the clicked position
+            const newShape = createShapeAtPosition(
+              stagePos.x, 
+              stagePos.y, 
+              pendingShapeType, 
+              pendingShapeProps || undefined
+            );
+
+            if (newShape) {
+              // Clear pending shape state
+              setPendingShapeType(null);
+              setPendingShapeProps(null);
+              
+              // Reset cursor
+              if (document.body.style) {
+                document.body.style.cursor = 'default';
+              }
+              
+              toast.success(`${pendingShapeType} created!`);
+              logger.debug(
+                { newShapeId: newShape.id, position: stagePos },
+                "Shape created via canvas click"
+              );
+            }
+          }
         } else {
           // Clear all selections when clicking on background
           setSelectedStickyNote(null);
           setSelectedFrame(null);
           setSelectedTextElement(null);
           setEditingTextElement(null);
+          setSelectedShape(null);
+          setSelectedShapes([]);
+          
+          // Clear pending shape if any
+          if (pendingShapeType) {
+            setPendingShapeType(null);
+            setPendingShapeProps(null);
+            if (document.body.style) {
+              document.body.style.cursor = 'default';
+            }
+            toast.info("Shape placement cancelled");
+          }
         }
       }, 0); // Minimal delay to allow text element handlers to fire first
     },
@@ -1589,6 +2238,11 @@ function BoardPageContent() {
       color,
       setSelectedTextElement,
       setEditingTextElement,
+      pendingShapeType,
+      pendingShapeProps,
+      createShapeAtPosition,
+      setSelectedShape,
+      setSelectedShapes,
     ]
   );
 
@@ -1674,6 +2328,8 @@ function BoardPageContent() {
           setSelectedFrame(null);
           setSelectedTextElement(null);
           setEditingTextElement(null);
+          setSelectedShape(null);
+          setSelectedShapes([]);
         }
       } catch (err) {
         logger.error({ err }, "Failed to undo board action");
@@ -1754,6 +2410,8 @@ function BoardPageContent() {
           setSelectedFrame(null);
           setSelectedTextElement(null);
           setEditingTextElement(null);
+          setSelectedShape(null);
+          setSelectedShapes([]);
         }
       } catch (err) {
         logger.error({ err }, "Failed to redo board action");
@@ -1948,6 +2606,8 @@ function BoardPageContent() {
           setSelectedFrame(null);
           setSelectedTextElement(null);
           setEditingTextElement(null);
+          setSelectedShape(null);
+          setSelectedShapes([]);
           break;
         case "?":
           setShowKeyboardShortcuts(!showKeyboardShortcuts);
@@ -1978,6 +2638,19 @@ function BoardPageContent() {
             );
             handleTextElementDelete(selectedTextElement);
             setSelectedTextElement(null);
+          } else if (selectedShapes.length > 0) {
+            e.preventDefault();
+            logger.debug(
+              { selectedShapes },
+              "Deleting shapes via keyboard"
+            );
+            if (selectedShapes.length === 1) {
+              handleShapeDelete(selectedShapes[0]);
+            } else {
+              handleShapeDeleteMultiple(selectedShapes);
+            }
+            setSelectedShape(null);
+            setSelectedShapes([]);
           }
           break;
       }
@@ -1999,9 +2672,12 @@ function BoardPageContent() {
     selectedStickyNote,
     selectedFrame,
     selectedTextElement,
+    selectedShapes,
     handleStickyNoteDelete,
     handleFrameDelete,
     handleTextElementDelete,
+    handleShapeDelete,
+    handleShapeDeleteMultiple,
     tool,
     currentStickyNoteColor,
     colorPicker,
@@ -2015,6 +2691,8 @@ function BoardPageContent() {
     setSelectedFrame,
     setSelectedTextElement,
     setEditingTextElement,
+    setSelectedShape,
+    setSelectedShapes,
   ]);
 
   const handleClearCanvas = async () => {
@@ -2048,6 +2726,8 @@ function BoardPageContent() {
                 setSelectedFrame(null);
                 setSelectedTextElement(null);
                 setEditingTextElement(null);
+                setSelectedShape(null);
+                setSelectedShapes([]);
                 
                 toast.success("Canvas cleared! You can undo this action.");
               }
@@ -2074,6 +2754,8 @@ function BoardPageContent() {
     });
     console.log("AI tool activated - ready for implementation");
   };
+
+
 
   if (loading) {
     return (
@@ -2144,7 +2826,7 @@ function BoardPageContent() {
       {/* Main Content */}
       <div className="flex flex-1 pt-16">
         {/* Desktop Sidebar - Enhanced */}
-        <aside className="hidden lg:flex flex-col w-24 bg-white/90 backdrop-blur-sm border-r border-slate-200/60 shadow-sm z-10 transition-all duration-300 hover:w-28">
+        <aside className="hidden lg:flex flex-col w-20 bg-white/90 backdrop-blur-sm border-r border-slate-200/60 shadow-sm z-10 transition-all duration-300 hover:w-22">
           <div className="flex-1 flex flex-col items-center py-6 space-y-4">
             {/* Main Toolbar */}
             <MainToolbar
@@ -2264,10 +2946,13 @@ function BoardPageContent() {
               initialStickyNotes={stickyNotes}
               initialFrames={frames}
               initialTextElements={textElements}
+              initialShapes={shapes}
               selectedStickyNote={selectedStickyNote}
               selectedFrame={selectedFrame}
               selectedTextElement={selectedTextElement}
               editingTextElement={editingTextElement}
+              selectedShape={selectedShape}
+              selectedShapes={selectedShapes}
               onDrawEndAction={handleSetLines}
               onEraseAction={handleErase}
               onStickyNoteAddAction={handleStickyNoteAdd}
@@ -2290,6 +2975,12 @@ function BoardPageContent() {
               onTextElementFinishEditAction={handleTextElementFinishEdit}
               onTextElementDragStartAction={handleTextElementDragStart}
               onTextElementDragEndAction={handleTextElementDragEnd}
+              onShapeAddAction={handleShapeAdd}
+              onShapeUpdateAction={handleShapeUpdate}
+              onShapeDeleteAction={handleShapeDelete}
+              onShapeSelectAction={handleShapeSelect}
+              onShapeDragStartAction={handleShapeDragStart}
+              onShapeDragEndAction={handleShapeDragEnd}
               onCanvasClickAction={handleCanvasClick}
               onToolChangeAction={setTool}
               cursors={realTimeCursors}
@@ -2349,11 +3040,11 @@ function BoardPageContent() {
             onColorChange={setColor}
             initialStrokeWidth={strokeWidth}
             onStrokeWidthChange={setStrokeWidth}
-            className="lg:left-28 lg:top-20 max-lg:hidden"
+            className="lg:left-24 lg:top-20 max-lg:hidden"
             initialTool={tool === "highlighter" ? "highlighter" : "pen"}
-            onToolChange={(drawingTool) => {
-              // Convert DrawingTool to Tool type and update
-              setTool(drawingTool as Tool);
+            currentTool={tool === "highlighter" ? "highlighter" : "pen"}
+            onToolChange={(selectedTool) => {
+              setTool(selectedTool);
             }}
           />
 
@@ -2401,6 +3092,29 @@ function BoardPageContent() {
               />
             </div>
           )}
+
+          {/* Floating Shapes Toolbar */}
+          <FloatingShapesToolbar
+            isActive={tool === "shapes" || selectedShape !== null || selectedShapes.length > 0}
+            selectedShapes={
+              selectedShapes.length > 0
+                ? shapes.filter((s) => selectedShapes.includes(s.id))
+                : []
+            }
+            selectedShapeIds={selectedShapes}
+            onShapeUpdateAction={handleShapeUpdate}
+            onShapeCreateAction={handleShapeCreate}
+            onShapeDeleteAction={handleShapeDelete}
+            onShapeDeleteMultipleAction={handleShapeDeleteMultiple}
+            onShapeDeselectAction={() => {
+              setSelectedShape(null);
+              setSelectedShapes([]);
+            }}
+            onShapeAlignAction={handleShapeAlign}
+            onShapeDistributeAction={handleShapeDistribute}
+            onShapeDuplicateAction={handleShapeDuplicate}
+            className="max-lg:hidden"
+          />
         </main>
       </div>
 
