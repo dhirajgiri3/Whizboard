@@ -419,14 +419,14 @@ function BoardPageContent() {
         setTextElements(prev => [...prev, newTextElement]);
       } else {
         // Handle line element added
-        const newLine: ILine = {
-          id: element.id,
-          points: (element.data.points as number[]) || [],
-          tool: (element.data.tool as Tool) || "pen",
-          strokeWidth: (element.data.strokeWidth as number) || 3,
-          color: (element.data.color as string) || "#000000",
-        };
-        setLines((prev) => [...prev, newLine]);
+      const newLine: ILine = {
+        id: element.id,
+        points: (element.data.points as number[]) || [],
+        tool: (element.data.tool as Tool) || "pen",
+        strokeWidth: (element.data.strokeWidth as number) || 3,
+        color: (element.data.color as string) || "#000000",
+      };
+      setLines((prev) => [...prev, newLine]);
       }
     },
     onElementUpdated: (element) => {
@@ -442,16 +442,16 @@ function BoardPageContent() {
         );
       } else {
         // Handle line element updated
-        const updatedLine: ILine = {
-          id: element.id,
-          points: (element.data.points as number[]) || [],
-          tool: (element.data.tool as Tool) || "pen",
-          strokeWidth: (element.data.strokeWidth as number) || 3,
-          color: (element.data.color as string) || "#000000",
-        };
-        setLines((prev) =>
-          prev.map((line) => (line.id === element.id ? updatedLine : line))
-        );
+      const updatedLine: ILine = {
+        id: element.id,
+        points: (element.data.points as number[]) || [],
+        tool: (element.data.tool as Tool) || "pen",
+        strokeWidth: (element.data.strokeWidth as number) || 3,
+        color: (element.data.color as string) || "#000000",
+      };
+      setLines((prev) =>
+        prev.map((line) => (line.id === element.id ? updatedLine : line))
+      );
       }
     },
     onElementDeleted: (elementId) => {
@@ -1472,97 +1472,101 @@ function BoardPageContent() {
         return;
       }
 
-      if (tool === "sticky-note" && boardId && session?.user?.id) {
-        const stage = e.target.getStage();
-        const pointerPosition = stage?.getPointerPosition();
-        if (pointerPosition && stage) {
-          const transform = stage.getAbsoluteTransform().copy();
-          transform.invert();
-          const stagePos = transform.point(pointerPosition);
+      // Use setTimeout to allow text elements to handle their events first
+      // This prevents race conditions where canvas click clears selection before text element can process it
+      setTimeout(() => {
+        if (tool === "sticky-note" && boardId && session?.user?.id) {
+          const stage = e.target.getStage();
+          const pointerPosition = stage?.getPointerPosition();
+          if (pointerPosition && stage) {
+            const transform = stage.getAbsoluteTransform().copy();
+            transform.invert();
+            const stagePos = transform.point(pointerPosition);
 
-          const newStickyNote: StickyNoteElement = {
-            id: `sticky-note-${Date.now()}-${Math.random()
-              .toString(36)
-              .substr(2, 9)}`,
-            type: "sticky-note",
-            x: stagePos.x,
-            y: stagePos.y,
-            width: 220,
-            height: 160,
-            text: "",
-            color: currentStickyNoteColor,
-            fontSize: 14,
-            createdBy: session.user.id,
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-          };
+            const newStickyNote: StickyNoteElement = {
+              id: `sticky-note-${Date.now()}-${Math.random()
+                .toString(36)
+                .substr(2, 9)}`,
+              type: "sticky-note",
+              x: stagePos.x,
+              y: stagePos.y,
+              width: 220,
+              height: 160,
+              text: "",
+              color: currentStickyNoteColor,
+              fontSize: 14,
+              createdBy: session.user.id,
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+            };
 
-          handleStickyNoteAdd(newStickyNote);
-          setSelectedStickyNote(newStickyNote.id);
-          logger.debug(
-            { newStickyNoteId: newStickyNote.id },
-            "New sticky note created via canvas click"
-          );
-        }
-      } else if (tool === "text" && boardId && session?.user?.id) {
-        const stage = e.target.getStage();
-        const pointerPosition = stage?.getPointerPosition();
-        if (pointerPosition && stage) {
-          const transform = stage.getAbsoluteTransform().copy();
-          transform.invert();
-          const stagePos = transform.point(pointerPosition);
+            handleStickyNoteAdd(newStickyNote);
+            setSelectedStickyNote(newStickyNote.id);
+            logger.debug(
+              { newStickyNoteId: newStickyNote.id },
+              "New sticky note created via canvas click"
+            );
+          }
+        } else if (tool === "text" && boardId && session?.user?.id) {
+          const stage = e.target.getStage();
+          const pointerPosition = stage?.getPointerPosition();
+          if (pointerPosition && stage) {
+            const transform = stage.getAbsoluteTransform().copy();
+            transform.invert();
+            const stagePos = transform.point(pointerPosition);
 
-          const newTextElement: TextElement = {
-            id: `text-${Date.now()}-${Math.random()
-              .toString(36)
-              .substr(2, 9)}`,
-            type: "text",
-            x: stagePos.x,
-            y: stagePos.y,
-            width: 300,
-            height: 48,
-            text: "Type your text here...",
-            formatting: {
-              fontFamily: "Arial",
-              fontSize: 28,
-              color: color,
-              bold: false,
-              italic: false,
-              underline: false,
-              strikethrough: false,
-              highlight: false,
-              highlightColor: "#ffeb3b",
-              align: "left",
-              lineHeight: 1.2,
-              letterSpacing: 0,
-              textTransform: "none",
-              listType: "none",
-              listStyle: "•",
-              listLevel: 0,
-            },
-            style: {
-              backgroundColor: "transparent",
-              backgroundOpacity: 1,
-              border: undefined,
-              shadow: undefined,
-              opacity: 1,
-            },
-            rotation: 0,
-            isEditing: false,
-            isSelected: false,
-            createdBy: session.user.id,
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-            version: 1,
-          };
+            const newTextElement: TextElement = {
+              id: `text-${Date.now()}-${Math.random()
+                .toString(36)
+                .substr(2, 9)}`,
+              type: "text",
+              x: stagePos.x,
+              y: stagePos.y,
+              width: 300,
+              height: 48,
+              text: "Type your text here...",
+              formatting: {
+                fontFamily: "Comic Sans MS",
+                fontSize: 28,
+                color: color,
+                bold: false,
+                italic: false,
+                underline: false,
+                strikethrough: false,
+                highlight: false,
+                highlightColor: "#ffeb3b",
+                align: "left",
+                lineHeight: 1.2,
+                letterSpacing: 0,
+                textTransform: "none",
+                listType: "none",
+                listStyle: "•",
+                listLevel: 0,
+              },
+              style: {
+                backgroundColor: "transparent",
+                backgroundOpacity: 1,
+                border: undefined,
+                shadow: undefined,
+                opacity: 1,
+              },
+              rotation: 0,
+              isEditing: false,
+              isSelected: false,
+              createdBy: session.user.id,
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+              version: 1,
+            };
 
-          handleTextElementAdd(newTextElement);
-          setSelectedTextElement(newTextElement.id);
-          setEditingTextElement(newTextElement.id);
-          logger.debug(
-            { newTextElementId: newTextElement.id },
-            "New text element created via canvas click"
-          );
+            handleTextElementAdd(newTextElement);
+            setSelectedTextElement(newTextElement.id);
+            setEditingTextElement(newTextElement.id);
+            logger.debug(
+              { newTextElementId: newTextElement.id },
+              "New text element created via canvas click"
+            );
+          }
         } else {
           // Clear all selections when clicking on background
           setSelectedStickyNote(null);
@@ -1570,13 +1574,7 @@ function BoardPageContent() {
           setSelectedTextElement(null);
           setEditingTextElement(null);
         }
-      } else {
-        // Clear all selections when clicking on background
-        setSelectedStickyNote(null);
-        setSelectedFrame(null);
-        setSelectedTextElement(null);
-        setEditingTextElement(null);
-      }
+      }, 0); // Minimal delay to allow text element handlers to fire first
     },
     [
       tool,
@@ -2373,33 +2371,18 @@ function BoardPageContent() {
           />
 
           {/* Floating Text Toolbar */}
-          {(tool === "text" || selectedTextElement !== null) && (
+          {(selectedTextElement !== null || editingTextElement !== null || tool === "text") && (
             <div className="max-lg:hidden">
               <FloatingTextToolbar
                 isActive={true}
                 selectedTextElements={
                   selectedTextElement
                     ? textElements.filter((t) => t.id === selectedTextElement)
+                    : editingTextElement
+                    ? textElements.filter((t) => t.id === editingTextElement)
                     : []
                 }
                 onTextUpdateAction={handleTextElementUpdate}
-                onFormatAction={(formatting) => {
-                  if (selectedTextElement) {
-                    const textElement = textElements.find(t => t.id === selectedTextElement);
-                    if (textElement) {
-                      const updatedElement: TextElement = {
-                        ...textElement,
-                        formatting: {
-                          ...textElement.formatting,
-                          ...formatting,
-                        },
-                        updatedAt: Date.now(),
-                        version: textElement.version + 1,
-                      };
-                      handleTextElementUpdate(updatedElement);
-                    }
-                  }
-                }}
                 className="max-lg:hidden"
               />
             </div>

@@ -382,6 +382,27 @@ export function useCanvasInteractions({
     }
 
     if (tool === 'text') {
+      // Detect if click is on existing text element to prevent creating a new one
+      let clickedOnText = false;
+      let node: Konva.Node | Konva.Stage | null = e.target;
+      while (node && node !== stage) {
+        if (typeof node.hasName === 'function' && node.hasName('text-element')) {
+          clickedOnText = true;
+          break;
+        }
+        node = node.getParent();
+      }
+
+      if (clickedOnText) {
+        // Automatically switch to select tool for better UX
+        if (onToolChangeAction) {
+          onToolChangeAction('select');
+        }
+        // Let the existing text element handle its own click/selection
+        // The text element will handle its own selection through its click handlers
+        return;
+      }
+
       const textPos = stage.getPointerPosition();
       if (textPos) {
         const transform = stage.getAbsoluteTransform().copy();

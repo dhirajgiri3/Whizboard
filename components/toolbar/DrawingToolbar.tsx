@@ -214,7 +214,7 @@ export default function EnhancedDrawingToolbar({
         style={toolbarStyles}
         className={cn(
           "flex flex-col bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50",
-          "transition-all duration-300 ease-out w-96",
+          "transition-all duration-300 ease-out w-92",
           "max-h-[70vh] min-h-[300px]",
           isDragging && "cursor-grabbing select-none shadow-3xl scale-[1.02]",
           `ring-2 ring-${toolConfig.theme}-500/20`,

@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import { Group, Text, Rect, Transformer } from 'react-konva';
+import { Group, Text, Rect, Transformer, Line } from 'react-konva';
 import { KonvaEventObject } from 'konva/lib/Node';
 import { TextElement as TextElementType } from '@/types';
 import type Konva from 'konva';
@@ -114,7 +114,7 @@ const TextElement: React.FC<TextElementProps> = ({
     const {
       text,
       formatting: {
-        fontFamily = 'Arial',
+        fontFamily = 'Comic Sans MS',
         fontSize = 16,
         color = '#000000',
         bold = false,
@@ -164,12 +164,9 @@ const TextElement: React.FC<TextElementProps> = ({
   const computedValues = useMemo(() => {
     const { bold, italic, fontSize, fontFamily, text, textTransform, underline, strikethrough } = textProperties;
     
-    // Font style
-    let fontStyle = '';
-    if (italic) fontStyle += 'italic ';
-    if (bold) fontStyle += 'bold ';
-    fontStyle += `${fontSize}px `;
-    fontStyle += fontFamily;
+    // Konva-compatible font properties
+    const fontWeight = bold ? 'bold' : 'normal';
+    const fontStyle = italic ? 'italic' : 'normal';
 
     // Display text
     let displayText = text;
@@ -189,16 +186,17 @@ const TextElement: React.FC<TextElementProps> = ({
       }
     }
 
-    // Text decoration
-    const decorations = [];
-    if (underline) decorations.push('underline');
-    if (strikethrough) decorations.push('line-through');
-    const textDecoration = decorations.join(' ') || 'none';
+    // Text decoration handling (Konva doesn't support textDecoration directly)
+    // We'll handle underline and strikethrough with additional shapes if needed
+    const hasUnderline = underline;
+    const hasStrikethrough = strikethrough;
 
     return {
-      fontStyle: fontStyle.trim(),
+      fontWeight,
+      fontStyle,
       displayText,
-      textDecoration,
+      hasUnderline,
+      hasStrikethrough,
       isEmpty: !text || text.trim() === '',
     };
   }, [textProperties]);
@@ -255,17 +253,17 @@ const TextElement: React.FC<TextElementProps> = ({
       };
     } else if (isHovered && !isDragging && !isTransforming) {
       return {
-        stroke: "#6366f1",
+        stroke: isDraggable ? "#10b981" : "#6366f1",
         strokeWidth: Math.max(1.5 / scale, 0.75),
-        fill: "rgba(99, 102, 241, 0.04)",
+        fill: isDraggable ? "rgba(16, 185, 129, 0.06)" : "rgba(99, 102, 241, 0.04)",
         dash: [Math.max(3 / scale, 1.5), Math.max(3 / scale, 1.5)],
-        shadowColor: "#6366f1",
+        shadowColor: isDraggable ? "#10b981" : "#6366f1",
         shadowBlur: Math.max(2 / scale, 1),
         shadowOpacity: 0.15,
       };
     }
     return null;
-  }, [isEditing, isSelected, interactionState, scale]);
+  }, [isEditing, isSelected, interactionState, scale, isDraggable]);
 
   // Enhanced transformer configuration with better UX
   const transformerConfig = useMemo(() => {
@@ -334,8 +332,10 @@ const TextElement: React.FC<TextElementProps> = ({
 
   // Enhanced event handlers with better interaction detection
   const handleDoubleClick = useCallback((e: KonvaEventObject<MouseEvent>) => {
+    // Immediately stop propagation to prevent other handlers from interfering
     e.cancelBubble = true;
     e.evt?.stopPropagation();
+    e.evt?.stopImmediatePropagation();
     
     // Ensure we can start editing
     if (!isEditing && !interactionState.isDragging && !interactionState.isTransforming) {
@@ -350,10 +350,13 @@ const TextElement: React.FC<TextElementProps> = ({
   }, [onStartEditAction, onSelectAction, textElement.id, isEditing, interactionState]);
 
   const handleClick = useCallback((e: KonvaEventObject<MouseEvent>) => {
+    // Immediately stop propagation to prevent other handlers from interfering
     e.cancelBubble = true;
     e.evt?.stopPropagation();
+    e.evt?.stopImmediatePropagation();
     
     if (!isEditing && !interactionState.isDragging && !interactionState.isTransforming) {
+      // Immediately call selection to prevent race conditions
       onSelectAction(textElement.id);
     }
   }, [onSelectAction, textElement.id, isEditing, interactionState]);
@@ -363,14 +366,15 @@ const TextElement: React.FC<TextElementProps> = ({
       setInteractionState(prev => ({ ...prev, isHovered: true }));
       const stage = e.target.getStage();
       if (stage) {
-        if (isSelected) {
-          stage.container().style.cursor = isDraggable ? 'move' : 'pointer';
+        // Show move cursor when draggable, regardless of selection state
+        if (isDraggable) {
+          stage.container().style.cursor = 'move';
         } else {
           stage.container().style.cursor = 'pointer';
         }
       }
     }
-  }, [isEditing, isDraggable, isSelected, interactionState]);
+  }, [isEditing, isDraggable, interactionState]);
 
   const handleMouseLeave = useCallback((e: KonvaEventObject<MouseEvent>) => {
     if (!interactionState.isDragging && !interactionState.isTransforming) {
@@ -386,8 +390,14 @@ const TextElement: React.FC<TextElementProps> = ({
   const handleDragStart = useCallback((e: KonvaEventObject<DragEvent>) => {
     e.cancelBubble = true;
     setInteractionState(prev => ({ ...prev, isDragging: true }));
+    
+    // Auto-select the text element when dragging starts
+    if (!isSelected) {
+      onSelectAction(textElement.id);
+    }
+    
     onDragStartAction?.();
-  }, [onDragStartAction]);
+  }, [onDragStartAction, isSelected, onSelectAction, textElement.id]);
 
   const handleDragMove = useCallback((e: KonvaEventObject<DragEvent>) => {
     const newX = e.target.x();
@@ -584,29 +594,43 @@ const TextElement: React.FC<TextElementProps> = ({
     <>
       <Group
         ref={groupRef}
+        name="text-element"
         x={currentTransform.x}
         y={currentTransform.y}
+        width={currentTransform.width}
+        height={currentTransform.height}
         rotation={currentTransform.rotation}
         draggable={isDraggable && !isEditing}
-        opacity={textProperties.opacity}
-        onClick={handleClick}
-        onTap={handleClick}
-        onDblClick={handleDoubleClick}
-        onDblTap={handleDoubleClick}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
         onDragStart={handleDragStart}
         onDragMove={handleDragMove}
         onDragEnd={handleDragEnd}
         onTransformStart={handleTransformStart}
-        onTransform={handleTransform}
         onTransformEnd={handleTransformEnd}
+        onClick={handleClick}
+        onTap={handleClick}
+        onDblClick={handleDoubleClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         listening={true}
-        name="text-element"
-        // Performance optimizations
         perfectDrawEnabled={false}
-        hitGraphEnabled={false}
+        opacity={interactionState.isDragging ? 0.8 : 1}
+        scaleX={interactionState.isDragging ? 1.02 : 1}
+        scaleY={interactionState.isDragging ? 1.02 : 1}
       >
+        {/* Invisible hit area for click detection - Enhanced for better reliability */}
+        <Rect
+          x={-2}
+          y={-2}
+          width={currentTransform.width + 4}
+          height={currentTransform.height + 4}
+          fill="transparent"
+          listening={true}
+          perfectDrawEnabled={false}
+          onClick={handleClick}
+          onTap={handleClick}
+          onDblClick={handleDoubleClick}
+        />
+
         {/* Background */}
         {(textProperties.backgroundColor || textProperties.border || indicatorStyle) && (
           <Rect
@@ -635,17 +659,39 @@ const TextElement: React.FC<TextElementProps> = ({
           fontFamily={textProperties.fontFamily}
           fontSize={textProperties.fontSize}
           fontStyle={computedValues.fontStyle}
+          fontWeight={computedValues.fontWeight}
           fill={computedValues.isEmpty ? '#9ca3af' : textProperties.color}
           align={textProperties.align}
           verticalAlign="top"
           lineHeight={textProperties.lineHeight}
           letterSpacing={textProperties.letterSpacing}
-          textDecoration={computedValues.textDecoration}
           wrap="word"
           ellipsis={false}
           listening={false}
           perfectDrawEnabled={false}
         />
+        
+        {/* Underline decoration */}
+        {computedValues.hasUnderline && !computedValues.isEmpty && (
+          <Line
+            points={[8, currentTransform.height - 8, currentTransform.width - 8, currentTransform.height - 8]}
+            stroke={textProperties.color}
+            strokeWidth={Math.max(1, textProperties.fontSize / 16)}
+            listening={false}
+            perfectDrawEnabled={false}
+          />
+        )}
+        
+        {/* Strikethrough decoration */}
+        {computedValues.hasStrikethrough && !computedValues.isEmpty && (
+          <Line
+            points={[8, currentTransform.height / 2, currentTransform.width - 8, currentTransform.height / 2]}
+            stroke={textProperties.color}
+            strokeWidth={Math.max(1, textProperties.fontSize / 16)}
+            listening={false}
+            perfectDrawEnabled={false}
+          />
+        )}
 
         {/* Selection/Hover/Editing indicator */}
         {indicatorStyle && (
@@ -685,6 +731,54 @@ const TextElement: React.FC<TextElementProps> = ({
                 perfectDrawEnabled={false}
               />
             ))}
+          </>
+        )}
+
+        {/* Dragging state indicator */}
+        {interactionState.isDragging && (
+          <>
+            {/* Dragging border */}
+            <Rect
+              x={-6}
+              y={-6}
+              width={currentTransform.width + 12}
+              height={currentTransform.height + 12}
+              stroke="#3b82f6"
+              strokeWidth={Math.max(2 / scale, 1)}
+              cornerRadius={8}
+              dash={[Math.max(4 / scale, 2), Math.max(4 / scale, 2)]}
+              opacity={0.8}
+              listening={false}
+              perfectDrawEnabled={false}
+            />
+            
+            {/* Dragging label */}
+            <Rect
+              x={currentTransform.width / 2 - 30}
+              y={-24}
+              width={60}
+              height={16}
+              fill="#3b82f6"
+              cornerRadius={8}
+              opacity={0.9}
+              listening={false}
+              perfectDrawEnabled={false}
+            />
+            <Text
+              x={currentTransform.width / 2 - 28}
+              y={-21}
+              width={56}
+              height={10}
+              text="MOVING"
+              fontSize={Math.max(10 / scale, 8)}
+              fontFamily="'Inter', -apple-system, sans-serif"
+              fontWeight="600"
+              fill="white"
+              align="center"
+              verticalAlign="middle"
+              listening={false}
+              perfectDrawEnabled={false}
+            />
           </>
         )}
       </Group>

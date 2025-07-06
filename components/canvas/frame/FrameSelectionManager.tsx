@@ -78,14 +78,11 @@ const FrameSelectionManager: React.FC<SelectionRectProps> = ({
     const stage = stageRef.current;
     if (!stage) return;
 
-    // Check if clicked on stage background (not on a frame or other element)
-    if (e.target === stage) {
-      // Check if the click target is specifically the stage, not a frame
-      const targetName = e.target.name();
-      if (targetName && (targetName.includes('frame') || targetName.includes('sticky'))) {
-        return; // Don't start selection if clicked on a frame or sticky note
-      }
-
+    // Enhanced check to avoid interfering with text elements and other interactive elements
+    const target = e.target;
+    
+    // Check if clicked on stage background (not on any interactive element)
+    if (target === stage) {
       const pos = stage.getPointerPosition();
       if (!pos) return;
 
@@ -118,12 +115,28 @@ const FrameSelectionManager: React.FC<SelectionRectProps> = ({
       if (now - lastClickTimeRef.current < doubleClickThreshold) {
         // Double click - select all frames
         onSelectionChange(frameElements.map(frame => frame.id));
-      } else if (!e.evt.shiftKey && !e.evt.altKey) {
-        // Single click without modifiers - clear selection only if no frames are being clicked
-        // This will be handled by the canvas click handler instead
       }
       lastClickTimeRef.current = now;
+      return;
     }
+
+    // Check if the target or its parents are interactive elements that should not trigger frame selection
+    let currentNode = target;
+    while (currentNode && currentNode !== stage) {
+      if (typeof currentNode.hasName === 'function') {
+        const hasTextElement = currentNode.hasName('text-element');
+        const hasStickyNote = currentNode.hasName('sticky-note');
+        const hasFrame = currentNode.hasName('frame') || currentNode.hasName('enhanced-frame');
+        
+        if (hasTextElement || hasStickyNote || hasFrame) {
+          // Don't start frame selection if clicking on these interactive elements
+          return;
+        }
+      }
+      currentNode = currentNode.getParent();
+    }
+
+    // If we get here, it's a click on some other element - don't start frame selection
   }, [isActive, stageRef, frameElements, onSelectionStart, onSelectionChange]);
 
   // Handle mouse move for selection box

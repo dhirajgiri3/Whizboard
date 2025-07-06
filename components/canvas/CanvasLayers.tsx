@@ -286,14 +286,14 @@ export function CanvasLayers({
         const isHovered = hoveredLineIndex === i;
         const isPenLine = line.tool === 'pen';
         
-        // Enhanced hit detection calculation
+        // Enhanced hit detection calculation with improved accuracy
         const baseStrokeWidth = line.tool === 'highlighter' 
           ? (line.strokeWidth || 2) // Already multiplied during creation
           : (line.strokeWidth || 2);
         const hitStrokeWidth = Math.max(
-          baseStrokeWidth * 2, // Double the stroke width for better hit detection
-          Math.max(12, 20 / stageScale), // Minimum hit area that scales with zoom
-          8 // Absolute minimum
+          baseStrokeWidth * 1.5, // 1.5x the stroke width for reasonable hit detection
+          Math.max(8, 12 / stageScale), // Smaller minimum hit area that scales with zoom
+          6 // Smaller absolute minimum for more precise selection
         );
         
         // Enhanced visual feedback
@@ -341,8 +341,10 @@ export function CanvasLayers({
               for (let i = 2; i < points.length; i += 2) {
                 context.lineTo(points[i], points[i + 1]);
               }
-              context.closePath();
-              context.fillStrokeShape(shape);
+              // Use stroke instead of fill for more accurate line detection
+              context.lineWidth = hitStrokeWidth;
+              context.strokeStyle = 'rgba(0,0,0,0.01)'; // Nearly invisible for hit detection
+              context.stroke();
             }}
           />
         );
@@ -544,15 +546,15 @@ export function CanvasLayers({
       
       {/* Text Elements Layer - Optimized for performance */}
       <Layer
-        // Performance optimizations for text layer
-        hitGraphEnabled={false}
+        // Enable hit detection for text elements
+        hitGraphEnabled={true}
         perfectDrawEnabled={false}
         clearBeforeDraw={true}
         imageSmoothingEnabled={false}
       >
         {textElements.map((textElement, index) => (
           <TextElementComponent
-            key={`text-${textElement.id}-v${textElement.version || 0}`}
+            key={`text-${textElement.id}-v${textElement.version || 0}-idx${index}`}
             textElement={textElement}
             isSelected={selectedTextElement === textElement.id}
             isEditing={editingTextElement === textElement.id}

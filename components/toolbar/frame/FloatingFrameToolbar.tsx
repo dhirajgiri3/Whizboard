@@ -131,7 +131,7 @@ export default function FloatingFrameToolbar({
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
   const [showAdvancedStyles, setShowAdvancedStyles] = useState(false);
-  
+
   // Style state
   const [fillColor, setFillColor] = useState("#ffffff");
   const [strokeColor, setStrokeColor] = useState("#e5e7eb");
@@ -219,91 +219,110 @@ export default function FloatingFrameToolbar({
     []
   );
 
-  const handleStyleUpdate = useCallback((property: string, value: any) => {
-    if (!primarySelectedFrame) return;
-    
-    const updatedFrame = {
-      ...primarySelectedFrame,
-      style: {
-        ...primarySelectedFrame.style,
-        [property]: value,
-      },
-    };
-    
-    onFrameUpdateAction(updatedFrame);
-  }, [primarySelectedFrame, onFrameUpdateAction]);
+  const handleStyleUpdate = useCallback(
+    (property: string, value: any) => {
+      if (!primarySelectedFrame) return;
 
-  const handleColorChange = useCallback((color: string) => {
-    if (colorType === "fill") {
-      setFillColor(color);
-      handleStyleUpdate("fill", color);
-    } else {
-      setStrokeColor(color);
-      handleStyleUpdate("stroke", color);
-    }
-  }, [colorType, handleStyleUpdate]);
+      const updatedFrame = {
+        ...primarySelectedFrame,
+        style: {
+          ...primarySelectedFrame.style,
+          [property]: value,
+        },
+      };
+
+      onFrameUpdateAction(updatedFrame);
+    },
+    [primarySelectedFrame, onFrameUpdateAction]
+  );
+
+  const handleColorChange = useCallback(
+    (color: string) => {
+      if (colorType === "fill") {
+        setFillColor(color);
+        handleStyleUpdate("fill", color);
+      } else {
+        setStrokeColor(color);
+        handleStyleUpdate("stroke", color);
+      }
+    },
+    [colorType, handleStyleUpdate]
+  );
 
   const handleFlipHorizontal = useCallback(() => {
     if (!primarySelectedFrame) return;
-    
+
     const updatedFrame = {
       ...primarySelectedFrame,
       style: {
         ...primarySelectedFrame.style,
-        transform: `scaleX(-1) ${primarySelectedFrame.style.transform || ''}`.trim(),
+        transform: `scaleX(-1) ${
+          primarySelectedFrame.style.transform || ""
+        }`.trim(),
       },
     };
-    
+
     onFrameUpdateAction(updatedFrame);
     sonnerToast.success("Frame flipped horizontally");
   }, [primarySelectedFrame, onFrameUpdateAction]);
 
   const handleFlipVertical = useCallback(() => {
     if (!primarySelectedFrame) return;
-    
+
     const updatedFrame = {
       ...primarySelectedFrame,
       style: {
         ...primarySelectedFrame.style,
-        transform: `scaleY(-1) ${primarySelectedFrame.style.transform || ''}`.trim(),
+        transform: `scaleY(-1) ${
+          primarySelectedFrame.style.transform || ""
+        }`.trim(),
       },
     };
-    
+
     onFrameUpdateAction(updatedFrame);
     sonnerToast.success("Frame flipped vertically");
   }, [primarySelectedFrame, onFrameUpdateAction]);
 
-  const handleRotationChange = useCallback((degrees: number) => {
-    if (!primarySelectedFrame) return;
-    
-    setRotation(degrees);
-    const updatedFrame = {
-      ...primarySelectedFrame,
-      style: {
-        ...primarySelectedFrame.style,
-        transform: `rotate(${degrees}deg)`,
-      },
-    };
-    
-    onFrameUpdateAction(updatedFrame);
-  }, [primarySelectedFrame, onFrameUpdateAction]);
+  const handleRotationChange = useCallback(
+    (degrees: number) => {
+      if (!primarySelectedFrame) return;
 
-  const handleCustomColorChange = useCallback((color: string) => {
-    setCustomColor(color);
-    handleColorChange(color);
-  }, [handleColorChange]);
+      setRotation(degrees);
+      const updatedFrame = {
+        ...primarySelectedFrame,
+        style: {
+          ...primarySelectedFrame.style,
+          transform: `rotate(${degrees}deg)`,
+        },
+      };
 
-  const handleShadowUpdate = useCallback((property: string, value: any) => {
-    if (!primarySelectedFrame) return;
-    
-    const currentShadow = primarySelectedFrame.style.shadow || {};
-    const updatedShadow = {
-      ...currentShadow,
-      [property]: value,
-    };
-    
-    handleStyleUpdate("shadow", updatedShadow);
-  }, [primarySelectedFrame, handleStyleUpdate]);
+      onFrameUpdateAction(updatedFrame);
+    },
+    [primarySelectedFrame, onFrameUpdateAction]
+  );
+
+  const handleCustomColorChange = useCallback(
+    (color: string) => {
+      setCustomColor(color);
+      handleColorChange(color);
+    },
+    [handleColorChange]
+  );
+
+  const handleShadowUpdate = useCallback(
+    (property: string, value: any) => {
+      if (!primarySelectedFrame) return;
+
+      const currentShadow = primarySelectedFrame.style.shadow || {};
+      const updatedShadow = {
+        ...currentShadow,
+        [property]: value,
+      };
+
+      handleStyleUpdate("shadow", updatedShadow);
+    },
+    [primarySelectedFrame, handleStyleUpdate]
+  );
 
   useEffect(() => {
     if (activeTab === "presets" && !isCollapsed) {
@@ -346,39 +365,45 @@ export default function FloatingFrameToolbar({
     }
   }, [primarySelectedFrame]);
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (!isActive || !hasSelection) return;
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!isActive || !hasSelection) return;
 
-    if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-      return;
-    }
-
-    if (e.key === "Escape") {
-      e.preventDefault();
-      if (onFrameDeselectAction) {
-        onFrameDeselectAction();
-        sonnerToast.info("Selection cleared");
+      if (
+        document.activeElement &&
+        ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)
+      ) {
+        return;
       }
-    }
 
-    if (e.key === "Delete" || e.key === "Backspace") {
-      e.preventDefault();
-      handleDeleteFrame(
-        selectedFrames,
-        selectedFrameIds,
-        onFrameDeleteAction,
-        onFrameDeleteMultipleAction
-      );
-    }
-  }, [
-    isActive,
-    hasSelection,
-    selectedFrames,
-    selectedFrameIds,
-    onFrameDeselectAction,
-    onFrameDeleteAction,
-    onFrameDeleteMultipleAction,
-  ]);
+      if (e.key === "Escape") {
+        e.preventDefault();
+        if (onFrameDeselectAction) {
+          onFrameDeselectAction();
+          sonnerToast.info("Selection cleared");
+        }
+      }
+
+      if (e.key === "Delete" || e.key === "Backspace") {
+        e.preventDefault();
+        handleDeleteFrame(
+          selectedFrames,
+          selectedFrameIds,
+          onFrameDeleteAction,
+          onFrameDeleteMultipleAction
+        );
+      }
+    },
+    [
+      isActive,
+      hasSelection,
+      selectedFrames,
+      selectedFrameIds,
+      onFrameDeselectAction,
+      onFrameDeleteAction,
+      onFrameDeleteMultipleAction,
+    ]
+  );
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -472,14 +497,13 @@ export default function FloatingFrameToolbar({
                 <div className="text-xs text-slate-500 flex items-center gap-2">
                   {hasSelection ? (
                     <>
-                      <span>
-                        {selectedFrames.length} selected
-                      </span>
+                      <span>{selectedFrames.length} selected</span>
                       {selectedFrames.length === 1 && (
                         <>
                           <span className="w-1 h-1 bg-slate-400 rounded-full"></span>
                           <span>
-                            {Math.round(selectedFrames[0].width)} × {Math.round(selectedFrames[0].height)}
+                            {Math.round(selectedFrames[0].width)} ×{" "}
+                            {Math.round(selectedFrames[0].height)}
                           </span>
                         </>
                       )}
@@ -509,7 +533,11 @@ export default function FloatingFrameToolbar({
                 title={isCollapsed ? "Expand" : "Collapse"}
                 aria-label={isCollapsed ? "Expand" : "Collapse"}
               >
-                {isCollapsed ? <Maximize2 size={14} /> : <Minimize2 size={14} />}
+                {isCollapsed ? (
+                  <Maximize2 size={14} />
+                ) : (
+                  <Minimize2 size={14} />
+                )}
               </button>
               <button
                 onClick={toggleHidden}
@@ -536,7 +564,9 @@ export default function FloatingFrameToolbar({
                 <div>
                   <h3 className="font-semibold text-slate-800 text-sm">
                     {hasSelection
-                      ? `${selectedFrames.length} Frame${selectedFrames.length !== 1 ? "s" : ""} Selected`
+                      ? `${selectedFrames.length} Frame${
+                          selectedFrames.length !== 1 ? "s" : ""
+                        } Selected`
                       : "Frame Tools"}
                   </h3>
                   <p className="text-xs text-slate-500">
@@ -631,7 +661,8 @@ export default function FloatingFrameToolbar({
                             </h3>
                             <div className="flex items-center gap-2 mt-1">
                               <span className="text-xs text-slate-600 font-medium">
-                                {Math.round(primarySelectedFrame.width)} × {Math.round(primarySelectedFrame.height)}px
+                                {Math.round(primarySelectedFrame.width)} ×{" "}
+                                {Math.round(primarySelectedFrame.height)}px
                               </span>
                             </div>
                           </div>
@@ -791,7 +822,10 @@ export default function FloatingFrameToolbar({
                             {categoryInfo[category as FrameCategory].label}
                           </h4>
                           <p className="text-xs text-slate-500">
-                            {categoryInfo[category as FrameCategory].description}
+                            {
+                              categoryInfo[category as FrameCategory]
+                                .description
+                            }
                           </p>
                         </div>
                       </div>
@@ -812,7 +846,8 @@ export default function FloatingFrameToolbar({
                                 {preset.name}
                               </div>
                               <div className="text-xs text-slate-500">
-                                {preset.dimensions.width} × {preset.dimensions.height}
+                                {preset.dimensions.width} ×{" "}
+                                {preset.dimensions.height}
                               </div>
                             </div>
                           </button>
@@ -823,7 +858,7 @@ export default function FloatingFrameToolbar({
                 </div>
               )}
 
-                            {activeTab === "style" && hasSelection && (
+              {activeTab === "style" && hasSelection && (
                 <div className="space-y-5 animate-in slide-in-from-top-2 duration-300">
                   {/* Colors Section */}
                   <div className="space-y-4">
@@ -859,7 +894,7 @@ export default function FloatingFrameToolbar({
                         </button>
                       </div>
                     </div>
-                    
+
                     {/* Color Presets */}
                     <div className="grid grid-cols-5 gap-2">
                       {colorPresets.map((color) => (
@@ -868,7 +903,8 @@ export default function FloatingFrameToolbar({
                           onClick={() => handleColorChange(color.color)}
                           className={cn(
                             "w-full h-9 rounded-lg border-2 transition-all duration-200 hover:scale-105 hover:shadow-md",
-                            (colorType === "fill" ? fillColor : strokeColor) === color.color
+                            (colorType === "fill" ? fillColor : strokeColor) ===
+                              color.color
                               ? "border-indigo-500 ring-2 ring-indigo-500/30 scale-105"
                               : "border-slate-200 hover:border-slate-300"
                           )}
@@ -881,11 +917,15 @@ export default function FloatingFrameToolbar({
                     {/* Custom Color Picker */}
                     <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-100">
                       <Droplet size={14} className="text-indigo-600" />
-                      <span className="text-xs font-medium text-slate-700">Custom Color:</span>
+                      <span className="text-xs font-medium text-slate-700">
+                        Custom Color:
+                      </span>
                       <input
                         type="color"
                         value={customColor}
-                        onChange={(e) => handleCustomColorChange(e.target.value)}
+                        onChange={(e) =>
+                          handleCustomColorChange(e.target.value)
+                        }
                         className="w-8 h-8 rounded-md border border-slate-200 cursor-pointer hover:scale-105 transition-transform"
                       />
                       <button
@@ -903,12 +943,16 @@ export default function FloatingFrameToolbar({
                       <Sliders size={14} />
                       Properties
                     </h3>
-                    
+
                     <div className="grid grid-cols-1 gap-4">
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs font-medium text-slate-600">Stroke Width</label>
-                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">{strokeWidth}px</span>
+                          <label className="text-xs font-medium text-slate-600">
+                            Stroke Width
+                          </label>
+                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                            {strokeWidth}px
+                          </span>
                         </div>
                         <input
                           type="range"
@@ -923,11 +967,15 @@ export default function FloatingFrameToolbar({
                           className="w-full h-3 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg appearance-none cursor-pointer smooth-slider"
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs font-medium text-slate-600">Corner Radius</label>
-                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">{cornerRadius}px</span>
+                          <label className="text-xs font-medium text-slate-600">
+                            Corner Radius
+                          </label>
+                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                            {cornerRadius}px
+                          </span>
                         </div>
                         <input
                           type="range"
@@ -942,11 +990,15 @@ export default function FloatingFrameToolbar({
                           className="w-full h-3 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg appearance-none cursor-pointer smooth-slider"
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs font-medium text-slate-600">Opacity</label>
-                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">{Math.round(opacity * 100)}%</span>
+                          <label className="text-xs font-medium text-slate-600">
+                            Opacity
+                          </label>
+                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                            {Math.round(opacity * 100)}%
+                          </span>
                         </div>
                         <input
                           type="range"
@@ -965,8 +1017,12 @@ export default function FloatingFrameToolbar({
 
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs font-medium text-slate-600">Rotation</label>
-                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">{rotation}°</span>
+                          <label className="text-xs font-medium text-slate-600">
+                            Rotation
+                          </label>
+                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                            {rotation}°
+                          </span>
                         </div>
                         <input
                           type="range"
@@ -989,12 +1045,16 @@ export default function FloatingFrameToolbar({
                       <Blend size={14} />
                       Effects
                     </h3>
-                    
+
                     <div className="grid grid-cols-1 gap-4">
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs font-medium text-slate-600">Brightness</label>
-                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">{brightness}%</span>
+                          <label className="text-xs font-medium text-slate-600">
+                            Brightness
+                          </label>
+                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                            {brightness}%
+                          </span>
                         </div>
                         <input
                           type="range"
@@ -1012,8 +1072,12 @@ export default function FloatingFrameToolbar({
 
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs font-medium text-slate-600">Contrast</label>
-                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">{contrast}%</span>
+                          <label className="text-xs font-medium text-slate-600">
+                            Contrast
+                          </label>
+                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                            {contrast}%
+                          </span>
                         </div>
                         <input
                           type="range"
@@ -1031,8 +1095,12 @@ export default function FloatingFrameToolbar({
 
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs font-medium text-slate-600">Saturation</label>
-                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">{saturation}%</span>
+                          <label className="text-xs font-medium text-slate-600">
+                            Saturation
+                          </label>
+                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                            {saturation}%
+                          </span>
                         </div>
                         <input
                           type="range"
@@ -1056,12 +1124,16 @@ export default function FloatingFrameToolbar({
                       <Moon size={14} />
                       Shadow
                     </h3>
-                    
+
                     <div className="grid grid-cols-1 gap-4">
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs font-medium text-slate-600">Shadow Blur</label>
-                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">{shadowBlur}px</span>
+                          <label className="text-xs font-medium text-slate-600">
+                            Shadow Blur
+                          </label>
+                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                            {shadowBlur}px
+                          </span>
                         </div>
                         <input
                           type="range"
@@ -1076,11 +1148,15 @@ export default function FloatingFrameToolbar({
                           className="w-full h-3 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg appearance-none cursor-pointer smooth-slider"
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs font-medium text-slate-600">Shadow Opacity</label>
-                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">{Math.round(shadowOpacity * 100)}%</span>
+                          <label className="text-xs font-medium text-slate-600">
+                            Shadow Opacity
+                          </label>
+                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                            {Math.round(shadowOpacity * 100)}%
+                          </span>
                         </div>
                         <input
                           type="range"
@@ -1100,8 +1176,12 @@ export default function FloatingFrameToolbar({
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <label className="text-xs font-medium text-slate-600">Offset X</label>
-                            <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">{shadowOffsetX}px</span>
+                            <label className="text-xs font-medium text-slate-600">
+                              Offset X
+                            </label>
+                            <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                              {shadowOffsetX}px
+                            </span>
                           </div>
                           <input
                             type="range"
@@ -1119,8 +1199,12 @@ export default function FloatingFrameToolbar({
 
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <label className="text-xs font-medium text-slate-600">Offset Y</label>
-                            <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">{shadowOffsetY}px</span>
+                            <label className="text-xs font-medium text-slate-600">
+                              Offset Y
+                            </label>
+                            <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                              {shadowOffsetY}px
+                            </span>
                           </div>
                           <input
                             type="range"
@@ -1140,7 +1224,9 @@ export default function FloatingFrameToolbar({
                       {/* Shadow Color */}
                       <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-slate-50 to-gray-50 rounded-lg border border-slate-100">
                         <Moon size={14} className="text-slate-600" />
-                        <span className="text-xs font-medium text-slate-700">Shadow Color:</span>
+                        <span className="text-xs font-medium text-slate-700">
+                          Shadow Color:
+                        </span>
                         <input
                           type="color"
                           value={shadowColor}
@@ -1160,7 +1246,7 @@ export default function FloatingFrameToolbar({
                       <RefreshCw size={14} />
                       Quick Actions
                     </h3>
-                    
+
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={() => {
@@ -1177,7 +1263,10 @@ export default function FloatingFrameToolbar({
                         }}
                         className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 transition-all duration-200 group"
                       >
-                        <RefreshCw size={14} className="text-slate-600 group-hover:text-indigo-600 transition-colors" />
+                        <RefreshCw
+                          size={14}
+                          className="text-slate-600 group-hover:text-indigo-600 transition-colors"
+                        />
                         <span className="text-xs text-slate-600 group-hover:text-indigo-600 transition-colors font-medium">
                           Reset Effects
                         </span>
@@ -1196,7 +1285,10 @@ export default function FloatingFrameToolbar({
                         }}
                         className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 transition-all duration-200 group"
                       >
-                        <Sun size={14} className="text-slate-600 group-hover:text-amber-600 transition-colors" />
+                        <Sun
+                          size={14}
+                          className="text-slate-600 group-hover:text-amber-600 transition-colors"
+                        />
                         <span className="text-xs text-slate-600 group-hover:text-amber-600 transition-colors font-medium">
                           Remove Shadow
                         </span>
@@ -1209,20 +1301,51 @@ export default function FloatingFrameToolbar({
               {activeTab === "layout" && hasMultipleSelection && (
                 <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
                   <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-slate-800">Alignment</h3>
-                    
+                    <h3 className="text-sm font-semibold text-slate-800">
+                      Alignment
+                    </h3>
+
                     <div className="grid grid-cols-3 gap-2">
                       {[
-                        { id: "left", icon: <AlignLeft size={14} />, label: "Left" },
-                        { id: "center", icon: <AlignCenter size={14} />, label: "Center" },
-                        { id: "right", icon: <AlignRight size={14} />, label: "Right" },
-                        { id: "top", icon: <AlignLeft size={14} className="rotate-90" />, label: "Top" },
-                        { id: "middle", icon: <AlignCenter size={14} className="rotate-90" />, label: "Middle" },
-                        { id: "bottom", icon: <AlignRight size={14} className="rotate-90" />, label: "Bottom" },
+                        {
+                          id: "left",
+                          icon: <AlignLeft size={14} />,
+                          label: "Left",
+                        },
+                        {
+                          id: "center",
+                          icon: <AlignCenter size={14} />,
+                          label: "Center",
+                        },
+                        {
+                          id: "right",
+                          icon: <AlignRight size={14} />,
+                          label: "Right",
+                        },
+                        {
+                          id: "top",
+                          icon: <AlignLeft size={14} className="rotate-90" />,
+                          label: "Top",
+                        },
+                        {
+                          id: "middle",
+                          icon: <AlignCenter size={14} className="rotate-90" />,
+                          label: "Middle",
+                        },
+                        {
+                          id: "bottom",
+                          icon: <AlignRight size={14} className="rotate-90" />,
+                          label: "Bottom",
+                        },
                       ].map((align) => (
                         <button
                           key={align.id}
-                          onClick={() => handleAlignFrames(align.id as any, onFrameAlignAction)}
+                          onClick={() =>
+                            handleAlignFrames(
+                              align.id as any,
+                              onFrameAlignAction
+                            )
+                          }
                           className="flex flex-col items-center gap-1 p-3 rounded-lg bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 transition-all duration-200 group"
                         >
                           <div className="text-slate-600 group-hover:text-indigo-600 transition-colors">
@@ -1237,23 +1360,41 @@ export default function FloatingFrameToolbar({
                   </div>
 
                   <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-slate-800">Distribution</h3>
-                    
+                    <h3 className="text-sm font-semibold text-slate-800">
+                      Distribution
+                    </h3>
+
                     <div className="grid grid-cols-2 gap-2">
                       <button
-                        onClick={() => handleDistributeFrames("horizontal", onFrameDistributeAction)}
+                        onClick={() =>
+                          handleDistributeFrames(
+                            "horizontal",
+                            onFrameDistributeAction
+                          )
+                        }
                         className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 transition-all duration-200 group"
                       >
-                        <AlignHorizontalDistributeCenter size={16} className="text-slate-600 group-hover:text-indigo-600 transition-colors" />
+                        <AlignHorizontalDistributeCenter
+                          size={16}
+                          className="text-slate-600 group-hover:text-indigo-600 transition-colors"
+                        />
                         <span className="text-sm text-slate-600 group-hover:text-indigo-600 transition-colors">
                           Horizontal
                         </span>
                       </button>
                       <button
-                        onClick={() => handleDistributeFrames("vertical", onFrameDistributeAction)}
+                        onClick={() =>
+                          handleDistributeFrames(
+                            "vertical",
+                            onFrameDistributeAction
+                          )
+                        }
                         className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 transition-all duration-200 group"
                       >
-                        <AlignVerticalDistributeCenter size={16} className="text-slate-600 group-hover:text-indigo-600 transition-colors" />
+                        <AlignVerticalDistributeCenter
+                          size={16}
+                          className="text-slate-600 group-hover:text-indigo-600 transition-colors"
+                        />
                         <span className="text-sm text-slate-600 group-hover:text-indigo-600 transition-colors">
                           Vertical
                         </span>
@@ -1266,19 +1407,30 @@ export default function FloatingFrameToolbar({
               {activeTab === "actions" && hasSelection && (
                 <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
                   <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-slate-800">Frame Actions</h3>
-                    
+                    <h3 className="text-sm font-semibold text-slate-800">
+                      Frame Actions
+                    </h3>
+
                     <div className="grid grid-cols-2 gap-2">
-                                             <button
-                         onClick={() => handleDuplicateFrames(selectedFrames, primarySelectedFrame, onFrameCreateAction)}
-                         className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition-all duration-200 group"
-                       >
-                        <Copy size={16} className="text-slate-600 group-hover:text-emerald-600 transition-colors" />
+                      <button
+                        onClick={() =>
+                          handleDuplicateFrames(
+                            selectedFrames,
+                            primarySelectedFrame,
+                            onFrameCreateAction
+                          )
+                        }
+                        className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition-all duration-200 group"
+                      >
+                        <Copy
+                          size={16}
+                          className="text-slate-600 group-hover:text-emerald-600 transition-colors"
+                        />
                         <span className="text-sm text-slate-600 group-hover:text-emerald-600 transition-colors">
                           Duplicate
                         </span>
                       </button>
-                      
+
                       <button
                         onClick={() => setIsLocked(!isLocked)}
                         className={cn(
@@ -1297,43 +1449,64 @@ export default function FloatingFrameToolbar({
                   </div>
 
                   <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-slate-800">Transform</h3>
-                    
+                    <h3 className="text-sm font-semibold text-slate-800">
+                      Transform
+                    </h3>
+
                     <div className="grid grid-cols-2 gap-2">
-                                             <button 
-                         onClick={handleFlipHorizontal}
-                         className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 transition-all duration-200 group"
-                       >
-                         <FlipHorizontal size={16} className="text-slate-600 group-hover:text-indigo-600 transition-colors" />
-                         <span className="text-sm text-slate-600 group-hover:text-indigo-600 transition-colors">
-                           Flip H
-                         </span>
-                       </button>
-                       
-                       <button 
-                         onClick={handleFlipVertical}
-                         className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 transition-all duration-200 group"
-                       >
-                         <FlipVertical size={16} className="text-slate-600 group-hover:text-indigo-600 transition-colors" />
-                         <span className="text-sm text-slate-600 group-hover:text-indigo-600 transition-colors">
-                           Flip V
-                         </span>
-                       </button>
+                      <button
+                        onClick={handleFlipHorizontal}
+                        className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 transition-all duration-200 group"
+                      >
+                        <FlipHorizontal
+                          size={16}
+                          className="text-slate-600 group-hover:text-indigo-600 transition-colors"
+                        />
+                        <span className="text-sm text-slate-600 group-hover:text-indigo-600 transition-colors">
+                          Flip H
+                        </span>
+                      </button>
+
+                      <button
+                        onClick={handleFlipVertical}
+                        className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 transition-all duration-200 group"
+                      >
+                        <FlipVertical
+                          size={16}
+                          className="text-slate-600 group-hover:text-indigo-600 transition-colors"
+                        />
+                        <span className="text-sm text-slate-600 group-hover:text-indigo-600 transition-colors">
+                          Flip V
+                        </span>
+                      </button>
                     </div>
                   </div>
 
                   <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-slate-800">Danger Zone</h3>
-                    
-                                         <button
-                       onClick={() => {
-                         handleDeleteFrame(selectedFrames, selectedFrameIds, onFrameDeleteAction, onFrameDeleteMultipleAction);
-                       }}
+                    <h3 className="text-sm font-semibold text-slate-800">
+                      Danger Zone
+                    </h3>
+
+                    <button
+                      onClick={() => {
+                        handleDeleteFrame(
+                          selectedFrames,
+                          selectedFrameIds,
+                          onFrameDeleteAction,
+                          onFrameDeleteMultipleAction
+                        );
+                      }}
                       className="w-full flex items-center gap-2 p-3 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 hover:border-rose-300 transition-all duration-200 group"
                     >
-                      <Trash2 size={16} className="text-rose-600 group-hover:text-rose-700 transition-colors" />
+                      <Trash2
+                        size={16}
+                        className="text-rose-600 group-hover:text-rose-700 transition-colors"
+                      />
                       <span className="text-sm text-rose-600 group-hover:text-rose-700 transition-colors font-medium">
-                        Delete {selectedFrames.length === 1 ? "Frame" : `${selectedFrames.length} Frames`}
+                        Delete{" "}
+                        {selectedFrames.length === 1
+                          ? "Frame"
+                          : `${selectedFrames.length} Frames`}
                       </span>
                     </button>
                   </div>
@@ -1392,7 +1565,7 @@ export default function FloatingFrameToolbar({
           transform: scale(1.1);
           box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
         }
-        
+
         .smooth-slider {
           background: linear-gradient(90deg, #e2e8f0 0%, #cbd5e1 100%);
           border-radius: 8px;
@@ -1408,7 +1581,8 @@ export default function FloatingFrameToolbar({
           border-radius: 50%;
           background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
           border: 3px solid #ffffff;
-          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4), 0 0 0 1px rgba(99, 102, 241, 0.1);
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4),
+            0 0 0 1px rgba(99, 102, 241, 0.1);
           cursor: pointer;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           position: relative;
@@ -1417,11 +1591,13 @@ export default function FloatingFrameToolbar({
         .smooth-slider::-webkit-slider-thumb:hover {
           background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
           transform: scale(1.15);
-          box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5), 0 0 0 2px rgba(99, 102, 241, 0.2);
+          box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5),
+            0 0 0 2px rgba(99, 102, 241, 0.2);
         }
         .smooth-slider::-webkit-slider-thumb:active {
           transform: scale(1.05);
-          box-shadow: 0 2px 8px rgba(99, 102, 241, 0.6), 0 0 0 3px rgba(99, 102, 241, 0.3);
+          box-shadow: 0 2px 8px rgba(99, 102, 241, 0.6),
+            0 0 0 3px rgba(99, 102, 241, 0.3);
         }
         .smooth-slider:hover {
           background: linear-gradient(90deg, #cbd5e1 0%, #94a3b8 100%);
@@ -1430,7 +1606,7 @@ export default function FloatingFrameToolbar({
           background: linear-gradient(90deg, #cbd5e1 0%, #94a3b8 100%);
           box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
-        
+
         /* Firefox slider styles */
         .smooth-slider::-moz-range-track {
           background: linear-gradient(90deg, #e2e8f0 0%, #cbd5e1 100%);

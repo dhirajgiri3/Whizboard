@@ -262,13 +262,6 @@ export function CanvasControls({
             </div>
           )}
 
-          {/* Frame selection indicator */}
-          {tool === 'select' && (
-            <div className="bg-indigo-50/90 backdrop-blur-sm text-indigo-700 border border-indigo-200/60 rounded-full px-4 py-2 text-xs font-medium shadow-sm flex items-center gap-2">
-              <Grid size={12} />
-              Click any frame to select
-            </div>
-          )}
 
           {tool === 'frame' && (
             <div className="bg-green-50/90 backdrop-blur-sm text-green-700 border border-green-200/60 rounded-full px-4 py-2 text-xs font-medium shadow-sm flex items-center gap-2">

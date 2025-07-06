@@ -30,19 +30,18 @@ interface FloatingTextToolbarProps {
   isActive?: boolean;
   selectedTextElements?: TextElement[];
   onTextUpdateAction?: (textElement: TextElement) => void;
-  onFormatAction?: (formatting: Partial<TextElement['formatting']>) => void;
   className?: string;
 }
 
 // Font family options
 const FONT_FAMILIES = [
+  'Comic Sans MS',
   'Arial',
   'Helvetica',
   'Times New Roman',
   'Georgia',
   'Verdana',
   'Courier New',
-  'Comic Sans MS',
   'Impact',
   'Trebuchet MS',
   'Arial Black',
@@ -85,7 +84,6 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
   isActive = false,
   selectedTextElements = [],
   onTextUpdateAction,
-  onFormatAction,
   className = '',
 }) => {
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -95,7 +93,7 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
   const currentFormatting = useMemo(() => {
     if (selectedTextElements.length === 0) {
       return {
-        fontFamily: 'Arial',
+        fontFamily: 'Comic Sans MS',
         fontSize: 16,
         color: '#000000',
         bold: false,
@@ -144,26 +142,28 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
 
   // Format update handler
   const updateFormatting = useCallback((updates: Partial<TextElement['formatting']>) => {
-    if (onFormatAction) {
-      onFormatAction(updates);
+    if (selectedTextElements.length === 0) {
+      return;
     }
     
-    // Update each selected text element
+    if (!onTextUpdateAction) {
+      return;
+    }
+    
+    // Only update each selected text element directly
     selectedTextElements.forEach(textElement => {
-      if (onTextUpdateAction) {
-        const updatedElement: TextElement = {
-          ...textElement,
-          formatting: {
-            ...textElement.formatting,
-            ...updates,
-          },
-          updatedAt: Date.now(),
-          version: textElement.version + 1,
-        };
-        onTextUpdateAction(updatedElement);
-      }
+      const updatedElement: TextElement = {
+        ...textElement,
+        formatting: {
+          ...textElement.formatting,
+          ...updates,
+        },
+        updatedAt: Date.now(),
+        version: textElement.version + 1,
+      };
+      onTextUpdateAction(updatedElement);
     });
-  }, [selectedTextElements, onTextUpdateAction, onFormatAction]);
+  }, [selectedTextElements, onTextUpdateAction]);
 
   // Individual formatting handlers
   const toggleBold = useCallback(() => {

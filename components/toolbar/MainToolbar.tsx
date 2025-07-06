@@ -15,13 +15,15 @@ import {
   Frame,
   Highlighter,
   Type,
+  Brain,
+  Sparkles,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 const cn = (...classes: (string | undefined | null | boolean)[]) =>
   classes.filter(Boolean).join(" ");
 
-export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame" | "highlighter" | "text";
+export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame" | "highlighter" | "text" | "ai";
 
 interface MainToolbarProps {
   tool: Tool;
@@ -32,6 +34,7 @@ interface MainToolbarProps {
   canRedo: boolean;
   onExportAction: () => void;
   onClearCanvasAction?: () => void;
+  onAIAction?: () => void;
   vertical?: boolean;
   compact?: boolean;
 }
@@ -45,6 +48,7 @@ export default function MainToolbar({
   canRedo = false,
   onExportAction,
   onClearCanvasAction,
+  onAIAction,
   vertical = false,
 }: MainToolbarProps) {
   const [shareSuccess, setShareSuccess] = useState(false);
@@ -87,6 +91,9 @@ export default function MainToolbar({
           break;
         case 't':
           setToolAction('text');
+          break;
+        case 'a':
+          setToolAction('ai');
           break;
       }
 
