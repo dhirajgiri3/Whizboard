@@ -18,6 +18,7 @@ import {
   Brain,
   Sparkles,
   Shapes,
+  Clock,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -31,13 +32,14 @@ interface MainToolbarProps {
   setToolAction: (tool: Tool) => void;
   undoAction: () => void;
   redoAction: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
-  onExportAction: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
+  onExportAction?: () => void;
   onClearCanvasAction?: () => void;
   onAIAction?: () => void;
   vertical?: boolean;
-  compact?: boolean;
+  isMobile?: boolean;
+  isTablet?: boolean;
 }
 
 export default function MainToolbar({
@@ -51,8 +53,16 @@ export default function MainToolbar({
   onClearCanvasAction,
   onAIAction,
   vertical = false,
+  isMobile = false,
+  isTablet = false,
 }: MainToolbarProps) {
   const [shareSuccess, setShareSuccess] = useState(false);
+
+  // Responsive sizing - more compact
+  const buttonSize = isMobile ? 36 : isTablet ? 40 : 44;
+  const iconSize = isMobile ? 16 : isTablet ? 18 : 20;
+  const padding = isMobile ? 6 : isTablet ? 8 : 10;
+  const gap = isMobile ? 4 : 6;
 
   // Handle share action
   const handleShare = async () => {
@@ -119,7 +129,7 @@ export default function MainToolbar({
             break;
           case 's':
             e.preventDefault();
-            onExportAction();
+            onExportAction?.();
             break;
         }
       }
@@ -129,88 +139,75 @@ export default function MainToolbar({
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, [setToolAction, undoAction, redoAction, onExportAction]);
 
-  // Special AI Tool button component with enhanced styling
+  // AI Tool Button component - with "Coming Soon" indicator
   const AIToolButton = ({
-    isActive,
+    isActive = false, 
     onClick,
     label,
-    disabled = false,
   }: {
     isActive?: boolean;
     onClick: () => void;
     label: string;
-    disabled?: boolean;
   }) => (
     <div className="relative group">
       <button
         onClick={onClick}
-        disabled={disabled}
-        aria-label={label}
+        style={{ width: buttonSize, height: buttonSize }}
         className={cn(
-          "relative transition-all duration-300 ease-out",
-          "flex items-center justify-center rounded-xl",
-          "focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-2",
-          "w-10 h-10 overflow-hidden",
-          "transform active:scale-95",
+          "relative rounded-xl transition-all duration-200 font-medium",
+          "border-2 overflow-hidden group/btn",
+          "focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:ring-offset-2",
+          "hover:scale-105 active:scale-95",
           isActive
-            ? "bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 text-white shadow-2xl shadow-purple-500/30"
-            : disabled
-            ? "text-gray-400 cursor-not-allowed bg-transparent"
-            : "bg-gradient-to-r from-purple-500/10 via-violet-500/10 to-indigo-500/10 text-purple-600 hover:from-purple-500/20 hover:via-violet-500/20 hover:to-indigo-500/20 hover:text-purple-700 border-2 border-purple-200/50 hover:border-purple-300/70 hover:shadow-lg hover:shadow-purple-500/20",
-          "group-hover:scale-105"
+            ? "bg-gradient-to-br from-violet-500 via-purple-500 to-indigo-500 text-white border-transparent shadow-lg shadow-violet-500/25"
+            : "bg-gradient-to-br from-violet-50 via-purple-50 to-indigo-50 text-violet-700 border-violet-200/50 hover:border-violet-300 hover:shadow-md hover:shadow-violet-500/20",
+          !isActive && "hover:bg-gradient-to-br hover:from-violet-100 hover:via-purple-100 hover:to-indigo-100"
         )}
+        title={label}
+        aria-label={label}
       >
-        {/* Animated background gradient */}
-        <div className={cn(
-          "absolute inset-0 bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 opacity-0 transition-opacity duration-300",
-          isActive ? "opacity-100" : "group-hover:opacity-10"
-        )} />
+        {/* Animated background */}
+        <div className="absolute inset-0 bg-gradient-to-r from-violet-400 via-purple-400 to-indigo-400 opacity-0 group-hover/btn:opacity-10 transition-opacity duration-300" />
         
-        {/* Sparkle effect */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className={cn(
-            "absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 opacity-0 transition-all duration-300",
-            isActive ? "opacity-100 animate-pulse" : "group-hover:opacity-60"
-          )}>
-            <Sparkles size={10} className="text-white" />
-          </div>
+        {/* Main content */}
+        <div className="relative z-10 flex items-center justify-center h-full">
+          <Brain 
+            size={iconSize} 
+            className="transition-all duration-300 group-hover/btn:scale-110" 
+          />
         </div>
         
-        {/* Main icon */}
-        <div className="relative z-10 flex items-center justify-center">
-          <Brain size={18} className="transition-all duration-300 group-hover:scale-110" />
+        {/* Coming Soon badge */}
+        <div className="absolute -top-1 -right-1 bg-amber-400 text-amber-900 text-xs px-1.5 py-0.5 rounded-full font-bold shadow-sm">
+          <Clock size={8} />
         </div>
         
-        {/* Glow effect */}
-        <div className={cn(
-          "absolute inset-0 rounded-xl bg-gradient-to-r from-purple-500 via-violet-500 to-indigo-500 opacity-0 blur-xl transition-opacity duration-300",
-          isActive ? "opacity-30" : "group-hover:opacity-20"
-        )} />
+        {/* Sparkle effects */}
+        <div className="absolute top-1 right-1 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300">
+          <Sparkles size={6} className="text-yellow-400" />
+        </div>
       </button>
       
       {/* Enhanced tooltip */}
       <div
         className={cn(
-          "absolute z-[9999] px-3 py-2 bg-gradient-to-r from-purple-900 via-violet-900 to-indigo-900 text-white text-sm rounded-lg shadow-2xl",
+          "absolute z-[9999] px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-xl",
           "opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none",
-          "whitespace-nowrap font-medium border border-purple-700/50",
-          // Dynamic positioning based on layout
+          "whitespace-nowrap font-medium border border-gray-700",
           vertical 
             ? "left-full ml-3 top-1/2 -translate-y-1/2" 
-            : "bottom-full mb-3 left-1/2 -translate-x-1/2",
-          // Prevent tooltip from going off-screen
-          "max-w-xs"
+            : "bottom-full mb-3 left-1/2 -translate-x-1/2"
         )}
-        style={{ zIndex: 9999 }}
       >
         <div className="flex items-center gap-2">
-          <Sparkles size={14} className="text-yellow-400" />
+          <Brain size={12} className="text-violet-400" />
           <span>{label}</span>
+          <span className="text-amber-400 text-xs">Coming Soon</span>
         </div>
         {/* Tooltip arrow */}
         <div
           className={cn(
-            "absolute w-2 h-2 bg-gradient-to-r from-purple-900 via-violet-900 to-indigo-900 rotate-45 border-l border-b border-purple-700/50",
+            "absolute w-2 h-2 bg-gray-900 rotate-45 border-l border-b border-gray-700",
             vertical 
               ? "-left-1 top-1/2 -translate-y-1/2" 
               : "top-full left-1/2 -translate-x-1/2 -translate-y-1"
@@ -220,14 +217,15 @@ export default function MainToolbar({
     </div>
   );
 
-  // Enhanced Tool button component with fixed tooltip z-index
+  // Tool Button component
   const ToolButton = ({
-    isActive,
-    onClick,
     icon: Icon,
+    isActive = false,
+    onClick,
     label,
     disabled = false,
     className = "",
+    variant = "default",
   }: {
     isActive?: boolean;
     onClick: () => void;
@@ -235,43 +233,49 @@ export default function MainToolbar({
     label: string;
     disabled?: boolean;
     className?: string;
+    variant?: "default" | "danger";
   }) => (
     <div className="relative group">
       <button
         onClick={onClick}
         disabled={disabled}
-        aria-label={label}
+        style={{ width: buttonSize, height: buttonSize }}
         className={cn(
-          "relative transition-all duration-200 ease-out",
-          "flex items-center justify-center rounded-lg",
+          "relative rounded-xl transition-all duration-200 font-medium",
           "focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2",
-          "w-10 h-10",
-          "transform active:scale-95",
+          "hover:scale-105 active:scale-95",
           isActive
-            ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25 hover:bg-blue-700"
-            : disabled
-            ? "text-gray-400 cursor-not-allowed bg-transparent"
-            : "text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 bg-transparent",
+            ? "bg-blue-500 text-white shadow-lg shadow-blue-500/25"
+            : variant === "danger"
+              ? "text-red-600 hover:bg-red-50 hover:text-red-700 hover:shadow-md hover:shadow-red-500/20"
+              : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 hover:shadow-md",
+          disabled && "opacity-40 cursor-not-allowed hover:scale-100",
           className
         )}
+        title={label}
+        aria-label={label}
       >
-        <Icon size={18} className="transition-transform duration-200" />
+        <div className="flex items-center justify-center h-full">
+          <Icon 
+            size={iconSize} 
+            className={cn(
+              "transition-all duration-200",
+              !disabled && "group-hover:scale-110"
+            )} 
+          />
+        </div>
       </button>
       
-      {/* Fixed tooltip with proper z-index */}
+      {/* Tooltip */}
       <div
         className={cn(
           "absolute z-[9999] px-2 py-1 bg-gray-900 text-white text-xs rounded-md shadow-lg",
           "opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none",
           "whitespace-nowrap font-medium",
-          // Dynamic positioning based on layout
           vertical 
             ? "left-full ml-2 top-1/2 -translate-y-1/2" 
-            : "bottom-full mb-2 left-1/2 -translate-x-1/2",
-          // Prevent tooltip from going off-screen
-          "max-w-xs"
+            : "bottom-full mb-2 left-1/2 -translate-x-1/2"
         )}
-        style={{ zIndex: 9999 }}
       >
         {label}
         {/* Tooltip arrow */}
@@ -288,35 +292,53 @@ export default function MainToolbar({
   );
 
   // Divider component
-  const Divider = ({ vertical: isVertical = false }: { vertical?: boolean }) => (
+  const Divider = () => (
     <div
       className={cn(
-        "bg-gray-200",
-        isVertical ? "w-px h-6" : "h-px w-6"
+        "bg-gray-200/60",
+        vertical ? "w-px h-4" : "h-4 w-px"
       )}
     />
+  );
+
+  // Tool group wrapper
+  const ToolGroup = ({ children }: { children: React.ReactNode }) => (
+    <div 
+      className={cn(
+        "flex",
+        vertical ? "flex-col" : "flex-row items-center",
+      )}
+      style={{ gap: gap }}
+    >
+      {children}
+    </div>
   );
 
   return (
     <div
       className={cn(
-        // Base styling - clean and minimal
-        "bg-white/95 backdrop-blur-sm shadow-lg border border-gray-200/60 rounded-xl",
-        "transition-all duration-200 relative select-none",
-        // Fixed z-index to ensure proper layering
+        // Base styling - modern glassmorphism
+        "bg-white/80 backdrop-blur-xl shadow-xl border border-white/20 rounded-2xl",
+        "transition-all duration-300 relative select-none",
+        "ring-1 ring-gray-900/5",
         "z-40",
-        // Layout variants
+        // Layout variants with compact spacing
         vertical 
-          ? "flex flex-col p-2 gap-1 w-14" 
-          : "flex flex-row items-center p-2 gap-1"
+          ? "flex flex-col" 
+          : "flex flex-row items-center",
+        // Responsive padding
+        isMobile ? "p-3" : "p-4"
       )}
-      style={{ zIndex: 40 }}
+      style={{ 
+        zIndex: 40,
+        gap: gap * 1.5, // Slightly larger gap between tool groups
+      }}
     >
       {vertical ? (
-        // Vertical Layout - Minimalistic
+        // Vertical Layout - Compact and organized
         <>
-          {/* AI Tool - Primary Focus */}
-          <div className="flex flex-col gap-2 mb-2">
+          {/* AI Tool - Highlighted section */}
+          <div className="relative">
             <AIToolButton
               isActive={tool === "ai"}
               onClick={() => {
@@ -325,116 +347,106 @@ export default function MainToolbar({
               }}
               label="AI Assistant (A)"
             />
-            {/* Subtle separator */}
-            <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-200 to-transparent" />
+            {/* Gradient separator */}
+            <div className="w-full h-px bg-gradient-to-r from-transparent via-violet-200 to-transparent mt-3" />
           </div>
 
-          {/* Tools section */}
-          <div className="flex flex-col gap-1">
+          {/* Primary tools */}
+          <ToolGroup>
             <ToolButton
+              icon={MousePointer2}
               isActive={tool === "select"}
               onClick={() => setToolAction("select")}
-              icon={MousePointer2}
               label="Select (V)"
             />
             <ToolButton
+              icon={PenTool}
               isActive={tool === "pen"}
               onClick={() => setToolAction("pen")}
-              icon={PenTool}
               label="Pen (P)"
             />
             <ToolButton
+              icon={Highlighter}
               isActive={tool === "highlighter"}
               onClick={() => setToolAction("highlighter")}
-              icon={Highlighter}
               label="Highlighter (H)"
             />
             <ToolButton
+              icon={Eraser}
+              isActive={tool === "eraser"}
+              onClick={() => setToolAction("eraser")}
+              label="Eraser (E)"
+            />
+          </ToolGroup>
+
+          <Divider />
+
+          {/* Creative tools */}
+          <ToolGroup>
+            <ToolButton
+              icon={StickyNote}
               isActive={tool === "sticky-note"}
               onClick={() => setToolAction("sticky-note")}
-              icon={StickyNote}
-              label="Sticky Note (N)"
+              label="Sticky Notes (N)"
             />
             <ToolButton
+              icon={Frame}
               isActive={tool === "frame"}
               onClick={() => setToolAction("frame")}
-              icon={Frame}
-              label="Frame (F)"
+              label="Frames (F)"
             />
             <ToolButton
+              icon={Type}
               isActive={tool === "text"}
               onClick={() => setToolAction("text")}
-              icon={Type}
               label="Text (T)"
             />
             <ToolButton
+              icon={Shapes}
               isActive={tool === "shapes"}
               onClick={() => setToolAction("shapes")}
-              icon={Shapes}
               label="Shapes (Shift+S)"
             />
-            <ToolButton
-              isActive={tool === "eraser"}
-              onClick={() => setToolAction("eraser")}
-              icon={Eraser}
-              label="Eraser (E)"
-            />
-          </div>
+          </ToolGroup>
 
-          {/* Subtle divider */}
-          <div className="flex justify-center my-1">
-            <Divider />
-          </div>
+          <Divider />
 
-          {/* History section */}
-          <div className="flex flex-col gap-1">
+          {/* Action tools */}
+          <ToolGroup>
             <ToolButton
+              icon={Undo2}
               onClick={undoAction}
               disabled={!canUndo}
-              icon={Undo2}
-              label="Undo (⌘Z)"
+              label="Undo (Ctrl+Z)"
             />
             <ToolButton
+              icon={Redo2}
               onClick={redoAction}
               disabled={!canRedo}
-              icon={Redo2}
-              label="Redo (⌘Y)"
+              label="Redo (Ctrl+Y)"
             />
-          </div>
-
-          {/* Subtle divider */}
-          <div className="flex justify-center my-1">
-            <Divider />
-          </div>
-
-          {/* Actions section */}
-          <div className="flex flex-col gap-1">
-            <ToolButton
-              onClick={onExportAction}
-              icon={Download}
-              label="Export (⌘S)"
-            />
-            {onClearCanvasAction && (
+            {onExportAction && (
               <ToolButton
-                onClick={onClearCanvasAction}
-                icon={Trash2}
-                label="Clear Canvas (Can be undone)"
-                className="hover:bg-red-100 hover:text-red-600"
+                icon={Download}
+                onClick={onExportAction}
+                label="Export (Ctrl+S)"
               />
             )}
-            <ToolButton
-              onClick={handleShare}
-              icon={shareSuccess ? Check : Share2}
-              label={shareSuccess ? "Copied!" : "Share"}
-              className={shareSuccess ? "bg-green-600 text-white shadow-lg shadow-green-600/25" : ""}
-            />
-          </div>
+            {onClearCanvasAction && (
+              <ToolButton
+                icon={Trash2}
+                onClick={onClearCanvasAction}
+                label="Clear Canvas"
+                variant="danger"
+              />
+            )}
+          </ToolGroup>
         </>
       ) : (
-        // Horizontal Layout - Clean and organized
+        // Horizontal Layout - Streamlined
         <>
-          {/* AI Tool - Primary Focus */}
-          <div className="flex items-center gap-2 mr-2">
+          {/* AI Tool - Highlighted */}
+          <div className="relative">
             <AIToolButton
               isActive={tool === "ai"}
               onClick={() => {
@@ -443,104 +455,100 @@ export default function MainToolbar({
               }}
               label="AI Assistant (A)"
             />
-            {/* Subtle separator */}
-            <div className="w-px h-8 bg-gradient-to-b from-transparent via-purple-200 to-transparent" />
           </div>
 
-          {/* Tools group */}
-          <div className="flex items-center gap-1 bg-gray-50/60 rounded-lg p-1">
+          <Divider />
+
+          {/* Primary tools */}
+          <ToolGroup>
             <ToolButton
+              icon={MousePointer2}
               isActive={tool === "select"}
               onClick={() => setToolAction("select")}
-              icon={MousePointer2}
               label="Select (V)"
             />
             <ToolButton
+              icon={PenTool}
               isActive={tool === "pen"}
               onClick={() => setToolAction("pen")}
-              icon={PenTool}
               label="Pen (P)"
             />
             <ToolButton
+              icon={Highlighter}
               isActive={tool === "highlighter"}
               onClick={() => setToolAction("highlighter")}
-              icon={Highlighter}
               label="Highlighter (H)"
             />
             <ToolButton
+              icon={Eraser}
+              isActive={tool === "eraser"}
+              onClick={() => setToolAction("eraser")}
+              label="Eraser (E)"
+            />
+          </ToolGroup>
+
+          <Divider />
+
+          {/* Creative tools */}
+          <ToolGroup>
+            <ToolButton
+              icon={StickyNote}
               isActive={tool === "sticky-note"}
               onClick={() => setToolAction("sticky-note")}
-              icon={StickyNote}
-              label="Sticky Note (N)"
+              label="Sticky Notes (N)"
             />
             <ToolButton
+              icon={Frame}
               isActive={tool === "frame"}
               onClick={() => setToolAction("frame")}
-              icon={Frame}
-              label="Frame (F)"
+              label="Frames (F)"
             />
             <ToolButton
+              icon={Type}
               isActive={tool === "text"}
               onClick={() => setToolAction("text")}
-              icon={Type}
               label="Text (T)"
             />
             <ToolButton
+              icon={Shapes}
               isActive={tool === "shapes"}
               onClick={() => setToolAction("shapes")}
-              icon={Shapes}
               label="Shapes (Shift+S)"
             />
-            <ToolButton
-              isActive={tool === "eraser"}
-              onClick={() => setToolAction("eraser")}
-              icon={Eraser}
-              label="Eraser (E)"
-            />
-          </div>
+          </ToolGroup>
 
-          <Divider vertical />
+          <Divider />
 
-          {/* History group */}
-          <div className="flex items-center gap-1">
+          {/* Action tools */}
+          <ToolGroup>
             <ToolButton
+              icon={Undo2}
               onClick={undoAction}
               disabled={!canUndo}
-              icon={Undo2}
-              label="Undo (⌘Z)"
+              label="Undo (Ctrl+Z)"
             />
             <ToolButton
+              icon={Redo2}
               onClick={redoAction}
               disabled={!canRedo}
-              icon={Redo2}
-              label="Redo (⌘Y)"
+              label="Redo (Ctrl+Y)"
             />
-          </div>
-
-          <Divider vertical />
-
-          {/* Actions group */}
-          <div className="flex items-center gap-1">
-            <ToolButton
-              onClick={onExportAction}
-              icon={Download}
-              label="Export (⌘S)"
-            />
-            {onClearCanvasAction && (
+            {onExportAction && (
               <ToolButton
-                onClick={onClearCanvasAction}
-                icon={Trash2}
-                label="Clear Canvas (Can be undone)"
-                className="hover:bg-red-100 hover:text-red-600"
+                icon={Download}
+                onClick={onExportAction}
+                label="Export (Ctrl+S)"
               />
             )}
-            <ToolButton
-              onClick={handleShare}
-              icon={shareSuccess ? Check : Share2}
-              label={shareSuccess ? "Copied!" : "Share"}
-              className={shareSuccess ? "bg-green-600 text-white shadow-lg shadow-green-600/25" : ""}
-            />
-          </div>
+            {onClearCanvasAction && !isMobile && (
+              <ToolButton
+                icon={Trash2}
+                onClick={onClearCanvasAction}
+                label="Clear Canvas"
+                variant="danger"
+              />
+            )}
+          </ToolGroup>
         </>
       )}
     </div>

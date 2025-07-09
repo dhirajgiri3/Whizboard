@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Palette,
   Plus,
@@ -32,6 +32,9 @@ interface FloatingStickyNoteToolbarProps {
   onColorPickerOpenAction: (position: { x: number; y: number }) => void;
   isVisible: boolean;
   onDeleteAllNotes?: () => void;
+  isMobile?: boolean;
+  isTablet?: boolean;
+  isCollapsed?: boolean;
 }
 
 export default function FloatingStickyNoteToolbar({
@@ -40,6 +43,9 @@ export default function FloatingStickyNoteToolbar({
   onColorPickerOpenAction,
   isVisible,
   onDeleteAllNotes,
+  isMobile,
+  isTablet,
+  isCollapsed,
 }: FloatingStickyNoteToolbarProps) {
   const [showMoreColors, setShowMoreColors] = useState(false);
   const [customColor, setCustomColor] = useState(currentColor);
@@ -51,7 +57,7 @@ export default function FloatingStickyNoteToolbar({
     dragHandleRef,
     eyeButtonRef,
     isHidden,
-    isCollapsed,
+    isCollapsed: isFloatingToolbarCollapsed,
     isDragging,
     position,
     toolbarStyles,
@@ -65,10 +71,51 @@ export default function FloatingStickyNoteToolbar({
     resetPosition,
   } = useFloatingToolbarDrag({
     toolbarId: "stickynote",
-    initialPosition: { x: 24, y: 80 },
-    minWidth: 300,
-    minHeight: 100,
+    initialPosition: { x: isMobile ? 10 : 24, y: isMobile ? 60 : 80 },
+    minWidth: isMobile ? 240 : isTablet ? 280 : 300,
+    minHeight: isMobile ? 80 : isTablet ? 90 : 100,
   });
+
+  // Responsive sizing and positioning
+  const responsiveClasses = useMemo(() => {
+    if (isMobile) {
+      return {
+        container: "w-full max-w-xs mx-auto",
+        toolbar: "min-w-[240px] max-w-[280px]",
+        button: "p-2 min-h-[44px] min-w-[44px]",
+        icon: "w-4 h-4",
+        text: "text-xs",
+        spacing: "gap-1",
+        grid: "grid-cols-4",
+        eyeButton: "w-10 h-10",
+        eyeIcon: "w-4 h-4",
+      };
+    } else if (isTablet) {
+      return {
+        container: "w-full max-w-sm",
+        toolbar: "min-w-[280px] max-w-[320px]",
+        button: "p-2.5 min-h-[40px] min-w-[40px]",
+        icon: "w-5 h-5",
+        text: "text-sm",
+        spacing: "gap-2",
+        grid: "grid-cols-5",
+        eyeButton: "w-12 h-12",
+        eyeIcon: "w-5 h-5",
+      };
+    } else {
+      return {
+        container: "w-full max-w-md",
+        toolbar: "min-w-[300px]",
+        button: "p-2.5",
+        icon: "w-5 h-5",
+        text: "text-sm",
+        spacing: "gap-2",
+        grid: "grid-cols-6",
+        eyeButton: "w-14 h-14",
+        eyeIcon: "w-5 h-5",
+      };
+    }
+  }, [isMobile, isTablet]);
 
   const getBorderColor = (bgColor: string) => {
     const colorMap: Record<string, string> = {
@@ -185,7 +232,8 @@ export default function FloatingStickyNoteToolbar({
         }}
         style={eyeButtonStyles}
         className={cn(
-          "w-14 h-14 rounded-2xl bg-white/95 backdrop-blur-lg border border-gray-200/50",
+          responsiveClasses.eyeButton,
+          "rounded-2xl bg-white/95 backdrop-blur-lg border border-gray-200/50",
           "flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300",
           "text-gray-600 hover:bg-white group cursor-grab active:cursor-grabbing",
           "hover:scale-105 active:scale-95",
@@ -196,7 +244,7 @@ export default function FloatingStickyNoteToolbar({
         title="Click to show sticky note toolbar • Drag to move"
         aria-label="Show sticky note toolbar"
       >
-        <Eye size={20} />
+        <Eye className={responsiveClasses.eyeIcon} />
       </button>
 
       {/* Main Toolbar */}
@@ -207,8 +255,9 @@ export default function FloatingStickyNoteToolbar({
         style={toolbarStyles}
         className={cn(
           "flex flex-col bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50",
-          "transition-all duration-300 ease-out w-104",
-          "max-h-[85vh] min-h-[450px]",
+          "transition-all duration-300 ease-out",
+          responsiveClasses.toolbar,
+          isMobile ? "max-h-[70vh] min-h-[350px]" : isTablet ? "max-h-[80vh] min-h-[400px]" : "max-h-[85vh] min-h-[450px]",
           isDragging && "cursor-grabbing select-none shadow-3xl scale-[1.02]",
           "ring-2 ring-amber-500/20",
           !isDragging && "hover:shadow-3xl hover:scale-[1.01]",
@@ -412,13 +461,14 @@ export default function FloatingStickyNoteToolbar({
               </div>
               
               {/* Color grid */}
-              <div className="grid grid-cols-4 gap-2">
+              <div className={cn("grid gap-2", responsiveClasses.grid)}>
                 {colors.map((color) => (
                   <button
                     key={color}
                     onClick={() => handleColorSelect(color)}
                     className={cn(
-                      "w-12 h-12 rounded-lg border-2 transition-sticky color-button relative group",
+                      isMobile ? "w-10 h-10" : "w-12 h-12",
+                      "rounded-lg border-2 transition-sticky color-button relative group",
                       currentColor === color
                         ? "ring-2 ring-amber-500 ring-offset-2 shadow-lg scale-105"
                         : "hover:shadow-md",

@@ -31,6 +31,8 @@ interface FloatingTextToolbarProps {
   selectedTextElements?: TextElement[];
   onTextUpdateAction?: (textElement: TextElement) => void;
   className?: string;
+  isMobile?: boolean;
+  isTablet?: boolean;
 }
 
 // Font family options
@@ -80,40 +82,70 @@ const COLOR_PRESETS = [
   '#ffffff', '#f9fafb',
 ];
 
+const HIGHLIGHT_COLOR_PRESETS = [
+  // Yellows
+  '#fde047', '#facc15',
+  // Greens
+  '#86efac', '#4ade80',
+  // Blues
+  '#93c5fd', '#60a5fa',
+  // Pinks
+  '#f9a8d4', '#f472b6',
+  // Oranges
+  '#fdba74', '#fb923c',
+  // Purples
+  '#c4b5fd', '#a78bfa',
+];
+
 const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
   isActive = false,
   selectedTextElements = [],
   onTextUpdateAction,
   className = '',
+  isMobile = false,
+  isTablet = false,
 }) => {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
 
-  // Get current formatting from selected text
+  // Define a robust default formatting configuration
+  const defaultFormatting: TextElement['formatting'] = {
+    fontFamily: 'Comic Sans MS',
+    fontSize: 16,
+    color: '#000000',
+    bold: false,
+    italic: false,
+    underline: false,
+    strikethrough: false,
+    highlight: false,
+    highlightColor: '#ffeb3b',
+    align: 'left',
+    lineHeight: 1.2,
+    letterSpacing: 0,
+    textTransform: 'none',
+    listType: 'none',
+    listStyle: '•',
+    listLevel: 0,
+  };
+
+  // Get current formatting from selected text, with safe fallbacks
   const currentFormatting = useMemo(() => {
     if (selectedTextElements.length === 0) {
-      return {
-        fontFamily: 'Comic Sans MS',
-        fontSize: 16,
-        color: '#000000',
-        bold: false,
-        italic: false,
-        underline: false,
-        strikethrough: false,
-        highlight: false,
-        highlightColor: '#ffeb3b',
-        align: 'left' as const,
-        lineHeight: 1.2,
-        letterSpacing: 0,
-        textTransform: 'none' as const,
-        listType: 'none' as const,
-        listStyle: '•',
-        listLevel: 0,
-      };
+      return defaultFormatting;
     }
-    
-    // Use first selected element's formatting as base
-    return selectedTextElements[0].formatting;
+
+    // Some persisted TextElements may lack a formatting object; guard against that
+    const elementFormatting = selectedTextElements[0]?.formatting as Partial<TextElement['formatting']> | undefined;
+
+    if (!elementFormatting) {
+      return defaultFormatting;
+    }
+
+    // Merge with defaults to ensure all keys exist
+    return {
+      ...defaultFormatting,
+      ...elementFormatting,
+    } as TextElement['formatting'];
   }, [selectedTextElements]);
 
   // Drag functionality for the toolbar
@@ -135,10 +167,45 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
     resetPosition,
   } = useFloatingToolbarDrag({
     toolbarId: 'text',
-    initialPosition: { x: 100, y: 100 },
-    minWidth: 420,
-    minHeight: 180,
+    initialPosition: { x: isMobile ? 10 : 100, y: isMobile ? 10 : 100 },
+    minWidth: isMobile ? 280 : isTablet ? 350 : 420,
+    minHeight: isMobile ? 120 : isTablet ? 150 : 180,
   });
+
+  // Responsive sizing and positioning
+  const responsiveClasses = useMemo(() => {
+    if (isMobile) {
+      return {
+        container: "w-full max-w-sm mx-auto",
+        toolbar: "min-w-[280px] max-w-[320px]",
+        button: "p-2 min-h-[44px] min-w-[44px]",
+        icon: "w-4 h-4",
+        text: "text-xs",
+        spacing: "gap-1",
+        grid: "grid-cols-6",
+      };
+    } else if (isTablet) {
+      return {
+        container: "w-full max-w-md",
+        toolbar: "min-w-[350px] max-w-[400px]",
+        button: "p-2.5 min-h-[40px] min-w-[40px]",
+        icon: "w-5 h-5",
+        text: "text-sm",
+        spacing: "gap-2",
+        grid: "grid-cols-7",
+      };
+    } else {
+      return {
+        container: "w-full max-w-lg",
+        toolbar: "min-w-[420px]",
+        button: "p-2.5",
+        icon: "w-4 h-4",
+        text: "text-sm",
+        spacing: "gap-2",
+        grid: "grid-cols-8",
+      };
+    }
+  }, [isMobile, isTablet]);
 
   // Format update handler
   const updateFormatting = useCallback((updates: Partial<TextElement['formatting']>) => {
@@ -227,7 +294,8 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
         }}
         style={eyeButtonStyles}
         className={cn(
-          "w-14 h-14 rounded-2xl bg-white/98 backdrop-blur-xl border border-gray-200/80",
+          isMobile ? "w-12 h-12" : "w-14 h-14",
+          "rounded-2xl bg-white/98 backdrop-blur-xl border border-gray-200/80",
           "flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300",
           "text-gray-700 hover:bg-white group cursor-grab active:cursor-grabbing",
           "hover:scale-105 active:scale-95 hover:text-blue-600 hover:border-blue-300/60",
@@ -238,7 +306,7 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
         title="Click to show text toolbar • Drag to move"
         aria-label="Show text toolbar"
       >
-        <Type size={20} className="drop-shadow-sm" />
+        <Type size={isMobile ? 16 : 20} className="drop-shadow-sm" />
       </button>
 
       {/* Main Toolbar */}
@@ -248,8 +316,9 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
         style={toolbarStyles}
         className={cn(
           "flex flex-col bg-white/98 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-200/60",
-          "transition-all duration-300 ease-out w-[420px]",
-          "max-h-[70vh] min-h-[180px]",
+          "transition-all duration-300 ease-out",
+          responsiveClasses.toolbar,
+          isMobile ? "max-h-[60vh] min-h-[120px]" : isTablet ? "max-h-[65vh] min-h-[150px]" : "max-h-[70vh] min-h-[180px]",
           "ring-1 ring-black/5",
           isDragging && "cursor-grabbing select-none shadow-2xl scale-[1.02]",
           !isDragging && "hover:shadow-2xl hover:scale-[1.01]",
@@ -392,70 +461,75 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
                   Formatting
                 </h3>
                 
-                <div className="flex flex-wrap gap-2">
+                <div className={cn("flex flex-wrap", responsiveClasses.spacing)}>
                   <button
                     onClick={toggleBold}
                     className={cn(
-                      "p-2.5 rounded-lg transition-all duration-200 border",
+                      responsiveClasses.button,
+                      "rounded-lg transition-all duration-200 border",
                       currentFormatting.bold
                         ? "bg-blue-600 text-white shadow-md border-blue-600 hover:bg-blue-700"
                         : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                     )}
                     title="Bold (Ctrl+B)"
                   >
-                    <Bold size={16} />
+                    <Bold className={responsiveClasses.icon} />
                   </button>
                   
                   <button
                     onClick={toggleItalic}
                     className={cn(
-                      "p-2.5 rounded-lg transition-all duration-200 border",
+                      responsiveClasses.button,
+                      "rounded-lg transition-all duration-200 border",
                       currentFormatting.italic
                         ? "bg-blue-600 text-white shadow-md border-blue-600 hover:bg-blue-700"
                         : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                     )}
                     title="Italic (Ctrl+I)"
                   >
-                    <Italic size={16} />
+                    <Italic className={responsiveClasses.icon} />
                   </button>
                   
                   <button
                     onClick={toggleUnderline}
                     className={cn(
-                      "p-2.5 rounded-lg transition-all duration-200 border",
+                      responsiveClasses.button,
+                      "rounded-lg transition-all duration-200 border",
                       currentFormatting.underline
                         ? "bg-blue-600 text-white shadow-md border-blue-600 hover:bg-blue-700"
                         : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                     )}
                     title="Underline (Ctrl+U)"
                   >
-                    <Underline size={16} />
+                    <Underline className={responsiveClasses.icon} />
                   </button>
                   
                   <button
                     onClick={toggleStrikethrough}
                     className={cn(
-                      "p-2.5 rounded-lg transition-all duration-200 border",
+                      responsiveClasses.button,
+                      "rounded-lg transition-all duration-200 border",
                       currentFormatting.strikethrough
                         ? "bg-blue-600 text-white shadow-md border-blue-600 hover:bg-blue-700"
                         : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                     )}
                     title="Strikethrough"
                   >
-                    <Strikethrough size={16} />
+                    <Strikethrough className={responsiveClasses.icon} />
                   </button>
                   
                   <button
                     onClick={toggleHighlight}
                     className={cn(
-                      "p-2.5 rounded-lg transition-all duration-200 border",
+                      responsiveClasses.button,
+                      "rounded-lg transition-all duration-200 border",
                       currentFormatting.highlight
                         ? "bg-yellow-500 text-white shadow-md border-yellow-500 hover:bg-yellow-600"
                         : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                     )}
                     title="Highlight"
                   >
-                    <Highlighter size={16} />
+                    <Highlighter className={responsiveClasses.icon} />
                   </button>
                 </div>
               </div>
@@ -498,7 +572,7 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
                   Text Color
                 </h3>
                 
-                <div className="grid grid-cols-8 gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div className={cn("grid gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200", responsiveClasses.grid)}>
                   {COLOR_PRESETS.map(color => (
                     <button
                       key={color}
@@ -525,14 +599,83 @@ const FloatingTextToolbar: React.FC<FloatingTextToolbarProps> = ({
                   ))}
                 </div>
                 
-                {/* Current color indicator */}
-                <div className="flex items-center gap-2 text-xs text-gray-600 bg-white p-2 rounded border border-gray-200">
-                  <span>Current:</span>
-                  <div 
-                    className="w-4 h-4 rounded border border-gray-300"
-                    style={{ backgroundColor: currentFormatting.color }}
-                  />
-                  <span className="font-mono">{currentFormatting.color}</span>
+                {/* Custom Color Picker */}
+                <div className="flex items-center justify-between gap-2 text-sm text-gray-700 bg-white p-2 rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Custom:</span>
+                    <span className="font-mono text-gray-800 bg-gray-100 px-2 py-1 rounded-md">{currentFormatting.color}</span>
+                  </div>
+                  <div className="relative w-8 h-8">
+                    <input
+                      type="color"
+                      value={currentFormatting.color}
+                      onChange={(e) => setColor(e.target.value)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      id="custom-text-color-picker"
+                      title="Select custom color"
+                    />
+                    <label
+                      htmlFor="custom-text-color-picker"
+                      className="block w-full h-full rounded-md border-2 border-white shadow-sm cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
+                      style={{ 
+                        backgroundColor: currentFormatting.color,
+                        ...(currentFormatting.color === '#ffffff' && {
+                          backgroundImage: 'linear-gradient(45deg, #f3f4f6 25%, transparent 25%), linear-gradient(-45deg, #f3f4f6 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f3f4f6 75%), linear-gradient(-45deg, transparent 75%, #f3f4f6 75%)',
+                          backgroundSize: '8px 8px',
+                          backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px'
+                        })
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Highlight Color Controls */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                  <Highlighter size={16} className="text-blue-600" />
+                  Highlight Color
+                </h3>
+                
+                <div className={cn("grid gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200", responsiveClasses.grid)}>
+                  {HIGHLIGHT_COLOR_PRESETS.map(color => (
+                    <button
+                      key={color}
+                      onClick={() => setHighlightColor(color)}
+                      className={cn(
+                        "w-8 h-8 rounded-lg border-2 transition-all duration-200 hover:scale-110 active:scale-95",
+                        "shadow-sm hover:shadow-md",
+                        currentFormatting.highlightColor === color
+                          ? "border-blue-500 ring-2 ring-blue-200"
+                          : "border-gray-200 hover:border-gray-300"
+                      )}
+                      style={{ backgroundColor: color }}
+                      title={`Set highlight color to ${color}`}
+                    />
+                  ))}
+                </div>
+                
+                {/* Custom Highlight Color Picker */}
+                <div className="flex items-center justify-between gap-2 text-sm text-gray-700 bg-white p-2 rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Custom:</span>
+                    <span className="font-mono text-gray-800 bg-gray-100 px-2 py-1 rounded-md">{currentFormatting.highlightColor}</span>
+                  </div>
+                  <div className="relative w-8 h-8">
+                    <input
+                      type="color"
+                      value={currentFormatting.highlightColor}
+                      onChange={(e) => setHighlightColor(e.target.value)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      id="custom-highlight-color-picker"
+                      title="Select custom highlight color"
+                    />
+                    <label
+                      htmlFor="custom-highlight-color-picker"
+                      className="block w-full h-full rounded-md border-2 border-white shadow-sm cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
+                      style={{ backgroundColor: currentFormatting.highlightColor }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

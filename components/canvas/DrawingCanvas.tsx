@@ -21,12 +21,16 @@ interface DrawingCanvasProps {
   initialFrames?: FrameElement[];
   initialTextElements?: TextElement[];
   initialShapes?: ShapeElement[];
+  isFramePlacementMode?: boolean;
   selectedStickyNote?: string | null;
   selectedFrame?: string | null;
   selectedTextElement?: string | null;
-  editingTextElement?: string | null;
+  editingTextElement?: TextElement | null;
   selectedShape?: string | null;
   selectedShapes?: string[];
+  isMobile?: boolean;
+  isTablet?: boolean;
+  showGrid?: boolean;
   onDrawEndAction: (lines: ILine[]) => void;
   onEraseAction?: (lineId: string) => void;
   onStickyNoteAddAction?: (stickyNote: StickyNoteElement) => void;
@@ -45,7 +49,7 @@ interface DrawingCanvasProps {
   onTextElementUpdateAction?: (textElement: TextElement) => void;
   onTextElementDeleteAction?: (textElementId: string) => void;
   onTextElementSelectAction?: (textElementId: string) => void;
-  onTextElementStartEditAction?: (textElementId: string) => void;
+  onTextElementStartEditAction?: (textElement: TextElement) => void;
   onTextElementFinishEditAction?: () => void;
   onTextElementDragStartAction?: () => void;
   onTextElementDragEndAction?: () => void;
@@ -77,12 +81,16 @@ export default function DrawingCanvas({
   initialFrames = [],
   initialTextElements = [],
   initialShapes = [],
+  isFramePlacementMode = false,
   selectedStickyNote,
   selectedFrame,
   selectedTextElement,
   editingTextElement,
   selectedShape,
   selectedShapes,
+  isMobile = false,
+  isTablet = false,
+  showGrid: showGridProp = true,
   onDrawEndAction,
   onEraseAction,
   onStickyNoteAddAction,
@@ -198,20 +206,126 @@ export default function DrawingCanvas({
     onFrameAddAction,
     addFrame,
     moveCursorAction,
+    isFramePlacementMode,
+    showGrid: showGridProp,
   });
+
+  // Responsive canvas settings
+  const isSmallScreen = isMobile || isTablet;
+  const touchOptimized = isMobile;
+
+  // Enhanced touch handling for mobile and tablet
+  useEffect(() => {
+    if (!touchOptimized && !isTablet) return;
+
+    const preventDefaultTouch = (e: TouchEvent) => {
+      // Prevent default touch behaviors that interfere with canvas
+      if (e.touches.length > 1) {
+        e.preventDefault(); // Prevent pinch zoom on multi-touch
+      }
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    };
+
+    // Enhanced tablet-specific touch handling
+    const handleTabletTouch = (e: TouchEvent) => {
+      // For tablets, allow more sophisticated touch interactions
+      if (isTablet) {
+        // Allow pinch-to-zoom with two fingers
+        if (e.touches.length === 2) {
+          const touch1 = e.touches[0];
+          const touch2 = e.touches[1];
+          const distance = Math.sqrt(
+            Math.pow(touch2.clientX - touch1.clientX, 2) + 
+            Math.pow(touch2.clientY - touch1.clientY, 2)
+          );
+          
+          // Store initial distance for pinch detection
+          if (!e.target.dataset.initialDistance) {
+            e.target.dataset.initialDistance = distance.toString();
+          }
+          
+          // Allow the gesture to continue for zoom
+          return;
+        }
+        
+        // Prevent gestures with more than 2 touches
+        if (e.touches.length > 2) {
+          e.preventDefault();
+        }
+      }
+    };
+
+    // Enhanced touch event handling for better tablet experience
+    const handleTouchMove = (e: TouchEvent) => {
+      if (isTablet && e.touches.length === 1) {
+        // For single touch on tablet, ensure smooth drawing
+        const touch = e.touches[0];
+        const rect = e.target.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        
+        // Emit cursor movement for better collaboration
+        if (moveCursorAction) {
+          moveCursorAction(x, y);
+        }
+      }
+    };
+
+    document.addEventListener('touchstart', handleTouchStart, { passive: false });
+    document.addEventListener('touchmove', preventDefaultTouch, { passive: false });
+    
+    if (isTablet) {
+      document.addEventListener('touchstart', handleTabletTouch, { passive: false });
+      document.addEventListener('touchmove', handleTouchMove, { passive: true });
+    }
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', preventDefaultTouch);
+      if (isTablet) {
+        document.removeEventListener('touchstart', handleTabletTouch);
+        document.removeEventListener('touchmove', handleTouchMove);
+      }
+    };
+  }, [touchOptimized, isTablet, moveCursorAction]);
 
   // Effect for window resize
   useEffect(() => {
     const handleResize = () => {
+      const newWidth = window.innerWidth;
+      const newHeight = window.innerHeight;
+      
+      // Account for mobile browser UI changes
+      const adjustedHeight = isMobile 
+        ? newHeight - (window.innerHeight - window.visualViewport?.height || 0)
+        : newHeight;
+      
       setDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight
+        width: newWidth, 
+        height: adjustedHeight 
       });
     };
 
+    handleResize();
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    
+    // Listen for viewport changes on mobile
+    if (window.visualViewport && isMobile) {
+      window.visualViewport.addEventListener('resize', handleResize);
+    }
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (window.visualViewport && isMobile) {
+        window.visualViewport.removeEventListener('resize', handleResize);
+      }
+    };
+  }, [isMobile]);
 
   // Sync with initial props
   useEffect(() => {
@@ -326,10 +440,161 @@ export default function DrawingCanvas({
     }
   }, [onTextElementDragEndAction]);
 
+  // Enhanced stage configuration for mobile/tablet
+  const stageConfig = {
+    width: dimensions.width,
+    height: dimensions.height,
+    draggable: tool === "select" || isSpacePressed,
+    // Enhanced touch settings for mobile
+    ...(touchOptimized && {
+      preventDefault: false,
+      listening: true,
+    }),
+    // Tablet-specific optimizations
+    ...(isTablet && {
+      hitGraphEnabled: true,
+      pixelRatio: window.devicePixelRatio || 1,
+    })
+  };
+
   return (
-    <div className="relative w-full h-full bg-gradient-to-br from-slate-50 to-gray-100 overflow-hidden">
+    <div className="relative w-full h-full overflow-hidden">
+      {/* Enhanced Stage with responsive configuration */}
+      <Stage
+        ref={stageRef}
+        {...stageConfig}
+        scaleX={stageScale}
+        scaleY={stageScale}
+        x={stagePos.x}
+        y={stagePos.y}
+        onMouseDown={handleMouseDown}
+        onMousemove={handleMouseMove}
+        onMouseup={handleMouseUp}
+        onWheel={handleWheel}
+        style={{ 
+          cursor: getCursor(),
+          // Enhanced touch action for mobile and tablet
+          touchAction: (touchOptimized || isTablet) ? 'none' : 'auto',
+          // Prevent text selection on mobile and tablet
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          // Improve performance on mobile and tablet
+          willChange: isSmallScreen ? 'transform' : 'auto',
+          // Tablet-specific optimizations
+          ...(isTablet && {
+            transform: 'translateZ(0)', // Hardware acceleration
+            backfaceVisibility: 'hidden', // Prevent flickering
+            perspective: '1000px', // Better 3D rendering
+          })
+        }}
+        // Enhanced touch events for mobile and tablet
+        onTouchStart={(touchOptimized || isTablet) ? (e) => {
+          // Convert touch to mouse event for compatibility
+          const touch = e.evt.touches[0];
+          if (touch) {
+            const mouseEvent = {
+              ...e,
+              evt: {
+                ...e.evt,
+                clientX: touch.clientX,
+                clientY: touch.clientY,
+                button: 0,
+                preventDefault: () => e.evt.preventDefault(),
+                stopPropagation: () => e.evt.stopPropagation(),
+              }
+            };
+            handleMouseDown(mouseEvent as any);
+          }
+        } : undefined}
+        onTouchMove={(touchOptimized || isTablet) ? (e) => {
+          const touch = e.evt.touches[0];
+          if (touch) {
+            const mouseEvent = {
+              ...e,
+              evt: {
+                ...e.evt,
+                clientX: touch.clientX,
+                clientY: touch.clientY,
+                preventDefault: () => e.evt.preventDefault(),
+                stopPropagation: () => e.evt.stopPropagation(),
+              }
+            };
+            handleMouseMove(mouseEvent as any);
+          }
+        } : undefined}
+        onTouchEnd={(touchOptimized || isTablet) ? (e) => {
+          const mouseEvent = {
+            ...e,
+            evt: {
+              ...e.evt,
+              preventDefault: () => e.evt.preventDefault(),
+              stopPropagation: () => e.evt.stopPropagation(),
+            }
+          };
+          handleMouseUp(mouseEvent as any);
+        } : undefined}
+      >
+        <CanvasLayers
+          /* Core canvas state */
+          showGrid={showGrid}
+          dimensions={dimensions}
+          stageScale={stageScale}
+          stagePos={stagePos}
+          lines={lines}
+          stickyNotes={stickyNotes}
+          frames={frames}
+          textElements={textElements}
+          shapes={shapes}
+          selectedFrameIds={selectedFrameIds}
+          selectedStickyNote={selectedStickyNote}
+          selectedFrame={selectedFrame}
+          selectedTextElement={selectedTextElement}
+          editingTextElement={editingTextElement}
+          selectedShape={selectedShape}
+          selectedShapes={selectedShapes}
+          tool={tool}
+          strokeWidth={strokeWidth}
+          hoveredLineIndex={hoveredLineIndex}
+          showFrameAlignment={showFrameAlignment}
+          frameCreationMode={frameCreationMode}
+          activeFrameId={activeFrameId}
+          isDrawingInFrame={isDrawingInFrame}
+          performanceMode={performanceMode}
+          cursors={cursors}
+          handleLineClick={handleLineClick}
+          setHoveredLineIndex={setHoveredLineIndex}
+          handleFrameSelect={handleFrameSelect}
+          handleFrameUpdate={onFrameUpdateAction}
+          handleFrameDelete={onFrameDeleteAction}
+          handleFrameDragStart={onFrameDragStartAction}
+          handleFrameDragEnd={onFrameDragEndAction}
+          onStickyNoteSelectAction={onStickyNoteSelectAction}
+          onStickyNoteUpdateAction={onStickyNoteUpdateAction}
+          onStickyNoteDeleteAction={onStickyNoteDeleteAction}
+          handleStickyNoteDragStart={onStickyNoteDragStartAction}
+          handleStickyNoteDragEnd={onStickyNoteDragEndAction}
+          onTextElementSelectAction={onTextElementSelectAction}
+          onTextElementUpdateAction={onTextElementUpdateAction}
+          onTextElementDeleteAction={onTextElementDeleteAction}
+          onTextElementStartEditAction={onTextElementStartEditAction}
+          onTextElementFinishEditAction={onTextElementFinishEditAction}
+          handleTextElementDragStart={onTextElementDragStartAction}
+          handleTextElementDragEnd={onTextElementDragEndAction}
+          onShapeSelectAction={onShapeSelectAction}
+          onShapeUpdateAction={onShapeUpdateAction}
+          onShapeDeleteAction={onShapeDeleteAction}
+          handleShapeDragStart={onShapeDragStartAction}
+          handleShapeDragEnd={onShapeDragEndAction}
+          selectFrames={selectFrames}
+          stageRef={stageRef}
+          isMobile={isMobile}
+          isTablet={isTablet}
+        />
+      </Stage>
+      
+      {/* Responsive Canvas Controls */}
       <CanvasControls
-        showControls={showControls}
+        showControls={showControls && !isSmallScreen}
         controlsCollapsed={controlsCollapsed}
         stageScale={stageScale}
         getZoomLevel={getZoomLevel}
@@ -354,79 +619,25 @@ export default function DrawingCanvas({
         activeFrameId={activeFrameId}
       />
 
-      <Stage
-        ref={stageRef}
-        width={dimensions.width}
-        height={dimensions.height}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onWheel={handleWheel}
-        draggable={(tool === 'select' && !isStickyNoteDragging && !isFrameDragging && !isDrawing.current) || isSpacePressed}
-        style={{ cursor: getCursor() }}
-        hitOnDragEnabled={false}
-      >
-        <CanvasLayers
-          showGrid={showGrid}
-          dimensions={dimensions}
-          stageScale={stageScale}
-          stagePos={stagePos}
-          lines={lines}
-          stickyNotes={stickyNotes}
-          frames={frames}
-          textElements={textElements}
-          shapes={shapes}
-          selectedFrameIds={selectedFrameIds}
-          selectedStickyNote={selectedStickyNote}
-          selectedTextElement={selectedTextElement}
-          editingTextElement={editingTextElement}
-          selectedShape={selectedShape}
-          selectedShapes={selectedShapes}
-          tool={tool}
-          strokeWidth={strokeWidth}
-          hoveredLineIndex={hoveredLineIndex}
-          showFrameAlignment={showFrameAlignment}
-          frameCreationMode={frameCreationMode}
-          cursors={cursors}
-          handleLineClick={handleLineClick}
-          setHoveredLineIndex={setHoveredLineIndex}
-          handleFrameSelect={handleFrameSelect}
-          handleFrameUpdate={handleFrameUpdate}
-          handleFrameDelete={handleFrameDelete}
-          handleFrameDragStart={handleFrameDragStart}
-          handleFrameDragEnd={handleFrameDragEnd}
-          onStickyNoteSelectAction={onStickyNoteSelectAction}
-          onStickyNoteUpdateAction={onStickyNoteUpdateAction}
-          onStickyNoteDeleteAction={onStickyNoteDeleteAction}
-          handleStickyNoteDragStart={handleStickyNoteDragStart}
-          handleStickyNoteDragEnd={handleStickyNoteDragEnd}
-          onTextElementSelectAction={onTextElementSelectAction}
-          onTextElementUpdateAction={onTextElementUpdateAction}
-          onTextElementDeleteAction={onTextElementDeleteAction}
-          onTextElementStartEditAction={onTextElementStartEditAction}
-          onTextElementFinishEditAction={onTextElementFinishEditAction}
-          handleTextElementDragStart={handleTextElementDragStart}
-          handleTextElementDragEnd={handleTextElementDragEnd}
-          onShapeSelectAction={onShapeSelectAction}
-          onShapeUpdateAction={onShapeUpdateAction}
-          onShapeDeleteAction={onShapeDeleteAction}
-          handleShapeDragStart={onShapeDragStartAction}
-          handleShapeDragEnd={onShapeDragEndAction}
-          selectFrames={selectFrames}
-          stageRef={stageRef}
-        />
-      </Stage>
-      
-      {/* Text Editor Overlay - renders outside of Konva stage */}
-      {editingTextElement && textElements.find(t => t.id === editingTextElement) && (
+      {/* Mobile-specific zoom indicator */}
+      {isSmallScreen && (
+        <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm font-medium backdrop-blur-sm">
+          {Math.round(getZoomLevel())}%
+        </div>
+      )}
+
+      {/* Text Editor for mobile/tablet - positioned better */}
+      {editingTextElement && (
+        <div className={`absolute z-50 ${isSmallScreen ? 'inset-4' : ''}`}>
         <TextEditor
-          textElement={textElements.find(t => t.id === editingTextElement)!}
-          isVisible={true}
-          onUpdateAction={onTextElementUpdateAction || (() => {})}
-          onFinishEditingAction={onTextElementFinishEditAction || (() => {})}
-          stageScale={stageScale}
-          stagePosition={stagePos}
+            textElement={editingTextElement}
+            onUpdate={onTextElementUpdateAction}
+            onFinish={onTextElementFinishEditAction}
+            stageRef={stageRef}
+            isMobile={isMobile}
+            isTablet={isTablet}
         />
+        </div>
       )}
     </div>
   );

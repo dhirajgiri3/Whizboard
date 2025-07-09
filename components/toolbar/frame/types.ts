@@ -36,6 +36,14 @@ export interface FrameElement {
       value: string;
       opacity?: number;
     };
+    // Transform properties
+    transform?: string;
+    rotation?: number;
+    // Effects
+    blendMode?: string;
+    brightness?: number;
+    contrast?: number;
+    saturation?: number;
   };
   layout?: {
     padding: { top: number; right: number; bottom: number; left: number };
@@ -98,12 +106,19 @@ export interface CategoryInfo {
   description: string;
 }
 
+export interface FramePlacementHandler {
+  handleFramePlacement: (x: number, y: number) => void;
+  isPlacementMode: boolean;
+  selectedPreset: FramePreset | null;
+  cancelPlacement: () => void;
+}
+
 export interface FloatingFrameToolbarProps {
   isActive: boolean;
   selectedFrames?: FrameElement[];
   selectedFrameIds?: string[];
   onFrameUpdateAction: (frame: FrameElement) => void | Promise<void>;
-  onFrameCreateAction: (preset: FramePreset) => void | Promise<void>;
+  onFrameCreateAction: (preset: FramePreset, x?: number, y?: number) => void | Promise<void>;
   onFrameDeleteAction?: (frameId: string) => void | Promise<void>;
   onFrameDeleteMultipleAction?: (frameIds: string[]) => void | Promise<void>;
   onFrameRenameAction?: (frameId: string, newName: string) => void | Promise<void>;
@@ -114,4 +129,10 @@ export interface FloatingFrameToolbarProps {
     alignment: "left" | "center" | "right" | "top" | "middle" | "bottom"
   ) => void;
   onFrameDistributeAction?: (direction: "horizontal" | "vertical") => void;
+  // New placement-related props
+  onFramePlacementStart?: (preset: FramePreset, placementHandler: FramePlacementHandler) => void;
+  onFramePlacementCancel?: () => void;
+  isMobile?: boolean;
+  isTablet?: boolean;
+  isCollapsed?: boolean;
 }

@@ -11,6 +11,8 @@ interface SuccessModalProps {
   message: string;
   boardId?: string;
   boardName?: string;
+  isMobile?: boolean;
+  isTablet?: boolean;
 }
 
 export default function SuccessModal({
@@ -20,6 +22,8 @@ export default function SuccessModal({
   message,
   boardId,
   boardName,
+  isMobile,
+  isTablet,
 }: SuccessModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const router = useRouter();
@@ -49,30 +53,34 @@ export default function SuccessModal({
   return (
     <div className="fixed inset-0 z-[10000] flex min-h-[100vh] items-center justify-center bg-black/60 backdrop-blur-sm">
       <div
-        className={`relative mx-4 flex w-full max-w-md flex-col rounded-3xl border border-white/20 bg-white/95 shadow-2xl backdrop-blur-xl transition-all duration-300 sm:mx-8 ${
-          isVisible ? "scale-100 opacity-100" : "scale-95 opacity-0"
-        }`}
+        className={`relative flex w-full flex-col rounded-3xl border border-white/20 bg-white/95 shadow-2xl backdrop-blur-xl transition-all duration-300 ${
+          isMobile 
+            ? "mx-2 max-w-xs h-[85vh] max-h-[500px]" 
+            : isTablet 
+              ? "mx-4 max-w-sm h-[80vh] max-h-[600px]" 
+              : "mx-4 max-w-md sm:mx-8"
+        } ${isVisible ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-gray-100 p-6">
+        <div className={`flex items-center justify-between border-b border-gray-100 ${isMobile ? "p-4" : "p-6"}`}>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-green-400 to-green-600 shadow-lg">
-              <CheckCircle className="h-5 w-5 text-white" />
+            <div className={`flex items-center justify-center rounded-xl bg-gradient-to-br from-green-400 to-green-600 shadow-lg ${isMobile ? "h-8 w-8" : "h-10 w-10"}`}>
+              <CheckCircle className={`text-white ${isMobile ? "h-4 w-4" : "h-5 w-5"}`} />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+            <h2 className={`font-bold text-gray-900 ${isMobile ? "text-lg" : "text-xl"}`}>{title}</h2>
           </div>
           <button
             onClick={onCloseAction}
-            className="rounded-xl p-2 transition-colors duration-200 hover:bg-gray-100"
+            className={`rounded-xl transition-colors duration-200 hover:bg-gray-100 ${isMobile ? "p-1.5 min-h-[44px] min-w-[44px]" : "p-2"}`}
             aria-label="Close modal"
           >
-            <X className="h-5 w-5 text-gray-600" />
+            <X className={`text-gray-600 ${isMobile ? "h-4 w-4" : "h-5 w-5"}`} />
           </button>
         </div>
-        <div className="flex-1 space-y-6 p-6 text-center">
-          <div className="relative mb-8">
-            <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-green-400 to-green-600 shadow-2xl animate-bounce">
-              <CheckCircle className="h-12 w-12 text-white" />
+        <div className={`flex-1 space-y-6 text-center overflow-y-auto ${isMobile ? "p-4" : "p-6"}`}>
+          <div className={`relative ${isMobile ? "mb-4" : "mb-8"}`}>
+            <div className={`mx-auto flex items-center justify-center rounded-full bg-gradient-to-br from-green-400 to-green-600 shadow-2xl animate-bounce ${isMobile ? "h-16 w-16" : "h-24 w-24"}`}>
+              <CheckCircle className={`text-white ${isMobile ? "h-8 w-8" : "h-12 w-12"}`} />
             </div>
             <div className="absolute -right-3 -top-3 animate-pulse text-yellow-400">
               <Sparkles className="h-8 w-8" />
@@ -80,9 +88,9 @@ export default function SuccessModal({
             <div className="absolute -bottom-3 -left-3 animate-pulse text-blue-400 animation-delay-1000">
               <Sparkles className="h-6 w-6" />
             </div>
-            <div className="absolute inset-0 mx-auto h-24 w-24 animate-ping rounded-full bg-green-400 opacity-20"></div>
+            <div className={`absolute inset-0 mx-auto animate-ping rounded-full bg-green-400 opacity-20 ${isMobile ? "h-16 w-16" : "h-24 w-24"}`}></div>
           </div>
-          <p className="leading-relaxed text-base text-slate-600">{message}</p>
+          <p className={`leading-relaxed text-slate-600 ${isMobile ? "text-sm" : "text-base"}`}>{message}</p>
           {boardName && (
             <div className="rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-purple-50 p-5 shadow-sm">
               <div className="mb-3 flex items-center justify-center gap-3">
@@ -101,20 +109,20 @@ export default function SuccessModal({
               </div>
             </div>
           )}
-          <div className="flex flex-col gap-4 sm:flex-row">
+          <div className={`flex gap-4 ${isMobile ? "flex-col" : "flex-col sm:flex-row"}`}>
             {boardId && (
               <button
                 onClick={handleNavigateToBoard}
-                className="group flex flex-1 items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                className={`group flex flex-1 items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl ${isMobile ? "px-4 py-3 min-h-[44px]" : "px-8 py-4"}`}
               >
-                <Palette className="h-5 w-5" />
+                <Palette className={`${isMobile ? "h-4 w-4" : "h-5 w-5"}`} />
                 <span className="whitespace-nowrap">Start Creating</span>
-                <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                <ArrowRight className={`transition-transform duration-300 group-hover:translate-x-1 ${isMobile ? "h-4 w-4" : "h-5 w-5"}`} />
               </button>
             )}
             <button
               onClick={onCloseAction}
-              className="flex-1 rounded-xl border border-slate-200 bg-slate-100 px-8 py-4 font-semibold text-slate-700 transition-all duration-300 hover:bg-slate-200 hover:border-slate-300"
+              className={`flex-1 rounded-xl border border-slate-200 bg-slate-100 font-semibold text-slate-700 transition-all duration-300 hover:bg-slate-200 hover:border-slate-300 ${isMobile ? "px-4 py-3 min-h-[44px]" : "px-8 py-4"}`}
             >
               Close
             </button>

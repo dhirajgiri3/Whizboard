@@ -52,6 +52,9 @@ interface DrawingToolbarProps {
   initialColor?: string;
   initialStrokeWidth?: number;
   className?: string;
+  isMobile?: boolean;
+  isTablet?: boolean;
+  isCollapsed?: boolean;
 }
 
 // Constants
@@ -108,6 +111,9 @@ export default function EnhancedDrawingToolbar({
   initialColor = '#3b82f6',
   initialStrokeWidth = 4,
   className,
+  isMobile = false,
+  isTablet = false,
+  isCollapsed = false,
 }: DrawingToolbarProps) {
   // State
   const [internalTool, setInternalTool] = useState<DrawingTool>(currentTool || initialTool);
@@ -116,6 +122,10 @@ export default function EnhancedDrawingToolbar({
 
   // Use the current tool from props if provided, otherwise use internal state
   const activeTool = currentTool || internalTool;
+
+  // Responsive settings
+  const isSmallScreen = isMobile || isTablet;
+  const shouldCollapse = isCollapsed || (isMobile && isActive);
 
   // Sync with parent tool changes
   React.useEffect(() => {
@@ -126,13 +136,13 @@ export default function EnhancedDrawingToolbar({
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [customColor, setCustomColor] = useState(color);
 
-  // Drag functionality
+  // Drag functionality with responsive settings
   const {
     toolbarRef,
     dragHandleRef,
     eyeButtonRef,
     isHidden,
-    isCollapsed,
+    isCollapsed: dragIsCollapsed,
     isDragging,
     toolbarStyles,
     eyeButtonStyles,
@@ -145,9 +155,12 @@ export default function EnhancedDrawingToolbar({
     resetPosition,
   } = useFloatingToolbarDrag({
     toolbarId: 'drawing',
-    initialPosition: { x: 80, y: 80 },
-    minWidth: 384,
-    minHeight: 150,
+    initialPosition: { 
+      x: isSmallScreen ? 20 : 80, 
+      y: isSmallScreen ? 20 : 80 
+    },
+    minWidth: isSmallScreen ? 300 : 384,
+    minHeight: isSmallScreen ? 200 : 150,
   });
 
   // Computed values
@@ -205,18 +218,22 @@ export default function EnhancedDrawingToolbar({
         }}
         style={eyeButtonStyles}
         className={cn(
-          "w-14 h-14 rounded-2xl bg-white/95 backdrop-blur-lg border border-gray-200/50",
+          // Responsive size
+          isSmallScreen ? "w-12 h-12" : "w-14 h-14",
+          "rounded-2xl bg-white/95 backdrop-blur-lg border border-gray-200/50",
           "flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300",
           "text-gray-600 hover:bg-white group cursor-grab active:cursor-grabbing",
           "hover:scale-105 active:scale-95",
           `hover:text-${toolConfig.theme}-600 hover:border-${toolConfig.theme}-300`,
           isDragging && "cursor-grabbing scale-105",
-          isHidden && "animate-pulse"
+          isHidden && "animate-pulse",
+          // Touch-friendly for mobile
+          isMobile && "touch-manipulation"
         )}
         title="Click to show drawing toolbar • Drag to move"
         aria-label="Show drawing toolbar"
       >
-        <Eye size={20} />
+        <Eye size={isSmallScreen ? 18 : 20} />
       </button>
 
       {/* Main Toolbar */}
@@ -226,12 +243,17 @@ export default function EnhancedDrawingToolbar({
         style={toolbarStyles}
         className={cn(
           "flex flex-col bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50",
-          "transition-all duration-300 ease-out w-92",
-          "max-h-[70vh] min-h-[300px]",
+          "transition-all duration-300 ease-out",
+          // Responsive width
+          isSmallScreen ? "w-80 max-w-[90vw]" : "w-92",
+          // Responsive height
+          isSmallScreen ? "max-h-[60vh] min-h-[250px]" : "max-h-[70vh] min-h-[300px]",
           isDragging && "cursor-grabbing select-none shadow-3xl scale-[1.02]",
           `ring-2 ring-${toolConfig.theme}-500/20`,
           !isDragging && "hover:shadow-3xl hover:scale-[1.01]",
           isHidden && "opacity-0 pointer-events-none scale-95",
+          // Hide on mobile when collapsed
+          shouldCollapse && "hidden",
           className
         )}
         role="toolbar"
@@ -296,10 +318,10 @@ export default function EnhancedDrawingToolbar({
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={toggleCollapsed}
                 className="p-2.5 rounded-xl transition-all duration-200 text-gray-400 hover:text-gray-600 hover:bg-gray-100/80 hover:scale-105"
-                title={isCollapsed ? "Expand toolbar" : "Collapse toolbar"}
-                aria-label={isCollapsed ? "Expand toolbar" : "Collapse toolbar"}
+                title={dragIsCollapsed ? "Expand toolbar" : "Collapse toolbar"}
+                aria-label={dragIsCollapsed ? "Expand toolbar" : "Collapse toolbar"}
               >
-                {isCollapsed ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
+                {dragIsCollapsed ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
               </button>
               <button
                 onMouseDown={(e) => e.stopPropagation()}
@@ -315,7 +337,7 @@ export default function EnhancedDrawingToolbar({
         </div>
 
         {/* Collapsed State */}
-        {isCollapsed && (
+        {dragIsCollapsed && (
           <div 
             onClick={toggleCollapsed}
             className="px-6 py-4 border-t border-gray-100/50 bg-gradient-to-r from-gray-50/50 to-white/50 cursor-pointer hover:from-gray-100/60 hover:to-white/60 transition-all duration-200 rounded-b-3xl"
@@ -354,7 +376,7 @@ export default function EnhancedDrawingToolbar({
         )}
 
         {/* Main Content */}
-        {!isCollapsed && (
+        {!dragIsCollapsed && (
           <div className="flex-1 overflow-y-auto custom-scrollbar">
             <div className="p-6 space-y-6">
               {/* Tool Selection */}

@@ -71,7 +71,7 @@ export default function InvitationDeclinedPage() {
             href="/"
             className="block w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
-            Explore CyperBoard
+            Explore WhizBoard
           </Link>
           
           <Link
@@ -83,7 +83,7 @@ export default function InvitationDeclinedPage() {
         </div>
         
         <p className="text-xs text-gray-500 mt-6">
-          © 2025 CyperBoard. All rights reserved.
+          © 2025 WhizBoard. All rights reserved.
         </p>
       </div>
     </div>

@@ -1,6 +1,6 @@
-CyperBoard Development Plan (Task-Based for Cursor IDE)
+WhizBoard Development Plan (Task-Based for Cursor IDE)
 Overview
-CyperBoard is a real-time collaborative whiteboard application for teams to brainstorm and design. This document, optimized for Cursor IDE, divides development into 12 phases with specific tasks to be executed sequentially using Cursor's AI features (Composer, inline suggestions, terminal, debugging). The plan ensures simplicity, modularity, and type safety while building a scalable, performant app with the specified tech stack.
+WhizBoard is a real-time collaborative whiteboard application for teams to brainstorm and design. This document, optimized for Cursor IDE, divides development into 12 phases with specific tasks to be executed sequentially using Cursor's AI features (Composer, inline suggestions, terminal, debugging). The plan ensures simplicity, modularity, and type safety while building a scalable, performant app with the specified tech stack.
 
 Tech Stack
 
@@ -66,8 +66,8 @@ Duration: 1-2 hoursGoal: Set up the Next.js project with dependencies and struct
 
 Task 1.1: Initialize Next.js Project
 Description: Create a Next.js 14 project with TypeScript and Tailwind CSS.
-Cursor Command: Open terminal (Ctrl+``) and run: npx create-next-app@latest cyperboard --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"`. Accept Cursor's suggestions for setup.
-Output: cyperboard project folder with TypeScript, Tailwind, and ESLint.
+Cursor Command: Open terminal (Ctrl+``) and run: npx create-next-app@latest WhizBoard --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"`. Accept Cursor's suggestions for setup.
+Output: WhizBoard project folder with TypeScript, Tailwind, and ESLint.
 
 
 Task 1.2: Install Core Dependencies
@@ -146,7 +146,7 @@ const uri = process.env.MONGODB_URI!;
 const client = new MongoClient(uri);
 export async function connectToDatabase() {
   await client.connect();
-  return client.db('cyperboard');
+  return client.db('WhizBoard');
 }
 
 
@@ -532,8 +532,8 @@ Mitigation: Test with Cursor's device preview.
 
 Next Steps
 
-Start with Task 1.1 in Cursor's terminal: npx create-next-app@latest cyperboard --typescript --tailwind --eslint --app --src-dir --import-alias "@/*".
+Start with Task 1.1 in Cursor's terminal: npx create-next-app@latest WhizBoard --typescript --tailwind --eslint --app --src-dir --import-alias "@/*".
 Execute tasks sequentially, using Composer and inline suggestions.
 Track progress in Cursor's source control (Ctrl+Shift+G).
 
-Let's build CyperBoard into a collaborative masterpiece with Cursor IDE! 🎨✨
+Let's build WhizBoard into a collaborative masterpiece with Cursor IDE! 🎨✨

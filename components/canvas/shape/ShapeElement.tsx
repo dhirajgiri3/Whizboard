@@ -32,7 +32,7 @@ interface ShapeElementProps {
   currentTool?: string;
 }
 
-const ShapeElement: React.FC<ShapeElementProps> = ({
+const ShapeElement: React.FC<ShapeElementProps> = React.memo(({
   shape,
   isSelected,
   isDraggable,
@@ -566,6 +566,24 @@ const ShapeElement: React.FC<ShapeElementProps> = ({
       )}
     </Group>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison function for React.memo
+  // Only re-render if these specific props have changed
+  return (
+    prevProps.shape.id === nextProps.shape.id &&
+    prevProps.shape.version === nextProps.shape.version &&
+    prevProps.shape.updatedAt === nextProps.shape.updatedAt &&
+    JSON.stringify(prevProps.shape.style) === JSON.stringify(nextProps.shape.style) &&
+    prevProps.shape.x === nextProps.shape.x &&
+    prevProps.shape.y === nextProps.shape.y &&
+    prevProps.shape.width === nextProps.shape.width &&
+    prevProps.shape.height === nextProps.shape.height &&
+    prevProps.shape.rotation === nextProps.shape.rotation &&
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.isDraggable === nextProps.isDraggable &&
+    prevProps.scale === nextProps.scale &&
+    prevProps.currentTool === nextProps.currentTool
+  );
+});
 
 export default ShapeElement; 

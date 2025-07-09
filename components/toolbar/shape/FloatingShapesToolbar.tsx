@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Square,
   Circle,
@@ -22,21 +22,21 @@ import {
   EyeOff,
   Eye,
   Grip,
-  ChevronUp,
   ChevronDown,
   X,
   AlignLeft,
   AlignCenter,
   AlignRight,
   AlignHorizontalJustifyCenter,
-  AlignHorizontalJustifyEnd,
-  AlignHorizontalJustifyStart,
   AlignVerticalJustifyCenter,
-  AlignVerticalJustifyEnd,
-  AlignVerticalJustifyStart,
   Move,
   Minus,
   MousePointer,
+  Plus,
+  Maximize2,
+  Minimize2,
+  Layers,
+  Shapes,
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { useFloatingToolbarDrag } from "@/hooks/useFloatingToolbarDrag";
@@ -55,6 +55,8 @@ export interface ShapePreset {
   category: 'basic' | 'advanced' | 'lines' | 'custom';
   tags?: string[];
   description?: string;
+  gradient?: string;
+  theme?: string;
 }
 
 export interface FloatingShapesToolbarProps {
@@ -71,16 +73,21 @@ export interface FloatingShapesToolbarProps {
   onShapeDuplicateAction?: (shapeIds: string[]) => void;
   className?: string;
   scale?: number;
+  isMobile?: boolean;
+  isTablet?: boolean;
+  isCollapsed?: boolean;
 }
 
-// Shape presets
+// Aesthetic shape presets with themed styling
 const shapePresets: ShapePreset[] = [
   {
     id: 'rectangle',
     name: 'Rectangle',
     shapeType: 'rectangle',
-    icon: <Square size={16} />,
+    icon: <Square size={18} />,
     category: 'basic',
+    gradient: 'from-blue-500 to-indigo-600',
+    theme: 'blue',
     defaultProps: {
       shapeType: 'rectangle',
       width: 120,
@@ -98,21 +105,23 @@ const shapePresets: ShapePreset[] = [
       }
     },
     tags: ['basic', 'rectangle', 'box'],
-    description: 'Basic rectangle shape'
+    description: 'Perfect for frames, containers, and layouts'
   },
   {
     id: 'circle',
     name: 'Circle',
     shapeType: 'circle',
-    icon: <Circle size={16} />,
+    icon: <Circle size={18} />,
     category: 'basic',
+    gradient: 'from-emerald-500 to-teal-600',
+    theme: 'emerald',
     defaultProps: {
       shapeType: 'circle',
       width: 100,
       height: 100,
       style: {
         fill: '#ffffff',
-        stroke: '#3b82f6',
+        stroke: '#10b981',
         strokeWidth: 2,
         opacity: 1,
         fillOpacity: 1,
@@ -122,14 +131,16 @@ const shapePresets: ShapePreset[] = [
       }
     },
     tags: ['basic', 'circle', 'round'],
-    description: 'Perfect circle shape'
+    description: 'Perfect circles for buttons and focal points'
   },
   {
     id: 'triangle',
     name: 'Triangle',
     shapeType: 'polygon',
-    icon: <Triangle size={16} />,
+    icon: <Triangle size={18} />,
     category: 'basic',
+    gradient: 'from-orange-500 to-red-600',
+    theme: 'orange',
     defaultProps: {
       shapeType: 'polygon',
       width: 100,
@@ -137,7 +148,7 @@ const shapePresets: ShapePreset[] = [
       shapeData: { sides: 3 },
       style: {
         fill: '#ffffff',
-        stroke: '#3b82f6',
+        stroke: '#f97316',
         strokeWidth: 2,
         opacity: 1,
         fillOpacity: 1,
@@ -147,14 +158,42 @@ const shapePresets: ShapePreset[] = [
       }
     },
     tags: ['basic', 'triangle', 'polygon'],
-    description: 'Triangle shape'
+    description: 'Great for arrows, indicators, and alerts'
+  },
+  {
+    id: 'ellipse',
+    name: 'Ellipse',
+    shapeType: 'ellipse',
+    icon: <Circle size={18} className="scale-y-75" />,
+    category: 'basic',
+    gradient: 'from-cyan-500 to-blue-600',
+    theme: 'cyan',
+    defaultProps: {
+      shapeType: 'ellipse',
+      width: 140,
+      height: 80,
+      style: {
+        fill: '#ffffff',
+        stroke: '#06b6d4',
+        strokeWidth: 2,
+        opacity: 1,
+        fillOpacity: 1,
+        strokeOpacity: 1,
+        fillEnabled: true,
+        strokeEnabled: true,
+      }
+    },
+    tags: ['basic', 'ellipse', 'oval'],
+    description: 'Elegant oval shapes for organic designs'
   },
   {
     id: 'hexagon',
     name: 'Hexagon',
     shapeType: 'polygon',
-    icon: <Hexagon size={16} />,
-    category: 'basic',
+    icon: <Hexagon size={18} />,
+    category: 'advanced',
+    gradient: 'from-purple-500 to-violet-600',
+    theme: 'purple',
     defaultProps: {
       shapeType: 'polygon',
       width: 100,
@@ -162,7 +201,7 @@ const shapePresets: ShapePreset[] = [
       shapeData: { sides: 6 },
       style: {
         fill: '#ffffff',
-        stroke: '#3b82f6',
+        stroke: '#8b5cf6',
         strokeWidth: 2,
         opacity: 1,
         fillOpacity: 1,
@@ -171,15 +210,71 @@ const shapePresets: ShapePreset[] = [
         strokeEnabled: true,
       }
     },
-    tags: ['basic', 'hexagon', 'polygon'],
-    description: 'Hexagon shape'
+    tags: ['advanced', 'hexagon', 'polygon'],
+    description: 'Modern geometric shape for badges and icons'
+  },
+  {
+    id: 'pentagon',
+    name: 'Pentagon',
+    shapeType: 'polygon',
+    icon: <Hexagon size={18} className="scale-90" />,
+    category: 'advanced',
+    gradient: 'from-amber-500 to-yellow-600',
+    theme: 'amber',
+    defaultProps: {
+      shapeType: 'polygon',
+      width: 100,
+      height: 100,
+      shapeData: { sides: 5 },
+      style: {
+        fill: '#ffffff',
+        stroke: '#f59e0b',
+        strokeWidth: 2,
+        opacity: 1,
+        fillOpacity: 1,
+        strokeOpacity: 1,
+        fillEnabled: true,
+        strokeEnabled: true,
+      }
+    },
+    tags: ['advanced', 'pentagon', 'polygon'],
+    description: 'Five-sided polygon for unique designs'
+  },
+  {
+    id: 'octagon',
+    name: 'Octagon',
+    shapeType: 'polygon',
+    icon: <Hexagon size={18} className="rotate-45" />,
+    category: 'advanced',
+    gradient: 'from-rose-500 to-pink-600',
+    theme: 'rose',
+    defaultProps: {
+      shapeType: 'polygon',
+      width: 100,
+      height: 100,
+      shapeData: { sides: 8 },
+      style: {
+        fill: '#ffffff',
+        stroke: '#f43f5e',
+        strokeWidth: 2,
+        opacity: 1,
+        fillOpacity: 1,
+        strokeOpacity: 1,
+        fillEnabled: true,
+        strokeEnabled: true,
+      }
+    },
+    tags: ['advanced', 'octagon', 'polygon'],
+    description: 'Eight-sided polygon for complex shapes'
   },
   {
     id: 'star',
     name: 'Star',
     shapeType: 'star',
-    icon: <Star size={16} />,
-    category: 'basic',
+    icon: <Star size={18} />,
+    category: 'advanced',
+    gradient: 'from-yellow-400 to-amber-500',
+    theme: 'yellow',
     defaultProps: {
       shapeType: 'star',
       width: 100,
@@ -187,7 +282,7 @@ const shapePresets: ShapePreset[] = [
       shapeData: { numPoints: 5, innerRadius: 25, outerRadius: 50 },
       style: {
         fill: '#ffffff',
-        stroke: '#3b82f6',
+        stroke: '#eab308',
         strokeWidth: 2,
         opacity: 1,
         fillOpacity: 1,
@@ -196,39 +291,17 @@ const shapePresets: ShapePreset[] = [
         strokeEnabled: true,
       }
     },
-    tags: ['basic', 'star', 'favorite'],
-    description: 'Five-pointed star'
-  },
-  {
-    id: 'ellipse',
-    name: 'Ellipse',
-    shapeType: 'ellipse',
-    icon: <Circle size={16} className="scale-y-75" />,
-    category: 'advanced',
-    defaultProps: {
-      shapeType: 'ellipse',
-      width: 140,
-      height: 80,
-      style: {
-        fill: '#ffffff',
-        stroke: '#3b82f6',
-        strokeWidth: 2,
-        opacity: 1,
-        fillOpacity: 1,
-        strokeOpacity: 1,
-        fillEnabled: true,
-        strokeEnabled: true,
-      }
-    },
-    tags: ['advanced', 'ellipse', 'oval'],
-    description: 'Elliptical shape'
+    tags: ['advanced', 'star', 'favorite'],
+    description: 'Perfect for ratings, favorites, and highlights'
   },
   {
     id: 'wedge',
     name: 'Wedge',
     shapeType: 'wedge',
-    icon: <Zap size={16} />,
+    icon: <Zap size={18} />,
     category: 'advanced',
+    gradient: 'from-indigo-500 to-purple-600',
+    theme: 'indigo',
     defaultProps: {
       shapeType: 'wedge',
       width: 100,
@@ -236,7 +309,7 @@ const shapePresets: ShapePreset[] = [
       shapeData: { angle: 90, clockwise: true },
       style: {
         fill: '#ffffff',
-        stroke: '#3b82f6',
+        stroke: '#6366f1',
         strokeWidth: 2,
         opacity: 1,
         fillOpacity: 1,
@@ -246,14 +319,16 @@ const shapePresets: ShapePreset[] = [
       }
     },
     tags: ['advanced', 'wedge', 'pie'],
-    description: 'Wedge or pie slice'
+    description: 'Perfect for pie charts and data visualization'
   },
   {
     id: 'line',
     name: 'Line',
     shapeType: 'line',
-    icon: <Minus size={16} />,
+    icon: <Minus size={18} />,
     category: 'lines',
+    gradient: 'from-slate-500 to-gray-600',
+    theme: 'slate',
     defaultProps: {
       shapeType: 'line',
       width: 100,
@@ -261,7 +336,7 @@ const shapePresets: ShapePreset[] = [
       shapeData: { points: [0, 0, 100, 0] },
       style: {
         fill: undefined,
-        stroke: '#3b82f6',
+        stroke: '#64748b',
         strokeWidth: 2,
         opacity: 1,
         fillOpacity: 1,
@@ -271,14 +346,16 @@ const shapePresets: ShapePreset[] = [
       }
     },
     tags: ['lines', 'line', 'straight'],
-    description: 'Straight line'
+    description: 'Clean straight lines for dividers and borders'
   },
   {
     id: 'arrow',
     name: 'Arrow',
     shapeType: 'arrow',
-    icon: <ArrowRight size={16} />,
+    icon: <ArrowRight size={18} />,
     category: 'lines',
+    gradient: 'from-teal-500 to-cyan-600',
+    theme: 'teal',
     defaultProps: {
       shapeType: 'arrow',
       width: 100,
@@ -290,8 +367,8 @@ const shapePresets: ShapePreset[] = [
         pointerAtBeginning: false
       },
       style: {
-        fill: '#3b82f6',
-        stroke: '#3b82f6',
+        fill: '#14b8a6',
+        stroke: '#14b8a6',
         strokeWidth: 2,
         opacity: 1,
         fillOpacity: 1,
@@ -301,23 +378,24 @@ const shapePresets: ShapePreset[] = [
       }
     },
     tags: ['lines', 'arrow', 'pointer'],
-    description: 'Arrow shape'
+    description: 'Essential for flows, directions, and connections'
   },
 ];
 
-// Color presets
+// Enhanced color presets with better organization
 const colorPresets = [
-  { name: 'Blue', value: '#3b82f6' },
-  { name: 'Red', value: '#ef4444' },
-  { name: 'Green', value: '#22c55e' },
-  { name: 'Purple', value: '#8b5cf6' },
-  { name: 'Orange', value: '#f97316' },
-  { name: 'Pink', value: '#ec4899' },
-  { name: 'Teal', value: '#14b8a6' },
-  { name: 'Yellow', value: '#eab308' },
-  { name: 'Gray', value: '#6b7280' },
-  { name: 'Black', value: '#000000' },
-  { name: 'White', value: '#ffffff' },
+  { name: 'Blue', value: '#3b82f6', gradient: 'from-blue-400 to-blue-600' },
+  { name: 'Green', value: '#22c55e', gradient: 'from-green-400 to-green-600' },
+  { name: 'Red', value: '#ef4444', gradient: 'from-red-400 to-red-600' },
+  { name: 'Purple', value: '#8b5cf6', gradient: 'from-purple-400 to-purple-600' },
+  { name: 'Orange', value: '#f97316', gradient: 'from-orange-400 to-orange-600' },
+  { name: 'Pink', value: '#ec4899', gradient: 'from-pink-400 to-pink-600' },
+  { name: 'Cyan', value: '#06b6d4', gradient: 'from-cyan-400 to-cyan-600' },
+  { name: 'Yellow', value: '#eab308', gradient: 'from-yellow-400 to-yellow-600' },
+  { name: 'Gray', value: '#6b7280', gradient: 'from-gray-400 to-gray-600' },
+  { name: 'Black', value: '#000000', gradient: 'from-gray-800 to-black' },
+  { name: 'White', value: '#ffffff', gradient: 'from-gray-100 to-white' },
+  { name: 'Indigo', value: '#6366f1', gradient: 'from-indigo-400 to-indigo-600' },
 ];
 
 export default function FloatingShapesToolbar({
@@ -334,12 +412,15 @@ export default function FloatingShapesToolbar({
   onShapeDuplicateAction,
   className = "",
   scale = 1,
+  isMobile = false,
+  isTablet = false,
+  isCollapsed = false,
 }: FloatingShapesToolbarProps) {
-  const [activeTab, setActiveTab] = useState<"shapes" | "style" | "transform" | "actions">("shapes");
-  const [colorType, setColorType] = useState<"fill" | "stroke">("fill");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [colorPickerMode, setColorPickerMode] = useState<'fill' | 'stroke'>('fill');
   const [customColor, setCustomColor] = useState("#3b82f6");
+  const [selectedShapePreset, setSelectedShapePreset] = useState<ShapePreset | null>(null);
 
   // Style state
   const [fillColor, setFillColor] = useState("#ffffff");
@@ -348,18 +429,17 @@ export default function FloatingShapesToolbar({
   const [cornerRadius, setCornerRadius] = useState(8);
   const [opacity, setOpacity] = useState(1);
   const [rotation, setRotation] = useState(0);
-  const [shadowBlur, setShadowBlur] = useState(0);
-  const [shadowOpacity, setShadowOpacity] = useState(0.25);
-  const [shadowOffsetX, setShadowOffsetX] = useState(0);
-  const [shadowOffsetY, setShadowOffsetY] = useState(4);
-  const [shadowColor, setShadowColor] = useState("#000000");
+
+  // Responsive settings
+  const isSmallScreen = isMobile || isTablet;
+  const shouldCollapse = isCollapsed || (isMobile && isActive);
 
   const {
     toolbarRef,
     dragHandleRef,
     eyeButtonRef,
     isHidden,
-    isCollapsed,
+    isCollapsed: isFloatingToolbarCollapsed,
     isDragging,
     position: toolbarPosition,
     toolbarStyles,
@@ -373,9 +453,12 @@ export default function FloatingShapesToolbar({
     resetPosition,
   } = useFloatingToolbarDrag({
     toolbarId: "shapes",
-    initialPosition: { x: 24, y: 320 },
-    minWidth: 380,
-    minHeight: 180,
+    initialPosition: { 
+      x: isSmallScreen ? 20 : 24, 
+      y: isSmallScreen ? 320 : 320 
+    },
+    minWidth: isSmallScreen ? 300 : 384,
+    minHeight: isSmallScreen ? 200 : 300,
   });
 
   const primarySelectedShape = selectedShapes.length > 0 ? selectedShapes[0] : null;
@@ -388,29 +471,50 @@ export default function FloatingShapesToolbar({
     return shapePresets.filter(preset => preset.category === selectedCategory);
   }, [selectedCategory]);
 
+  // Tool config for the selected shape or default
+  const toolConfig = useMemo(() => {
+    if (selectedShapePreset) {
+      return {
+        icon: selectedShapePreset.icon,
+        name: selectedShapePreset.name,
+        gradient: selectedShapePreset.gradient || 'from-blue-500 to-indigo-600',
+        theme: selectedShapePreset.theme || 'blue',
+        description: selectedShapePreset.description || 'Shape tool'
+      };
+    }
+    return {
+      icon: <Shapes size={20} />,
+      name: hasSelection ? `${selectedShapes.length} Shape${selectedShapes.length > 1 ? 's' : ''}` : 'Shape Tools',
+      gradient: 'from-blue-500 to-indigo-600',
+      theme: 'blue',
+      description: hasSelection ? 'Multiple shapes selected' : 'Create and edit shapes'
+    };
+  }, [selectedShapePreset, hasSelection, selectedShapes.length]);
+
   // Update style states when selection changes
   useEffect(() => {
     if (primarySelectedShape) {
       const { style } = primarySelectedShape;
-      setFillColor(style.fill || "#ffffff");
-      setStrokeColor(style.stroke || "#3b82f6");
-      setStrokeWidth(style.strokeWidth || 2);
-      setCornerRadius(style.cornerRadius || 0);
-      setOpacity(style.opacity || 1);
-      setRotation(primarySelectedShape.rotation || 0);
       
-      if (style.shadow) {
-        setShadowBlur(style.shadow.blur || 0);
-        setShadowOpacity(style.shadow.opacity || 0.25);
-        setShadowOffsetX(style.shadow.offsetX || 0);
-        setShadowOffsetY(style.shadow.offsetY || 4);
-        setShadowColor(style.shadow.color || "#000000");
-      }
+      const newFillColor = style.fill || "#ffffff";
+      const newStrokeColor = style.stroke || "#3b82f6";
+      const newStrokeWidth = style.strokeWidth || 2;
+      const newCornerRadius = style.cornerRadius || 0;
+      const newOpacity = style.opacity || 1;
+      const newRotation = primarySelectedShape.rotation || 0;
+      
+      if (fillColor !== newFillColor) setFillColor(newFillColor);
+      if (strokeColor !== newStrokeColor) setStrokeColor(newStrokeColor);
+      if (strokeWidth !== newStrokeWidth) setStrokeWidth(newStrokeWidth);
+      if (cornerRadius !== newCornerRadius) setCornerRadius(Array.isArray(newCornerRadius) ? newCornerRadius[0] : newCornerRadius);
+      if (opacity !== newOpacity) setOpacity(newOpacity);
+      if (rotation !== newRotation) setRotation(newRotation);
     }
-  }, [primarySelectedShape]);
+  }, [primarySelectedShape, fillColor, strokeColor, strokeWidth, cornerRadius, opacity, rotation]);
 
   // Handle shape creation
   const handleShapeCreate = useCallback((preset: ShapePreset) => {
+    setSelectedShapePreset(preset);
     onShapeCreateAction?.(preset.shapeType, preset.defaultProps);
     sonnerToast.success(`${preset.name} selected - Click on canvas to place`);
   }, [onShapeCreateAction]);
@@ -432,30 +536,18 @@ export default function FloatingShapesToolbar({
   }, [primarySelectedShape, onShapeUpdateAction]);
 
   // Handle color change
-  const handleColorChange = useCallback((color: string) => {
-    if (colorType === 'fill') {
+  const handleColorChange = useCallback((color: string, type: 'fill' | 'stroke') => {
+    if (type === 'fill') {
       setFillColor(color);
       handleStyleUpdate({ fill: color });
     } else {
       setStrokeColor(color);
       handleStyleUpdate({ stroke: color });
     }
-  }, [colorType, handleStyleUpdate]);
+    setCustomColor(color);
+  }, [handleStyleUpdate]);
 
-  // Handle transform updates
-  const handleTransformUpdate = useCallback((updates: Partial<ShapeElement>) => {
-    if (!primarySelectedShape) return;
-    
-    const updatedShape: ShapeElement = {
-      ...primarySelectedShape,
-      ...updates,
-      updatedAt: Date.now()
-    };
-    
-    onShapeUpdateAction?.(updatedShape);
-  }, [primarySelectedShape, onShapeUpdateAction]);
-
-  // Handle delete
+  // Handle actions
   const handleDelete = useCallback(() => {
     if (hasMultipleSelection) {
       onShapeDeleteMultipleAction?.(selectedShapeIds);
@@ -466,502 +558,668 @@ export default function FloatingShapesToolbar({
     }
   }, [hasMultipleSelection, selectedShapeIds, primarySelectedShape, onShapeDeleteAction, onShapeDeleteMultipleAction]);
 
-  // Handle duplicate
   const handleDuplicate = useCallback(() => {
     onShapeDuplicateAction?.(selectedShapeIds);
     sonnerToast.success(`Duplicated ${selectedShapeIds.length} shape${selectedShapeIds.length > 1 ? 's' : ''}`);
   }, [selectedShapeIds, onShapeDuplicateAction]);
 
-  // Handle alignment
-  const handleAlign = useCallback((alignment: string) => {
-    onShapeAlignAction?.(alignment, selectedShapeIds);
-    sonnerToast.success(`Aligned ${alignment}`);
-  }, [selectedShapeIds, onShapeAlignAction]);
-
-  // Handle distribution
-  const handleDistribute = useCallback((distribution: string) => {
-    onShapeDistributeAction?.(distribution, selectedShapeIds);
-    sonnerToast.success(`Distributed ${distribution}`);
-  }, [selectedShapeIds, onShapeDistributeAction]);
-
   if (!isActive) return null;
 
   return (
     <>
-      {/* Eye Button */}
+      {/* Themed Eye Button */}
       <button
         ref={eyeButtonRef}
         onMouseDown={handleEyeMouseDown}
-        onClick={toggleHidden}
-        className={cn(
-          "fixed z-50 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-lg",
-          "w-10 h-10 flex items-center justify-center transition-all duration-200",
-          "hover:bg-gray-50 hover:border-gray-300 shadow-lg",
-          "focus:outline-none focus:ring-2 focus:ring-blue-500/50",
-          isDragging && "cursor-grabbing"
-        )}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!isDragging) {
+            toggleHidden();
+          }
+        }}
         style={eyeButtonStyles}
-        title={isHidden ? "Show Shapes Toolbar" : "Hide Shapes Toolbar"}
+        className={cn(
+          isSmallScreen ? "w-12 h-12" : "w-14 h-14",
+          "rounded-2xl bg-white/95 backdrop-blur-lg border border-gray-200/50",
+          "flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300",
+          "text-gray-600 hover:bg-white group cursor-grab active:cursor-grabbing",
+          "hover:scale-105 active:scale-95",
+          `hover:text-${toolConfig.theme}-600 hover:border-${toolConfig.theme}-300`,
+          isDragging && "cursor-grabbing scale-105",
+          isHidden && "animate-pulse",
+          isMobile && "touch-manipulation"
+        )}
+        title="Click to show shapes toolbar • Drag to move"
+        aria-label="Show shapes toolbar"
       >
-        {isHidden ? <EyeOff size={16} /> : <Eye size={16} />}
+        <Eye size={isSmallScreen ? 18 : 20} />
       </button>
 
       {/* Main Toolbar */}
-      {!isHidden && (
-        <div
-          ref={toolbarRef}
-          className={cn(
-            "fixed z-40 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-2xl",
-            "flex flex-col overflow-hidden transition-all duration-200",
-            isDragging && "cursor-grabbing",
-            className
-          )}
-          style={toolbarStyles}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gray-50/50">
-            <div className="flex items-center gap-2">
-              <div
-                ref={dragHandleRef}
-                onMouseDown={handleMouseDown}
-                className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-gray-200 transition-colors"
-                title="Drag to move"
-              >
-                <Grip size={14} className="text-gray-500" />
+      <div
+        ref={toolbarRef}
+        onClick={handleClick}
+        style={toolbarStyles}
+        className={cn(
+          "flex flex-col bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50",
+          "transition-all duration-300 ease-out",
+          isSmallScreen ? "w-80 max-w-[90vw]" : "w-96",
+          isSmallScreen ? "max-h-[60vh] min-h-[280px]" : "max-h-[70vh] min-h-[320px]",
+          isDragging && "cursor-grabbing select-none shadow-3xl scale-[1.02]",
+          `ring-2 ring-${toolConfig.theme}-500/20`,
+          !isDragging && "hover:shadow-3xl hover:scale-[1.01]",
+          isHidden && "opacity-0 pointer-events-none scale-95",
+          shouldCollapse && "hidden",
+          className
+        )}
+        role="toolbar"
+        aria-label="Shape tools"
+      >
+        {/* Themed Header */}
+        <div className={cn(
+          "flex-shrink-0 border-b border-gray-100/50 rounded-t-3xl",
+          "bg-gradient-to-r from-gray-50/80 to-white/80 backdrop-blur-sm"
+        )}>
+          <div className="flex items-center justify-between px-6 py-4 group">
+            {/* Drag Handle Area */}
+            <div 
+              ref={dragHandleRef}
+              onMouseDown={handleMouseDown}
+              onDoubleClick={handleDoubleClick}
+              className={cn(
+                "flex items-center gap-4 cursor-grab active:cursor-grabbing flex-1",
+                "transition-all duration-300 rounded-xl p-3 -m-3 border-2 border-transparent",
+                `hover:bg-${toolConfig.theme}-50/60 hover:border-${toolConfig.theme}-200/50`,
+                isDragging && `cursor-grabbing bg-${toolConfig.theme}-50/80 border-${toolConfig.theme}-300/50 scale-[1.02]`
+              )}
+              title="Drag to move • Double-click to reset position"
+              role="button"
+              tabIndex={0}
+              aria-label="Drag handle for moving toolbar"
+            >
+              <div className={cn(
+                "w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg",
+                "transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl",
+                "bg-gradient-to-br", toolConfig.gradient
+              )}>
+                {toolConfig.icon}
               </div>
-              <div className="flex items-center gap-2">
-                <Square size={16} className="text-blue-600" />
-                <span className="text-sm font-medium text-gray-700">
-                  {hasSelection 
-                    ? `${selectedShapes.length} Shape${selectedShapes.length > 1 ? 's' : ''} Selected`
-                    : 'Shapes'
-                  }
-                </span>
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-gray-800 text-base truncate">
+                  {toolConfig.name}
+                </div>
+                <div className="text-sm text-gray-500 flex items-center gap-2">
+                  {hasSelection ? (
+                    <>
+                      <span className="font-mono text-xs">{fillColor.toUpperCase()}</span>
+                      <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+                      <span className="text-xs">{strokeWidth}px</span>
+                    </>
+                  ) : (
+                    <span className="text-xs">{toolConfig.description}</span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center text-gray-400 opacity-60 group-hover:opacity-100 transition-opacity">
+                <Grip size={16} />
               </div>
             </div>
-            <div className="flex items-center gap-1">
+
+            {/* Themed Action Buttons */}
+            <div className="flex items-center gap-2 ml-4">
               <button
-                onClick={toggleCollapsed}
-                className="p-1 rounded hover:bg-gray-200 transition-colors"
-                title={isCollapsed ? "Expand" : "Collapse"}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={resetPosition}
+                className="p-2.5 rounded-xl transition-all duration-200 text-gray-400 hover:text-gray-600 hover:bg-gray-100/80 hover:scale-105"
+                title="Reset position"
+                aria-label="Reset toolbar position"
               >
-                {isCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                <RotateCcw size={16} />
               </button>
               <button
-                onClick={toggleHidden}
-                className="p-1 rounded hover:bg-gray-200 transition-colors"
-                title="Hide toolbar"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={toggleCollapsed}
+                className="p-2.5 rounded-xl transition-all duration-200 text-gray-400 hover:text-gray-600 hover:bg-gray-100/80 hover:scale-105"
+                title={isFloatingToolbarCollapsed ? "Expand toolbar" : "Collapse toolbar"}
+                aria-label={isFloatingToolbarCollapsed ? "Expand toolbar" : "Collapse toolbar"}
               >
-                <X size={14} />
+                {isFloatingToolbarCollapsed ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
+              </button>
+              <button
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={toggleHidden}
+                className="p-2.5 rounded-xl transition-all duration-200 text-gray-400 hover:text-gray-600 hover:bg-gray-100/80 hover:scale-105"
+                title="Hide toolbar"
+                aria-label="Hide toolbar"
+              >
+                <EyeOff size={16} />
               </button>
             </div>
           </div>
+        </div>
 
-          {/* Content */}
-          {!isCollapsed && (
-            <div className="flex-1 overflow-hidden">
-              {/* Tabs */}
-              <div className="flex border-b border-gray-200 bg-gray-50/30">
-                {[
-                  { id: "shapes", label: "Shapes", icon: <Square size={14} /> },
-                  { id: "style", label: "Style", icon: <Palette size={14} /> },
-                  { id: "transform", label: "Transform", icon: <Move size={14} /> },
-                  { id: "actions", label: "Actions", icon: <Settings size={14} /> },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors",
-                      "hover:bg-gray-100 border-b-2 border-transparent",
-                      activeTab === tab.id
-                        ? "text-blue-600 border-blue-600 bg-blue-50"
-                        : "text-gray-600 hover:text-gray-800"
-                    )}
-                  >
-                    {tab.icon}
-                    {tab.label}
-                  </button>
-                ))}
+        {/* Themed Collapsed State */}
+        {isFloatingToolbarCollapsed && (
+          <div 
+            onClick={toggleCollapsed}
+            className="px-6 py-4 border-t border-gray-100/50 bg-gradient-to-r from-gray-50/50 to-white/50 cursor-pointer hover:from-gray-100/60 hover:to-white/60 transition-all duration-200 rounded-b-3xl"
+            role="button"
+            tabIndex={0}
+            aria-label="Expand toolbar"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div 
+                  className="w-4 h-4 rounded-full shadow-sm animate-pulse" 
+                  style={{ backgroundColor: hasSelection ? fillColor : toolConfig.gradient.includes('blue') ? '#3b82f6' : '#64748b' }}
+                  aria-hidden="true"
+                />
+                <div>
+                  <div className="font-semibold text-gray-800 text-sm">
+                    {toolConfig.name}
+                  </div>
+                  <div className="text-xs text-gray-500 font-mono">
+                    {hasSelection ? `${fillColor.toUpperCase()} • ${strokeWidth}px` : 'Ready to create'}
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs text-gray-600 font-medium flex items-center gap-1">
+                  <Zap size={12} />
+                  {hasSelection ? 'Editing' : 'Ready'}
+                </div>
+                <div className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                  <span>Click to expand</span>
+                  <ChevronDown size={12} className="animate-bounce" />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Main Content */}
+        {!isFloatingToolbarCollapsed && (
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <div className="p-6 space-y-6">
+              {/* Shape Library */}
+              <div className="space-y-4">
+                                <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <Shapes size={16} />
+                  Shape Library
+                </h3>
+
+                {/* Themed Category Filter */}
+                <div className="flex bg-gray-100/80 rounded-2xl p-1.5 backdrop-blur-sm overflow-x-auto">
+                  {[
+                    { id: null, label: "All", icon: <Layers size={14} /> },
+                    { id: "basic", label: "Basic", icon: <Square size={14} /> },
+                    { id: "advanced", label: "Advanced", icon: <Star size={14} /> },
+                    { id: "lines", label: "Lines", icon: <ArrowRight size={14} /> },
+                  ].map((category) => (
+                    <button
+                      key={category.id || 'all'}
+                      onClick={() => setSelectedCategory(category.id)}
+                      className={cn(
+                        "flex items-center justify-center gap-2 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-sm whitespace-nowrap",
+                        selectedCategory === category.id
+                          ? "bg-white text-blue-600 shadow-lg shadow-blue-500/20 scale-105"
+                          : "text-gray-600 hover:text-gray-800 hover:bg-white/60"
+                      )}
+                      title={`Show ${category.label.toLowerCase()} shapes`}
+                      aria-pressed={selectedCategory === category.id}
+                    >
+                      {category.icon}
+                      <span className="hidden sm:inline">{category.label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Themed Shape Grid */}
+                <div className={cn(
+                  "grid gap-3",
+                  isSmallScreen ? "grid-cols-2" : "grid-cols-3"
+                )}>
+                  {filteredShapes.map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => handleShapeCreate(preset)}
+                      className={cn(
+                        "group relative overflow-hidden rounded-2xl border-2 transition-all duration-300",
+                        "hover:border-gray-300 hover:shadow-lg hover:scale-105 active:scale-95",
+                        "focus:outline-none focus:ring-2 focus:ring-blue-500/50",
+                        selectedShapePreset?.id === preset.id
+                          ? `border-${preset.theme}-500 bg-${preset.theme}-50/50`
+                          : "border-gray-200 bg-white hover:bg-gray-50",
+                        isMobile && "touch-manipulation"
+                      )}
+                      title={preset.description}
+                    >
+                      <div className="p-4 flex flex-col items-center gap-3">
+                        <div className={cn(
+                          "w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg",
+                          "transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl",
+                          "bg-gradient-to-br",
+                          preset.gradient
+                        )}>
+                          {preset.icon}
+                        </div>
+                        <div className="text-center">
+                          <div className="font-semibold text-gray-800 text-sm">
+                            {preset.name}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                            {preset.description}
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {/* Tab Content */}
-              <div className="p-4 overflow-y-auto max-h-80">
-                {activeTab === "shapes" && (
-                  <div className="space-y-4">
-                    {/* Category Filter */}
-                    <div className="flex gap-2 flex-wrap">
-                      {[
-                        { id: null, label: "All" },
-                        { id: "basic", label: "Basic" },
-                        { id: "advanced", label: "Advanced" },
-                        { id: "lines", label: "Lines" },
-                      ].map((category) => (
-                        <button
-                          key={category.id || 'all'}
-                          onClick={() => setSelectedCategory(category.id)}
-                          className={cn(
-                            "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
-                            selectedCategory === category.id
-                              ? "bg-blue-100 text-blue-700 border border-blue-200"
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                          )}
-                        >
-                          {category.label}
-                        </button>
-                      ))}
-                    </div>
+              {/* Themed Style Section */}
+              {hasSelection && (
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Palette size={16} />
+                    Style Properties
+                  </h3>
 
-                    {/* Shape Grid */}
-                    <div className="grid grid-cols-4 gap-2">
-                      {filteredShapes.map((preset) => (
+                  {/* Enhanced Color Display with Active Indicators */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Fill Color */}
+                    <div className={cn(
+                      "bg-gradient-to-r from-gray-50 to-white rounded-2xl p-4 border shadow-sm transition-all duration-300",
+                      colorPickerMode === 'fill' && showColorPicker
+                        ? "border-blue-300 ring-2 ring-blue-100 shadow-lg"
+                        : "border-gray-200/50"
+                    )}>
+                      <div className="flex items-center gap-3">
                         <button
-                          key={preset.id}
-                          onClick={() => handleShapeCreate(preset)}
-                          className={cn(
-                            "flex flex-col items-center gap-2 p-3 rounded-lg border border-gray-200",
-                            "hover:border-blue-300 hover:bg-blue-50 transition-colors",
-                            "focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                          )}
-                          title={preset.description}
-                        >
-                          <div className="text-gray-600 hover:text-blue-600 transition-colors">
-                            {preset.icon}
-                          </div>
-                          <span className="text-xs text-gray-600 text-center">
-                            {preset.name}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === "style" && (
-                  <div className="space-y-4">
-                    {!hasSelection && (
-                      <div className="text-center py-8 text-gray-500">
-                        <Square size={32} className="mx-auto mb-2 opacity-50" />
-                        <p>Select a shape to edit its style</p>
-                      </div>
-                    )}
-                    
-                    {hasSelection && (
-                      <>
-                        {/* Color Type Toggle */}
-                        <div className="flex rounded-lg border border-gray-200 overflow-hidden">
-                          <button
-                            onClick={() => setColorType('fill')}
-                            className={cn(
-                              "flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium transition-colors",
-                              colorType === 'fill'
-                                ? "bg-blue-100 text-blue-700"
-                                : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-                            )}
-                          >
-                            <Droplet size={14} />
+                          className="w-12 h-12 rounded-xl border-2 border-white shadow-lg cursor-pointer transition-all duration-300 hover:scale-110 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                          style={{ backgroundColor: fillColor }}
+                          onClick={() => {
+                            setColorPickerMode('fill');
+                            setShowColorPicker(!showColorPicker);
+                            setCustomColor(fillColor);
+                          }}
+                          title="Click to change fill color"
+                          aria-label={`Fill color: ${fillColor}`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className={cn(
+                            "font-semibold text-sm flex items-center gap-2",
+                            colorPickerMode === 'fill' && showColorPicker ? "text-blue-700" : "text-gray-800"
+                          )}>
                             Fill
-                          </button>
-                          <button
-                            onClick={() => setColorType('stroke')}
-                            className={cn(
-                              "flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium transition-colors",
-                              colorType === 'stroke'
-                                ? "bg-blue-100 text-blue-700"
-                                : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                            {colorPickerMode === 'fill' && showColorPicker && (
+                              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
                             )}
-                          >
-                            <Brush size={14} />
+                          </div>
+                          <div className="text-xs text-gray-500 font-mono truncate">
+                            {fillColor.toUpperCase()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Stroke Color */}
+                    <div className={cn(
+                      "bg-gradient-to-r from-gray-50 to-white rounded-2xl p-4 border shadow-sm transition-all duration-300",
+                      colorPickerMode === 'stroke' && showColorPicker
+                        ? "border-orange-300 ring-2 ring-orange-100 shadow-lg"
+                        : "border-gray-200/50"
+                    )}>
+                      <div className="flex items-center gap-3">
+                        <button
+                          className="w-12 h-12 rounded-xl border-2 border-white shadow-lg cursor-pointer transition-all duration-300 hover:scale-110 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                          style={{ backgroundColor: strokeColor }}
+                          onClick={() => {
+                            setColorPickerMode('stroke');
+                            setShowColorPicker(!showColorPicker);
+                            setCustomColor(strokeColor);
+                          }}
+                          title="Click to change stroke color"
+                          aria-label={`Stroke color: ${strokeColor}`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className={cn(
+                            "font-semibold text-sm flex items-center gap-2",
+                            colorPickerMode === 'stroke' && showColorPicker ? "text-orange-700" : "text-gray-800"
+                          )}>
                             Stroke
-                          </button>
-                        </div>
-
-                        {/* Color Presets */}
-                        <div className="grid grid-cols-6 gap-2">
-                          {colorPresets.map((color) => (
-                            <button
-                              key={color.value}
-                              onClick={() => handleColorChange(color.value)}
-                              className={cn(
-                                "w-8 h-8 rounded-lg border-2 border-gray-200 hover:border-gray-300 transition-colors",
-                                (colorType === 'fill' ? fillColor : strokeColor) === color.value && "border-blue-500 scale-110"
-                              )}
-                              style={{ backgroundColor: color.value }}
-                              title={color.name}
-                            />
-                          ))}
-                        </div>
-
-                        {/* Stroke Width */}
-                        {colorType === 'stroke' && (
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Stroke Width</label>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="range"
-                                min="1"
-                                max="20"
-                                value={strokeWidth}
-                                onChange={(e) => {
-                                  const value = parseInt(e.target.value);
-                                  setStrokeWidth(value);
-                                  handleStyleUpdate({ strokeWidth: value });
-                                }}
-                                className="flex-1"
-                              />
-                              <span className="text-sm text-gray-600 w-8">{strokeWidth}</span>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Opacity */}
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">Opacity</label>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="range"
-                              min="0"
-                              max="1"
-                              step="0.1"
-                              value={opacity}
-                              onChange={(e) => {
-                                const value = parseFloat(e.target.value);
-                                setOpacity(value);
-                                handleStyleUpdate({ opacity: value });
-                              }}
-                              className="flex-1"
-                            />
-                            <span className="text-sm text-gray-600 w-8">{Math.round(opacity * 100)}%</span>
-                          </div>
-                        </div>
-
-                        {/* Corner Radius (for rectangles) */}
-                        {primarySelectedShape?.shapeType === 'rectangle' && (
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Corner Radius</label>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="range"
-                                min="0"
-                                max="50"
-                                value={cornerRadius}
-                                onChange={(e) => {
-                                  const value = parseInt(e.target.value);
-                                  setCornerRadius(value);
-                                  handleStyleUpdate({ cornerRadius: value });
-                                }}
-                                className="flex-1"
-                              />
-                              <span className="text-sm text-gray-600 w-8">{cornerRadius}</span>
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {activeTab === "transform" && (
-                  <div className="space-y-4">
-                    {!hasSelection && (
-                      <div className="text-center py-8 text-gray-500">
-                        <Move size={32} className="mx-auto mb-2 opacity-50" />
-                        <p>Select a shape to transform it</p>
-                      </div>
-                    )}
-                    
-                    {hasSelection && (
-                      <>
-                        {/* Rotation */}
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">Rotation</label>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="range"
-                              min="-180"
-                              max="180"
-                              value={rotation}
-                              onChange={(e) => {
-                                const value = parseInt(e.target.value);
-                                setRotation(value);
-                                handleTransformUpdate({ rotation: value });
-                              }}
-                              className="flex-1"
-                            />
-                            <span className="text-sm text-gray-600 w-12">{rotation}°</span>
-                          </div>
-                        </div>
-
-                        {/* Quick Rotation */}
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              const newRotation = rotation - 90;
-                              setRotation(newRotation);
-                              handleTransformUpdate({ rotation: newRotation });
-                            }}
-                            className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                          >
-                            <RotateCcw size={14} />
-                            <span className="text-sm">90° CCW</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              const newRotation = rotation + 90;
-                              setRotation(newRotation);
-                              handleTransformUpdate({ rotation: newRotation });
-                            }}
-                            className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                          >
-                            <RotateCw size={14} />
-                            <span className="text-sm">90° CW</span>
-                          </button>
-                        </div>
-
-                        {/* Alignment & Distribution (for multiple selection) */}
-                        {hasMultipleSelection && (
-                          <div className="space-y-4">
-                            {/* Horizontal Alignment */}
-                            <div className="space-y-2">
-                              <label className="text-sm font-medium text-gray-700">Horizontal Alignment</label>
-                              <div className="grid grid-cols-3 gap-2">
-                                <button
-                                  onClick={() => handleAlign('left')}
-                                  className="flex items-center justify-center p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                                  title="Align Left"
-                                >
-                                  <AlignLeft size={14} />
-                                </button>
-                                <button
-                                  onClick={() => handleAlign('center-horizontal')}
-                                  className="flex items-center justify-center p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                                  title="Align Center Horizontally"
-                                >
-                                  <AlignCenter size={14} />
-                                </button>
-                                <button
-                                  onClick={() => handleAlign('right')}
-                                  className="flex items-center justify-center p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                                  title="Align Right"
-                                >
-                                  <AlignRight size={14} />
-                                </button>
-                              </div>
-                            </div>
-
-                            {/* Vertical Alignment */}
-                            <div className="space-y-2">
-                              <label className="text-sm font-medium text-gray-700">Vertical Alignment</label>
-                              <div className="grid grid-cols-3 gap-2">
-                                <button
-                                  onClick={() => handleAlign('top')}
-                                  className="flex items-center justify-center p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                                  title="Align Top"
-                                >
-                                  <AlignVerticalJustifyStart size={14} />
-                                </button>
-                                <button
-                                  onClick={() => handleAlign('center-vertical')}
-                                  className="flex items-center justify-center p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                                  title="Align Center Vertically"
-                                >
-                                  <AlignVerticalJustifyCenter size={14} />
-                                </button>
-                                <button
-                                  onClick={() => handleAlign('bottom')}
-                                  className="flex items-center justify-center p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                                  title="Align Bottom"
-                                >
-                                  <AlignVerticalJustifyEnd size={14} />
-                                </button>
-                              </div>
-                            </div>
-
-                            {/* Distribution */}
-                            {selectedShapes.length > 2 && (
-                              <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700">Distribution</label>
-                                <div className="grid grid-cols-2 gap-2">
-                                  <button
-                                    onClick={() => handleDistribute('horizontal')}
-                                    className="flex items-center justify-center gap-2 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                                    title="Distribute Horizontally"
-                                  >
-                                    <AlignHorizontalJustifyCenter size={14} />
-                                    <span className="text-xs">H</span>
-                                  </button>
-                                  <button
-                                    onClick={() => handleDistribute('vertical')}
-                                    className="flex items-center justify-center gap-2 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                                    title="Distribute Vertically"
-                                  >
-                                    <AlignVerticalJustifyCenter size={14} />
-                                    <span className="text-xs">V</span>
-                                  </button>
-                                </div>
-                              </div>
+                            {colorPickerMode === 'stroke' && showColorPicker && (
+                              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
                             )}
                           </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {activeTab === "actions" && (
-                  <div className="space-y-4">
-                    {!hasSelection && (
-                      <div className="text-center py-8 text-gray-500">
-                        <Settings size={32} className="mx-auto mb-2 opacity-50" />
-                        <p>Select shapes to see available actions</p>
+                          <div className="text-xs text-gray-500 font-mono truncate">
+                            {strokeColor.toUpperCase()}
+                          </div>
+                        </div>
                       </div>
-                    )}
-                    
-                    {hasSelection && (
-                      <div className="grid grid-cols-2 gap-2">
+                    </div>
+                  </div>
+
+                  {/* Clean Color Palette */}
+                  <div className={cn(
+                    "grid gap-1.5",
+                    isSmallScreen ? "grid-cols-6" : "grid-cols-8"
+                  )}>
+                    {colorPresets.map((color) => (
+                      <button
+                        key={color.value}
+                        onClick={() => handleColorChange(color.value, colorPickerMode || 'fill')}
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          handleColorChange(color.value, 'stroke');
+                        }}
+                        className={cn(
+                          "w-8 h-8 rounded-lg border border-gray-300 transition-colors hover:border-gray-400 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500/30",
+                          (fillColor === color.value || strokeColor === color.value)
+                            ? "border-gray-500 ring-2 ring-gray-300"
+                            : "hover:border-gray-400"
+                        )}
+                        style={{ backgroundColor: color.value }}
+                        title={`${color.name} • Left: ${colorPickerMode === 'stroke' ? 'Stroke' : 'Fill'} • Right: Stroke`}
+                        aria-label={`Select ${color.name} color`}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Enhanced Custom Color Picker */}
+                  {showColorPicker && (
+                    <div className="space-y-3 p-4 bg-gradient-to-r from-gray-50 to-white rounded-2xl border border-gray-200/50 shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Droplet size={16} className={cn(
+                            colorPickerMode === 'stroke' ? 'text-orange-600' : 'text-blue-600'
+                          )} />
+                          <span className="text-sm font-semibold text-gray-700">
+                            Custom {colorPickerMode === 'stroke' ? 'Stroke' : 'Fill'} Color
+                          </span>
+                        </div>
                         <button
-                          onClick={handleDuplicate}
-                          className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                          onClick={() => setShowColorPicker(false)}
+                          className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors"
                         >
-                          <Copy size={14} />
-                          <span className="text-sm">Duplicate</span>
+                          <X size={14} />
                         </button>
+                      </div>
+                      
+                      {/* Color Mode Toggle */}
+                      <div className="flex bg-gray-100 rounded-xl p-1">
                         <button
-                          onClick={handleDelete}
-                          className="flex items-center gap-2 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                          onClick={() => {
+                            setColorPickerMode('fill');
+                            setCustomColor(fillColor);
+                          }}
+                          className={cn(
+                            "flex-1 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-sm",
+                            colorPickerMode === 'fill'
+                              ? "bg-white text-blue-600 shadow-sm"
+                              : "text-gray-600 hover:text-gray-800"
+                          )}
                         >
-                          <Trash2 size={14} />
-                          <span className="text-sm">Delete</span>
-                        </button>
-                        <button
-                          onClick={() => onShapeDeselectAction?.()}
-                          className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                        >
-                          <MousePointer size={14} />
-                          <span className="text-sm">Deselect</span>
+                          Fill
                         </button>
                         <button
                           onClick={() => {
-                            selectedShapes.forEach(shape => {
-                              handleTransformUpdate({ locked: !shape.locked });
-                            });
+                            setColorPickerMode('stroke');
+                            setCustomColor(strokeColor);
                           }}
-                          className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                          className={cn(
+                            "flex-1 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-sm",
+                            colorPickerMode === 'stroke'
+                              ? "bg-white text-orange-600 shadow-sm"
+                              : "text-gray-600 hover:text-gray-800"
+                          )}
                         >
-                          {primarySelectedShape?.locked ? <Unlock size={14} /> : <Lock size={14} />}
-                          <span className="text-sm">
-                            {primarySelectedShape?.locked ? 'Unlock' : 'Lock'}
-                          </span>
+                          Stroke
                         </button>
                       </div>
-                    )}
+
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="color"
+                          value={customColor}
+                          onChange={(e) => handleColorChange(e.target.value, colorPickerMode)}
+                          className="w-12 h-12 rounded-xl border-2 border-white shadow-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                          title={`Pick a custom ${colorPickerMode} color`}
+                          aria-label={`Custom ${colorPickerMode} color picker`}
+                        />
+                        <input
+                          type="text"
+                          value={customColor}
+                          onChange={(e) => {
+                            setCustomColor(e.target.value);
+                            if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                              handleColorChange(e.target.value, colorPickerMode);
+                            }
+                          }}
+                          className="flex-1 px-4 py-3 text-sm border border-gray-200 rounded-xl font-mono uppercase bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50"
+                          placeholder="#000000"
+                          maxLength={7}
+                          aria-label={`Custom ${colorPickerMode} color hex code`}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Properties Controls */}
+                  <div className="space-y-4">
+                    {/* Clean Stroke Width */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-gray-700">Stroke Width</label>
+                        <span className="text-xs text-gray-500 font-mono">{strokeWidth}px</span>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                        <button
+                          onClick={() => {
+                            const newWidth = Math.max(1, strokeWidth - 1);
+                            setStrokeWidth(newWidth);
+                            handleStyleUpdate({ strokeWidth: newWidth });
+                          }}
+                          className="p-2 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                          disabled={strokeWidth <= 1}
+                          title="Decrease stroke width"
+                          aria-label="Decrease stroke width"
+                        >
+                          <Minus size={14} />
+                        </button>
+                        <div className="flex-1">
+                          <input
+                            type="range"
+                            min="1"
+                            max="20"
+                            value={strokeWidth}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value);
+                              setStrokeWidth(value);
+                              handleStyleUpdate({ strokeWidth: value });
+                            }}
+                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                            aria-label="Stroke width slider"
+                          />
+                        </div>
+                        <button
+                          onClick={() => {
+                            const newWidth = Math.min(20, strokeWidth + 1);
+                            setStrokeWidth(newWidth);
+                            handleStyleUpdate({ strokeWidth: newWidth });
+                          }}
+                          className="p-2 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                          disabled={strokeWidth >= 20}
+                          title="Increase stroke width"
+                          aria-label="Increase stroke width"
+                        >
+                          <Plus size={14} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Clean Opacity */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-gray-700">Opacity</label>
+                        <span className="text-xs text-gray-500">{Math.round(opacity * 100)}%</span>
+                      </div>
+                      <div className="px-3 py-2 bg-gray-50 rounded-xl border border-gray-200">
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.1"
+                          value={opacity}
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value);
+                            setOpacity(value);
+                            handleStyleUpdate({ opacity: value });
+                          }}
+                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                          aria-label="Opacity slider"
+                        />
+                      </div>
+                    </div>
                   </div>
-                )}
-              </div>
+
+                  {/* Themed Actions */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <Settings size={16} />
+                      Quick Actions
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={handleDuplicate}
+                        className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-2xl hover:from-blue-100 hover:to-indigo-100 transition-all duration-200 hover:scale-105 font-medium"
+                      >
+                        <Copy size={16} />
+                        <span className="text-sm">Duplicate</span>
+                      </button>
+                      <button
+                        onClick={handleDelete}
+                        className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-red-50 to-rose-50 text-red-700 rounded-2xl hover:from-red-100 hover:to-rose-100 transition-all duration-200 hover:scale-105 font-medium"
+                      >
+                        <Trash2 size={16} />
+                        <span className="text-sm">Delete</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Clean Empty State */}
+              {!hasSelection && (
+                <div className="text-center py-8">
+                  <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center">
+                    <Shapes size={24} className="text-gray-400" />
+                  </div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Create Shapes</h3>
+                  <p className="text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">
+                    Choose from the shape library above to start creating. Select shapes to customize their appearance.
+                  </p>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
+
+      {/* Enhanced Styles */}
+      <style jsx>{`
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: linear-gradient(180deg, rgba(148, 163, 184, 0.4) 0%, rgba(148, 163, 184, 0.2) 100%);
+          border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(180deg, rgba(148, 163, 184, 0.6) 0%, rgba(148, 163, 184, 0.4) 100%);
+        }
+
+        .slider {
+          background: linear-gradient(90deg, #e2e8f0 0%, #cbd5e1 100%);
+          border-radius: 8px;
+          outline: none;
+          transition: all 0.3s ease;
+        }
+
+        .slider::-webkit-slider-thumb {
+          appearance: none;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+          border: 3px solid #ffffff;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+          background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+          transform: scale(1.1);
+          box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+        }
+
+        .slider::-moz-range-thumb {
+          appearance: none;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+          border: 3px solid #ffffff;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+          cursor: pointer;
+        }
+
+        .shadow-3xl {
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        }
+
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        @keyframes slide-in-from-top-2 {
+          from {
+            transform: translateY(-8px);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+
+        .animate-in {
+          animation-fill-mode: both;
+        }
+
+        .slide-in-from-top-2 {
+          animation-name: slide-in-from-top-2;
+        }
+
+        .duration-200 {
+          animation-duration: 200ms;
+        }
+      `}</style>
     </>
   );
 } 

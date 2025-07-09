@@ -16,7 +16,7 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <div className="bg-white/80 rounded-3xl shadow-2xl p-10 flex flex-col items-center max-w-md w-full border border-gray-200">
-        <h1 className="text-4xl font-extrabold mb-4 bg-gradient-to-r from-gray-900 via-purple-900 to-violet-900 bg-clip-text text-transparent">Join CyperBoard</h1>
+        <h1 className="text-4xl font-extrabold mb-4 bg-gradient-to-r from-gray-900 via-purple-900 to-violet-900 bg-clip-text text-transparent">Join WhizBoard</h1>
         <p className="text-gray-600 mb-8 text-center">Create your account to start collaborating and sharing boards in real time.</p>
         <button
           onClick={() => signIn("google")}
@@ -26,7 +26,7 @@ export default function SignupPage() {
           Sign up with Google
         </button>
       </div>
-      <p className="mt-8 text-gray-400 text-sm">&copy; {new Date().getFullYear()} CyperBoard. All rights reserved.</p>
+      <p className="mt-8 text-gray-400 text-sm">&copy; {new Date().getFullYear()} WhizBoard. All rights reserved.</p>
     </div>
   );
 }

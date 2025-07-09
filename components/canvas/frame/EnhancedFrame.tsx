@@ -329,6 +329,18 @@ const EnhancedFrame: React.FC<EnhancedFrameProps> = ({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isSelected || !document.hasFocus()) return;
 
+      // Check if user is currently editing text in any input/textarea
+      if (
+        document.activeElement &&
+        (document.activeElement.tagName === "INPUT" ||
+          document.activeElement.tagName === "TEXTAREA" ||
+          document.activeElement.getAttribute("contenteditable") === "true" ||
+          document.activeElement.hasAttribute("data-rename-input"))
+      ) {
+        // Don't interfere with text editing
+        return;
+      }
+
       // Prevent default only for our shortcuts
       const ourKeys = [
         "Delete",
@@ -345,13 +357,14 @@ const EnhancedFrame: React.FC<EnhancedFrameProps> = ({
 
       if (!isOurKey) return;
 
-      // Delete frame
+      // Delete frame - Don't directly delete here to avoid conflicts with toolbar confirmation
+      // Let the FloatingFrameToolbar handle deletion with confirmation
       if (
         e.key === "Delete" ||
         (e.key === "Backspace" && (e.metaKey || e.ctrlKey))
       ) {
         e.preventDefault();
-        onDeleteAction(id);
+        // Don't call onDeleteAction directly - let the toolbar handle it with confirmation
         return;
       }
 

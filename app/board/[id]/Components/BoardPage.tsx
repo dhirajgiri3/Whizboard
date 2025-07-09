@@ -14,19 +14,26 @@ import { useParams } from "next/navigation";
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import logger from "@/lib/logger";
-import { PageLoading } from "@/components/ui/Loading";
-import { X, AlertCircle } from "lucide-react";
+import { LoadingOverlay } from "@/components/ui/Loading";
+import { X, AlertCircle, ChevronUp, ChevronDown, ZoomIn, Maximize } from "lucide-react";
 import RenameBoardModal from "@/components/ui/modal/RenameBoardModal";
 import InviteCollaboratorsModal from "@/components/ui/modal/InviteCollaboratorsModal";
 import SuccessModal from "@/components/ui/modal/SuccessModal";
 import { toast } from "sonner";
-import CanvasHeader from "@/components/layout/CanvasHeader";
+import CanvasHeader from "@/components/layout/header/CanvasHeader";
 import {
   BoardProvider,
   useBoardContext,
 } from "@/components/context/BoardContext";
 import useRealTimeCollaboration from "@/hooks/useRealTimeCollaboration";
-import { StickyNoteElement, FrameElement, ILine, Tool, TextElement, ShapeElement } from "@/types";
+import {
+  StickyNoteElement,
+  FrameElement,
+  ILine,
+  Tool,
+  TextElement,
+  ShapeElement,
+} from "@/types";
 import { Cursor } from "@/components/canvas/LiveCursors";
 import { getRandomStickyNoteColor } from "@/components/canvas/stickynote/StickyNote";
 import StickyNoteColorPicker, {
@@ -36,6 +43,7 @@ import StickyNoteColorPicker, {
 // Import hooks and components
 import KeyboardShortcuts from "@/components/boardshortcuts/KeyboardShortcuts";
 import DrawingToolbar from "@/components/toolbar/pen/DrawingToolbar";
+import TextEditor from "@/components/canvas/text/TextEditor";
 
 const GET_BOARD = gql`
   query GetBoard($id: String!) {
@@ -147,11 +155,8 @@ const DrawingCanvas = dynamic(
     ssr: false,
     loading: () => (
       <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        <PageLoading
-          title="Loading canvas"
-          description="Preparing your collaborative drawing space..."
-          variant="default"
-        />
+        <LoadingOverlay
+         text="Loading Your Board Page" />
       </div>
     ),
   }
@@ -164,7 +169,6 @@ export default function BoardPage() {
     </BoardProvider>
   );
 }
-
 function BoardPageContent() {
   const { data: session, status } = useSession();
   const params = useParams();
@@ -183,10 +187,15 @@ function BoardPageContent() {
   const [frames, setFrames] = useState<FrameElement[]>([]);
   const [textElements, setTextElements] = useState<TextElement[]>([]);
   const [shapes, setShapes] = useState<ShapeElement[]>([]);
-  const [selectedStickyNote, setSelectedStickyNote] = useState<string | null>(null);
+  const [selectedStickyNote, setSelectedStickyNote] = useState<string | null>(
+    null
+  );
   const [selectedFrame, setSelectedFrame] = useState<string | null>(null);
-  const [selectedTextElement, setSelectedTextElement] = useState<string | null>(null);
-  const [editingTextElement, setEditingTextElement] = useState<string | null>(null);
+  const [selectedTextElement, setSelectedTextElement] = useState<string | null>(
+    null
+  );
+  const [editingTextElement, setEditingTextElement] =
+    useState<TextElement | null>(null);
   const [selectedShape, setSelectedShape] = useState<string | null>(null);
   const [selectedShapes, setSelectedShapes] = useState<string[]>([]);
   const [selectionBox, setSelectionBox] = useState<{
@@ -208,16 +217,85 @@ function BoardPageContent() {
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [renamedBoard, setRenamedBoard] = useState<{ id: string; name: string } | null>(null);
+  const [renamedBoard, setRenamedBoard] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [isOwner, setIsOwner] = useState(false);
   const [isDragInProgress, setIsDragInProgress] = useState(false);
   const [recentDragEnd, setRecentDragEnd] = useState(false);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
-  const [currentStickyNoteColor, setCurrentStickyNoteColor] = useState(getRandomStickyNoteColor());
-  
+  const [currentStickyNoteColor, setCurrentStickyNoteColor] = useState(
+    getRandomStickyNoteColor()
+  );
+
+  // Mobile and tablet responsive states
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  const [screenSize, setScreenSize] = useState({ width: 0, height: 0 });
+  const [orientation, setOrientation] = useState<"portrait" | "landscape">(
+    "landscape"
+  );
+  const [isFloatingToolbarCollapsed, setIsFloatingToolbarCollapsed] =
+    useState(false);
+  const [touchStartTime, setTouchStartTime] = useState(0);
+  const [lastTouchEnd, setLastTouchEnd] = useState(0);
+
   // Pending shape creation state for improved UX
   const [pendingShapeType, setPendingShapeType] = useState<string | null>(null);
-  const [pendingShapeProps, setPendingShapeProps] = useState<Partial<ShapeElement> | null>(null);
+  const [pendingShapeProps, setPendingShapeProps] =
+    useState<Partial<ShapeElement> | null>(null);
+
+  // Pending frame creation state for improved UX
+  const [pendingFramePreset, setPendingFramePreset] = useState<any>(null);
+  const [isFramePlacementMode, setIsFramePlacementMode] = useState(false);
+
+  // Derived responsive state
+  const isSmallScreen = isMobile || isTablet;
+
+  // Responsive detection and setup
+  useEffect(() => {
+    const updateScreenSize = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      setScreenSize({ width, height });
+      setIsMobile(width < 768); // Mobile: < 768px
+      setIsTablet(width >= 768 && width < 1024); // Tablet: 768px - 1024px
+      setOrientation(width > height ? "landscape" : "portrait");
+
+      // Auto-collapse floating toolbars on mobile
+      if (width < 768) {
+        setIsFloatingToolbarCollapsed(true);
+        setShowKeyboardShortcuts(false);
+      }
+    };
+
+    updateScreenSize();
+    window.addEventListener("resize", updateScreenSize);
+    window.addEventListener("orientationchange", () => {
+      setTimeout(updateScreenSize, 100); // Delay to ensure orientation change is complete
+    });
+
+    return () => {
+      window.removeEventListener("resize", updateScreenSize);
+      window.removeEventListener("orientationchange", updateScreenSize);
+    };
+  }, []);
+
+  // Prevent double-tap zoom on mobile
+  useEffect(() => {
+    const handleTouchEnd = (e: TouchEvent) => {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 300) {
+        e.preventDefault();
+      }
+      setLastTouchEnd(now);
+    };
+
+    document.addEventListener("touchend", handleTouchEnd, { passive: false });
+    return () => document.removeEventListener("touchend", handleTouchEnd);
+  }, [lastTouchEnd]);
 
   // Calculate canUndo and canRedo based on current state
   const canUndo = history.length > 0 && historyIndex >= 0;
@@ -232,36 +310,41 @@ function BoardPageContent() {
     setSelectedFrame(id);
   }, []);
 
-  const handleShapeSelect = useCallback((id: string | null, e?: KonvaEventObject<MouseEvent>, multiSelect?: boolean) => {
-    if (!id) {
-      setSelectedShape(null);
-      setSelectedShapes([]);
-      return;
-    }
+  const handleShapeSelect = useCallback(
+    (
+      id: string | null,
+      e?: KonvaEventObject<MouseEvent>,
+      multiSelect?: boolean
+    ) => {
+      if (!id) {
+        setSelectedShape(null);
+        setSelectedShapes([]);
+        return;
+      }
 
-    if (multiSelect) {
-      setSelectedShapes(prev => {
-        const isAlreadySelected = prev.includes(id);
-        if (isAlreadySelected) {
-          // Remove from selection
-          const newSelection = prev.filter(shapeId => shapeId !== id);
-          setSelectedShape(newSelection.length > 0 ? newSelection[0] : null);
-          return newSelection;
-        } else {
-          // Add to selection
-          const newSelection = [...prev, id];
-          setSelectedShape(id); // Set as primary selection
-          return newSelection;
-        }
-      });
-    } else {
-      // Single selection - clear others
-      setSelectedShape(id);
-      setSelectedShapes([id]);
-    }
-  }, []);
-
-
+      if (multiSelect) {
+        setSelectedShapes((prev) => {
+          const isAlreadySelected = prev.includes(id);
+          if (isAlreadySelected) {
+            // Remove from selection
+            const newSelection = prev.filter((shapeId) => shapeId !== id);
+            setSelectedShape(newSelection.length > 0 ? newSelection[0] : null);
+            return newSelection;
+          } else {
+            // Add to selection
+            const newSelection = [...prev, id];
+            setSelectedShape(id); // Set as primary selection
+            return newSelection;
+          }
+        });
+      } else {
+        // Single selection - clear others
+        setSelectedShape(id);
+        setSelectedShapes([id]);
+      }
+    },
+    []
+  );
 
   const handleStickyNoteDragStart = useCallback(() => {
     setIsDragInProgress(true);
@@ -299,7 +382,7 @@ function BoardPageContent() {
   const resetZoom = useCallback(() => {
     const stage = stageRef.current;
     if (!stage) return;
-    
+
     stage.scale({ x: 1, y: 1 });
     stage.position({ x: 0, y: 0 });
     setCurrentZoom(100);
@@ -309,24 +392,27 @@ function BoardPageContent() {
   const zoomIn = useCallback(() => {
     const stage = stageRef.current;
     if (!stage) return;
-    
+
     const oldScale = stage.scaleX();
     const newScale = Math.min(oldScale * 1.1, 5);
-    const pointer = stage.getPointerPosition() || { x: stage.width() / 2, y: stage.height() / 2 };
-    
+    const pointer = stage.getPointerPosition() || {
+      x: stage.width() / 2,
+      y: stage.height() / 2,
+    };
+
     const mousePointTo = {
       x: (pointer.x - stage.x()) / oldScale,
       y: (pointer.y - stage.y()) / oldScale,
     };
 
     stage.scale({ x: newScale, y: newScale });
-    
+
     const newPos = {
       x: pointer.x - mousePointTo.x * newScale,
       y: pointer.y - mousePointTo.y * newScale,
     };
     stage.position(newPos);
-    
+
     setCurrentZoom(Math.round(newScale * 100));
     stage.batchDraw();
   }, []);
@@ -334,64 +420,93 @@ function BoardPageContent() {
   const zoomOut = useCallback(() => {
     const stage = stageRef.current;
     if (!stage) return;
-    
+
     const oldScale = stage.scaleX();
     const newScale = Math.max(oldScale * 0.9, 0.1);
-    const pointer = stage.getPointerPosition() || { x: stage.width() / 2, y: stage.height() / 2 };
-    
+    const pointer = stage.getPointerPosition() || {
+      x: stage.width() / 2,
+      y: stage.height() / 2,
+    };
+
     const mousePointTo = {
       x: (pointer.x - stage.x()) / oldScale,
       y: (pointer.y - stage.y()) / oldScale,
     };
 
     stage.scale({ x: newScale, y: newScale });
-    
+
     const newPos = {
       x: pointer.x - mousePointTo.x * newScale,
       y: pointer.y - mousePointTo.y * newScale,
     };
     stage.position(newPos);
-    
+
     setCurrentZoom(Math.round(newScale * 100));
     stage.batchDraw();
   }, []);
 
-  const fitToScreen = useCallback((lines: ILine[]) => {
-    const stage = stageRef.current;
-    if (!stage || lines.length === 0) return;
+  const fitToScreen = useCallback(() => {
+    if (!stageRef.current) return;
 
-    // Calculate bounding box of all lines
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    
-    lines.forEach(line => {
-      for (let i = 0; i < line.points.length; i += 2) {
-        const x = line.points[i];
-        const y = line.points[i + 1];
-        minX = Math.min(minX, x);
-        minY = Math.min(minY, y);
-        maxX = Math.max(maxX, x);
-        maxY = Math.max(maxY, y);
+    // Calculate bounding box of all content
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    lines.forEach((line) => {
+      if (line.points && Array.isArray(line.points)) {
+        for (let i = 0; i < line.points.length; i += 2) {
+          const x = line.points[i];
+          const y = line.points[i + 1];
+          minX = Math.min(minX, x);
+          minY = Math.min(minY, y);
+          maxX = Math.max(maxX, x);
+          maxY = Math.max(maxY, y);
+        }
       }
     });
 
+    shapes.forEach((shape) => {
+      if (shape) {
+        // ... existing code ...
+      }
+    });
+
+    if (
+      minX === Infinity ||
+      minY === Infinity ||
+      maxX === -Infinity ||
+      maxY === -Infinity
+    ) {
+      // No content on the board, so we can't fit to screen.
+      // Maybe zoom to a default level or do nothing.
+      return;
+    }
+
     const contentWidth = maxX - minX;
     const contentHeight = maxY - minY;
-    const stageWidth = stage.width();
-    const stageHeight = stage.height();
-    
+    const stageWidth = stageRef.current.width();
+    const stageHeight = stageRef.current.height();
+
+    if (contentWidth <= 0 || contentHeight <= 0) {
+      // Avoid division by zero if content has no area
+      return;
+    }
+
     const scaleX = stageWidth / contentWidth;
     const scaleY = stageHeight / contentHeight;
     const scale = Math.min(scaleX, scaleY) * 0.9; // 90% to leave some margin
-    
-    stage.scale({ x: scale, y: scale });
-    stage.position({
+
+    stageRef.current.scale({ x: scale, y: scale });
+    stageRef.current.position({
       x: (stageWidth - contentWidth * scale) / 2 - minX * scale,
       y: (stageHeight - contentHeight * scale) / 2 - minY * scale,
     });
-    
+
     setCurrentZoom(Math.round(scale * 100));
-    stage.batchDraw();
-  }, []);
+    stageRef.current.batchDraw();
+  }, [lines, shapes, textElements, frames, stageRef, setCurrentZoom]);
 
   // Sticky Note Color Picker State
   const colorPicker = useStickyNoteColorPicker();
@@ -448,6 +563,7 @@ function BoardPageContent() {
     broadcastShapeElementCreate,
     broadcastShapeElementUpdate,
     broadcastShapeElementDelete,
+    broadcastShapeElementTransform,
   } = useRealTimeCollaboration({
     boardId,
     userId: session?.user?.id,
@@ -468,113 +584,79 @@ function BoardPageContent() {
       setCursors(cursors);
     },
     onElementAdded: (element) => {
-      if (element.type === 'text') {
+      if (element.type === "text") {
         // Handle text element added
         const newTextElement: TextElement = {
           id: element.id,
-          type: 'text',
-          ...(element.data as Omit<TextElement, 'id' | 'type'>),
+          type: "text",
+          ...(element.data as Omit<TextElement, "id" | "type">),
         };
-        setTextElements(prev => [...prev, newTextElement]);
-      } else if (element.type === 'shape') {
+        setTextElements((prev) => [...prev, newTextElement]);
+      } else if (element.type === "shape") {
         // Handle shape element added
         const newShapeElement: ShapeElement = {
           id: element.id,
-          type: 'shape',
-          ...(element.data as Omit<ShapeElement, 'id' | 'type'>),
+          type: "shape",
+          ...(element.data as Omit<ShapeElement, "id" | "type">),
         };
-        setShapes(prev => [...prev, newShapeElement]);
+        setShapes((prev) => [...prev, newShapeElement]);
       } else {
         // Handle line element added
-      const newLine: ILine = {
-        id: element.id,
-        points: (element.data.points as number[]) || [],
-        tool: (element.data.tool as Tool) || "pen",
-        strokeWidth: (element.data.strokeWidth as number) || 3,
-        color: (element.data.color as string) || "#000000",
-      };
-      setLines((prev) => [...prev, newLine]);
+        const newLine: ILine = {
+          id: element.id,
+          points: (element.data.points as number[]) || [],
+          tool: (element.data.tool as Tool) || "pen",
+          strokeWidth: (element.data.strokeWidth as number) || 3,
+          color: (element.data.color as string) || "#000000",
+        };
+        setLines((prev) => [...prev, newLine]);
       }
     },
     onElementUpdated: (element) => {
-      if (element.type === 'text') {
+      if (element.type === "text") {
         // Handle text element updated
         const updatedTextElement: TextElement = {
           id: element.id,
-          type: 'text',
-          ...(element.data as Omit<TextElement, 'id' | 'type'>),
+          type: "text",
+          ...(element.data as Omit<TextElement, "id" | "type">),
         };
-        setTextElements(prev =>
-          prev.map(text => text.id === element.id ? updatedTextElement : text)
+        setTextElements((prev) =>
+          prev.map((text) =>
+            text.id === element.id ? updatedTextElement : text
+          )
         );
-      } else if (element.type === 'shape') {
+      } else if (element.type === "shape") {
         // Handle shape element updated
         const updatedShapeElement: ShapeElement = {
           id: element.id,
-          type: 'shape',
-          ...(element.data as Omit<ShapeElement, 'id' | 'type'>),
+          type: "shape",
+          ...(element.data as Omit<ShapeElement, "id" | "type">),
         };
-        setShapes(prev =>
-          prev.map(shape => shape.id === element.id ? updatedShapeElement : shape)
+        setShapes((prev) =>
+          prev.map((shape) =>
+            shape.id === element.id ? updatedShapeElement : shape
+          )
         );
       } else {
         // Handle line element updated
-      const updatedLine: ILine = {
-        id: element.id,
-        points: (element.data.points as number[]) || [],
-        tool: (element.data.tool as Tool) || "pen",
-        strokeWidth: (element.data.strokeWidth as number) || 3,
-        color: (element.data.color as string) || "#000000",
-      };
-      setLines((prev) =>
-        prev.map((line) => (line.id === element.id ? updatedLine : line))
-      );
+        const updatedLine: ILine = {
+          id: element.id,
+          points: (element.data.points as number[]) || [],
+          tool: (element.data.tool as Tool) || "pen",
+          strokeWidth: (element.data.strokeWidth as number) || 3,
+          color: (element.data.color as string) || "#000000",
+        };
+        setLines((prev) =>
+          prev.map((line) => (line.id === element.id ? updatedLine : line))
+        );
       }
     },
     onElementDeleted: (elementId) => {
       setLines((prev) => prev.filter((line) => line.id !== elementId));
-      setTextElements(prev => prev.filter(text => text.id !== elementId));
-      setShapes(prev => prev.filter(shape => shape.id !== elementId));
+      setTextElements((prev) => prev.filter((text) => text.id !== elementId));
+      setShapes((prev) => prev.filter((shape) => shape.id !== elementId));
     },
   });
-
-  // Create frame broadcast function using element broadcasting
-  const broadcastFrameUpdate = useCallback(
-    (frame: FrameElement) => {
-      if (
-        broadcastElementUpdate &&
-        frame.id &&
-        frame.x !== undefined &&
-        frame.y !== undefined &&
-        frame.width &&
-        frame.height
-      ) {
-        const frameElement = {
-          id: frame.id,
-          type: "frame" as const,
-          data: {
-            x: frame.x,
-            y: frame.y,
-            width: frame.width,
-            height: frame.height,
-            name: frame.name,
-            frameType: frame.frameType,
-            style: frame.style,
-            metadata: frame.metadata,
-            hierarchy: frame.hierarchy,
-            createdBy: frame.createdBy,
-            createdAt: frame.createdAt,
-            updatedAt: frame.updatedAt,
-            version: frame.version,
-          },
-          userId: session?.user?.id || "unknown",
-          timestamp: Date.now(),
-        };
-        broadcastElementUpdate(frameElement);
-      }
-    },
-    [broadcastElementUpdate, session?.user?.id]
-  );
 
   const [cursors, setCursors] = useState<Record<string, Cursor>>({});
   const localUserId = useRef(
@@ -614,7 +696,11 @@ function BoardPageContent() {
           .filter((el: { data: string }) => {
             const parsed =
               typeof el.data === "string" ? JSON.parse(el.data) : el.data;
-            return parsed.type !== "sticky-note" && parsed.type !== "frame" && parsed.type !== "text";
+            return (
+              parsed.type !== "sticky-note" &&
+              parsed.type !== "frame" &&
+              parsed.type !== "text"
+            );
           })
           .map((el: { data: string }) =>
             typeof el.data === "string" ? JSON.parse(el.data) : el.data
@@ -714,7 +800,11 @@ function BoardPageContent() {
         .filter((el: { data: string }) => {
           const parsed =
             typeof el.data === "string" ? JSON.parse(el.data) : el.data;
-          return parsed.type !== "sticky-note" && parsed.type !== "frame" && parsed.type !== "text";
+          return (
+            parsed.type !== "sticky-note" &&
+            parsed.type !== "frame" &&
+            parsed.type !== "text"
+          );
         })
         .map((el: { data: string }) =>
           typeof el.data === "string" ? JSON.parse(el.data) : el.data
@@ -793,7 +883,16 @@ function BoardPageContent() {
       setHistory(initialData.getBoard.history || []);
       setHistoryIndex(initialData.getBoard.historyIndex ?? 0);
     }
-  }, [initialData, setLines, setStickyNotes, setFrames, setTextElements, setShapes, setHistory, setHistoryIndex]);
+  }, [
+    initialData,
+    setLines,
+    setStickyNotes,
+    setFrames,
+    setTextElements,
+    setShapes,
+    setHistory,
+    setHistoryIndex,
+  ]);
 
   // Fetch additional board metadata from API
   useEffect(() => {
@@ -936,7 +1035,14 @@ function BoardPageContent() {
         }
       }
     },
-    [boardId, addBoardAction, updateBoardTimestamp, setStickyNotes, setHistory, setHistoryIndex]
+    [
+      boardId,
+      addBoardAction,
+      updateBoardTimestamp,
+      setStickyNotes,
+      setHistory,
+      setHistoryIndex,
+    ]
   );
 
   const handleStickyNoteUpdate = useCallback(
@@ -1027,7 +1133,15 @@ function BoardPageContent() {
         );
       }
     },
-    [boardId, addBoardAction, updateBoardTimestamp, setStickyNotes, setHistory, setHistoryIndex, setSelectedStickyNote]
+    [
+      boardId,
+      addBoardAction,
+      updateBoardTimestamp,
+      setStickyNotes,
+      setHistory,
+      setHistoryIndex,
+      setSelectedStickyNote,
+    ]
   );
 
   // Frame Handlers
@@ -1073,15 +1187,26 @@ function BoardPageContent() {
         }
       }
     },
-    [boardId, addBoardAction, updateBoardTimestamp, setFrames, setHistory, setHistoryIndex]
+    [
+      boardId,
+      addBoardAction,
+      updateBoardTimestamp,
+      setFrames,
+      setHistory,
+      setHistoryIndex,
+    ]
   );
 
   const handleFrameUpdate = useCallback(
     async (updatedFrame: FrameElement) => {
       if (boardId) {
-        // 1. Optimistically update local state for immediate UI feedback
-        setFrames((prev) =>
-          prev.map((f) => (f.id === updatedFrame.id ? updatedFrame : f))
+        // Optimistic update - update local state immediately for instant UI feedback
+        setFrames((prevFrames) =>
+          prevFrames.map((frame) =>
+            frame.id === updatedFrame.id
+              ? { ...updatedFrame, version: (frame.version || 0) + 1 }
+              : frame
+          )
         );
 
         try {
@@ -1095,7 +1220,7 @@ function BoardPageContent() {
             },
           });
           if (data?.addBoardAction) {
-            // 2. Sync state with server-confirmed data to ensure consistency
+            // Sync with server response to ensure consistency
             const allElements = data.addBoardAction.elements || [];
             const frameElements = allElements
               .filter(
@@ -1106,23 +1231,22 @@ function BoardPageContent() {
               .map((el: { data: string }) =>
                 typeof el.data === "string" ? JSON.parse(el.data) : el.data
               );
-
-            setFrames((prevFrames) => {
-              const frameElementsStr = JSON.stringify(frameElements);
-              const prevFramesStr = JSON.stringify(prevFrames);
-              if (frameElementsStr !== prevFramesStr) {
-                return frameElements;
-              }
-              return prevFrames;
-            });
+            setFrames(frameElements);
             updateBoardTimestamp(boardId);
           }
         } catch (err) {
-          // 3. Revert optimistic update in case of failure
-          setFrames((prev) =>
-            prev.map((f) => (f.id === updatedFrame.id ? { ...f, ...updatedFrame } : f))
+          logger.error(
+            { err },
+            "Failed to update frame, reverting optimistic update"
           );
-          logger.error({ err }, "Failed to update frame");
+          // Revert optimistic update on error
+          setFrames((prevFrames) =>
+            prevFrames.map((frame) =>
+              frame.id === updatedFrame.id
+                ? { ...frame, version: (frame.version || 0) - 1 }
+                : frame
+            )
+          );
         }
       }
     },
@@ -1159,38 +1283,46 @@ function BoardPageContent() {
             .map((el: { data: string }) =>
               typeof el.data === "string" ? JSON.parse(el.data) : el.data
             );
-
-          setFrames((prevFrames) => {
-            const frameElementsStr = JSON.stringify(frameElements);
-            const prevFramesStr = JSON.stringify(prevFrames);
-            if (frameElementsStr !== prevFramesStr) {
-              return frameElements;
-            }
-            return prevFrames;
-          });
+          setFrames(frameElements);
           setHistory(data.addBoardAction.history || []);
           setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
           updateBoardTimestamp(boardId);
           setSelectedFrame(null);
+
           logger.debug({ deletedId: frameId }, "Frame deleted successfully");
         }
       } catch (err) {
         logger.error({ error: err, frameId }, "Failed to delete frame");
       }
     },
-    [boardId, addBoardAction, updateBoardTimestamp, setFrames, setHistory, setHistoryIndex, setSelectedFrame]
+    [
+      boardId,
+      addBoardAction,
+      updateBoardTimestamp,
+      setFrames,
+      setHistory,
+      setHistoryIndex,
+      setSelectedFrame,
+    ]
   );
 
   const handleFrameDeleteMultiple = useCallback(
     async (frameIds: string[]) => {
       if (!frameIds.length || !boardId) {
-        logger.warn({ frameIds, boardId }, "Invalid multiple frame delete request");
+        logger.warn(
+          { frameIds, boardId },
+          "Invalid multiple frame delete request"
+        );
         return;
       }
 
-      logger.debug({ frameIds, boardId }, "Attempting to delete multiple frames");
+      logger.debug(
+        { frameIds, boardId },
+        "Attempting to delete multiple frames"
+      );
 
       try {
+        // Delete each frame
         for (const frameId of frameIds) {
           await addBoardAction({
             variables: {
@@ -1203,6 +1335,7 @@ function BoardPageContent() {
           });
         }
 
+        // Sync the board state
         const { data } = await addBoardAction({
           variables: {
             boardId,
@@ -1224,105 +1357,131 @@ function BoardPageContent() {
             .map((el: { data: string }) =>
               typeof el.data === "string" ? JSON.parse(el.data) : el.data
             );
-
           setFrames(frameElements);
           setHistory(data.addBoardAction.history || []);
           setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
           updateBoardTimestamp(boardId);
           setSelectedFrame(null);
-          logger.debug({ deletedIds: frameIds }, "Multiple frames deleted successfully");
+
+          logger.debug(
+            { deletedIds: frameIds },
+            "Multiple frames deleted successfully"
+          );
         }
       } catch (err) {
-        logger.error({ error: err, frameIds }, "Failed to delete multiple frames");
+        logger.error(
+          { error: err, frameIds },
+          "Failed to delete multiple frames"
+        );
       }
     },
-    [boardId, addBoardAction, updateBoardTimestamp, setFrames, setHistory, setHistoryIndex, setSelectedFrame]
+    [
+      boardId,
+      addBoardAction,
+      updateBoardTimestamp,
+      setFrames,
+      setHistory,
+      setHistoryIndex,
+      setSelectedFrame,
+    ]
   );
 
   const handleFrameRename = useCallback(
     async (frameId: string, newName: string) => {
-      if (!frameId || !newName.trim() || !boardId) {
-        logger.warn({ frameId, newName, boardId }, "Invalid frame rename request");
+      if (!frameId || !boardId || !newName.trim()) {
+        logger.warn(
+          { frameId, boardId, newName },
+          "Invalid frame rename request"
+        );
         return;
       }
 
-      logger.debug({ frameId, newName, boardId }, "Attempting to rename frame");
+      logger.debug({ frameId, newName }, "Attempting to rename frame");
 
       try {
-        const frameToUpdate = frames.find(f => f.id === frameId);
-        if (!frameToUpdate) {
+        const frameToRename = frames.find((frame) => frame.id === frameId);
+        if (!frameToRename) {
           logger.warn({ frameId }, "Frame not found for rename");
           return;
         }
 
-        const updatedFrame = {
-          ...frameToUpdate,
+        const updatedFrame: FrameElement = {
+          ...frameToRename,
           name: newName.trim(),
           updatedAt: Date.now(),
-          version: frameToUpdate.version + 1,
+          version: frameToRename.version + 1,
         };
 
-        const { data } = await addBoardAction({
-          variables: {
-            boardId,
-            action: {
-              type: "update",
-              data: JSON.stringify(updatedFrame),
-            },
-          },
-        });
-
-        if (data?.addBoardAction) {
-          const allElements = data.addBoardAction.elements || [];
-          const frameElements = allElements
-            .filter(
-              (el: { type: string; data: string }) =>
-                (typeof el.data === "string" ? JSON.parse(el.data) : el.data)
-                  .type === "frame"
-            )
-            .map((el: { data: string }) =>
-              typeof el.data === "string" ? JSON.parse(el.data) : el.data
-            );
-
-          setFrames(frameElements);
-          setHistory(data.addBoardAction.history || []);
-          setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
-          updateBoardTimestamp(boardId);
-          logger.debug({ frameId, newName }, "Frame renamed successfully");
-        }
+        await handleFrameUpdate(updatedFrame);
+        logger.debug({ frameId, newName }, "Frame renamed successfully");
       } catch (err) {
-        logger.error({ error: err, frameId, newName }, "Failed to rename frame");
+        logger.error(
+          { error: err, frameId, newName },
+          "Failed to rename frame"
+        );
       }
     },
-    [boardId, addBoardAction, updateBoardTimestamp, frames, setFrames, setHistory, setHistoryIndex]
+    [boardId, frames, handleFrameUpdate]
   );
 
-  // Frame preset creation handler for FloatingFrameToolbar
-  const handleFrameCreate = useCallback(
-    (preset: {
-      dimensions: { width: number; height: number };
-      name: string;
-      frameType: FrameElement["frameType"];
-      defaultStyle: Partial<FrameElement["style"]>;
-    }) => {
+  // Frame placement handlers
+  const handleFramePlacementStart = useCallback(
+    (preset: any, placementHandler: any) => {
+      setPendingFramePreset(preset);
+      setIsFramePlacementMode(true);
+
+      // Change cursor to indicate frame placement mode
+      if (document.body.style) {
+        document.body.style.cursor = "crosshair";
+      }
+
+      logger.debug(
+        { preset },
+        "Frame preset selected, click on canvas to place"
+      );
+    },
+    [setPendingFramePreset, setIsFramePlacementMode]
+  );
+
+  const handleFramePlacementCancel = useCallback(() => {
+    setPendingFramePreset(null);
+    setIsFramePlacementMode(false);
+
+    // Reset cursor
+    if (document.body.style) {
+      document.body.style.cursor = "default";
+    }
+
+    logger.debug("Frame placement cancelled");
+  }, [setPendingFramePreset, setIsFramePlacementMode]);
+
+  // Helper function to create a frame from a preset at a specific position
+  const createFrameFromPreset = useCallback(
+    (x: number, y: number, preset: any) => {
+      if (!boardId || !session?.user?.id || !preset) return null;
+
       const newFrame: FrameElement = {
         id: `frame-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         type: "frame",
-        x: 100,
-        y: 100,
-        width: preset.dimensions.width,
-        height: preset.dimensions.height,
-        name: preset.name,
-        frameType: preset.frameType,
+        x,
+        y,
+        width: preset.dimensions?.width || 300,
+        height: preset.dimensions?.height || 200,
+        name: preset.name || "New Frame",
+        frameType: preset.category || "basic",
         style: {
-          fill: "rgba(255, 255, 255, 0.8)",
-          stroke: "#3b82f6",
-          strokeWidth: 2,
-          ...preset.defaultStyle,
+          fill: preset.style?.fill || "rgba(255, 255, 255, 0.9)",
+          stroke: preset.style?.stroke || "#3b82f6",
+          strokeWidth: preset.style?.strokeWidth || 2,
+          cornerRadius: preset.style?.cornerRadius || 8,
+          fillOpacity: preset.style?.fillOpacity || 1,
+          strokeOpacity: preset.style?.strokeOpacity || 1,
+          shadow: preset.style?.shadow,
+          ...preset.style,
         },
         metadata: {
           labels: [],
-          tags: [],
+          tags: preset.tags || [],
           status: "draft",
           priority: "low",
           comments: [],
@@ -1332,15 +1491,59 @@ function BoardPageContent() {
           level: 0,
           order: frames.length,
         },
-        createdBy: session?.user?.id || "unknown",
+        createdBy: session.user.id,
         createdAt: Date.now(),
         updatedAt: Date.now(),
         version: 1,
       };
 
       handleFrameAdd(newFrame);
+      setSelectedFrame(newFrame.id);
+
+      return newFrame;
     },
-    [handleFrameAdd, frames.length, session?.user?.id]
+    [
+      boardId,
+      session?.user?.id,
+      handleFrameAdd,
+      setSelectedFrame,
+      frames.length,
+    ]
+  );
+
+  // Frame deselection handler
+  const handleFrameDeselect = useCallback(() => {
+    setSelectedFrame(null);
+  }, []);
+
+  // Frame alignment handler
+  const handleFrameAlign = useCallback(
+    async (alignment: string) => {
+      if (!selectedFrame || !boardId) return;
+
+      // For single frame, alignment doesn't make sense
+      // This would be more useful with multiple selected frames
+      logger.debug(
+        { alignment, frameId: selectedFrame },
+        "Frame alignment requested"
+      );
+    },
+    [selectedFrame, boardId]
+  );
+
+  // Frame distribution handler
+  const handleFrameDistribute = useCallback(
+    async (direction: "horizontal" | "vertical") => {
+      if (!selectedFrame || !boardId) return;
+
+      // For single frame, distribution doesn't make sense
+      // This would be more useful with multiple selected frames
+      logger.debug(
+        { direction, frameId: selectedFrame },
+        "Frame distribution requested"
+      );
+    },
+    [selectedFrame, boardId]
   );
 
   // Text Elements Handlers
@@ -1372,7 +1575,7 @@ function BoardPageContent() {
             setHistory(data.addBoardAction.history || []);
             setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
             updateBoardTimestamp(boardId);
-            
+
             // Broadcast text element creation for real-time collaboration
             if (broadcastTextElementCreate) {
               broadcastTextElementCreate(textElement);
@@ -1383,7 +1586,15 @@ function BoardPageContent() {
         }
       }
     },
-    [boardId, addBoardAction, updateBoardTimestamp, setTextElements, setHistory, setHistoryIndex, broadcastTextElementCreate]
+    [
+      boardId,
+      addBoardAction,
+      updateBoardTimestamp,
+      setTextElements,
+      setHistory,
+      setHistoryIndex,
+      broadcastTextElementCreate,
+    ]
   );
 
   const handleTextElementUpdate = useCallback(
@@ -1412,7 +1623,7 @@ function BoardPageContent() {
               );
             setTextElements(textElementElements);
             updateBoardTimestamp(boardId);
-            
+
             // Broadcast text element update for real-time collaboration
             if (broadcastTextElementUpdate) {
               broadcastTextElementUpdate(updatedTextElement);
@@ -1423,7 +1634,13 @@ function BoardPageContent() {
         }
       }
     },
-    [boardId, addBoardAction, updateBoardTimestamp, setTextElements, broadcastTextElementUpdate]
+    [
+      boardId,
+      addBoardAction,
+      updateBoardTimestamp,
+      setTextElements,
+      broadcastTextElementUpdate,
+    ]
   );
 
   const handleTextElementDelete = useCallback(
@@ -1468,12 +1685,12 @@ function BoardPageContent() {
           updateBoardTimestamp(boardId);
           setSelectedTextElement(null);
           setEditingTextElement(null);
-          
+
           // Broadcast text element deletion for real-time collaboration
           if (broadcastTextElementDelete) {
             broadcastTextElementDelete(textElementId);
           }
-          
+
           logger.debug(
             { deletedId: textElementId },
             "Text element deleted successfully"
@@ -1486,7 +1703,17 @@ function BoardPageContent() {
         );
       }
     },
-    [boardId, addBoardAction, updateBoardTimestamp, setTextElements, setHistory, setHistoryIndex, setSelectedTextElement, setEditingTextElement, broadcastTextElementDelete]
+    [
+      boardId,
+      addBoardAction,
+      updateBoardTimestamp,
+      setTextElements,
+      setHistory,
+      setHistoryIndex,
+      setSelectedTextElement,
+      setEditingTextElement,
+      broadcastTextElementDelete,
+    ]
   );
 
   const handleTextElementSelect = useCallback(
@@ -1499,27 +1726,35 @@ function BoardPageContent() {
   );
 
   const handleTextElementStartEdit = useCallback(
-    (textElementId: string) => {
-      setEditingTextElement(textElementId);
-      setSelectedTextElement(textElementId);
-      
+    (textElement: TextElement) => {
+      setEditingTextElement(textElement);
+      setSelectedTextElement(textElement.id);
+
       // Broadcast text element edit start for real-time collaboration
       if (broadcastTextElementEditStart) {
-        broadcastTextElementEditStart(textElementId);
+        broadcastTextElementEditStart(textElement.id);
       }
     },
-    [setEditingTextElement, setSelectedTextElement, broadcastTextElementEditStart]
+    [
+      setEditingTextElement,
+      setSelectedTextElement,
+      broadcastTextElementEditStart,
+    ]
   );
 
   const handleTextElementFinishEdit = useCallback(() => {
-    const currentEditingId = editingTextElement;
+    const currentEditingId = editingTextElement?.id;
     setEditingTextElement(null);
-    
+
     // Broadcast text element edit finish for real-time collaboration
     if (broadcastTextElementEditFinish && currentEditingId) {
       broadcastTextElementEditFinish(currentEditingId);
     }
-  }, [setEditingTextElement, editingTextElement, broadcastTextElementEditFinish]);
+  }, [
+    setEditingTextElement,
+    editingTextElement,
+    broadcastTextElementEditFinish,
+  ]);
 
   // Shape Management Handlers
   const handleShapeAdd = useCallback(
@@ -1550,7 +1785,7 @@ function BoardPageContent() {
             setHistory(data.addBoardAction.history || []);
             setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
             updateBoardTimestamp(boardId);
-            
+
             // Broadcast shape creation for real-time collaboration
             if (broadcastShapeElementCreate) {
               broadcastShapeElementCreate(shape);
@@ -1561,12 +1796,34 @@ function BoardPageContent() {
         }
       }
     },
-    [boardId, addBoardAction, updateBoardTimestamp, setShapes, setHistory, setHistoryIndex, broadcastShapeElementCreate]
+    [
+      boardId,
+      addBoardAction,
+      updateBoardTimestamp,
+      setShapes,
+      setHistory,
+      setHistoryIndex,
+      broadcastShapeElementCreate,
+    ]
   );
 
   const handleShapeUpdate = useCallback(
     async (updatedShape: ShapeElement) => {
       if (boardId) {
+        // Optimistic update - update local state immediately for instant UI feedback
+        setShapes((prevShapes) =>
+          prevShapes.map((shape) =>
+            shape.id === updatedShape.id
+              ? { ...updatedShape, version: (shape.version || 0) + 1 }
+              : shape
+          )
+        );
+
+        // Broadcast shape update for real-time collaboration immediately
+        if (broadcastShapeElementUpdate) {
+          broadcastShapeElementUpdate(updatedShape);
+        }
+
         try {
           const { data } = await addBoardAction({
             variables: {
@@ -1578,6 +1835,7 @@ function BoardPageContent() {
             },
           });
           if (data?.addBoardAction) {
+            // Sync with server response to ensure consistency
             const allElements = data.addBoardAction.elements || [];
             const shapeElements = allElements
               .filter(
@@ -1590,18 +1848,30 @@ function BoardPageContent() {
               );
             setShapes(shapeElements);
             updateBoardTimestamp(boardId);
-            
-            // Broadcast shape update for real-time collaboration
-            if (broadcastShapeElementUpdate) {
-              broadcastShapeElementUpdate(updatedShape);
-            }
           }
         } catch (err) {
-          logger.error({ err }, "Failed to update shape");
+          logger.error(
+            { err },
+            "Failed to update shape, reverting optimistic update"
+          );
+          // Revert optimistic update on error
+          setShapes((prevShapes) =>
+            prevShapes.map((shape) =>
+              shape.id === updatedShape.id
+                ? { ...shape, version: (shape.version || 0) - 1 }
+                : shape
+            )
+          );
         }
       }
     },
-    [boardId, addBoardAction, updateBoardTimestamp, setShapes, broadcastShapeElementUpdate]
+    [
+      boardId,
+      addBoardAction,
+      updateBoardTimestamp,
+      setShapes,
+      broadcastShapeElementUpdate,
+    ]
   );
 
   const handleShapeDelete = useCallback(
@@ -1640,29 +1910,45 @@ function BoardPageContent() {
           updateBoardTimestamp(boardId);
           setSelectedShape(null);
           setSelectedShapes([]);
-          
+
           // Broadcast shape deletion for real-time collaboration
           if (broadcastShapeElementDelete) {
             broadcastShapeElementDelete(shapeId);
           }
-          
+
           logger.debug({ deletedId: shapeId }, "Shape deleted successfully");
         }
       } catch (err) {
         logger.error({ error: err, shapeId }, "Failed to delete shape");
       }
     },
-    [boardId, addBoardAction, updateBoardTimestamp, setShapes, setHistory, setHistoryIndex, setSelectedShape, setSelectedShapes, broadcastShapeElementDelete]
+    [
+      boardId,
+      addBoardAction,
+      updateBoardTimestamp,
+      setShapes,
+      setHistory,
+      setHistoryIndex,
+      setSelectedShape,
+      setSelectedShapes,
+      broadcastShapeElementDelete,
+    ]
   );
 
   const handleShapeDeleteMultiple = useCallback(
     async (shapeIds: string[]) => {
       if (!shapeIds.length || !boardId) {
-        logger.warn({ shapeIds, boardId }, "Invalid multiple shape delete request");
+        logger.warn(
+          { shapeIds, boardId },
+          "Invalid multiple shape delete request"
+        );
         return;
       }
 
-      logger.debug({ shapeIds, boardId }, "Attempting to delete multiple shapes");
+      logger.debug(
+        { shapeIds, boardId },
+        "Attempting to delete multiple shapes"
+      );
 
       try {
         // Delete each shape
@@ -1676,7 +1962,7 @@ function BoardPageContent() {
               },
             },
           });
-          
+
           // Broadcast shape deletion for real-time collaboration
           if (broadcastShapeElementDelete) {
             broadcastShapeElementDelete(shapeId);
@@ -1711,14 +1997,30 @@ function BoardPageContent() {
           updateBoardTimestamp(boardId);
           setSelectedShape(null);
           setSelectedShapes([]);
-          
-          logger.debug({ deletedIds: shapeIds }, "Multiple shapes deleted successfully");
+
+          logger.debug(
+            { deletedIds: shapeIds },
+            "Multiple shapes deleted successfully"
+          );
         }
       } catch (err) {
-        logger.error({ error: err, shapeIds }, "Failed to delete multiple shapes");
+        logger.error(
+          { error: err, shapeIds },
+          "Failed to delete multiple shapes"
+        );
       }
     },
-    [boardId, addBoardAction, updateBoardTimestamp, setShapes, setHistory, setHistoryIndex, setSelectedShape, setSelectedShapes, broadcastShapeElementDelete]
+    [
+      boardId,
+      addBoardAction,
+      updateBoardTimestamp,
+      setShapes,
+      setHistory,
+      setHistoryIndex,
+      setSelectedShape,
+      setSelectedShapes,
+      broadcastShapeElementDelete,
+    ]
   );
 
   const handleShapeCreate = useCallback(
@@ -1728,31 +2030,39 @@ function BoardPageContent() {
       // Set pending shape creation instead of creating immediately
       setPendingShapeType(shapeType);
       setPendingShapeProps(props || null);
-      
+
       // Change cursor to indicate shape placement mode
       if (document.body.style) {
-        document.body.style.cursor = 'crosshair';
+        document.body.style.cursor = "crosshair";
       }
-      
-      logger.debug({ shapeType }, "Shape type selected, click on canvas to place");
+
+      logger.debug(
+        { shapeType },
+        "Shape type selected, click on canvas to place"
+      );
     },
     [boardId, session?.user?.id]
   );
 
   // Helper function to actually create the shape at a specific position
   const createShapeAtPosition = useCallback(
-    (x: number, y: number, shapeType: string, props?: Partial<ShapeElement>) => {
+    (
+      x: number,
+      y: number,
+      shapeType: string,
+      props?: Partial<ShapeElement>
+    ) => {
       if (!boardId || !session?.user?.id) return null;
 
       const newShape: ShapeElement = {
         id: `shape-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        type: 'shape',
+        type: "shape",
         x,
         y,
         width: 100,
         height: 100,
         rotation: 0,
-        shapeType: shapeType as ShapeElement['shapeType'],
+        shapeType: shapeType as ShapeElement["shapeType"],
         shapeData: {},
         style: {
           fill: "#ffffff",
@@ -1780,10 +2090,16 @@ function BoardPageContent() {
       handleShapeAdd(newShape);
       setSelectedShape(newShape.id);
       setSelectedShapes([newShape.id]);
-      
+
       return newShape;
     },
-    [boardId, session?.user?.id, handleShapeAdd, setSelectedShape, setSelectedShapes]
+    [
+      boardId,
+      session?.user?.id,
+      handleShapeAdd,
+      setSelectedShape,
+      setSelectedShapes,
+    ]
   );
 
   // Shape alignment handler
@@ -1792,15 +2108,20 @@ function BoardPageContent() {
       if (!boardId || shapeIds.length < 2) return;
 
       try {
-        const shapesToAlign = shapes.filter(shape => shapeIds.includes(shape.id));
+        const shapesToAlign = shapes.filter((shape) =>
+          shapeIds.includes(shape.id)
+        );
         if (shapesToAlign.length < 2) return;
 
         logger.debug({ alignment, shapeIds }, "Aligning shapes");
 
         // Calculate bounding box of all selected shapes
-        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-        
-        shapesToAlign.forEach(shape => {
+        let minX = Infinity,
+          maxX = -Infinity,
+          minY = Infinity,
+          maxY = -Infinity;
+
+        shapesToAlign.forEach((shape) => {
           const width = shape.width || 100;
           const height = shape.height || 100;
           minX = Math.min(minX, shape.x);
@@ -1820,22 +2141,22 @@ function BoardPageContent() {
           const height = shape.height || 100;
 
           switch (alignment) {
-            case 'left':
+            case "left":
               newX = minX;
               break;
-            case 'center-horizontal':
+            case "center-horizontal":
               newX = centerX - width / 2;
               break;
-            case 'right':
+            case "right":
               newX = maxX - width;
               break;
-            case 'top':
+            case "top":
               newY = minY;
               break;
-            case 'center-vertical':
+            case "center-vertical":
               newY = centerY - height / 2;
               break;
-            case 'bottom':
+            case "bottom":
               newY = maxY - height;
               break;
           }
@@ -1854,30 +2175,38 @@ function BoardPageContent() {
         }
 
         toast.success(`Aligned ${shapesToAlign.length} shapes ${alignment}`);
-        logger.debug({ alignment, count: shapesToAlign.length }, "Shapes aligned successfully");
+        logger.debug(
+          { alignment, count: shapesToAlign.length },
+          "Shapes aligned successfully"
+        );
       } catch (err) {
-        logger.error({ error: err, alignment, shapeIds }, "Failed to align shapes");
+        logger.error(
+          { error: err, alignment, shapeIds },
+          "Failed to align shapes"
+        );
         toast.error("Failed to align shapes");
       }
     },
     [boardId, shapes, handleShapeUpdate]
   );
 
-  // Shape distribution handler  
+  // Shape distribution handler
   const handleShapeDistribute = useCallback(
     async (distribution: string, shapeIds: string[]) => {
       if (!boardId || shapeIds.length < 3) return;
 
       try {
-        const shapesToDistribute = shapes.filter(shape => shapeIds.includes(shape.id));
+        const shapesToDistribute = shapes.filter((shape) =>
+          shapeIds.includes(shape.id)
+        );
         if (shapesToDistribute.length < 3) return;
 
         logger.debug({ distribution, shapeIds }, "Distributing shapes");
 
         // Sort shapes by position
-        if (distribution === 'horizontal') {
+        if (distribution === "horizontal") {
           shapesToDistribute.sort((a, b) => a.x - b.x);
-        } else if (distribution === 'vertical') {
+        } else if (distribution === "vertical") {
           shapesToDistribute.sort((a, b) => a.y - b.y);
         }
 
@@ -1887,8 +2216,8 @@ function BoardPageContent() {
         let totalSpace, startPos, endPos;
         const firstShape = shapesToDistribute[0];
         const lastShape = shapesToDistribute[shapesToDistribute.length - 1];
-        
-        if (distribution === 'horizontal') {
+
+        if (distribution === "horizontal") {
           startPos = firstShape.x + (firstShape.width || 100);
           endPos = lastShape.x;
           totalSpace = endPos - startPos;
@@ -1902,9 +2231,10 @@ function BoardPageContent() {
         let totalShapeSize = 0;
         for (let i = 1; i < shapesToDistribute.length - 1; i++) {
           const shape = shapesToDistribute[i];
-          totalShapeSize += distribution === 'horizontal' 
-            ? (shape.width || 100)
-            : (shape.height || 100);
+          totalShapeSize +=
+            distribution === "horizontal"
+              ? shape.width || 100
+              : shape.height || 100;
         }
 
         // Calculate gap between shapes
@@ -1920,7 +2250,7 @@ function BoardPageContent() {
           const width = shape.width || 100;
           const height = shape.height || 100;
 
-          if (distribution === 'horizontal') {
+          if (distribution === "horizontal") {
             newX = currentPos;
             currentPos += width + gapSize;
           } else {
@@ -1941,10 +2271,18 @@ function BoardPageContent() {
           }
         }
 
-        toast.success(`Distributed ${shapesToDistribute.length} shapes ${distribution}ly`);
-        logger.debug({ distribution, count: shapesToDistribute.length }, "Shapes distributed successfully");
+        toast.success(
+          `Distributed ${shapesToDistribute.length} shapes ${distribution}ly`
+        );
+        logger.debug(
+          { distribution, count: shapesToDistribute.length },
+          "Shapes distributed successfully"
+        );
       } catch (err) {
-        logger.error({ error: err, distribution, shapeIds }, "Failed to distribute shapes");
+        logger.error(
+          { error: err, distribution, shapeIds },
+          "Failed to distribute shapes"
+        );
         toast.error("Failed to distribute shapes");
       }
     },
@@ -1959,13 +2297,17 @@ function BoardPageContent() {
       try {
         logger.debug({ shapeIds }, "Duplicating shapes");
 
-        const shapesToDuplicate = shapes.filter(shape => shapeIds.includes(shape.id));
+        const shapesToDuplicate = shapes.filter((shape) =>
+          shapeIds.includes(shape.id)
+        );
         const newShapeIds: string[] = [];
 
         for (const shape of shapesToDuplicate) {
           const duplicatedShape: ShapeElement = {
             ...shape,
-            id: `shape-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            id: `shape-${Date.now()}-${Math.random()
+              .toString(36)
+              .substr(2, 9)}`,
             x: shape.x + 20, // Offset by 20px
             y: shape.y + 20,
             createdBy: session.user.id,
@@ -1982,14 +2324,28 @@ function BoardPageContent() {
         setSelectedShape(newShapeIds[0]);
         setSelectedShapes(newShapeIds);
 
-        toast.success(`Duplicated ${shapesToDuplicate.length} shape${shapesToDuplicate.length > 1 ? 's' : ''}`);
-        logger.debug({ originalIds: shapeIds, newIds: newShapeIds }, "Shapes duplicated successfully");
+        toast.success(
+          `Duplicated ${shapesToDuplicate.length} shape${
+            shapesToDuplicate.length > 1 ? "s" : ""
+          }`
+        );
+        logger.debug(
+          { originalIds: shapeIds, newIds: newShapeIds },
+          "Shapes duplicated successfully"
+        );
       } catch (err) {
         logger.error({ error: err, shapeIds }, "Failed to duplicate shapes");
         toast.error("Failed to duplicate shapes");
       }
     },
-    [boardId, session?.user?.id, shapes, handleShapeAdd, setSelectedShape, setSelectedShapes]
+    [
+      boardId,
+      session?.user?.id,
+      shapes,
+      handleShapeAdd,
+      setSelectedShape,
+      setSelectedShapes,
+    ]
   );
 
   const handleTextElementDragStart = useCallback(() => {
@@ -1999,252 +2355,12 @@ function BoardPageContent() {
   const handleTextElementDragEnd = useCallback(() => {
     setIsDragInProgress(false);
     setRecentDragEnd(true);
-    
+
     // Clear the recent drag flag after a short delay
     setTimeout(() => {
       setRecentDragEnd(false);
     }, 150); // 150ms delay to prevent immediate canvas clicks
   }, [setIsDragInProgress, setRecentDragEnd]);
-
-  // Enhanced canvas click handler with improved element detection
-  const handleCanvasClick = useCallback(
-    (e: KonvaEventObject<MouseEvent>) => {
-      if (isDragInProgress || recentDragEnd) {
-        logger.debug("Canvas click ignored due to drag state");
-        return;
-      }
-
-      const targetName = e.target.getClassName();
-      const isBackgroundClick =
-        targetName === "Stage" || targetName === "Layer";
-
-      if (!isBackgroundClick) {
-        // Enhanced check for interactive elements
-        if (e.target.hasName) {
-          if (e.target.hasName("text-element")) {
-            logger.debug("Click detected on text element, allowing element to handle it");
-            return;
-          }
-          if (e.target.hasName("sticky-note")) {
-            logger.debug("Click detected on sticky note, ignoring canvas click");
-            return;
-          }
-          if (e.target.hasName("shape-group")) {
-            logger.debug("Click detected on shape, allowing shape to handle it");
-            return;
-          }
-        }
-
-        // Enhanced parent element checking with better element detection
-        let parent = e.target.getParent();
-        while (parent) {
-          if (parent.hasName) {
-            if (parent.hasName("text-element")) {
-              logger.debug("Click detected on text element (via parent), allowing element to handle it");
-              return;
-            }
-            if (parent.hasName("sticky-note")) {
-              logger.debug("Click detected on sticky note (via parent), ignoring canvas click");
-              return;
-            }
-            if (parent.hasName("shape-group")) {
-              logger.debug("Click detected on shape (via parent), allowing shape to handle it");
-              return;
-            }
-            if (parent.hasName("frame") || parent.hasName("enhanced-frame")) {
-              logger.debug("Click detected on frame (via parent), allowing frame to handle it");
-              return;
-            }
-          }
-          parent = parent.getParent();
-        }
-
-        // Check if the target is part of an interactive element by checking its ancestors
-        const isPartOfInteractiveElement = e.target.findAncestor && (
-          e.target.findAncestor('.text-element') || 
-          e.target.findAncestor('.shape-group') || 
-          e.target.findAncestor('.sticky-note')
-        );
-        if (isPartOfInteractiveElement) {
-          logger.debug("Click detected on interactive element component, allowing element to handle it");
-          return;
-        }
-      }
-
-      if (!isBackgroundClick) {
-        return;
-      }
-
-      // Use setTimeout to allow text elements to handle their events first
-      // This prevents race conditions where canvas click clears selection before text element can process it
-      setTimeout(() => {
-        if (tool === "sticky-note" && boardId && session?.user?.id) {
-          const stage = e.target.getStage();
-          const pointerPosition = stage?.getPointerPosition();
-          if (pointerPosition && stage) {
-            const transform = stage.getAbsoluteTransform().copy();
-            transform.invert();
-            const stagePos = transform.point(pointerPosition);
-
-            const newStickyNote: StickyNoteElement = {
-              id: `sticky-note-${Date.now()}-${Math.random()
-                .toString(36)
-                .substr(2, 9)}`,
-              type: "sticky-note",
-              x: stagePos.x,
-              y: stagePos.y,
-              width: 220,
-              height: 160,
-              text: "",
-              color: currentStickyNoteColor,
-              fontSize: 14,
-              createdBy: session.user.id,
-              createdAt: Date.now(),
-              updatedAt: Date.now(),
-            };
-
-            handleStickyNoteAdd(newStickyNote);
-            setSelectedStickyNote(newStickyNote.id);
-            logger.debug(
-              { newStickyNoteId: newStickyNote.id },
-              "New sticky note created via canvas click"
-            );
-          }
-        } else if (tool === "text" && boardId && session?.user?.id) {
-          const stage = e.target.getStage();
-          const pointerPosition = stage?.getPointerPosition();
-          if (pointerPosition && stage) {
-            const transform = stage.getAbsoluteTransform().copy();
-            transform.invert();
-            const stagePos = transform.point(pointerPosition);
-
-            const newTextElement: TextElement = {
-              id: `text-${Date.now()}-${Math.random()
-                .toString(36)
-                .substr(2, 9)}`,
-              type: "text",
-              x: stagePos.x,
-              y: stagePos.y,
-              width: 300,
-              height: 48,
-              text: "Type your text here...",
-              formatting: {
-                fontFamily: "Comic Sans MS",
-                fontSize: 28,
-                color: color,
-                bold: false,
-                italic: false,
-                underline: false,
-                strikethrough: false,
-                highlight: false,
-                highlightColor: "#ffeb3b",
-                align: "left",
-                lineHeight: 1.2,
-                letterSpacing: 0,
-                textTransform: "none",
-                listType: "none",
-                listStyle: "•",
-                listLevel: 0,
-              },
-              style: {
-                backgroundColor: "transparent",
-                backgroundOpacity: 1,
-                border: undefined,
-                shadow: undefined,
-                opacity: 1,
-              },
-              rotation: 0,
-              isEditing: false,
-              isSelected: false,
-              createdBy: session.user.id,
-              createdAt: Date.now(),
-              updatedAt: Date.now(),
-              version: 1,
-            };
-
-            handleTextElementAdd(newTextElement);
-            setSelectedTextElement(newTextElement.id);
-            setEditingTextElement(newTextElement.id);
-            logger.debug(
-              { newTextElementId: newTextElement.id },
-              "New text element created via canvas click"
-            );
-          }
-        } else if (tool === "shapes" && pendingShapeType && boardId && session?.user?.id) {
-          // Handle shape creation when shapes tool is active and shape is pending
-          const stage = e.target.getStage();
-          const pointerPosition = stage?.getPointerPosition();
-          if (pointerPosition && stage) {
-            const transform = stage.getAbsoluteTransform().copy();
-            transform.invert();
-            const stagePos = transform.point(pointerPosition);
-
-            // Create the shape at the clicked position
-            const newShape = createShapeAtPosition(
-              stagePos.x, 
-              stagePos.y, 
-              pendingShapeType, 
-              pendingShapeProps || undefined
-            );
-
-            if (newShape) {
-              // Clear pending shape state
-              setPendingShapeType(null);
-              setPendingShapeProps(null);
-              
-              // Reset cursor
-              if (document.body.style) {
-                document.body.style.cursor = 'default';
-              }
-              
-              toast.success(`${pendingShapeType} created!`);
-              logger.debug(
-                { newShapeId: newShape.id, position: stagePos },
-                "Shape created via canvas click"
-              );
-            }
-          }
-        } else {
-          // Clear all selections when clicking on background
-          setSelectedStickyNote(null);
-          setSelectedFrame(null);
-          setSelectedTextElement(null);
-          setEditingTextElement(null);
-          setSelectedShape(null);
-          setSelectedShapes([]);
-          
-          // Clear pending shape if any
-          if (pendingShapeType) {
-            setPendingShapeType(null);
-            setPendingShapeProps(null);
-            if (document.body.style) {
-              document.body.style.cursor = 'default';
-            }
-            toast.info("Shape placement cancelled");
-          }
-        }
-      }, 0); // Minimal delay to allow text element handlers to fire first
-    },
-    [
-      tool,
-      boardId,
-      session?.user?.id,
-      handleStickyNoteAdd,
-      currentStickyNoteColor,
-      isDragInProgress,
-      recentDragEnd,
-      setSelectedStickyNote,
-      handleTextElementAdd,
-      color,
-      setSelectedTextElement,
-      setEditingTextElement,
-      pendingShapeType,
-      pendingShapeProps,
-      createShapeAtPosition,
-      setSelectedShape,
-      setSelectedShapes,
-    ]
-  );
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -2269,7 +2385,11 @@ function BoardPageContent() {
             .filter((el: { data: string }) => {
               const parsed =
                 typeof el.data === "string" ? JSON.parse(el.data) : el.data;
-              return parsed.type !== "sticky-note" && parsed.type !== "frame" && parsed.type !== "text";
+              return (
+                parsed.type !== "sticky-note" &&
+                parsed.type !== "frame" &&
+                parsed.type !== "text"
+              );
             })
             .map((el: { data: string }) =>
               typeof el.data === "string" ? JSON.parse(el.data) : el.data
@@ -2322,7 +2442,7 @@ function BoardPageContent() {
           setHistory(data.undoBoardAction.history || []);
           setHistoryIndex(data.undoBoardAction.historyIndex ?? 0);
           updateBoardTimestamp(boardId);
-          
+
           // Clear selections after undo
           setSelectedStickyNote(null);
           setSelectedFrame(null);
@@ -2336,7 +2456,21 @@ function BoardPageContent() {
         toast.error("Failed to undo.");
       }
     }
-  }, [boardId, undoBoardAction, updateBoardTimestamp, setLines, setStickyNotes, setFrames, setTextElements, setHistory, setHistoryIndex, setSelectedStickyNote, setSelectedFrame, setSelectedTextElement, setEditingTextElement]);
+  }, [
+    boardId,
+    undoBoardAction,
+    updateBoardTimestamp,
+    setLines,
+    setStickyNotes,
+    setFrames,
+    setTextElements,
+    setHistory,
+    setHistoryIndex,
+    setSelectedStickyNote,
+    setSelectedFrame,
+    setSelectedTextElement,
+    setEditingTextElement,
+  ]);
 
   const handleRedo = useCallback(async () => {
     logger.debug("Redo action triggered");
@@ -2351,7 +2485,11 @@ function BoardPageContent() {
             .filter((el: { data: string }) => {
               const parsed =
                 typeof el.data === "string" ? JSON.parse(el.data) : el.data;
-              return parsed.type !== "sticky-note" && parsed.type !== "frame" && parsed.type !== "text";
+              return (
+                parsed.type !== "sticky-note" &&
+                parsed.type !== "frame" &&
+                parsed.type !== "text"
+              );
             })
             .map((el: { data: string }) =>
               typeof el.data === "string" ? JSON.parse(el.data) : el.data
@@ -2404,7 +2542,7 @@ function BoardPageContent() {
           setHistory(data.redoBoardAction.history || []);
           setHistoryIndex(data.redoBoardAction.historyIndex ?? 0);
           updateBoardTimestamp(boardId);
-          
+
           // Clear selections after redo
           setSelectedStickyNote(null);
           setSelectedFrame(null);
@@ -2418,7 +2556,21 @@ function BoardPageContent() {
         toast.error("Failed to redo.");
       }
     }
-  }, [boardId, redoBoardAction, updateBoardTimestamp, setLines, setStickyNotes, setFrames, setTextElements, setHistory, setHistoryIndex, setSelectedStickyNote, setSelectedFrame, setSelectedTextElement, setEditingTextElement]);
+  }, [
+    boardId,
+    redoBoardAction,
+    updateBoardTimestamp,
+    setLines,
+    setStickyNotes,
+    setFrames,
+    setTextElements,
+    setHistory,
+    setHistoryIndex,
+    setSelectedStickyNote,
+    setSelectedFrame,
+    setSelectedTextElement,
+    setEditingTextElement,
+  ]);
 
   const handleExport = useCallback(() => {
     logger.info("Export action triggered");
@@ -2428,7 +2580,7 @@ function BoardPageContent() {
         quality: 1,
       });
       const link = document.createElement("a");
-      link.download = `cyperboard-${boardId}-${
+      link.download = `whizboard-${boardId}-${
         new Date().toISOString().split("T")[0]
       }.png`;
       link.href = uri;
@@ -2504,7 +2656,12 @@ function BoardPageContent() {
       }
       return newMode;
     });
-  }, [setIsPresentationMode, setIsSidebarOpen, setIsCollaborationOpen, setShowKeyboardShortcuts]);
+  }, [
+    setIsPresentationMode,
+    setIsSidebarOpen,
+    setIsCollaborationOpen,
+    setShowKeyboardShortcuts,
+  ]);
 
   // Enhanced keyboard shortcuts
   useEffect(() => {
@@ -2614,6 +2771,18 @@ function BoardPageContent() {
           break;
         case "Delete":
         case "Backspace":
+          // Check if user is currently editing text in any input/textarea
+          if (
+            document.activeElement &&
+            (document.activeElement.tagName === "INPUT" ||
+              document.activeElement.tagName === "TEXTAREA" ||
+              document.activeElement.getAttribute("contenteditable") === "true" ||
+              document.activeElement.hasAttribute("data-rename-input"))
+          ) {
+            // Don't interfere with text editing
+            return;
+          }
+
           if (selectedStickyNote) {
             e.preventDefault();
             logger.debug(
@@ -2624,10 +2793,7 @@ function BoardPageContent() {
             setSelectedStickyNote(null);
           } else if (selectedFrame) {
             e.preventDefault();
-            logger.debug(
-              { selectedFrame },
-              "Deleting frame via keyboard"
-            );
+            logger.debug({ selectedFrame }, "Deleting frame via keyboard");
             handleFrameDelete(selectedFrame);
             setSelectedFrame(null);
           } else if (selectedTextElement) {
@@ -2640,10 +2806,7 @@ function BoardPageContent() {
             setSelectedTextElement(null);
           } else if (selectedShapes.length > 0) {
             e.preventDefault();
-            logger.debug(
-              { selectedShapes },
-              "Deleting shapes via keyboard"
-            );
+            logger.debug({ selectedShapes }, "Deleting shapes via keyboard");
             if (selectedShapes.length === 1) {
               handleShapeDelete(selectedShapes[0]);
             } else {
@@ -2720,7 +2883,7 @@ function BoardPageContent() {
                 setHistory(data.addBoardAction.history || []);
                 setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
                 updateBoardTimestamp(boardId);
-                
+
                 // Clear all selections
                 setSelectedStickyNote(null);
                 setSelectedFrame(null);
@@ -2728,7 +2891,7 @@ function BoardPageContent() {
                 setEditingTextElement(null);
                 setSelectedShape(null);
                 setSelectedShapes([]);
-                
+
                 toast.success("Canvas cleared! You can undo this action.");
               }
             } catch (err) {
@@ -2748,21 +2911,155 @@ function BoardPageContent() {
 
   const handleAIAction = () => {
     // Placeholder for AI functionality
-    toast.success("AI Assistant activated! 🤖", {
-      description: "AI features are coming soon. Stay tuned for intelligent drawing assistance!",
+    toast.success("AI Assistant activated!", {
+      description:
+        "AI features are coming soon. Stay tuned for intelligent drawing assistance!",
       duration: 3000,
     });
     console.log("AI tool activated - ready for implementation");
   };
 
+  const handleCanvasClick = useCallback(
+    (e: any) => {
+      const stage = e.target.getStage();
+      if (!stage) return;
 
+      const pos = stage.getPointerPosition();
+      if (!pos) return;
+
+      // Convert pointer position to stage (canvas) coordinates
+      const transform = stage.getAbsoluteTransform().copy();
+      transform.invert();
+      const stagePoint = transform.point(pos);
+
+      /* ------------------------------------------------------------------ */
+      /* Frame placement mode                                               */
+      /* ------------------------------------------------------------------ */
+      if (pendingFramePreset) {
+        createFrameFromPreset(stagePoint.x, stagePoint.y, pendingFramePreset);
+        setPendingFramePreset(null);
+        setIsFramePlacementMode(false);
+        document.body.style.cursor = "default";
+        return;
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* Shape placement mode                                               */
+      /* ------------------------------------------------------------------ */
+      if (pendingShapeType) {
+        createShapeAtPosition(
+          stagePoint.x,
+          stagePoint.y,
+          pendingShapeType,
+          pendingShapeProps || undefined
+        );
+        setPendingShapeType(null);
+        setPendingShapeProps(null);
+        document.body.style.cursor = "default";
+        // Keep selection to newly created shape; createShapeAtPosition handles that.
+        return;
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* Sticky-note tool                                                   */
+      /* ------------------------------------------------------------------ */
+      if (tool === "sticky-note") {
+        const newSticky: StickyNoteElement = {
+          id: `sticky-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          type: "sticky-note",
+          x: stagePoint.x,
+          y: stagePoint.y,
+          width: 240,
+          height: 240,
+          text: "",
+          color: currentStickyNoteColor,
+          fontSize: 16,
+          createdBy: session?.user?.id || "unknown",
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        };
+
+        handleStickyNoteAdd(newSticky);
+        setSelectedStickyNote(newSticky.id);
+        // Switch back to select tool for convenience
+        setTool("select");
+        return;
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* Text tool                                                          */
+      /* ------------------------------------------------------------------ */
+      if (tool === "text") {
+        const newText: TextElement = {
+          id: `text-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          type: "text",
+          x: stagePoint.x,
+          y: stagePoint.y,
+          width: 200,
+          height: 50,
+          text: "",
+          formatting: {
+            bold: false,
+            italic: false,
+            underline: false,
+            strikethrough: false,
+            highlight: false,
+            highlightColor: "#ffff00",
+            fontFamily: "Comic Sans MS",
+            fontSize: 16,
+            color: "#000000",
+            align: "left",
+            lineHeight: 1.2,
+            letterSpacing: 0,
+            textTransform: "none",
+            listType: "none",
+            listStyle: "",
+            listLevel: 0,
+          },
+          style: {
+            opacity: 1,
+          },
+          rotation: 0,
+          isEditing: false,
+          isSelected: false,
+          createdBy: session?.user?.id || "unknown",
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          version: 1,
+        };
+
+        handleTextElementAdd(newText);
+        // Enter edit mode immediately
+        handleTextElementStartEdit(newText);
+        return;
+      }
+
+      // Default: no special action
+    },
+    [
+      pendingFramePreset,
+      createFrameFromPreset,
+      pendingShapeType,
+      pendingShapeProps,
+      createShapeAtPosition,
+      setPendingShapeType,
+      setPendingShapeProps,
+      tool,
+      currentStickyNoteColor,
+      handleStickyNoteAdd,
+      setSelectedStickyNote,
+      setTool,
+      session?.user?.id,
+      handleTextElementAdd,
+      handleTextElementStartEdit,
+    ]
+  );
 
   if (loading) {
     return (
-      <PageLoading
-        title="Loading your board"
-        description="Please wait while we prepare your canvas for collaboration"
-        variant="default"
+      <LoadingOverlay
+        text="Loading your board"
+        subtitle="Please wait while we prepare your canvas for collaboration" 
       />
     );
   }
@@ -2791,9 +3088,9 @@ function BoardPageContent() {
 
   if (status === "loading") {
     return (
-      <PageLoading
-        title="Authenticating"
-        description="Verifying your access to the board..."
+      <LoadingOverlay
+        text="Authenticating"
+        subtitle="Verifying your access to the board..."
         variant="default"
       />
     );
@@ -2806,7 +3103,7 @@ function BoardPageContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col overflow-hidden">
-      {/* Enhanced Header */}
+      {/* Enhanced Responsive Header */}
       <CanvasHeader
         currentUser={currentUser}
         onlineUsers={filteredOnlineUsers}
@@ -2814,19 +3111,31 @@ function BoardPageContent() {
         onOpenCollaboration={() => setIsCollaborationOpen(true)}
         onInvite={handleInviteCollaborators}
         onRename={handleRenameBoard}
-        onFitToScreen={() => fitToScreen(lines)}
+        onExport={handleExport}
+        onClearCanvas={handleClearCanvas}
+        onFitToScreen={() => fitToScreen()}
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
         onResetZoom={resetZoom}
         onTogglePresentation={handleTogglePresentation}
+        onToggleGrid={() => setShowGrid(!showGrid)}
         isPresentationMode={isPresentationMode}
+        showGrid={showGrid}
         zoomLevel={currentZoom}
+        isMobile={isMobile}
+        isTablet={isTablet}
       />
 
-      {/* Main Content */}
-      <div className="flex flex-1 pt-16">
-        {/* Desktop Sidebar - Enhanced */}
-        <aside className="hidden lg:flex flex-col w-20 bg-white/90 backdrop-blur-sm border-r border-slate-200/60 shadow-sm z-10 transition-all duration-300 hover:w-22">
+      {/* Main Content - Responsive Layout */}
+      <div className="flex flex-1 pt-16 relative">
+        {/* Desktop Sidebar - Hidden on mobile/tablet */}
+        <aside
+          className={`
+          hidden xl:flex flex-col bg-white/90 backdrop-blur-sm border-r border-slate-200/60 shadow-sm z-10 
+          transition-all duration-300 hover:w-24
+          ${isMobile || isTablet ? "w-0" : "w-20"}
+        `}
+        >
           <div className="flex-1 flex flex-col items-center py-6 space-y-4">
             {/* Main Toolbar */}
             <MainToolbar
@@ -2840,6 +3149,8 @@ function BoardPageContent() {
               onClearCanvasAction={handleClearCanvas}
               onAIAction={handleAIAction}
               vertical
+              isMobile={isMobile}
+              isTablet={isTablet}
             />
             {/* Separator when pen tool is active */}
             {tool === "pen" && (
@@ -2872,18 +3183,31 @@ function BoardPageContent() {
           </div>
         </aside>
 
-        {/* Mobile Sidebar Overlay */}
+        {/* Mobile/Tablet Sidebar Overlay */}
         {isSidebarOpen && (
           <>
             <div
-              className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden"
+              className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 xl:hidden"
               onClick={() => setIsSidebarOpen(false)}
             />
-            <aside className="fixed left-0 top-16 bottom-0 w-80 bg-white/95 backdrop-blur-xl border-r border-slate-200/60 z-50 lg:hidden overflow-y-auto shadow-2xl">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">
-                  Drawing Tools
-                </h3>
+            <aside
+              className={`
+              fixed left-0 top-16 bottom-0 bg-white/95 backdrop-blur-xl border-r border-slate-200/60 z-50 xl:hidden overflow-y-auto shadow-2xl
+              ${isMobile ? "w-full" : "w-80"}
+            `}
+            >
+              <div className="p-4 sm:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-slate-800">
+                    Drawing Tools
+                  </h3>
+                  <button
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
                 <MainToolbar
                   tool={tool}
                   setToolAction={setTool}
@@ -2895,23 +3219,30 @@ function BoardPageContent() {
                   onClearCanvasAction={handleClearCanvas}
                   onAIAction={handleAIAction}
                   vertical={false}
+                  isMobile={isMobile}
+                  isTablet={isTablet}
                 />
               </div>
             </aside>
           </>
         )}
 
-        {/* Canvas Area */}
+        {/* Canvas Area - Responsive */}
         <main className="flex-1 relative">
-          {/* Collaboration Panel */}
+          {/* Collaboration Panel - Responsive */}
           {isCollaborationOpen && (
             <>
               <div
                 className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
                 onClick={() => setIsCollaborationOpen(false)}
               />
-              <div className="fixed right-0 top-16 bottom-0 w-80 bg-white/95 backdrop-blur-xl border-l border-slate-200/60 z-50 overflow-y-auto shadow-2xl">
-                <div className="p-6">
+              <div
+                className={`
+                fixed right-0 top-16 bottom-0 bg-white/95 backdrop-blur-xl border-l border-slate-200/60 z-50 overflow-y-auto shadow-2xl
+                ${isMobile ? "w-full" : "w-80"}
+              `}
+              >
+                <div className="p-4 sm:p-6">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-lg font-semibold text-slate-800">
                       Collaboration
@@ -2920,7 +3251,7 @@ function BoardPageContent() {
                       onClick={() => setIsCollaborationOpen(false)}
                       className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
                     >
-                      <X size={16} />
+                      <X size={20} />
                     </button>
                   </div>
                   <CollaborationPanel
@@ -2985,6 +3316,10 @@ function BoardPageContent() {
               onToolChangeAction={setTool}
               cursors={realTimeCursors}
               moveCursorAction={broadcastCursorMovement}
+              isFramePlacementMode={isFramePlacementMode}
+              isMobile={isMobile}
+              isTablet={isTablet}
+              showGrid={showGrid}
               onRealTimeDrawingAction={(line: ILine) => {
                 if (
                   line.id &&
@@ -3027,28 +3362,44 @@ function BoardPageContent() {
                   frame.width &&
                   frame.height
                 ) {
-                  broadcastFrameUpdate(frame);
+                  broadcastElementUpdate({
+                    id: frame.id,
+                    type: "frame" as const,
+                    data: frame as unknown as Record<string, unknown>,
+                    userId: session?.user?.id || "unknown",
+                    timestamp: Date.now(),
+                  });
                 }
               }}
             />
           </div>
 
-          {/* Drawing Toolbar */}
+          {/* Responsive Drawing Toolbar */}
           <DrawingToolbar
             isActive={tool === "pen" || tool === "highlighter"}
             initialColor={color}
             onColorChange={setColor}
             initialStrokeWidth={strokeWidth}
             onStrokeWidthChange={setStrokeWidth}
-            className="lg:left-24 lg:top-20 max-lg:hidden"
+            className={`
+              ${
+                isMobile
+                  ? "fixed bottom-20 left-1/2 transform -translate-x-1/2 w-[90vw] max-w-sm"
+                  : isTablet
+                  ? "fixed bottom-4 left-1/2 transform -translate-x-1/2 w-[70vw] max-w-md"
+                  : "xl:left-24 xl:top-20 max-xl:hidden"
+              }
+            `}
             initialTool={tool === "highlighter" ? "highlighter" : "pen"}
             currentTool={tool === "highlighter" ? "highlighter" : "pen"}
             onToolChange={(selectedTool) => {
               setTool(selectedTool);
             }}
+            isMobile={isMobile}
+            isTablet={isTablet}
           />
 
-          {/* Floating Sticky Note Toolbar */}
+          {/* Responsive Floating Sticky Note Toolbar */}
           <FloatingStickyNoteToolbar
             currentColor={currentStickyNoteColor}
             onColorChangeAction={setCurrentStickyNoteColor}
@@ -3056,46 +3407,83 @@ function BoardPageContent() {
               colorPicker.openPicker(currentStickyNoteColor, position);
             }}
             isVisible={tool === "sticky-note"}
+            isMobile={isMobile}
+            isTablet={isTablet}
+            isCollapsed={isFloatingToolbarCollapsed}
           />
 
-          {/* Floating Frame Toolbar */}
+          {/* Responsive Floating Frame Toolbar */}
           <FloatingFrameToolbar
             isActive={tool === "frame" || selectedFrame !== null}
             selectedFrames={
-              selectedFrame
-                ? frames.filter((f) => f.id === selectedFrame)
-                : []
+              selectedFrame ? frames.filter((f) => f.id === selectedFrame) : []
             }
             selectedFrameIds={selectedFrame ? [selectedFrame] : []}
             onFrameUpdateAction={handleFrameUpdate}
-            onFrameCreateAction={handleFrameCreate}
+            onFrameCreateAction={(preset: any, x?: number, y?: number) => {
+              if (x !== undefined && y !== undefined) {
+                // Direct creation with coordinates
+                createFrameFromPreset(x, y, preset);
+              } else {
+                // Start placement mode
+                handleFramePlacementStart(preset, null);
+              }
+            }}
             onFrameDeleteAction={handleFrameDelete}
             onFrameDeleteMultipleAction={handleFrameDeleteMultiple}
             onFrameRenameAction={handleFrameRename}
-            className="max-lg:hidden"
+            onFrameDeselectAction={handleFrameDeselect}
+            onFrameAlignAction={handleFrameAlign}
+            onFrameDistributeAction={handleFrameDistribute}
+            onFramePlacementStart={handleFramePlacementStart}
+            onFramePlacementCancel={handleFramePlacementCancel}
+            className={`
+              ${
+                isMobile || isTablet
+                  ? "max-w-[90vw] max-h-[60vh]"
+                  : "max-xl:hidden"
+              }
+            `}
+            isMobile={isMobile}
+            isTablet={isTablet}
+            isCollapsed={isFloatingToolbarCollapsed}
           />
 
-          {/* Floating Text Toolbar */}
-          {(selectedTextElement !== null || editingTextElement !== null || tool === "text") && (
-            <div className="max-lg:hidden">
+          {/* Responsive Floating Text Toolbar */}
+          {(selectedTextElement !== null ||
+            editingTextElement !== null ||
+            tool === "text") && (
+            <div
+              className={`${
+                isMobile || isTablet ? "max-w-[90vw]" : "max-xl:hidden"
+              }`}
+            >
               <FloatingTextToolbar
                 isActive={true}
                 selectedTextElements={
-                  selectedTextElement
-                    ? textElements.filter((t) => t.id === selectedTextElement)
-                    : editingTextElement
-                    ? textElements.filter((t) => t.id === editingTextElement)
+                  editingTextElement
+                    ? [editingTextElement]
+                    : selectedTextElement
+                    ? textElements.filter((el) => el.id === selectedTextElement)
                     : []
                 }
                 onTextUpdateAction={handleTextElementUpdate}
-                className="max-lg:hidden"
+                className={`${
+                  isMobile || isTablet ? "max-w-[90vw]" : "max-xl:hidden"
+                }`}
+                isMobile={isMobile}
+                isTablet={isTablet}
               />
             </div>
           )}
 
-          {/* Floating Shapes Toolbar */}
+          {/* Responsive Floating Shapes Toolbar */}
           <FloatingShapesToolbar
-            isActive={tool === "shapes" || selectedShape !== null || selectedShapes.length > 0}
+            isActive={
+              tool === "shapes" ||
+              selectedShape !== null ||
+              selectedShapes.length > 0
+            }
             selectedShapes={
               selectedShapes.length > 0
                 ? shapes.filter((s) => selectedShapes.includes(s.id))
@@ -3113,14 +3501,28 @@ function BoardPageContent() {
             onShapeAlignAction={handleShapeAlign}
             onShapeDistributeAction={handleShapeDistribute}
             onShapeDuplicateAction={handleShapeDuplicate}
-            className="max-lg:hidden"
+            className={`
+              ${
+                isMobile || isTablet
+                  ? "max-w-[90vw] max-h-[60vh]"
+                  : "max-xl:hidden"
+              }
+            `}
+            isMobile={isMobile}
+            isTablet={isTablet}
+            isCollapsed={isFloatingToolbarCollapsed}
           />
         </main>
       </div>
 
-      {/* Enhanced Mobile Bottom Toolbar */}
-           <div className="fixed bottom-0 left-0 right-0 lg:hidden z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200/60 shadow-2xl">
-        <div className="px-4 py-3 pb-safe">
+      {/* Enhanced Mobile/Tablet Bottom Toolbar */}
+      <div
+        className={`
+        fixed bottom-0 left-0 right-0 xl:hidden z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200/60 shadow-2xl
+        ${isMobile ? "pb-safe" : ""}
+      `}
+      >
+        <div className={`px-4 ${isMobile ? "py-2" : "py-3"}`}>
           <MainToolbar
             tool={tool}
             setToolAction={setTool}
@@ -3132,31 +3534,63 @@ function BoardPageContent() {
             onClearCanvasAction={handleClearCanvas}
             onAIAction={handleAIAction}
             vertical={false}
+            isMobile={isMobile}
+            isTablet={isTablet}
           />
         </div>
       </div>
 
-      {/* Keyboard Shortcuts Panel */}
+      {/* Mobile Floating Action Button for Toolbar Toggle */}
+      {(isMobile || isTablet) && (
+        <button
+          onClick={() =>
+            setIsFloatingToolbarCollapsed(!isFloatingToolbarCollapsed)
+          }
+          className={`
+            fixed z-50 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 backdrop-blur-xl shadow-xl transition-all duration-300 hover:scale-110
+            ${isMobile ? "bottom-20 right-4" : "bottom-4 right-4"}
+          `}
+          title={
+            isFloatingToolbarCollapsed ? "Expand toolbars" : "Collapse toolbars"
+          }
+        >
+          {isFloatingToolbarCollapsed ? (
+            <ChevronUp size={20} />
+          ) : (
+            <ChevronDown size={20} />
+          )}
+        </button>
+      )}
+
+      {/* Keyboard Shortcuts Panel - Responsive */}
       <KeyboardShortcuts
         show={showKeyboardShortcuts}
         onClose={() => setShowKeyboardShortcuts(false)}
+        isMobile={isMobile}
+        isTablet={isTablet}
       />
 
-      {/* Help Toggle Button */}
+      {/* Help Toggle Button - Responsive */}
       {!showKeyboardShortcuts && (
         <button
           onClick={() => setShowKeyboardShortcuts(true)}
-          className="fixed z-45 bg-slate-900/80 hover:bg-slate-800/90 text-white rounded-full p-3 backdrop-blur-xl border border-slate-700/50 shadow-xl transition-all duration-300 hover:scale-110
-                     bottom-4 left-4 lg:bottom-4 lg:left-4 
-                     max-lg:bottom-32 max-lg:left-4 
-                     max-sm:bottom-36 max-sm:left-4"
+          className={`
+            fixed z-45 bg-slate-900/80 hover:bg-slate-800/90 h-12 w-12 flex items-center justify-center text-white rounded-full p-3 backdrop-blur-xl border border-slate-700/50 shadow-xl transition-all duration-300 hover:scale-110
+            ${
+              isMobile
+                ? "bottom-32 right-4"
+                : isTablet
+                ? "bottom-20 right-4"
+                : "bottom-4 right-4 xl:bottom-4 xl:right-4"
+            }
+          `}
           title="Show keyboard shortcuts (?)"
         >
           <span className="text-lg">⌨️</span>
         </button>
       )}
 
-      {/* Rename Board Modal */}
+      {/* Responsive Modals */}
       <RenameBoardModal
         isOpen={showRenameModal}
         onCloseAction={() => setShowRenameModal(false)}
@@ -3166,17 +3600,19 @@ function BoardPageContent() {
             ? { id: initialData.getBoard.id, name: initialData.getBoard.name }
             : null
         }
+        isMobile={isMobile}
+        isTablet={isTablet}
       />
 
-      {/* Invite Collaborators Modal */}
       <InviteCollaboratorsModal
         isOpen={showInviteModal}
         onCloseAction={() => setShowInviteModal(false)}
         boardId={boardId}
         boardName={initialData?.getBoard?.name || "Untitled Board"}
+        isMobile={isMobile}
+        isTablet={isTablet}
       />
 
-      {/* Success Modal */}
       <SuccessModal
         isOpen={showSuccessModal}
         onCloseAction={() => setShowSuccessModal(false)}
@@ -3184,9 +3620,11 @@ function BoardPageContent() {
         message="Your board has been renamed and is ready for continued collaboration."
         boardId={renamedBoard?.id}
         boardName={renamedBoard?.name}
+        isMobile={isMobile}
+        isTablet={isTablet}
       />
 
-      {/* Sticky Note Color Picker */}
+      {/* Sticky Note Color Picker - Responsive */}
       {colorPicker.isOpen && (
         <StickyNoteColorPicker
           selectedColor={colorPicker.selectedColor}
@@ -3196,8 +3634,27 @@ function BoardPageContent() {
           }}
           onCloseAction={colorPicker.closePicker}
           position={colorPicker.position}
+          isMobile={isMobile}
+          isTablet={isTablet}
         />
+      )}
+
+      {/* Text Editor for mobile/tablet - positioned better */}
+      {editingTextElement && (
+        <div className={`absolute z-50 ${isSmallScreen ? "inset-4" : ""}`}>
+          <TextEditor
+            textElement={editingTextElement}
+            onUpdateAction={handleTextElementUpdate}
+            onFinishEditingAction={handleTextElementFinishEdit}
+            isMobile={isMobile}
+            isTablet={isTablet}
+            isVisible={true} // TextEditor should be visible when editing
+            stageScale={stageRef.current?.scaleX() || 1}
+            stagePosition={stageRef.current?.position() || { x: 0, y: 0 }}
+          />
+        </div>
       )}
     </div>
   );
 }
+

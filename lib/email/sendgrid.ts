@@ -330,14 +330,14 @@ export class EmailService {
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <meta http-equiv="X-UA-Compatible" content="IE=edge">
-          <title>You're Invited to Collaborate on CyperBoard</title>
+          <title>You're Invited to Collaborate on WhizBoard</title>
           ${this.getCommonEmailStyles()}
         </head>
         <body>
           <div class="email-wrapper">
             <div class="email-container">
               <div class="header">
-                <h1>🎨 CyperBoard</h1>
+                <h1>🎨 WhizBoard</h1>
                 <p>Real-time Collaborative Whiteboard</p>
               </div>
               
@@ -407,14 +407,14 @@ export class EmailService {
                 </div>
                 
                 <p style="color: #64748b; font-size: 14px; line-height: 1.5; margin-top: 30px;">
-                  If you don't have a CyperBoard account yet, you'll be prompted to create one when you accept the invitation. 
+                  If you don't have a WhizBoard account yet, you'll be prompted to create one when you accept the invitation. 
                   It's quick, free, and you can sign in with your Google account.
                 </p>
               </div>
               
               <div class="footer">
-                <p class="logo">CyperBoard</p>
-                <p>&copy; 2025 CyperBoard. All rights reserved.</p>
+                <p class="logo">WhizBoard</p>
+                <p>&copy; 2025 WhizBoard. All rights reserved.</p>
                 <p>Empowering teams through visual collaboration</p>
               </div>
             </div>
@@ -433,7 +433,7 @@ export class EmailService {
         to: data.inviteeEmail,
         from: {
           email: fromEmail, // Use verified email address
-          name: 'CyperBoard Team'
+          name: 'WhizBoard Team'
         },
         subject: `🎨 ${data.inviterName} invited you to collaborate on "${data.boardName}"`,
         html: this.generateInvitationEmailHtml(data),
@@ -443,10 +443,10 @@ Join the board: ${this.getBaseUrl()}/board/${data.boardId}/invite?token=${data.i
 
 ${data.message ? `Personal message: "${data.message}"` : ''}
 
-This invitation expires in 7 days. If you don't have a CyperBoard account, you'll be prompted to create one.
+This invitation expires in 7 days. If you don't have a WhizBoard account, you'll be prompted to create one.
 
 --
-CyperBoard Team
+WhizBoard Team
 Real-time collaborative whiteboard for teams`,
         // Add tracking and analytics
         trackingSettings: {
@@ -499,13 +499,13 @@ Real-time collaborative whiteboard for teams`,
         to: data.userEmail,
         from: {
           email: fromEmail,
-          name: 'CyperBoard Team'
+          name: 'WhizBoard Team'
         },
         subject: data.inviterName 
-          ? `🎉 Welcome to CyperBoard! You've joined "${data.boardName}"`
-          : '🎉 Welcome to CyperBoard!',
+          ? `🎉 Welcome to WhizBoard! You've joined "${data.boardName}"`
+          : '🎉 Welcome to WhizBoard!',
         html: this.generateWelcomeEmailHtml(data),
-        text: `Welcome to CyperBoard, ${data.userName}! 
+        text: `Welcome to WhizBoard, ${data.userName}! 
 
 ${data.inviterName ? `You've successfully joined the board "${data.boardName}" invited by ${data.inviterName}.` : ''}
 
@@ -519,7 +519,7 @@ We're excited to have you join our collaborative whiteboard platform. Here's wha
 Get started: ${this.getBaseUrl()}
 
 --
-CyperBoard Team
+WhizBoard Team
 Real-time collaborative whiteboard for teams`,
         trackingSettings: {
           clickTracking: { enable: true },
@@ -561,7 +561,7 @@ Real-time collaborative whiteboard for teams`,
         to: data.ownerEmail,
         from: {
           email: fromEmail,
-          name: 'CyperBoard Team'
+          name: 'WhizBoard Team'
         },
         subject: `🎉 ${data.collaboratorName} joined your board "${data.boardName}"`,
         html: this.generateCollaboratorJoinedEmailHtml(data),
@@ -572,7 +572,7 @@ You can now collaborate in real-time on your whiteboard project.
 View board: ${this.getBaseUrl()}/board/${data.boardId}
 
 --
-CyperBoard Team`,
+WhizBoard Team`,
         trackingSettings: {
           clickTracking: { enable: true },
           openTracking: { enable: true }
@@ -615,14 +615,14 @@ CyperBoard Team`,
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Welcome to CyperBoard</title>
+          <title>Welcome to WhizBoard</title>
           ${this.getCommonEmailStyles()}
         </head>
         <body>
           <div class="email-wrapper">
             <div class="email-container">
               <div class="header">
-                <h1>🎉 Welcome to CyperBoard!</h1>
+                <h1>🎉 Welcome to WhizBoard!</h1>
                 <p>Your collaborative whiteboard journey starts here</p>
               </div>
               
@@ -679,8 +679,8 @@ CyperBoard Team`,
               </div>
               
               <div class="footer">
-                <p class="logo">CyperBoard</p>
-                <p>&copy; 2025 CyperBoard. All rights reserved.</p>
+                <p class="logo">WhizBoard</p>
+                <p>&copy; 2025 WhizBoard. All rights reserved.</p>
                 <p>Empowering teams through visual collaboration</p>
               </div>
             </div>
@@ -707,7 +707,7 @@ CyperBoard Team`,
           <div class="email-wrapper">
             <div class="email-container">
               <div class="header">
-                <h1>🎉 CyperBoard</h1>
+                <h1>🎉 WhizBoard</h1>
                 <p>Collaboration Update</p>
               </div>
               
@@ -748,8 +748,8 @@ CyperBoard Team`,
               </div>
               
               <div class="footer">
-                <p class="logo">CyperBoard</p>
-                <p>&copy; 2025 CyperBoard. All rights reserved.</p>
+                <p class="logo">WhizBoard</p>
+                <p>&copy; 2025 WhizBoard. All rights reserved.</p>
                 <p>Empowering teams through visual collaboration</p>
               </div>
             </div>

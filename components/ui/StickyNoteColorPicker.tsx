@@ -9,6 +9,8 @@ interface StickyNoteColorPickerProps {
   onColorSelectAction: (color: string) => void;
   onCloseAction?: () => void;
   position?: { x: number; y: number };
+  isMobile?: boolean;
+  isTablet?: boolean;
 }
 
 export default function StickyNoteColorPicker({
@@ -16,6 +18,8 @@ export default function StickyNoteColorPicker({
   onColorSelectAction,
   onCloseAction,
   position,
+  isMobile,
+  isTablet,
 }: StickyNoteColorPickerProps) {
   const [isVisible, setIsVisible] = useState(true);
   const colors = getStickyNoteColorPalette();

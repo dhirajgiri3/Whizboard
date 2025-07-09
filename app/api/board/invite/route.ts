@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
     const emailSent = await EmailService.sendInvitationEmail({
       boardId,
       boardName: board.name,
-      inviterName: session.user.name || 'CyperBoard User',
+      inviterName: session.user.name || 'WhizBoard User',
       inviterEmail: session.user.email || '',
       inviteeEmail,
       invitationToken,

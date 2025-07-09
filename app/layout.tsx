@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ApolloProvider } from "@/components/ApolloProvider";
-import AuthSessionProvider from "@/components/AuthSessionProvider";
+import { ApolloProvider } from "@/lib/provider/ApolloProvider";
+import AuthSessionProvider from "@/lib/provider/AuthSessionProvider";
 import { Toaster } from "sonner";
 
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "CyperBoard",
+  title: "WhizBoard",
   description: "A real-time collaborative whiteboard.",
 };
 

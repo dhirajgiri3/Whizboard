@@ -11,6 +11,8 @@ interface InviteCollaboratorsModalProps {
   onCloseAction: () => void;
   boardId: string;
   boardName: string;
+  isMobile?: boolean;
+  isTablet?: boolean;
 }
 
 interface PendingInvitation {
@@ -29,6 +31,8 @@ export default function InviteCollaboratorsModal({
   onCloseAction,
   boardId,
   boardName,
+  isMobile,
+  isTablet,
 }: InviteCollaboratorsModalProps) {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
@@ -41,6 +45,9 @@ export default function InviteCollaboratorsModal({
   const { data: session } = useSession();
   const { boardMetadata } = useBoardContext();
   const isOwner = session?.user?.id && boardMetadata?.createdBy === session.user.id;
+
+  // Responsive settings
+  const isSmallScreen = isMobile || isTablet;
 
   // Trigger entrance animation
   useEffect(() => {
@@ -310,31 +317,38 @@ export default function InviteCollaboratorsModal({
       />
       
       {/* Modal container */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className={`fixed inset-0 z-50 flex items-center justify-center ${isSmallScreen ? 'p-2' : 'p-4'}`}>
         <div 
-          className={`bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-2xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-300 ${
+          className={`bg-white rounded-3xl shadow-2xl border border-slate-200 w-full overflow-hidden transform transition-all duration-300 ${
+            // Responsive sizing
+            isSmallScreen ? 'max-w-sm max-h-[95vh]' : 'max-w-2xl max-h-[90vh]'
+          } ${
             showAnimation ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
           }`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Gradient header */}
-          <div className="relative px-8 py-6 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white">
+          <div className={`relative bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white ${isSmallScreen ? 'px-4 py-4' : 'px-8 py-6'}`}>
             <div className="absolute inset-0 bg-gradient-to-r from-blue-600/90 via-blue-700/90 to-indigo-700/90" />
             <div className="relative flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
-                  <Users className="w-7 h-7 text-white" />
+              <div className={`flex items-center ${isSmallScreen ? 'space-x-2' : 'space-x-4'}`}>
+                <div className={`bg-white/20 rounded-2xl backdrop-blur-sm ${isSmallScreen ? 'p-2' : 'p-3'}`}>
+                  <Users className={`text-white ${isSmallScreen ? 'w-5 h-5' : 'w-7 h-7'}`} />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-white">Invite Collaborators</h2>
-                  <p className="text-blue-100 text-sm font-medium mt-1">{boardName}</p>
+                  <h2 className={`font-bold text-white ${isSmallScreen ? 'text-lg' : 'text-2xl'}`}>
+                    {isSmallScreen ? 'Invite' : 'Invite Collaborators'}
+                  </h2>
+                  <p className={`text-blue-100 font-medium mt-1 ${isSmallScreen ? 'text-xs' : 'text-sm'}`}>
+                    {isSmallScreen && boardName.length > 20 ? `${boardName.substring(0, 20)}...` : boardName}
+                  </p>
                 </div>
               </div>
               <button
                 onClick={onCloseAction}
-                className="p-2 hover:bg-white/20 rounded-xl transition-all duration-200 hover:scale-105"
+                className={`hover:bg-white/20 rounded-xl transition-all duration-200 hover:scale-105 ${isSmallScreen ? 'p-1.5' : 'p-2'} ${isMobile ? 'touch-manipulation' : ''}`}
               >
-                <X className="w-6 h-6 text-white" />
+                <X className={`text-white ${isSmallScreen ? 'w-5 h-5' : 'w-6 h-6'}`} />
               </button>
             </div>
             {/* Decorative elements */}
@@ -342,7 +356,7 @@ export default function InviteCollaboratorsModal({
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12" />
           </div>
 
-          <div className="px-8 py-6 max-h-[calc(90vh-160px)] overflow-y-auto custom-scrollbar">
+          <div className={`overflow-y-auto custom-scrollbar ${isSmallScreen ? 'px-4 py-4 max-h-[calc(95vh-120px)]' : 'px-8 py-6 max-h-[calc(90vh-160px)]'}`}>
             {showSuccess ? (
               // Enhanced Success State
               <div className="text-center py-12">
@@ -381,7 +395,9 @@ export default function InviteCollaboratorsModal({
                       Email Address
                     </label>
                     <div className="relative group">
-                      <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors duration-200" />
+                      <Mail className={`absolute top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors duration-200 ${
+                        isSmallScreen ? 'left-3 w-4 h-4' : 'left-4 w-5 h-5'
+                      }`} />
                       <input
                         type="email"
                         id="email"
@@ -396,7 +412,9 @@ export default function InviteCollaboratorsModal({
                           e.stopPropagation();
                         }}
                         placeholder="Enter collaborator's email"
-                        className="w-full pl-12 pr-4 py-4 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 bg-slate-50 focus:bg-white text-slate-900 placeholder-slate-500"
+                        className={`w-full pr-4 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 bg-slate-50 focus:bg-white text-slate-900 placeholder-slate-500 ${
+                          isSmallScreen ? 'pl-10 py-3 text-sm' : 'pl-12 py-4'
+                        } ${isMobile ? 'touch-manipulation' : ''}`}
                         disabled={isInviting}
                       />
                     </div>
@@ -419,8 +437,10 @@ export default function InviteCollaboratorsModal({
                         e.stopPropagation();
                       }}
                       placeholder="Add a personal message to your invitation..."
-                      rows={3}
-                      className="w-full px-4 py-4 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 resize-none bg-slate-50 focus:bg-white text-slate-900 placeholder-slate-500"
+                      rows={isSmallScreen ? 2 : 3}
+                      className={`w-full border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 resize-none bg-slate-50 focus:bg-white text-slate-900 placeholder-slate-500 ${
+                        isSmallScreen ? 'px-3 py-3 text-sm' : 'px-4 py-4'
+                      } ${isMobile ? 'touch-manipulation' : ''}`}
                       disabled={isInviting}
                       maxLength={500}
                     />
@@ -429,7 +449,9 @@ export default function InviteCollaboratorsModal({
                   <button
                     type="submit"
                     disabled={isInviting || !email.trim()}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-semibold flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:transform-none"
+                    className={`w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-semibold flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:transform-none ${
+                      isSmallScreen ? 'py-3 px-4' : 'py-4 px-6'
+                    } ${isMobile ? 'touch-manipulation' : ''}`}
                   >
                     {isInviting ? (
                       <>

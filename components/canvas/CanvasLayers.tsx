@@ -597,7 +597,7 @@ export function CanvasLayers({
       >
         {shapes.map((shape, index) => (
           <ShapeElementComponent
-            key={`shape-${shape.id}-v${shape.version || 0}-idx${index}`}
+            key={`shape-${shape.id}-v${shape.version || 0}-t${shape.updatedAt || 0}-idx${index}`}
             shape={shape}
             isSelected={selectedShape === shape.id || (selectedShapes && selectedShapes.includes(shape.id))}
             isDraggable={tool === 'select' || tool === 'shapes'}

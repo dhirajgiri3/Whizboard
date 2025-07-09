@@ -17,12 +17,14 @@ import {
 } from 'lucide-react';
 
 interface TextEditorProps {
-  textElement: TextElement;
+  textElement: TextElement | null;
   isVisible: boolean;
   onUpdateAction: (textElement: TextElement) => void;
   onFinishEditingAction: () => void;
   stageScale?: number;
   stagePosition?: { x: number; y: number };
+  isMobile?: boolean;
+  isTablet?: boolean;
 }
 
 const TextEditor: React.FC<TextEditorProps> = ({
@@ -32,20 +34,22 @@ const TextEditor: React.FC<TextEditorProps> = ({
   onFinishEditingAction,
   stageScale = 1,
   stagePosition = { x: 0, y: 0 },
+  isMobile = false,
+  isTablet = false,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [text, setText] = useState(textElement.text);
+  const [text, setText] = useState(textElement?.text || '');
   const [isFocused, setIsFocused] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
   const [showToolbar, setShowToolbar] = useState(false);
 
   // Calculate position and size based on stage transform
   const editorPosition = {
-    x: (textElement.x * stageScale) + stagePosition.x,
-    y: (textElement.y * stageScale) + stagePosition.y,
-    width: Math.max(textElement.width * stageScale, 120),
-    height: Math.max(textElement.height * stageScale, 40),
+    x: (textElement?.x * stageScale) + stagePosition.x,
+    y: (textElement?.y * stageScale) + stagePosition.y,
+    width: Math.max(textElement?.width * stageScale, 120),
+    height: Math.max(textElement?.height * stageScale, 40),
   };
 
   // Auto-resize textarea
@@ -55,17 +59,17 @@ const TextEditor: React.FC<TextEditorProps> = ({
 
     textarea.style.height = 'auto';
     const scrollHeight = textarea.scrollHeight;
-    const minHeight = Math.max(textElement.height * stageScale, 40);
+    const minHeight = Math.max(textElement?.height * stageScale, 40);
     textarea.style.height = `${Math.max(scrollHeight, minHeight)}px`;
 
     // Update element height if needed
-    const newHeight = Math.max(scrollHeight / stageScale, textElement.height);
-    if (Math.abs(newHeight - textElement.height) > 5) {
+    const newHeight = Math.max(scrollHeight / stageScale, textElement?.height);
+    if (Math.abs(newHeight - textElement?.height) > 5) {
       const updatedElement: TextElement = {
         ...textElement,
         height: newHeight,
         updatedAt: Date.now(),
-        version: textElement.version + 1,
+        version: textElement?.version + 1,
       };
       onUpdateAction(updatedElement);
     }
@@ -77,7 +81,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
       ...textElement,
       text: newText,
       updatedAt: Date.now(),
-      version: textElement.version + 1,
+      version: textElement?.version + 1,
     };
     onUpdateAction(updatedElement);
   }, [textElement, onUpdateAction]);
@@ -111,11 +115,11 @@ const TextEditor: React.FC<TextEditorProps> = ({
     const updatedElement: TextElement = {
       ...textElement,
       formatting: {
-        ...textElement.formatting,
+        ...textElement?.formatting,
         ...updates,
       },
       updatedAt: Date.now(),
-      version: textElement.version + 1,
+      version: textElement?.version + 1,
     };
     onUpdateAction(updatedElement);
   }, [textElement, onUpdateAction]);
@@ -146,15 +150,15 @@ const TextEditor: React.FC<TextEditorProps> = ({
       switch (e.key) {
         case 'b':
           e.preventDefault();
-          formatting = { bold: !textElement.formatting.bold };
+          formatting = { bold: !textElement?.formatting.bold };
           break;
         case 'i':
           e.preventDefault();
-          formatting = { italic: !textElement.formatting.italic };
+          formatting = { italic: !textElement?.formatting.italic };
           break;
         case 'u':
           e.preventDefault();
-          formatting = { underline: !textElement.formatting.underline };
+          formatting = { underline: !textElement?.formatting.underline };
           break;
         // Prevent other shortcuts from propagating
         case 'z':
@@ -218,7 +222,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
       setTimeout(() => {
         if (textareaRef.current) {
           textareaRef.current.focus();
-          if (textElement.text === 'Type your text here...') {
+          if (textElement?.text === 'Type your text here...') {
             textareaRef.current.select();
           }
           setIsFocused(true);
@@ -227,14 +231,14 @@ const TextEditor: React.FC<TextEditorProps> = ({
         }
       }, 50);
     }
-  }, [isVisible, adjustHeight, textElement.text]);
+  }, [isVisible, adjustHeight, textElement?.text]);
 
   // Update text when textElement changes externally
   useEffect(() => {
-    if (textElement.text !== text && !isFocused) {
+    if (textElement?.text !== text && !isFocused) {
       setText(textElement.text);
     }
-  }, [textElement.text, text, isFocused]);
+  }, [textElement?.text, text, isFocused]);
 
   // Apply text formatting styles
   const getTextStyle = useCallback((): React.CSSProperties => {
@@ -340,17 +344,17 @@ const TextEditor: React.FC<TextEditorProps> = ({
               {/* Font Size Controls */}
               <div className="flex items-center space-x-1 pr-2 border-r border-gray-300/60">
                 <button
-                  onClick={() => updateFormatting({ fontSize: Math.max(8, textElement.formatting.fontSize - 2) })}
+                  onClick={() => updateFormatting({ fontSize: Math.max(8, textElement?.formatting.fontSize - 2) })}
                   className="p-1.5 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-700 hover:text-gray-900"
                   title="Decrease font size"
                 >
                   <Minus size={14} />
                 </button>
                 <span className="text-xs font-semibold min-w-[24px] text-center text-gray-800 bg-gray-100/50 px-2 py-1 rounded">
-                  {textElement.formatting.fontSize}
+                  {textElement?.formatting.fontSize}
                 </span>
                 <button
-                  onClick={() => updateFormatting({ fontSize: Math.min(72, textElement.formatting.fontSize + 2) })}
+                  onClick={() => updateFormatting({ fontSize: Math.min(72, textElement?.formatting.fontSize + 2) })}
                   className="p-1.5 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-700 hover:text-gray-900"
                   title="Increase font size"
                 >
@@ -360,10 +364,10 @@ const TextEditor: React.FC<TextEditorProps> = ({
 
               {/* Formatting Controls */}
               <button
-                onClick={() => updateFormatting({ bold: !textElement.formatting.bold })}
+                onClick={() => updateFormatting({ bold: !textElement?.formatting.bold })}
                 className={cn(
                   "p-1.5 rounded-lg transition-colors",
-                  textElement.formatting.bold 
+                  textElement?.formatting.bold 
                     ? "bg-blue-500 text-white shadow-sm" 
                     : "hover:bg-gray-100 active:bg-gray-200 text-gray-700 hover:text-gray-900"
                 )}
@@ -373,10 +377,10 @@ const TextEditor: React.FC<TextEditorProps> = ({
               </button>
               
               <button
-                onClick={() => updateFormatting({ italic: !textElement.formatting.italic })}
+                onClick={() => updateFormatting({ italic: !textElement?.formatting.italic })}
                 className={cn(
                   "p-1.5 rounded-lg transition-colors",
-                  textElement.formatting.italic 
+                  textElement?.formatting.italic 
                     ? "bg-blue-500 text-white shadow-sm" 
                     : "hover:bg-gray-100 active:bg-gray-200 text-gray-700 hover:text-gray-900"
                 )}
@@ -386,10 +390,10 @@ const TextEditor: React.FC<TextEditorProps> = ({
               </button>
               
               <button
-                onClick={() => updateFormatting({ underline: !textElement.formatting.underline })}
+                onClick={() => updateFormatting({ underline: !textElement?.formatting.underline })}
                 className={cn(
                   "p-1.5 rounded-lg transition-colors",
-                  textElement.formatting.underline 
+                  textElement?.formatting.underline 
                     ? "bg-blue-500 text-white shadow-sm" 
                     : "hover:bg-gray-100 active:bg-gray-200 text-gray-700 hover:text-gray-900"
                 )}
@@ -406,7 +410,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
                     onClick={() => updateFormatting({ align })}
                     className={cn(
                       "p-1.5 rounded-lg transition-colors",
-                      textElement.formatting.align === align 
+                      textElement?.formatting.align === align 
                         ? "bg-blue-500 text-white shadow-sm" 
                         : "hover:bg-gray-100 active:bg-gray-200 text-gray-700 hover:text-gray-900"
                     )}
@@ -424,14 +428,14 @@ const TextEditor: React.FC<TextEditorProps> = ({
                 <div className="relative">
                   <input
                     type="color"
-                    value={textElement.formatting.color}
+                    value={textElement?.formatting.color}
                     onChange={(e) => updateFormatting({ color: e.target.value })}
                     className="w-6 h-6 rounded border border-gray-300 cursor-pointer shadow-sm"
                     title="Text color"
                   />
                   <div 
                     className="absolute inset-0 rounded border border-gray-300 pointer-events-none ring-1 ring-black/10"
-                    style={{ backgroundColor: textElement.formatting.color }}
+                    style={{ backgroundColor: textElement?.formatting.color }}
                   />
                 </div>
               </div>

@@ -70,6 +70,14 @@ export interface FrameElement {
       value: string;
       opacity?: number;
     };
+    // Transform properties
+    transform?: string;
+    rotation?: number;
+    // Effects
+    blendMode?: string;
+    brightness?: number;
+    contrast?: number;
+    saturation?: number;
   };
   layout?: {
     padding: { top: number; right: number; bottom: number; left: number };
