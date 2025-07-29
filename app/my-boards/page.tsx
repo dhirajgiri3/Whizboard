@@ -80,6 +80,13 @@ const MyBoardsPage = () => {
   const { data, loading, error, refetch } = useQuery(GET_MY_BOARDS, {
     errorPolicy: "all",
     notifyOnNetworkStatusChange: true,
+    onError: (error) => {
+      console.error("Error fetching my boards:", error);
+      console.error("Error details:", error.message);
+      if (error.graphQLErrors) {
+        console.error("GraphQL errors:", error.graphQLErrors);
+      }
+    },
   });
   const [createBoard, { loading: creating }] = useMutation(CREATE_BOARD);
 
@@ -125,6 +132,8 @@ const MyBoardsPage = () => {
 
   // Filtered and sorted boards
   const filteredAndSortedBoards = useMemo(() => {
+    console.log("My boards data:", data);
+    console.log("My boards array:", data?.myBoards);
     if (!data?.myBoards) return [];
 
     let boards = [...data.myBoards];

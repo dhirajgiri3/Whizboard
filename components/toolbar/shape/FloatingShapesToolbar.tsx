@@ -40,7 +40,7 @@ import {
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { useFloatingToolbarDrag } from "@/hooks/useFloatingToolbarDrag";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import type { ShapeElement } from "@/types";
 
 // Shape type definitions

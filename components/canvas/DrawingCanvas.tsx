@@ -8,7 +8,7 @@ import { useFrameManager } from '@/hooks/useFrameManager';
 import { useCanvasInteractions } from '@/hooks/useCanvasInteractions';
 import { CanvasLayers } from './CanvasLayers';
 import { CanvasControls } from './CanvasControls';
-import { Cursor } from './LiveCursors';
+import { Cursor } from '../reatime/LiveCursors';
 import TextEditor from './text/TextEditor';
 
 interface DrawingCanvasProps {

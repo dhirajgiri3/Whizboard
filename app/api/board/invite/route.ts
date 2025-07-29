@@ -5,7 +5,7 @@ import { connectToDatabase } from '@/lib/database/mongodb';
 import { ObjectId } from 'mongodb';
 import { EmailService } from '@/lib/email/sendgrid';
 import { v4 as uuidv4 } from 'uuid';
-import logger from '@/lib/logger';
+import logger from '@/lib/logger/logger';
 import { User } from '@/types';
 import { pubSub } from '@/lib/graphql/schema';
 

@@ -31,7 +31,7 @@ import QuickActionButton from "@/components/ui/QuickActionButton";
 import {
   useBoardContext,
   formatRelativeTime,
-} from "@/components/context/BoardContext";
+} from "@/lib/context/BoardContext";
 import {
   Dropdown,
   DropdownTrigger,

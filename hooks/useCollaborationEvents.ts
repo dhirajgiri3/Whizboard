@@ -4,8 +4,8 @@ import { useEffect } from 'react';
 // import { useSubscription } from '@apollo/client';
 // import { gql } from '@apollo/client';
 import { toast } from 'sonner';
-import { useBoardContext } from '@/components/context/BoardContext';
-import logger from '@/lib/logger';
+import { useBoardContext } from '@/lib/context/BoardContext';
+import logger from '@/lib/logger/logger';
 
 // Temporarily disable subscriptions until WebSocket setup is fixed
 /*

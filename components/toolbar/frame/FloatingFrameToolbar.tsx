@@ -12,23 +12,17 @@ import {
   Edit,
   Check,
   X,
-  ZoomIn,
-  ZoomOut,
   Maximize2,
   Minimize2,
-  ChevronUp,
   ChevronDown,
   EyeOff,
   Eye,
   Grip,
-  AlertCircle,
-  Move,
   Lock,
   Unlock,
   RotateCcw,
   Layers,
   Zap,
-  Sparkles,
   Smartphone,
   Tablet,
   Monitor,
@@ -38,37 +32,23 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  AlignJustify,
   AlignHorizontalDistributeCenter,
   AlignVerticalDistributeCenter,
   FlipHorizontal,
   FlipVertical,
-  MoreHorizontal,
-  Minus,
-  Plus,
   Square,
   Circle,
-  Pipette,
-  Brush,
-  Eraser,
   Droplet,
-  Paintbrush,
   Sliders,
   RefreshCw,
-  RotateCw,
-  MousePointer,
   Crosshair,
   Blend,
-  Contrast,
   Sun,
   Moon,
-  Hexagon,
-  Triangle,
-  Octagon,
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { useFloatingToolbarDrag } from "@/hooks/useFloatingToolbarDrag";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import type {
   FramePreset,
   FloatingFrameToolbarProps,
@@ -132,7 +112,6 @@ export default function FloatingFrameToolbar({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
-  const [showAdvancedStyles, setShowAdvancedStyles] = useState(false);
   
   // Frame placement state
   const [selectedPreset, setSelectedPreset] = useState<FramePreset | null>(null);
@@ -150,9 +129,7 @@ export default function FloatingFrameToolbar({
   const [shadowOffsetY, setShadowOffsetY] = useState(4);
   const [shadowColor, setShadowColor] = useState("#000000");
   const [rotation, setRotation] = useState(0);
-  const [showColorPicker, setShowColorPicker] = useState(false);
   const [customColor, setCustomColor] = useState("#3b82f6");
-  const [blendMode, setBlendMode] = useState("normal");
   const [brightness, setBrightness] = useState(100);
   const [contrast, setContrast] = useState(100);
   const [saturation, setSaturation] = useState(100);
@@ -164,7 +141,6 @@ export default function FloatingFrameToolbar({
     isHidden,
     isCollapsed,
     isDragging,
-    position: toolbarPosition,
     toolbarStyles,
     eyeButtonStyles,
     handleMouseDown,
@@ -269,7 +245,7 @@ export default function FloatingFrameToolbar({
   }, [isPlacementMode, selectedPreset, onFramePlacementStart, placementHandler]);
 
   const handleStyleUpdate = useCallback(
-    (property: string, value: any) => {
+    (property: string, value: string | number | boolean | object | undefined) => {
       if (!primarySelectedFrame) return;
 
       const updatedFrame = {
@@ -359,7 +335,7 @@ export default function FloatingFrameToolbar({
   );
 
   const handleShadowUpdate = useCallback(
-    (property: string, value: any) => {
+    (property: string, value: string | number | boolean | undefined) => {
       if (!primarySelectedFrame) return;
 
       const currentShadow = primarySelectedFrame.style.shadow || {};
@@ -407,7 +383,6 @@ export default function FloatingFrameToolbar({
       setShadowOffsetY(primarySelectedFrame.style.shadow?.offsetY || 4);
       setShadowColor(primarySelectedFrame.style.shadow?.color || "#000000");
       setRotation(primarySelectedFrame.style.rotation || 0);
-      setBlendMode(primarySelectedFrame.style.blendMode || "normal");
       setBrightness(primarySelectedFrame.style.brightness || 100);
       setContrast(primarySelectedFrame.style.contrast || 100);
       setSaturation(primarySelectedFrame.style.saturation || 100);
@@ -799,7 +774,7 @@ export default function FloatingFrameToolbar({
                   <button
                     key={tab.id}
                     onClick={() =>
-                      !tab.disabled && handleTabChange(tab.id as any)
+                      !tab.disabled && handleTabChange(tab.id as "presets" | "style" | "layout" | "actions")
                     }
                     disabled={tab.disabled}
                     className={cn(
@@ -832,7 +807,7 @@ export default function FloatingFrameToolbar({
                       placeholder="Search frames..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 text-sm rounded-lg border border-slate-200 bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300"
+                      className="w-full pl-10 pr-4 py-2.5 placeholder:text-yellow-400 text-sm rounded-lg border border-slate-200 bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300"
                     />
                   </div>
 
@@ -1452,7 +1427,7 @@ export default function FloatingFrameToolbar({
                           key={align.id}
                           onClick={() =>
                             handleAlignFrames(
-                              align.id as any,
+                              align.id as "left" | "center" | "right" | "top" | "middle" | "bottom",
                               onFrameAlignAction
                             )
                           }

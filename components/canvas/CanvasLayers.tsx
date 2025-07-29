@@ -4,7 +4,7 @@ import { KonvaEventObject } from 'konva/lib/Node';
 import Konva from 'konva';
 import { Tool } from '@/types';
 import { StickyNoteElement, FrameElement, ILine, TextElement, ShapeElement } from '@/types';
-import LiveCursors, { Cursor } from './LiveCursors';
+import LiveCursors, { Cursor } from '../reatime/LiveCursors';
 import StickyNote from './stickynote/StickyNote';
 import EnhancedFrame from './frame/EnhancedFrame';
 import FrameAlignmentHelper from './frame/FrameAlignmentHelper';

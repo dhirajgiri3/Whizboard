@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { getStickyNoteColorPalette } from "../../canvas/stickynote/StickyNote";
 import { useFloatingToolbarDrag } from "@/hooks/useFloatingToolbarDrag";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import { toast as sonnerToast } from "sonner";
 
 interface FloatingStickyNoteToolbarProps {

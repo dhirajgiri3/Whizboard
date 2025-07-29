@@ -17,7 +17,7 @@ import {
   Zap,
   Layers
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/utils';
 import { useFloatingToolbarDrag } from '@/hooks/useFloatingToolbarDrag';
 
 // Types

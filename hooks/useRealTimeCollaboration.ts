@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { toast } from 'sonner';
-import { useBoardContext } from '@/components/context/BoardContext';
-import logger from '@/lib/logger';
-import { Cursor } from '@/components/canvas/LiveCursors';
+import { useBoardContext } from '@/lib/context/BoardContext';
+import logger from '@/lib/logger/logger';
+import { Cursor } from '@/components/reatime/LiveCursors';
 import { ShapeElement } from '@/types';
 
 interface DrawingLineData {

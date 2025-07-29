@@ -14,6 +14,8 @@ const yoga = createYoga({
       // Only try to get cookies for HTTP requests, not WebSocket
       if (context.request && context.request.headers) {
         const cookieHeader = context.request.headers.get('cookie');
+        console.log('Cookie header:', cookieHeader);
+        
         if (cookieHeader) {
           // Parse cookie manually for session token
           const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
@@ -22,13 +24,18 @@ const yoga = createYoga({
             return acc;
           }, {} as Record<string, string>);
           
+          console.log('Parsed cookies:', Object.keys(cookies));
+          
           const sessionToken = cookies['next-auth.session-token'] || cookies['__Secure-next-auth.session-token'];
+          console.log('Session token found:', !!sessionToken);
           
           if (sessionToken) {
             const token = await decode({
               token: sessionToken,
               secret: authOptions.secret!,
             });
+            
+            console.log('Decoded token:', !!token, token?.sub);
             
             if (token) {
               session = {
@@ -40,6 +47,7 @@ const yoga = createYoga({
                 },
                 expires: new Date((token.exp as number) * 1000).toISOString(),
               };
+              console.log('Session created:', !!session, session?.user?.id);
             }
           }
         }

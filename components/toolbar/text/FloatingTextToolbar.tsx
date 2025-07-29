@@ -22,7 +22,7 @@ import {
   List,
   ListOrdered,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/utils';
 import { TextElement } from '@/types';
 import { useFloatingToolbarDrag } from '@/hooks/useFloatingToolbarDrag';
 

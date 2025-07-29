@@ -1,5 +1,5 @@
 import sgMail from '@sendgrid/mail';
-import logger from '@/lib/logger';
+import logger from '@/lib/logger/logger';
 
 // Initialize SendGrid with API key
 if (!process.env.SENDGRID_API_KEY) {

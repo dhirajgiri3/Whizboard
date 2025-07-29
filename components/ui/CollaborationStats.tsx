@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Users, Crown, Wifi, WifiOff, UserPlus, Mail } from 'lucide-react';
-import { useBoardContext } from '@/components/context/BoardContext';
+import { useBoardContext } from '@/lib/context/BoardContext';
 import { toast } from 'sonner';
 
 interface User {

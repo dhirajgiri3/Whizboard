@@ -4,6 +4,14 @@ import { KonvaEventObject } from "konva/lib/Node";
 import { FrameElement } from "@/types";
 import type Konva from "konva";
 
+interface BoundingBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+}
+
 interface EnhancedFrameProps {
   frame: FrameElement;
   isSelected: boolean;
@@ -91,7 +99,7 @@ const EnhancedFrame: React.FC<EnhancedFrameProps> = ({
     const maxSize = Math.min(5000 / scale, 5000);
 
     return {
-      boundBoxFunc: (oldBox: any, newBox: any) => {
+      boundBoxFunc: (oldBox: BoundingBox, newBox: BoundingBox) => {
         if (newBox.width < minSize || newBox.height < minSize) {
           return oldBox;
         }
@@ -465,7 +473,7 @@ const EnhancedFrame: React.FC<EnhancedFrameProps> = ({
     let frameStroke = stroke;
     let frameStrokeWidth = Math.max(strokeWidth / scale, 0.5);
     let frameOpacity = fillOpacity;
-    let frameFill = fill;
+    const frameFill = fill;
 
     if (isSelected) {
       frameStroke = "#0096FF";

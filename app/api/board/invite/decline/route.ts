@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/database/mongodb';
-import logger from '@/lib/logger';
+import logger from '@/lib/logger/logger';
 
 export async function GET(request: NextRequest) {
   try {

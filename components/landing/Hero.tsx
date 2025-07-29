@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Zap, ArrowRight, Play, Users, Star } from "lucide-react";
+import RealtimeDashboard from "@/components/reatime/whiteboard/RealtimeWhiteboard"
 
 /**
  * Enhanced hero section with sophisticated dark blue gradients and seamless wave integration
@@ -92,7 +93,7 @@ const Hero = () => {
 
   return (
     <div
-      className="relative h-screen w-full overflow-hidden"
+      className="relative w-full overflow-hidden"
       style={{
         background:
           "linear-gradient(135deg, #ffffff 0%, #EDF4FB 5%, #C8DFFF 25%, #7FBAFD 45%, #3b82f6 65%, #2563eb 80%, #1e3a8a 92%, #0f172a 100%)",
@@ -542,7 +543,7 @@ const Hero = () => {
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="mb-8 text-4xl font-bold leading-tight text-white drop-shadow-xl sm:text-5xl md:text-6xl"
+              className="mb-8 text-4xl font-bold leading-none font-maison-neue text-white drop-shadow-lg sm:text-5xl md:text-6xl max-w-2xl mx-auto"
             >
               Turn Ideas into{" "}
               <motion.span
@@ -646,6 +647,9 @@ const Hero = () => {
             </motion.div>
           </motion.div>
         </div>
+        
+        {/* Realtime Dashboard Integration */}
+        <RealtimeDashboard />
       </main>
     </div>
   );

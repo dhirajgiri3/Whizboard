@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Mail, Send, Users, AlertCircle, CheckCircle, Copy, Clock, UserCheck, UserX, Sparkles, Link, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
-import { useBoardContext } from '@/components/context/BoardContext';
+import { useBoardContext } from '@/lib/context/BoardContext';
 
 interface InviteCollaboratorsModalProps {
   isOpen: boolean;

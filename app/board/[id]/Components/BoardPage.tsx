@@ -13,9 +13,9 @@ import CollaborationPanel from "@/components/layout/CollaborationPanel";
 import { useParams } from "next/navigation";
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
-import logger from "@/lib/logger";
+import logger from "@/lib/logger/logger";
 import { LoadingOverlay } from "@/components/ui/Loading";
-import { X, AlertCircle, ChevronUp, ChevronDown, ZoomIn, Maximize } from "lucide-react";
+import { X, AlertCircle, ChevronUp, ChevronDown } from "lucide-react";
 import RenameBoardModal from "@/components/ui/modal/RenameBoardModal";
 import InviteCollaboratorsModal from "@/components/ui/modal/InviteCollaboratorsModal";
 import SuccessModal from "@/components/ui/modal/SuccessModal";
@@ -24,7 +24,7 @@ import CanvasHeader from "@/components/layout/header/CanvasHeader";
 import {
   BoardProvider,
   useBoardContext,
-} from "@/components/context/BoardContext";
+} from "@/lib/context/BoardContext";
 import useRealTimeCollaboration from "@/hooks/useRealTimeCollaboration";
 import {
   StickyNoteElement,
@@ -34,11 +34,13 @@ import {
   TextElement,
   ShapeElement,
 } from "@/types";
-import { Cursor } from "@/components/canvas/LiveCursors";
+import { FramePreset } from "@/components/toolbar/frame/types";
+import { Cursor } from "@/components/reatime/LiveCursors";
 import { getRandomStickyNoteColor } from "@/components/canvas/stickynote/StickyNote";
 import StickyNoteColorPicker, {
   useStickyNoteColorPicker,
 } from "@/components/ui/StickyNoteColorPicker";
+import { createDefaultTextElement } from "@/lib/utils/utils";
 
 // Import hooks and components
 import KeyboardShortcuts from "@/components/boardshortcuts/KeyboardShortcuts";
@@ -63,7 +65,7 @@ const GET_BOARD = gql`
 `;
 
 const ADD_BOARD_ACTION = gql`
-  mutation AddBoardAction($boardId: String!, $action: BoardActionInput!) {
+  mutation AddBoardAction($boardId: String!, $action: String!) {
     addBoardAction(boardId: $boardId, action: $action) {
       id
       elements {
@@ -198,13 +200,6 @@ function BoardPageContent() {
     useState<TextElement | null>(null);
   const [selectedShape, setSelectedShape] = useState<string | null>(null);
   const [selectedShapes, setSelectedShapes] = useState<string[]>([]);
-  const [selectionBox, setSelectionBox] = useState<{
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    visible: boolean;
-  }>({ x: 0, y: 0, width: 0, height: 0, visible: false });
   const [history, setHistory] = useState<unknown[]>([]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [tool, setTool] = useState<Tool>("pen");
@@ -222,8 +217,6 @@ function BoardPageContent() {
     name: string;
   } | null>(null);
   const [isOwner, setIsOwner] = useState(false);
-  const [isDragInProgress, setIsDragInProgress] = useState(false);
-  const [recentDragEnd, setRecentDragEnd] = useState(false);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
   const [currentStickyNoteColor, setCurrentStickyNoteColor] = useState(
     getRandomStickyNoteColor()
@@ -232,13 +225,8 @@ function BoardPageContent() {
   // Mobile and tablet responsive states
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
-  const [screenSize, setScreenSize] = useState({ width: 0, height: 0 });
-  const [orientation, setOrientation] = useState<"portrait" | "landscape">(
-    "landscape"
-  );
   const [isFloatingToolbarCollapsed, setIsFloatingToolbarCollapsed] =
     useState(false);
-  const [touchStartTime, setTouchStartTime] = useState(0);
   const [lastTouchEnd, setLastTouchEnd] = useState(0);
 
   // Pending shape creation state for improved UX
@@ -247,7 +235,7 @@ function BoardPageContent() {
     useState<Partial<ShapeElement> | null>(null);
 
   // Pending frame creation state for improved UX
-  const [pendingFramePreset, setPendingFramePreset] = useState<any>(null);
+  const [pendingFramePreset, setPendingFramePreset] = useState<FramePreset | null>(null);
   const [isFramePlacementMode, setIsFramePlacementMode] = useState(false);
 
   // Derived responsive state
@@ -257,12 +245,9 @@ function BoardPageContent() {
   useEffect(() => {
     const updateScreenSize = () => {
       const width = window.innerWidth;
-      const height = window.innerHeight;
 
-      setScreenSize({ width, height });
       setIsMobile(width < 768); // Mobile: < 768px
       setIsTablet(width >= 768 && width < 1024); // Tablet: 768px - 1024px
-      setOrientation(width > height ? "landscape" : "portrait");
 
       // Auto-collapse floating toolbars on mobile
       if (width < 768) {
@@ -347,33 +332,27 @@ function BoardPageContent() {
   );
 
   const handleStickyNoteDragStart = useCallback(() => {
-    setIsDragInProgress(true);
+    // No-op for now
   }, []);
 
   const handleStickyNoteDragEnd = useCallback(() => {
-    setIsDragInProgress(false);
-    setRecentDragEnd(true);
-    setTimeout(() => setRecentDragEnd(false), 100);
+    // No-op for now
   }, []);
 
   const handleFrameDragStart = useCallback(() => {
-    setIsDragInProgress(true);
+    // No-op for now
   }, []);
 
   const handleFrameDragEnd = useCallback(() => {
-    setIsDragInProgress(false);
-    setRecentDragEnd(true);
-    setTimeout(() => setRecentDragEnd(false), 100);
+    // No-op for now
   }, []);
 
   const handleShapeDragStart = useCallback(() => {
-    setIsDragInProgress(true);
+    // No-op for now
   }, []);
 
   const handleShapeDragEnd = useCallback(() => {
-    setIsDragInProgress(false);
-    setRecentDragEnd(true);
-    setTimeout(() => setRecentDragEnd(false), 100);
+    // No-op for now
   }, []);
 
   // Manual zoom state instead of useCanvasZoom hook
@@ -506,7 +485,7 @@ function BoardPageContent() {
 
     setCurrentZoom(Math.round(scale * 100));
     stageRef.current.batchDraw();
-  }, [lines, shapes, textElements, frames, stageRef, setCurrentZoom]);
+  }, [lines, shapes, stageRef, setCurrentZoom]);
 
   // Sticky Note Color Picker State
   const colorPicker = useStickyNoteColorPicker();
@@ -563,7 +542,6 @@ function BoardPageContent() {
     broadcastShapeElementCreate,
     broadcastShapeElementUpdate,
     broadcastShapeElementDelete,
-    broadcastShapeElementTransform,
   } = useRealTimeCollaboration({
     boardId,
     userId: session?.user?.id,
@@ -908,95 +886,163 @@ function BoardPageContent() {
 
   const handleSetLines = async (newLines: ILine[]) => {
     const drawnLine = newLines[newLines.length - 1];
-    if (drawnLine && boardId) {
+    if (!drawnLine || !boardId) {
+      logger.warn({ drawnLine: !!drawnLine, boardId }, "Missing required data for handleSetLines");
+      return;
+    }
+
+    try {
+      const lineWithId = {
+        ...drawnLine,
+        id:
+          drawnLine.id ||
+          `line-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      };
+
+      // Validate required fields
+      if (
+        !lineWithId.id ||
+        !lineWithId.points ||
+        !lineWithId.tool ||
+        !lineWithId.color ||
+        typeof lineWithId.strokeWidth !== "number"
+      ) {
+        logger.warn({ lineWithId }, "Invalid line data for board action");
+        return;
+      }
+
+      // Broadcast drawing completion
       try {
-        const lineWithId = {
-          ...drawnLine,
-          id:
-            drawnLine.id ||
-            `line-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        };
-
-        if (
-          lineWithId.id &&
-          lineWithId.points &&
-          lineWithId.tool &&
-          lineWithId.color &&
-          typeof lineWithId.strokeWidth === "number"
-        ) {
-          broadcastDrawingComplete({
-            id: lineWithId.id,
-            points: lineWithId.points,
-            tool: lineWithId.tool,
-            color: lineWithId.color,
-            strokeWidth: lineWithId.strokeWidth,
-          });
-        }
-
-        const { data } = await addBoardAction({
-          variables: {
-            boardId,
-            action: {
-              type: "add",
-              data: JSON.stringify(lineWithId),
-            },
-          },
+        broadcastDrawingComplete({
+          id: lineWithId.id,
+          points: lineWithId.points,
+          tool: lineWithId.tool,
+          color: lineWithId.color,
+          strokeWidth: lineWithId.strokeWidth,
         });
-        if (data?.addBoardAction) {
-          const allElements = data.addBoardAction.elements || [];
-          const lineElements = allElements
-            .filter((el: { data: string }) => {
-              const parsed =
-                typeof el.data === "string" ? JSON.parse(el.data) : el.data;
-              return parsed.type !== "sticky-note";
-            })
-            .map((el: { data: string }) =>
-              typeof el.data === "string" ? JSON.parse(el.data) : el.data
-            );
+      } catch (broadcastError) {
+        logger.warn({ broadcastError }, "Failed to broadcast drawing completion");
+      }
 
-          setLines(lineElements);
-          setHistory(data.addBoardAction.history || []);
-          setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
-          updateBoardTimestamp(boardId);
-        }
-      } catch (err) {
-        logger.error({ err }, "Failed to add board action");
+      // Add board action
+      const { data } = await addBoardAction({
+        variables: {
+          boardId,
+          action: JSON.stringify({
+            type: "add",
+            data: JSON.stringify(lineWithId),
+          }),
+        },
+      });
+
+      if (!data?.addBoardAction) {
+        logger.warn({ data }, "No data returned from addBoardAction");
+        return;
+      }
+
+      const allElements = data.addBoardAction.elements || [];
+      const lineElements = allElements
+        .filter((el: { data: string }) => {
+          try {
+            const parsed =
+              typeof el.data === "string" ? JSON.parse(el.data) : el.data;
+            return parsed.type !== "sticky-note";
+          } catch (parseError) {
+            logger.warn({ parseError, element: el }, "Failed to parse element data");
+            return false;
+          }
+        })
+        .map((el: { data: string }) => {
+          try {
+            return typeof el.data === "string" ? JSON.parse(el.data) : el.data;
+          } catch (parseError) {
+            logger.warn({ parseError, element: el }, "Failed to parse element data in map");
+            return null;
+          }
+        })
+        .filter(Boolean);
+
+      setLines(lineElements);
+      setHistory(data.addBoardAction.history || []);
+      setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
+      
+      try {
+        await updateBoardTimestamp(boardId);
+      } catch (timestampError) {
+        logger.warn({ timestampError }, "Failed to update board timestamp");
+      }
+    } catch (err) {
+      logger.error({ err, boardId, drawnLine }, "Failed to add board action");
+      console.error("Detailed error in handleSetLines:", err);
+      
+      // Try to provide more specific error information
+      if (err instanceof Error) {
+        console.error("Error message:", err.message);
+        console.error("Error stack:", err.stack);
+      }
+      
+      // Check if it's a GraphQL error
+      if (err && typeof err === 'object' && 'graphQLErrors' in err) {
+        console.error("GraphQL errors:", (err as any).graphQLErrors);
       }
     }
   };
 
   const handleErase = async (lineId: string) => {
-    if (lineId && boardId) {
-      try {
-        const { data } = await addBoardAction({
-          variables: {
-            boardId,
-            action: {
-              type: "remove",
-              data: JSON.stringify({ id: lineId }),
-            },
-          },
-        });
-        if (data?.addBoardAction) {
-          const allElements = data.addBoardAction.elements || [];
-          const lineElements = allElements
-            .filter((el: { data: string }) => {
-              const parsed =
-                typeof el.data === "string" ? JSON.parse(el.data) : el.data;
-              return parsed.type !== "sticky-note";
-            })
-            .map((el: { data: string }) =>
-              typeof el.data === "string" ? JSON.parse(el.data) : el.data
-            );
+    if (!lineId || !boardId) {
+      logger.warn({ lineId, boardId }, "Missing required data for handleErase");
+      return;
+    }
 
-          setLines(lineElements);
-          setHistory(data.addBoardAction.history || []);
-          setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
-          updateBoardTimestamp(boardId);
-        }
-      } catch (err) {
-        logger.error({ err }, "Failed to erase board action");
+    try {
+      const { data } = await addBoardAction({
+        variables: {
+          boardId,
+          action: JSON.stringify({
+            type: "remove",
+            data: JSON.stringify({ id: lineId }),
+          }),
+        },
+      });
+
+      if (!data?.addBoardAction) {
+        logger.warn({ data }, "No data returned from addBoardAction in handleErase");
+        return;
       }
+
+      const allElements = data.addBoardAction.elements || [];
+      const lineElements = allElements
+        .filter((el: { data: string }) => {
+          try {
+            const parsed =
+              typeof el.data === "string" ? JSON.parse(el.data) : el.data;
+            return parsed.type !== "sticky-note";
+          } catch (parseError) {
+            logger.warn({ parseError, element: el }, "Failed to parse element data in handleErase");
+            return false;
+          }
+        })
+        .map((el: { data: string }) => {
+          try {
+            return typeof el.data === "string" ? JSON.parse(el.data) : el.data;
+          } catch (parseError) {
+            logger.warn({ parseError, element: el }, "Failed to parse element data in handleErase map");
+            return null;
+          }
+        })
+        .filter(Boolean);
+
+      setLines(lineElements);
+      setHistory(data.addBoardAction.history || []);
+      setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
+      
+      try {
+        await updateBoardTimestamp(boardId);
+      } catch (timestampError) {
+        logger.warn({ timestampError }, "Failed to update board timestamp in handleErase");
+      }
+    } catch (err) {
+      logger.error({ err, boardId, lineId }, "Failed to erase board action");
     }
   };
 
@@ -1008,10 +1054,10 @@ function BoardPageContent() {
           const { data } = await addBoardAction({
             variables: {
               boardId,
-              action: {
+              action: JSON.stringify({
                 type: "add",
                 data: JSON.stringify(stickyNote),
-              },
+              }),
             },
           });
           if (data?.addBoardAction) {
@@ -1052,10 +1098,10 @@ function BoardPageContent() {
           const { data } = await addBoardAction({
             variables: {
               boardId,
-              action: {
+              action: JSON.stringify({
                 type: "update",
                 data: JSON.stringify(updatedStickyNote),
-              },
+              }),
             },
           });
           if (data?.addBoardAction) {
@@ -1099,10 +1145,10 @@ function BoardPageContent() {
         const { data } = await addBoardAction({
           variables: {
             boardId,
-            action: {
+            action: JSON.stringify({
               type: "remove",
               data: JSON.stringify({ id: stickyNoteId, type: "sticky-note" }),
-            },
+            }),
           },
         });
         if (data?.addBoardAction) {
@@ -1152,10 +1198,10 @@ function BoardPageContent() {
           const { data } = await addBoardAction({
             variables: {
               boardId,
-              action: {
+              action: JSON.stringify({
                 type: "add",
                 data: JSON.stringify(frame),
-              },
+              }),
             },
           });
           if (data?.addBoardAction) {
@@ -1213,10 +1259,10 @@ function BoardPageContent() {
           const { data } = await addBoardAction({
             variables: {
               boardId,
-              action: {
+              action: JSON.stringify({
                 type: "update",
                 data: JSON.stringify(updatedFrame),
-              },
+              }),
             },
           });
           if (data?.addBoardAction) {
@@ -1266,10 +1312,10 @@ function BoardPageContent() {
         const { data } = await addBoardAction({
           variables: {
             boardId,
-            action: {
+            action: JSON.stringify({
               type: "remove",
               data: JSON.stringify({ id: frameId, type: "frame" }),
-            },
+            }),
           },
         });
         if (data?.addBoardAction) {
@@ -1327,10 +1373,10 @@ function BoardPageContent() {
           await addBoardAction({
             variables: {
               boardId,
-              action: {
+              action: JSON.stringify({
                 type: "remove",
                 data: JSON.stringify({ id: frameId, type: "frame" }),
-              },
+              }),
             },
           });
         }
@@ -1339,10 +1385,10 @@ function BoardPageContent() {
         const { data } = await addBoardAction({
           variables: {
             boardId,
-            action: {
+            action: JSON.stringify({
               type: "sync",
               data: JSON.stringify({ sync: true }),
-            },
+            }),
           },
         });
 
@@ -1426,7 +1472,7 @@ function BoardPageContent() {
 
   // Frame placement handlers
   const handleFramePlacementStart = useCallback(
-    (preset: any, placementHandler: any) => {
+    (preset: FramePreset) => {
       setPendingFramePreset(preset);
       setIsFramePlacementMode(true);
 
@@ -1457,7 +1503,7 @@ function BoardPageContent() {
 
   // Helper function to create a frame from a preset at a specific position
   const createFrameFromPreset = useCallback(
-    (x: number, y: number, preset: any) => {
+    (x: number, y: number, preset: FramePreset) => {
       if (!boardId || !session?.user?.id || !preset) return null;
 
       const newFrame: FrameElement = {
@@ -1468,16 +1514,16 @@ function BoardPageContent() {
         width: preset.dimensions?.width || 300,
         height: preset.dimensions?.height || 200,
         name: preset.name || "New Frame",
-        frameType: preset.category || "basic",
+        frameType: preset.frameType || "design",
         style: {
-          fill: preset.style?.fill || "rgba(255, 255, 255, 0.9)",
-          stroke: preset.style?.stroke || "#3b82f6",
-          strokeWidth: preset.style?.strokeWidth || 2,
-          cornerRadius: preset.style?.cornerRadius || 8,
-          fillOpacity: preset.style?.fillOpacity || 1,
-          strokeOpacity: preset.style?.strokeOpacity || 1,
-          shadow: preset.style?.shadow,
-          ...preset.style,
+          fill: preset.defaultStyle?.fill || "rgba(255, 255, 255, 0.9)",
+          stroke: preset.defaultStyle?.stroke || "#3b82f6",
+          strokeWidth: preset.defaultStyle?.strokeWidth || 2,
+          cornerRadius: preset.defaultStyle?.cornerRadius || 8,
+          fillOpacity: preset.defaultStyle?.fillOpacity || 1,
+          strokeOpacity: preset.defaultStyle?.strokeOpacity || 1,
+          shadow: preset.defaultStyle?.shadow,
+          ...preset.defaultStyle,
         },
         metadata: {
           labels: [],
@@ -1554,10 +1600,10 @@ function BoardPageContent() {
           const { data } = await addBoardAction({
             variables: {
               boardId,
-              action: {
+              action: JSON.stringify({
                 type: "add",
                 data: JSON.stringify(textElement),
-              },
+              }),
             },
           });
           if (data?.addBoardAction) {
@@ -1604,10 +1650,10 @@ function BoardPageContent() {
           const { data } = await addBoardAction({
             variables: {
               boardId,
-              action: {
+              action: JSON.stringify({
                 type: "update",
                 data: JSON.stringify(updatedTextElement),
-              },
+              }),
             },
           });
           if (data?.addBoardAction) {
@@ -1662,10 +1708,10 @@ function BoardPageContent() {
         const { data } = await addBoardAction({
           variables: {
             boardId,
-            action: {
+            action: JSON.stringify({
               type: "remove",
               data: JSON.stringify({ id: textElementId, type: "text" }),
-            },
+            }),
           },
         });
         if (data?.addBoardAction) {
@@ -1764,10 +1810,10 @@ function BoardPageContent() {
           const { data } = await addBoardAction({
             variables: {
               boardId,
-              action: {
+              action: JSON.stringify({
                 type: "add",
                 data: JSON.stringify(shape),
-              },
+              }),
             },
           });
           if (data?.addBoardAction) {
@@ -1828,10 +1874,10 @@ function BoardPageContent() {
           const { data } = await addBoardAction({
             variables: {
               boardId,
-              action: {
+              action: JSON.stringify({
                 type: "update",
                 data: JSON.stringify(updatedShape),
-              },
+              }),
             },
           });
           if (data?.addBoardAction) {
@@ -1887,10 +1933,10 @@ function BoardPageContent() {
         const { data } = await addBoardAction({
           variables: {
             boardId,
-            action: {
+            action: JSON.stringify({
               type: "remove",
               data: JSON.stringify({ id: shapeId, type: "shape" }),
-            },
+            }),
           },
         });
         if (data?.addBoardAction) {
@@ -1956,10 +2002,10 @@ function BoardPageContent() {
           await addBoardAction({
             variables: {
               boardId,
-              action: {
+              action: JSON.stringify({
                 type: "remove",
                 data: JSON.stringify({ id: shapeId, type: "shape" }),
-              },
+              }),
             },
           });
 
@@ -1973,10 +2019,10 @@ function BoardPageContent() {
         const { data } = await addBoardAction({
           variables: {
             boardId,
-            action: {
+            action: JSON.stringify({
               type: "sync",
               data: JSON.stringify({ sync: true }),
-            },
+            }),
           },
         });
 
@@ -2349,18 +2395,12 @@ function BoardPageContent() {
   );
 
   const handleTextElementDragStart = useCallback(() => {
-    setIsDragInProgress(true);
-  }, [setIsDragInProgress]);
+    // No-op for now
+  }, []);
 
   const handleTextElementDragEnd = useCallback(() => {
-    setIsDragInProgress(false);
-    setRecentDragEnd(true);
-
-    // Clear the recent drag flag after a short delay
-    setTimeout(() => {
-      setRecentDragEnd(false);
-    }, 150); // 150ms delay to prevent immediate canvas clicks
-  }, [setIsDragInProgress, setRecentDragEnd]);
+    // No-op for now
+  }, []);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -2869,10 +2909,10 @@ function BoardPageContent() {
               const { data } = await addBoardAction({
                 variables: {
                   boardId,
-                  action: {
+                  action: JSON.stringify({
                     type: "clear",
                     data: JSON.stringify({}),
-                  },
+                  }),
                 },
               });
               if (data?.addBoardAction) {
@@ -2920,7 +2960,7 @@ function BoardPageContent() {
   };
 
   const handleCanvasClick = useCallback(
-    (e: any) => {
+    (e: KonvaEventObject<MouseEvent>) => {
       const stage = e.target.getStage();
       if (!stage) return;
 
@@ -2981,8 +3021,7 @@ function BoardPageContent() {
 
         handleStickyNoteAdd(newSticky);
         setSelectedStickyNote(newSticky.id);
-        // Switch back to select tool for convenience
-        setTool("select");
+        // Keep the sticky note tool active for better UX
         return;
       }
 
@@ -2991,46 +3030,21 @@ function BoardPageContent() {
       /* ------------------------------------------------------------------ */
       if (tool === "text") {
         const newText: TextElement = {
+          ...createDefaultTextElement({
+            x: stagePoint.x,
+            y: stagePoint.y,
+          }),
           id: `text-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          type: "text",
-          x: stagePoint.x,
-          y: stagePoint.y,
-          width: 200,
-          height: 50,
-          text: "",
-          formatting: {
-            bold: false,
-            italic: false,
-            underline: false,
-            strikethrough: false,
-            highlight: false,
-            highlightColor: "#ffff00",
-            fontFamily: "Comic Sans MS",
-            fontSize: 16,
-            color: "#000000",
-            align: "left",
-            lineHeight: 1.2,
-            letterSpacing: 0,
-            textTransform: "none",
-            listType: "none",
-            listStyle: "",
-            listLevel: 0,
-          },
-          style: {
-            opacity: 1,
-          },
-          rotation: 0,
-          isEditing: false,
-          isSelected: false,
           createdBy: session?.user?.id || "unknown",
           createdAt: Date.now(),
           updatedAt: Date.now(),
-          version: 1,
         };
 
         handleTextElementAdd(newText);
-        // Enter edit mode immediately
-        handleTextElementStartEdit(newText);
+        // Enter edit mode immediately after a small delay to ensure the element is created
+        setTimeout(() => {
+          handleTextElementStartEdit(newText);
+        }, 100);
         return;
       }
 
@@ -3406,7 +3420,7 @@ function BoardPageContent() {
             onColorPickerOpenAction={(position) => {
               colorPicker.openPicker(currentStickyNoteColor, position);
             }}
-            isVisible={tool === "sticky-note"}
+            isVisible={tool === "sticky-note" || selectedStickyNote !== null}
             isMobile={isMobile}
             isTablet={isTablet}
             isCollapsed={isFloatingToolbarCollapsed}
@@ -3420,13 +3434,13 @@ function BoardPageContent() {
             }
             selectedFrameIds={selectedFrame ? [selectedFrame] : []}
             onFrameUpdateAction={handleFrameUpdate}
-            onFrameCreateAction={(preset: any, x?: number, y?: number) => {
+            onFrameCreateAction={(preset: FramePreset, x?: number, y?: number) => {
               if (x !== undefined && y !== undefined) {
                 // Direct creation with coordinates
                 createFrameFromPreset(x, y, preset);
               } else {
                 // Start placement mode
-                handleFramePlacementStart(preset, null);
+                handleFramePlacementStart(preset);
               }
             }}
             onFrameDeleteAction={handleFrameDelete}
