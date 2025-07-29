@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import Hero from "@/components/landing/Hero";
-import Header from "@/components/layout/header/Header";
 import ValueProposition from "../components/landing/ValueProposition";
 import SocialProof from "../components/landing/SocialProof";
 import Features from "../components/landing/Features";
