@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useInView, Variants } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import { 
   Star, 
   Quote, 
@@ -16,7 +16,6 @@ import {
   Palette,
   Lightbulb,
   Building,
-  Sparkles,
   ArrowRight,
   Play
 } from "lucide-react";
@@ -24,6 +23,7 @@ import {
 const SocialProof = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const [scrollPosition, setScrollPosition] = useState(0);
 
   const testimonials = [
     {
@@ -52,6 +52,33 @@ const SocialProof = () => {
       avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
       rating: 5,
       highlight: "Game-changing"
+    },
+    {
+      quote: "We've reduced our design iteration time by 60%. The visual feedback and real-time collaboration are incredible.",
+      author: "Alex Thompson",
+      role: "UX Director",
+      company: "DesignHub",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+      rating: 5,
+      highlight: "60% faster iterations"
+    },
+    {
+      quote: "Whizboard transformed how we brainstorm. Our team is more creative and productive than ever before.",
+      author: "Lisa Wang",
+      role: "Innovation Manager",
+      company: "StartupXYZ",
+      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face",
+      rating: 5,
+      highlight: "More creative & productive"
+    },
+    {
+      quote: "The enterprise features are exactly what we needed. SSO integration and advanced security make it perfect for our organization.",
+      author: "David Kim",
+      role: "CTO",
+      company: "Enterprise Inc",
+      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
+      rating: 5,
+      highlight: "Perfect for enterprise"
     }
   ];
 
@@ -60,28 +87,24 @@ const SocialProof = () => {
       number: "67%",
       label: "Faster decision-making",
       icon: TrendingUp,
-      iconColor: "text-emerald-400",
       description: "Teams make decisions faster with visual collaboration"
     },
     {
       number: "45%",
       label: "Reduction in revision cycles",
       icon: Clock,
-      iconColor: "text-blue-400",
       description: "Less back-and-forth with real-time feedback"
     },
     {
       number: "89%",
       label: "Improvement in team engagement",
       icon: Users,
-      iconColor: "text-amber-400",
       description: "Higher participation in collaborative sessions"
     },
     {
       number: "150k+",
       label: "Active users worldwide",
       icon: Heart,
-      iconColor: "text-red-400",
       description: "Growing community of creative professionals"
     }
   ];
@@ -90,7 +113,7 @@ const SocialProof = () => {
     { name: "TechFlow", logo: Rocket },
     { name: "Creative Studios", logo: Palette },
     { name: "InnovateCorp", logo: Lightbulb },
-    { name: "DesignHub", logo: Sparkles },
+    { name: "DesignHub", logo: Building },
     { name: "StartupXYZ", logo: Zap },
     { name: "Enterprise Inc", logo: Building }
   ];
@@ -112,6 +135,15 @@ const SocialProof = () => {
       description: "Data protection compliance"
     }
   ];
+
+  // Infinite scroll effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setScrollPosition(prev => prev + 1);
+    }, 30); // Adjust speed here
+
+    return () => clearInterval(interval);
+  }, []);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -195,7 +227,7 @@ const SocialProof = () => {
         >
           <div className="inline-flex items-center space-x-2 bg-white/[0.02] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm">
             <motion.div
-              animate={{ scale: [1, 1.1, 1] }}
+              animate={{ scale: [1, 1.05, 1] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
               <Users className="h-4 w-4 text-blue-400" />
@@ -230,66 +262,122 @@ const SocialProof = () => {
           </div>
         </motion.div>
 
-        {/* Testimonials */}
+        {/* Infinite Scrolling Testimonials */}
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          className="grid md:grid-cols-3 gap-6 mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+          className="relative mb-16"
         >
-          {testimonials.map((testimonial, index) => (
-            <motion.div
-              key={index}
-              variants={testimonialVariants}
-              className="group relative"
-              whileHover={{ y: -8, scale: 1.02 }}
-              transition={{ duration: 0.3 }}
+          {/* Fade Effects */}
+          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#0A0A0B] to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#0A0A0B] to-transparent z-10 pointer-events-none"></div>
+          
+          {/* Scrolling Container */}
+          <div className="overflow-hidden">
+            <div 
+              className="flex space-x-6"
+              style={{
+                transform: `translateX(-${scrollPosition}px)`,
+                width: `${testimonials.length * 2 * 400}px`, // Double the content for seamless loop
+              }}
             >
-              <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-6 sm:p-8 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-300 overflow-hidden">
-                {/* Subtle gradient background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
-                <div className="relative z-10">
-                  <div className="flex items-start space-x-4 mb-6">
-                    <div className="relative">
-                      <img 
-                        src={testimonial.avatar} 
-                        alt={testimonial.author}
-                        className="w-12 h-12 rounded-full object-cover border-2 border-white/10 group-hover:border-blue-400/30 transition-colors"
-                      />
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-black flex items-center justify-center">
-                        <CheckCircle className="w-2 h-2 text-white" />
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <h4 className="font-semibold text-white group-hover:text-blue-400 transition-colors">{testimonial.author}</h4>
-                        <div className="flex items-center space-x-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                          ))}
+              {/* First set of testimonials */}
+              {testimonials.map((testimonial, index) => (
+                <div
+                  key={`first-${index}`}
+                  className="w-[380px] flex-shrink-0"
+                >
+                  <div className="group relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-6 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-300 overflow-hidden h-full">
+                    <div className="relative z-10">
+                      <div className="flex items-start space-x-4 mb-6">
+                        <div className="relative">
+                          <img 
+                            src={testimonial.avatar} 
+                            alt={testimonial.author}
+                            className="w-12 h-12 rounded-full object-cover border-2 border-white/10 group-hover:border-blue-400/30 transition-colors"
+                          />
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-black flex items-center justify-center">
+                            <CheckCircle className="w-2 h-2 text-white" />
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <h4 className="font-semibold text-white group-hover:text-blue-400 transition-colors">{testimonial.author}</h4>
+                            <div className="flex items-center space-x-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-sm text-white/60">{testimonial.role} at {testimonial.company}</p>
                         </div>
                       </div>
-                      <p className="text-sm text-white/60">{testimonial.role} at {testimonial.company}</p>
-                    </div>
-                  </div>
-                  <blockquote className="text-white/80 leading-relaxed mb-4">
-                    "{testimonial.quote}"
-                  </blockquote>
-                  <div className="flex items-center justify-between text-xs text-white/50">
-                    <span>Verified review</span>
-                    <div className="flex items-center space-x-1">
-                      <Clock className="w-3 h-3" />
-                      <span>2 weeks ago</span>
+                      <blockquote className="text-white/80 leading-relaxed mb-4">
+                        "{testimonial.quote}"
+                      </blockquote>
+                      <div className="flex items-center justify-between text-xs text-white/50">
+                        <span>Verified review</span>
+                        <div className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span>2 weeks ago</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              ))}
+              
+              {/* Duplicate set for seamless loop */}
+              {testimonials.map((testimonial, index) => (
+                <div
+                  key={`second-${index}`}
+                  className="w-[380px] flex-shrink-0"
+                >
+                  <div className="group relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-6 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-300 overflow-hidden h-full">
+                    <div className="relative z-10">
+                      <div className="flex items-start space-x-4 mb-6">
+                        <div className="relative">
+                          <img 
+                            src={testimonial.avatar} 
+                            alt={testimonial.author}
+                            className="w-12 h-12 rounded-full object-cover border-2 border-white/10 group-hover:border-blue-400/30 transition-colors"
+                          />
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-black flex items-center justify-center">
+                            <CheckCircle className="w-2 h-2 text-white" />
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <h4 className="font-semibold text-white group-hover:text-blue-400 transition-colors">{testimonial.author}</h4>
+                            <div className="flex items-center space-x-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-sm text-white/60">{testimonial.role} at {testimonial.company}</p>
+                        </div>
+                      </div>
+                      <blockquote className="text-white/80 leading-relaxed mb-4">
+                        "{testimonial.quote}"
+                      </blockquote>
+                      <div className="flex items-center justify-between text-xs text-white/50">
+                        <span>Verified review</span>
+                        <div className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span>2 weeks ago</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </motion.div>
 
-        {/* Metrics */}
+        {/* Enhanced Stats Cards */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -300,12 +388,14 @@ const SocialProof = () => {
             <motion.div
               key={index}
               variants={itemVariants}
-              className="group text-center"
+              className="group relative"
+              whileHover={{ y: -8, scale: 1.02 }}
+              transition={{ duration: 0.3 }}
             >
-              <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-6 sm:p-8 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-500 overflow-hidden">
+              <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-6 sm:p-8 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-500 overflow-hidden h-[200px] flex flex-col justify-between">
                 <div className="relative z-10">
-                  <div className="inline-flex p-4 rounded-xl bg-white/[0.05] border border-white/[0.1] mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <metric.icon className={`h-8 w-8 ${metric.iconColor}`} />
+                  <div className="inline-flex p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <metric.icon className="h-8 w-8 text-blue-400" />
                   </div>
                   
                   <div className="text-3xl md:text-4xl font-bold text-white mb-2 group-hover:scale-105 transition-transform duration-300">
@@ -315,17 +405,17 @@ const SocialProof = () => {
                   <h4 className="text-lg font-semibold text-white mb-2">
                     {metric.label}
                   </h4>
-                  
-                  <p className="text-white/60 text-sm leading-relaxed group-hover:text-white/80 transition-colors">
-                    {metric.description}
-                  </p>
                 </div>
+                
+                <p className="text-white/60 text-sm leading-relaxed group-hover:text-white/80 transition-colors relative z-10">
+                  {metric.description}
+                </p>
               </div>
             </motion.div>
           ))}
         </motion.div>
 
-        {/* Trust Indicators */}
+        {/* Enhanced Trust Indicators */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
@@ -335,64 +425,116 @@ const SocialProof = () => {
           {/* Trust badges */}
           <div className="text-center mb-12">
             <div className="flex flex-col items-center space-y-6 mb-12">
-              <h3 className="text-2xl font-semibold text-white">Trusted & Secure</h3>
+              <div className="inline-flex items-center space-x-2 bg-white/[0.02] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm">
+                <Award className="h-4 w-4 text-blue-400" />
+                <span className="text-white/70 text-sm font-medium">Enterprise Ready</span>
+              </div>
+              <h3 className="text-3xl font-semibold text-white">Trusted & Secure</h3>
               <p className="text-white/70 text-sm max-w-md text-center">Enterprise-grade security and compliance standards you can trust</p>
             </div>
-            <div className="flex flex-wrap justify-center items-center gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {trustBadges.map((badge, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-                  transition={{ delay: 0.9 + index * 0.1 }}
-                  className="group relative flex items-center space-x-3 p-4 sm:p-6 rounded-2xl bg-white/[0.02] border border-white/[0.08] hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-300 backdrop-blur-sm"
-                  whileHover={{ scale: 1.05, y: -4 }}
+                  transition={{ delay: 0.9 + index * 0.1, duration: 0.3 }}
+                  className="group relative"
+                  whileHover={{ y: -4, scale: 1.02 }}
                 >
-                  <div className="relative z-10 flex items-center space-x-3">
-                    <div className="p-3 rounded-xl bg-blue-600/10 border border-blue-600/20 group-hover:bg-blue-600/15 transition-colors">
-                      <badge.icon className="w-5 h-5 text-blue-400" />
+                  <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-8 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-300 overflow-hidden h-[180px] flex flex-col justify-between">
+                    <div className="relative z-10">
+                      <div className="inline-flex p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 mb-6 group-hover:scale-110 transition-transform duration-300">
+                        <badge.icon className="h-8 w-8 text-blue-400" />
+                      </div>
+                      
+                      <h4 className="text-xl font-semibold text-white mb-2 group-hover:text-blue-400 transition-colors">
+                        {badge.title}
+                      </h4>
                     </div>
-                    <div>
-                      <div className="font-medium text-white text-sm group-hover:text-blue-400 transition-colors">{badge.title}</div>
-                      <div className="text-white/60 text-xs">{badge.description}</div>
-                    </div>
+                    
+                    <p className="text-white/60 text-sm leading-relaxed group-hover:text-white/80 transition-colors relative z-10">
+                      {badge.description}
+                    </p>
                   </div>
                 </motion.div>
               ))}
             </div>
           </div>
 
-          {/* Companies */}
+          {/* Enhanced Companies Section */}
           <div className="text-center">
-            <h3 className="text-2xl font-semibold text-white mb-8">
-              Trusted by Leading Companies
-            </h3>
-            <div className="flex flex-wrap justify-center items-center gap-6">
+            <div className="flex flex-col items-center space-y-6 mb-12">
+              <div className="inline-flex items-center space-x-2 bg-white/[0.02] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm">
+                <Building className="h-4 w-4 text-blue-400" />
+                <span className="text-white/70 text-sm font-medium">Global Trust</span>
+              </div>
+              <h3 className="text-3xl font-semibold text-white">
+                Trusted by Leading Companies
+              </h3>
+              <p className="text-white/70 text-sm max-w-md text-center">Join thousands of companies worldwide who trust Whizboard</p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {companies.map((company, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
-                  transition={{ delay: 1 + index * 0.1 }}
-                  className="flex items-center space-x-3 bg-white/[0.02] border border-white/[0.08] rounded-lg px-6 py-3 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-300"
+                  transition={{ delay: 1 + index * 0.1, duration: 0.3 }}
+                  className="group relative"
+                  whileHover={{ y: -4, scale: 1.05 }}
                 >
-                  <company.logo className="w-6 h-6 text-blue-400" />
-                  <span className="text-lg font-medium text-white/80">{company.name}</span>
+                  <div className="relative bg-white/[0.02] border border-white/[0.08] rounded-xl p-6 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-300 overflow-hidden">
+                    <div className="flex flex-col items-center space-y-3">
+                      <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 group-hover:scale-110 transition-transform duration-300">
+                        <company.logo className="w-6 h-6 text-blue-400" />
+                      </div>
+                      <div className="text-center">
+                        <div className="text-sm font-medium text-white/90 group-hover:text-white transition-colors">
+                          {company.name}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </motion.div>
               ))}
             </div>
           </div>
         </motion.div>
 
-        {/* CTA Section */}
+        {/* Enhanced CTA Section */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           transition={{ delay: 1.2, duration: 0.6 }}
           className="text-center"
         >
-          <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-12 overflow-hidden">
+          <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-3xl p-12 overflow-hidden">
+            {/* Background Elements */}
+            <div className="absolute inset-0">
+              <motion.div 
+                className="absolute top-1/2 left-1/2 w-96 h-96 rounded-full blur-[100px] transform -translate-x-1/2 -translate-y-1/2"
+                style={{
+                  background: 'radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%)'
+                }}
+                animate={{
+                  scale: [1, 1.1, 1],
+                  opacity: [0.15, 0.25, 0.15]
+                }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+            </div>
+            
             <div className="relative z-10">
+              <div className="inline-flex items-center space-x-2 bg-white/[0.02] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm mb-6">
+                <Rocket className="h-4 w-4 text-blue-400" />
+                <span className="text-white/70 text-sm font-medium">Ready to Start?</span>
+              </div>
+              
               <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">
                 Ready to Transform Your Team Collaboration?
               </h3>
@@ -404,8 +546,8 @@ const SocialProof = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
                 <motion.a
                   href="/signup"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   className="group relative overflow-hidden bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg shadow-blue-600/20"
                 >
                   <span className="relative z-10">Get Started Free - No Credit Card Required</span>
@@ -414,8 +556,8 @@ const SocialProof = () => {
                 
                 <motion.a
                   href="#demo"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   className="border-2 border-white/20 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/5 hover:border-white/30 transition-all duration-300 flex items-center justify-center space-x-2"
                 >
                   <Play className="w-5 h-5" />
@@ -423,16 +565,16 @@ const SocialProof = () => {
                 </motion.a>
               </div>
               
-              <div className="flex flex-wrap justify-center gap-8 text-sm text-white/70">
-                <div className="flex items-center space-x-2">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-white/70">
+                <div className="flex items-center justify-center space-x-2">
                   <CheckCircle className="h-4 w-4 text-emerald-400" />
                   <span>30-day money-back guarantee</span>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center justify-center space-x-2">
                   <CheckCircle className="h-4 w-4 text-emerald-400" />
                   <span>Free migration from other tools</span>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center justify-center space-x-2">
                   <CheckCircle className="h-4 w-4 text-emerald-400" />
                   <span>Dedicated onboarding for teams</span>
                 </div>

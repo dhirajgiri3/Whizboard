@@ -417,6 +417,28 @@ const RealtimeWhiteboard: React.FC = () => {
           max-height: 85vh;
           min-height: 400px;
         }
+
+        /* Remove borders and outlines from canvas elements */
+        .canvas-container svg,
+        .canvas-container div {
+          outline: none !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+
+        .canvas-container svg:focus,
+        .canvas-container div:focus {
+          outline: none !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+
+        .canvas-container svg:hover,
+        .canvas-container div:hover {
+          outline: none !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
       `}</style>
         </div>
     );

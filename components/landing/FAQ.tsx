@@ -11,9 +11,10 @@ import {
   Globe,
   Zap,
   ArrowRight,
-  Sparkles,
   MessageCircle,
-  BookOpen
+  BookOpen,
+  Clock,
+  CheckCircle
 } from "lucide-react";
 
 const FAQ = () => {
@@ -28,7 +29,6 @@ const FAQ = () => {
       answer: "Yes! Advanced operational transformation ensures smooth collaboration with unlimited concurrent users and live cursor visibility. Our technology prevents conflicts and maintains data integrity even with dozens of simultaneous editors.",
       category: "collaboration",
       icon: Users,
-      gradient: "from-blue-500 to-cyan-500",
       iconColor: "text-blue-400",
       highlight: "Real-time collaboration"
     },
@@ -37,8 +37,7 @@ const FAQ = () => {
       answer: "No downloads required. Runs entirely in your browser with full functionality across Chrome, Safari, Firefox, and Edge. Just open the website and start collaborating immediately.",
       category: "setup",
       icon: Globe,
-      gradient: "from-green-500 to-emerald-500",
-      iconColor: "text-green-400",
+      iconColor: "text-blue-400",
       highlight: "Zero installation"
     },
     {
@@ -46,8 +45,7 @@ const FAQ = () => {
       answer: "Enterprise-grade security with SOC 2 compliance, end-to-end encryption, and secure cloud storage using financial-institution standards. Your data is protected with the same level of security used by banks.",
       category: "security",
       icon: Shield,
-      gradient: "from-purple-500 to-violet-500",
-      iconColor: "text-purple-400",
+      iconColor: "text-blue-400",
       highlight: "Bank-level security"
     },
     {
@@ -55,8 +53,7 @@ const FAQ = () => {
       answer: "Native integrations with Slack, Microsoft Teams, Google Workspace, plus powerful API for custom workflow integrations. Connect Whizboard to your existing tools seamlessly.",
       category: "integrations",
       icon: Globe,
-      gradient: "from-orange-500 to-red-500",
-      iconColor: "text-orange-400",
+      iconColor: "text-blue-400",
       highlight: "Seamless integrations"
     },
     {
@@ -64,8 +61,7 @@ const FAQ = () => {
       answer: "Lightning-fast performance with sub-50ms latency even with 100+ simultaneous users. Our optimized architecture scales effortlessly to handle enterprise teams.",
       category: "performance",
       icon: Zap,
-      gradient: "from-yellow-500 to-orange-500",
-      iconColor: "text-yellow-400",
+      iconColor: "text-blue-400",
       highlight: "Sub-50ms latency"
     },
     {
@@ -73,8 +69,7 @@ const FAQ = () => {
       answer: "Yes! Export to PNG, SVG, PDF, and more. Pro plans include advanced export options and custom branding capabilities.",
       category: "export",
       icon: Globe,
-      gradient: "from-indigo-500 to-blue-500",
-      iconColor: "text-indigo-400",
+      iconColor: "text-blue-400",
       highlight: "Multiple formats"
     },
     {
@@ -82,8 +77,7 @@ const FAQ = () => {
       answer: "No app needed! Whizboard works perfectly on mobile browsers with touch-optimized interface. Full functionality across all devices without downloads.",
       category: "mobile",
       icon: Globe,
-      gradient: "from-pink-500 to-rose-500",
-      iconColor: "text-pink-400",
+      iconColor: "text-blue-400",
       highlight: "Mobile optimized"
     },
     {
@@ -91,8 +85,7 @@ const FAQ = () => {
       answer: "Offline mode allows you to continue working, and changes sync automatically when you reconnect. Never lose your work due to connectivity issues.",
       category: "offline",
       icon: Zap,
-      gradient: "from-teal-500 to-cyan-500",
-      iconColor: "text-teal-400",
+      iconColor: "text-blue-400",
       highlight: "Offline support"
     },
     {
@@ -100,8 +93,7 @@ const FAQ = () => {
       answer: "Enterprise plans include custom domain support and white-label branding options. Make Whizboard your own with your company's look and feel.",
       category: "branding",
       icon: Shield,
-      gradient: "from-violet-500 to-purple-500",
-      iconColor: "text-violet-400",
+      iconColor: "text-blue-400",
       highlight: "Custom branding"
     },
     {
@@ -109,8 +101,7 @@ const FAQ = () => {
       answer: "Free plans include email support, while Pro and Enterprise plans include priority support, dedicated success managers, and training sessions.",
       category: "support",
       icon: HelpCircle,
-      gradient: "from-emerald-500 to-green-500",
-      iconColor: "text-emerald-400",
+      iconColor: "text-blue-400",
       highlight: "24/7 support"
     }
   ];
@@ -229,7 +220,7 @@ const FAQ = () => {
         >
           <div className="inline-flex items-center space-x-2 bg-white/[0.02] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm">
             <motion.div
-              animate={{ scale: [1, 1.1, 1] }}
+              animate={{ scale: [1, 1.05, 1] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
               <HelpCircle className="h-4 w-4 text-blue-400" />
@@ -317,7 +308,7 @@ const FAQ = () => {
                     className="w-full px-8 py-6 text-left flex items-center justify-between group-hover:bg-white/[0.02] transition-all duration-300"
                   >
                     <div className="flex items-start space-x-4">
-                      <div className={`p-3 rounded-xl bg-gradient-to-r ${faq.gradient} bg-opacity-10 border border-white/[0.1] group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-black/20`}>
+                      <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-black/20">
                         <faq.icon className={`h-5 w-5 ${faq.iconColor}`} />
                       </div>
                       <div className="flex-1">
@@ -411,36 +402,6 @@ const FAQ = () => {
             </motion.div>
           )}
         </motion.div>
-
-        {/* No Results */}
-        {filteredFaqs.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center py-12"
-          >
-            <div className="p-4 rounded-full bg-gray-800/50 border border-gray-700 w-fit mx-auto mb-4">
-              <HelpCircle className="h-12 w-12 text-gray-400" />
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-2">
-              No questions found
-            </h3>
-            <p className="text-gray-400 mb-6">
-              Try adjusting your search or filter criteria
-            </p>
-            <motion.button
-              onClick={() => {
-                setSearchQuery("");
-                setActiveCategory("all");
-              }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-            >
-              Clear filters
-            </motion.button>
-          </motion.div>
-        )}
 
         {/* Contact CTA */}
         <motion.div

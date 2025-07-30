@@ -13,10 +13,12 @@ import {
   ArrowRight,
   CheckCircle,
   Send,
-  Sparkles,
   Heart,
   Globe,
-  Shield
+  Shield,
+  Users,
+  Star,
+  Clock
 } from "lucide-react";
 
 const Footer = () => {
@@ -161,10 +163,10 @@ const Footer = () => {
           <motion.div variants={itemVariants} className="lg:col-span-1">
             <div className="flex items-center space-x-3 mb-6">
               <div className="relative">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
                   <span className="text-white font-bold text-xl">W</span>
                 </div>
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-gray-900 animate-pulse" />
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-gray-900 animate-pulse" />
               </div>
               <div>
                 <span className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Whizboard</span>
@@ -181,12 +183,12 @@ const Footer = () => {
             
             {/* Stats */}
             <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="text-center p-3 bg-gray-800/30 rounded-lg border border-gray-700">
+              <div className="text-center p-3 bg-white/[0.02] rounded-lg border border-white/[0.05] backdrop-blur-sm">
                 <div className="text-xl font-bold text-blue-400">50K+</div>
                 <div className="text-xs text-gray-400">Active Users</div>
               </div>
-              <div className="text-center p-3 bg-gray-800/30 rounded-lg border border-gray-700">
-                <div className="text-xl font-bold text-purple-400">99.9%</div>
+              <div className="text-center p-3 bg-white/[0.02] rounded-lg border border-white/[0.05] backdrop-blur-sm">
+                <div className="text-xl font-bold text-emerald-400">99.9%</div>
                 <div className="text-xs text-gray-400">Uptime</div>
               </div>
             </div>
@@ -194,19 +196,19 @@ const Footer = () => {
             {/* Contact Info */}
             <div className="space-y-4">
               <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-400 transition-colors group">
-                <div className="p-2 bg-gray-800/50 rounded-lg group-hover:bg-blue-500/10 transition-colors">
+                <div className="p-2 bg-white/[0.02] rounded-lg group-hover:bg-blue-500/10 transition-colors border border-white/[0.05]">
                   <Mail className="h-4 w-4" />
                 </div>
                 <span>hello@whizboard.com</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-400 hover:text-green-400 transition-colors group">
-                <div className="p-2 bg-gray-800/50 rounded-lg group-hover:bg-green-500/10 transition-colors">
+              <div className="flex items-center space-x-3 text-gray-400 hover:text-emerald-400 transition-colors group">
+                <div className="p-2 bg-white/[0.02] rounded-lg group-hover:bg-emerald-500/10 transition-colors border border-white/[0.05]">
                   <Phone className="h-4 w-4" />
                 </div>
                 <span>+1 (555) 123-4567</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-400 hover:text-purple-400 transition-colors group">
-                <div className="p-2 bg-gray-800/50 rounded-lg group-hover:bg-purple-500/10 transition-colors">
+              <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-400 transition-colors group">
+                <div className="p-2 bg-white/[0.02] rounded-lg group-hover:bg-blue-500/10 transition-colors border border-white/[0.05]">
                   <MapPin className="h-4 w-4" />
                 </div>
                 <span>San Francisco, CA</span>
@@ -253,12 +255,12 @@ const Footer = () => {
             <div 
               className="absolute -top-4 -left-4 w-24 h-24 rounded-full blur-[30px] opacity-20"
               style={{
-                background: 'radial-gradient(circle, rgba(147, 51, 234, 0.3) 0%, transparent 70%)'
+                background: 'radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, transparent 70%)'
               }}
             />
             <div className="flex items-center gap-2 mb-6">
-              <div className="p-1 bg-purple-500/20 rounded-lg">
-                <Heart className="w-4 h-4 text-purple-400" />
+              <div className="p-1 bg-blue-500/20 rounded-lg">
+                <Heart className="w-4 h-4 text-blue-400" />
               </div>
               <h3 className="font-semibold text-white text-sm uppercase tracking-wider">Company</h3>
             </div>
@@ -271,9 +273,9 @@ const Footer = () => {
                 >
                   <a 
                     href={link.href}
-                    className="group flex items-center text-gray-400 hover:text-purple-400 transition-all duration-200 hover:translate-x-1"
+                    className="group flex items-center text-gray-400 hover:text-blue-400 transition-all duration-200 hover:translate-x-1"
                   >
-                    <ArrowRight className="w-3 h-3 mr-2 opacity-0 group-hover:opacity-100 transition-all duration-200 text-purple-400" />
+                    <ArrowRight className="w-3 h-3 mr-2 opacity-0 group-hover:opacity-100 transition-all duration-200 text-blue-400" />
                     <span className="group-hover:translate-x-1 transition-transform">{link.name}</span>
                   </a>
                 </motion.li>
@@ -286,12 +288,12 @@ const Footer = () => {
             <div 
               className="absolute -top-4 -left-4 w-24 h-24 rounded-full blur-[30px] opacity-20"
               style={{
-                background: 'radial-gradient(circle, rgba(34, 197, 94, 0.3) 0%, transparent 70%)'
+                background: 'radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, transparent 70%)'
               }}
             />
             <div className="flex items-center gap-2 mb-6">
-              <div className="p-1 bg-green-500/20 rounded-lg">
-                <Shield className="w-4 h-4 text-green-400" />
+              <div className="p-1 bg-blue-500/20 rounded-lg">
+                <Shield className="w-4 h-4 text-blue-400" />
               </div>
               <h3 className="font-semibold text-white text-sm uppercase tracking-wider">Resources</h3>
             </div>
@@ -304,9 +306,9 @@ const Footer = () => {
                 >
                   <a 
                     href={link.href}
-                    className="group flex items-center text-gray-400 hover:text-green-400 transition-all duration-200 hover:translate-x-1"
+                    className="group flex items-center text-gray-400 hover:text-blue-400 transition-all duration-200 hover:translate-x-1"
                   >
-                    <ArrowRight className="w-3 h-3 mr-2 opacity-0 group-hover:opacity-100 transition-all duration-200 text-green-400" />
+                    <ArrowRight className="w-3 h-3 mr-2 opacity-0 group-hover:opacity-100 transition-all duration-200 text-blue-400" />
                     <span className="group-hover:translate-x-1 transition-transform">{link.name}</span>
                   </a>
                 </motion.li>
@@ -320,12 +322,9 @@ const Footer = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           transition={{ delay: 0.4, duration: 0.6 }}
-          className="relative bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-blue-600/20 rounded-3xl p-8 mb-12 border border-gray-700 backdrop-blur-sm overflow-hidden"
+          className="relative bg-white/[0.02] rounded-3xl p-8 mb-12 border border-white/[0.05] backdrop-blur-sm overflow-hidden hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300"
         >
-          {/* Background glow */}
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10 rounded-3xl blur-xl" />
-          
-          {/* Additional animated background orb */}
+          {/* Background gradient orb */}
           <motion.div 
             className="absolute top-0 left-1/2 transform -translate-x-1/2 w-96 h-32 rounded-full blur-[60px]"
             style={{
@@ -348,30 +347,27 @@ const Footer = () => {
                 <Mail className="h-3 w-3 mr-1" />
                 Newsletter
               </div>
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-6 h-6 text-blue-400" />
-                <h3 className="text-2xl font-bold text-white">
-                  Stay updated with Whizboard
-                </h3>
-              </div>
+              <h3 className="text-2xl font-bold text-white mb-4">
+                Stay updated with Whizboard
+              </h3>
               <p className="text-gray-300 mb-6">
                 Get the latest updates, tips, and insights delivered to your inbox.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
+                  <CheckCircle className="h-4 w-4 text-emerald-400" />
                   <span className="text-gray-300">No spam, unsubscribe anytime</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
+                  <CheckCircle className="h-4 w-4 text-emerald-400" />
                   <span className="text-gray-300">Free resources included</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
+                  <CheckCircle className="h-4 w-4 text-emerald-400" />
                   <span className="text-gray-300">Weekly insights & tips</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
+                  <CheckCircle className="h-4 w-4 text-emerald-400" />
                   <span className="text-gray-300">Early access to features</span>
                 </div>
               </div>
@@ -385,13 +381,13 @@ const Footer = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 backdrop-blur-sm"
+                  className="flex-1 px-4 py-3 bg-white/[0.02] border border-white/[0.08] rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 backdrop-blur-sm"
                 />
                 <motion.button
                   type="submit"
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2 shadow-lg border border-blue-400/20 rounded-lg"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all duration-200 flex items-center space-x-2 shadow-lg border border-blue-500/20 rounded-lg"
                 >
                   <Send className="h-4 w-4" />
                   <span>Subscribe</span>
@@ -402,7 +398,7 @@ const Footer = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="absolute top-full left-0 mt-2 text-green-400 text-sm flex items-center space-x-1"
+                  className="absolute top-full left-0 mt-2 text-emerald-400 text-sm flex items-center space-x-1"
                 >
                   <CheckCircle className="h-4 w-4" />
                   <span>Successfully subscribed!</span>
@@ -417,7 +413,7 @@ const Footer = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ delay: 0.6, duration: 0.6 }}
-          className="border-t border-gray-800 pt-8 relative"
+          className="border-t border-white/[0.05] pt-8 relative"
         >
           {/* Background gradient orb */}
           <div 
@@ -444,7 +440,7 @@ const Footer = () => {
                   key={link.name}
                   href={link.href}
                   whileHover={{ y: -1 }}
-                  className="text-gray-400 hover:text-blue-400 transition-all duration-200 relative group hover:translate-y-[-1px]"
+                  className="text-gray-400 hover:text-blue-400 transition-all duration-200 relative group"
                 >
                   {link.name}
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 group-hover:w-full transition-all duration-300" />
@@ -458,12 +454,12 @@ const Footer = () => {
                 <motion.a
                   key={social.name}
                   href={social.href}
-                  whileHover={{ scale: 1.1, y: -3 }}
+                  whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.8 + index * 0.1 }}
-                  className="group p-3 bg-gray-800/50 backdrop-blur-sm rounded-xl text-gray-400 hover:text-white border border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
+                  className="group p-3 bg-white/[0.02] backdrop-blur-sm rounded-xl text-gray-400 hover:text-white border border-white/[0.05] hover:border-white/[0.08] transition-all duration-300"
                 >
                   <social.icon className="h-5 w-5 group-hover:scale-110 transition-transform group-hover:text-blue-400" />
                 </motion.a>

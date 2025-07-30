@@ -12,7 +12,6 @@ import {
   Globe, 
   ArrowRight,
   Crown,
-  Sparkles,
   Rocket,
   Heart,
   Award
@@ -38,11 +37,10 @@ const Pricing = () => {
       cta: "Start Free",
       href: "/signup",
       popular: false,
-      icon: Sparkles,
-      gradient: "from-gray-400/20 to-gray-600/20",
-      iconColor: "text-gray-400",
+      icon: Heart,
+      iconColor: "text-blue-400",
       badge: "Forever Free",
-      badgeColor: "bg-gray-400/10 text-gray-400"
+      badgeColor: "bg-white/[0.05] text-white/70"
     },
     {
       name: "Pro",
@@ -62,10 +60,9 @@ const Pricing = () => {
       href: "/signup",
       popular: true,
       icon: Crown,
-      gradient: "from-blue-400/20 to-purple-500/20",
       iconColor: "text-blue-400",
       badge: "Most Popular",
-      badgeColor: "bg-blue-400/10 text-blue-400"
+      badgeColor: "bg-blue-500/10 text-blue-400"
     },
     {
       name: "Enterprise",
@@ -85,10 +82,9 @@ const Pricing = () => {
       href: "#demo",
       popular: false,
       icon: Shield,
-      gradient: "from-purple-400/20 to-pink-500/20",
-      iconColor: "text-purple-400",
+      iconColor: "text-blue-400",
       badge: "Custom",
-      badgeColor: "bg-purple-400/10 text-purple-400"
+      badgeColor: "bg-white/[0.05] text-white/70"
     }
   ];
 
@@ -97,22 +93,25 @@ const Pricing = () => {
       icon: Shield,
       title: "Enterprise Security",
       description: "SOC 2 compliance, end-to-end encryption, advanced audit logs",
-      gradient: "from-green-400/20 to-emerald-500/20",
-      iconColor: "text-green-400"
+      iconColor: "text-blue-400"
     },
     {
       icon: Users,
       title: "Unlimited Collaboration",
       description: "Unlimited collaborators, real-time sync, advanced permissions",
-      gradient: "from-blue-400/20 to-cyan-500/20",
       iconColor: "text-blue-400"
     },
     {
       icon: Globe,
       title: "Global Infrastructure",
       description: "99.9% uptime SLA, worldwide CDN, dedicated support",
-      gradient: "from-purple-400/20 to-pink-500/20",
-      iconColor: "text-purple-400"
+      iconColor: "text-blue-400"
+    },
+    {
+      icon: Award,
+      title: "Premium Support",
+      description: "Dedicated success manager, priority support, custom training",
+      iconColor: "text-blue-400"
     }
   ];
 
@@ -210,7 +209,7 @@ const Pricing = () => {
         >
           <div className="inline-flex items-center space-x-2 bg-white/[0.02] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm">
             <motion.div
-              animate={{ scale: [1, 1.1, 1] }}
+              animate={{ scale: [1, 1.05, 1] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
               <Rocket className="h-4 w-4 text-blue-400" />
@@ -239,7 +238,7 @@ const Pricing = () => {
               <span>Instant activation</span>
             </div>
             <div className="flex items-center space-x-2 text-white/60">
-              <Users className="h-4 w-4 text-amber-400" />
+              <Users className="h-4 w-4 text-blue-400" />
               <span>24/7 support</span>
             </div>
           </div>
@@ -309,13 +308,10 @@ const Pricing = () => {
               <div className={`relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-8 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-500 overflow-hidden h-full group-hover:scale-[1.02] ${
                 plan.popular ? 'ring-2 ring-blue-400/20 shadow-2xl shadow-blue-500/10' : ''
               }`}>
-                {/* Background glow */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${plan.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
-                
                 {/* Popular badge */}
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20">
-                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-full text-sm font-medium shadow-lg border border-blue-400/20">
+                    <div className="bg-blue-600 text-white px-6 py-2 rounded-full text-sm font-medium shadow-lg border border-blue-500/20">
                       {plan.badge}
                     </div>
                   </div>
@@ -324,7 +320,7 @@ const Pricing = () => {
                 <div className="relative z-10">
                   {/* Header */}
                   <div className="text-center mb-8">
-                    <div className="inline-flex p-4 rounded-xl bg-white/[0.05] border border-white/[0.1] mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <div className="inline-flex p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 mb-6 group-hover:scale-110 transition-transform duration-300">
                       <plan.icon className={`h-8 w-8 ${plan.iconColor}`} />
                     </div>
                     
@@ -370,7 +366,7 @@ const Pricing = () => {
                       whileTap={{ scale: 0.98 }}
                       className={`group/btn block w-full text-center py-3 px-6 rounded-lg font-medium transition-all duration-300 mb-8 ${
                         plan.popular
-                          ? 'bg-white/[0.08] border border-white/[0.12] text-white hover:bg-white/[0.12] hover:border-white/[0.16] backdrop-blur-sm'
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white border border-blue-500/30'
                           : 'bg-white/[0.04] border border-white/[0.08] text-white/90 hover:bg-white/[0.08] hover:border-white/[0.12] hover:text-white backdrop-blur-sm'
                       }`}
                     >
@@ -400,9 +396,6 @@ const Pricing = () => {
                     ))}
                   </div>
                 </div>
-
-                {/* Hover effect border */}
-                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${plan.gradient.replace('/20', '/10')} opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl`}></div>
               </div>
             </motion.div>
           ))}
@@ -486,7 +479,7 @@ const Pricing = () => {
               transition={{ duration: 0.6, delay: 1.2 }}
               className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6"
             >
-              <button className="group bg-white/[0.08] border border-white/[0.12] text-white px-6 py-3 rounded-lg font-medium hover:bg-white/[0.12] hover:border-white/[0.16] transition-all duration-300 backdrop-blur-sm">
+              <button className="group bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 border border-blue-500/30">
                 <span className="flex items-center space-x-2">
                   <span>Contact Sales</span>
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />

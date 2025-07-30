@@ -5,7 +5,7 @@ import SocialProof from "../components/landing/SocialProof";
 import Features from "../components/landing/Features";
 import Pricing from "../components/landing/Pricing";
 import FAQ from "../components/landing/FAQ";
-import Footer from "../components/landing/Footer";
+import Footer from "../components/layout/footer/Footer";
 import SmoothScrollProvider from "../components/landing/SmoothScrollProvider";
 
 export const metadata: Metadata = {

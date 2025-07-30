@@ -62,7 +62,7 @@ const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
   isDragging = false,
 }) => {
   return (
-    <div className="relative w-full h-full bg-gradient-to-br from-gray-50 via-white to-gray-50 overflow-hidden">
+    <div className="relative w-full h-full bg-gradient-to-br from-gray-50 via-white to-gray-50 overflow-hidden focus:outline-none" style={{ outline: 'none', border: 'none' }}>
       {/* Modern Grid with Depth */}
       <div className="absolute inset-0">
         <div
@@ -82,7 +82,7 @@ const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
       {/* SVG Canvas */}
       <svg
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full select-none"
+        className="absolute inset-0 w-full h-full select-none focus:outline-none"
         viewBox={`0 0 ${canvasWidth} ${canvasHeight}`}
         preserveAspectRatio="xMidYMid meet"
         style={{
@@ -97,14 +97,15 @@ const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
                   : "default",
           transform: `scale(${zoomLevel / 100}) translate(${panOffset.x}px, ${panOffset.y}px)`,
           touchAction: 'none', // Prevent default touch behaviors
+          outline: 'none',
+          border: 'none',
         }}
         onMouseDown={handleCanvasMouseDown}
         onMouseMove={handleCanvasMouseMove}
         onMouseUp={handleCanvasMouseUp}
         onMouseLeave={handleCanvasMouseUp}
         onTouchStart={(e) => {
-          // Handle touch events for mobile accessibility
-          e.preventDefault(); // Prevent default touch behavior
+          e.preventDefault();
           handleCanvasMouseDown(e as any);
         }}
         onTouchMove={(e) => {
