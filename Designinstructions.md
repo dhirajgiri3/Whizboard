@@ -20,10 +20,10 @@
 - **Disabled Text**: `#6C6C70` (Disabled states)
 
 ### Accent Colors
-- **Purple Accent**: `#7C3AED` (Tailwind: `violet-600`)
 - **Success**: `#059669` (Tailwind: `emerald-600`)
 - **Warning**: `#D97706` (Tailwind: `amber-600`)
 - **Error**: `#DC2626` (Tailwind: `red-600`)
+- **Neutral Accent**: `#6B7280` (Tailwind: `gray-500`)
 
 ### Gradient Orbs & Effects
 ```css
@@ -36,11 +36,11 @@
   filter: blur(60px);
 }
 
-/* Secondary Gradient Orb (Purple) */
-.gradient-orb-purple {
+/* Secondary Gradient Orb (Neutral) */
+.gradient-orb-neutral {
   background: radial-gradient(circle, 
-    rgba(124, 58, 237, 0.3) 0%, 
-    rgba(124, 58, 237, 0.08) 50%, 
+    rgba(107, 114, 128, 0.2) 0%, 
+    rgba(107, 114, 128, 0.05) 50%, 
     transparent 70%);
   filter: blur(80px);
 }
@@ -104,7 +104,7 @@
   letter-spacing: -0.03em;
   background-clip: text;
   color: transparent;
-  background-image: linear-gradient(to right, #60A5FA, #818CF8); /* blue-400 to indigo-400 */
+  background-image: linear-gradient(to right, #60A5FA, #3B82F6); /* blue-400 to blue-500 */
 }
 
 /* Card Titles */
@@ -185,7 +185,7 @@
 .mesh-gradient {
   background: 
     radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.1) 0%, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.08) 0%, transparent 50%);
+    radial-gradient(at 100% 100%, rgba(107, 114, 128, 0.08) 0%, transparent 50%);
 }
 ```
 
@@ -374,7 +374,7 @@
   {/* Background Elements */}
   <div className="absolute inset-0 grid-pattern opacity-30"></div>
   <div className="absolute top-1/4 left-1/4 w-96 h-96 gradient-orb-blue"></div>
-  <div className="absolute bottom-1/4 right-1/4 w-80 h-80 gradient-orb-purple"></div>
+  <div className="absolute bottom-1/4 right-1/4 w-80 h-80 gradient-orb-neutral"></div>
   <div className="absolute top-3/4 left-1/3 w-64 h-64 gradient-orb-subtle-blue"></div>
   
   {/* Content */}
@@ -403,7 +403,7 @@
         <span className="text-white/70 text-sm font-medium">Professional Toolkit</span>
       </div>
       <div className="flex flex-col items-center space-y-4">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight font-semibold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500 text-center">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight font-semibold tracking-tight text-center">
           Complete Professional Toolkit
         </h2>
         <p className="text-base text-white/80 max-w-2xl text-center leading-relaxed">
@@ -518,7 +518,7 @@ const BackgroundOrbs = () => (
       animate={orbAnimation}
     />
     <motion.div 
-      className="absolute bottom-1/4 right-1/4 w-80 h-80 gradient-orb-purple"
+      className="absolute bottom-1/4 right-1/4 w-80 h-80 gradient-orb-neutral"
       animate={{...orbAnimation, transition: {...orbAnimation.transition, delay: 2}}}
     />
     <motion.div 
@@ -579,7 +579,7 @@ const GridOverlay = () => (
 ```css
 :root {
   --gradient-orb-blue: radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, transparent 70%);
-  --gradient-orb-purple: radial-gradient(circle, rgba(124, 58, 237, 0.3) 0%, transparent 70%);
+  --gradient-orb-neutral: radial-gradient(circle, rgba(107, 114, 128, 0.2) 0%, transparent 70%);
   --gradient-orb-subtle-blue: radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, transparent 70%);
   --glass-minimal: rgba(255, 255, 255, 0.03);
   --border-minimal: rgba(255, 255, 255, 0.08);
@@ -633,4 +633,29 @@ module.exports = {
 
 This enhanced design system provides a comprehensive foundation for building a clean, minimal, yet modern Whizboard interface with sophisticated visual effects while maintaining excellent usability and performance.
 
-Note : Avoid using sparkle and pink-blue gradient etc... which is every ai is using.
+## 🚫 Design Restrictions - Avoiding AI-Generated Aesthetics
+
+### Strictly Avoid These Elements
+- **Purple/Violet/Pink Gradients**: No purple (`#7C3AED`), violet, magenta, or pink color combinations
+- **Sparkle Effects**: No sparkle animations, glitter, or twinkling elements
+- **Neon Glows**: Avoid bright neon colors or excessive glow effects
+- **Rainbow Gradients**: No multi-color rainbow or spectrum gradients
+- **Holographic Effects**: No iridescent or holographic-style gradients
+- **Overly Saturated Colors**: Keep colors professional and muted
+
+### Premium Design Principles
+1. **Monochromatic Focus**: Stick to blue tones with neutral accents
+2. **Subtle Sophistication**: Use understated effects that enhance usability
+3. **Professional Palette**: Maintain corporate-grade color schemes
+4. **Minimal Ornamentation**: Avoid decorative elements that don't serve function
+5. **Clean Typography**: No fancy fonts or excessive text effects
+6. **Purposeful Animation**: Every animation should have clear UX purpose
+
+### Recommended Alternatives
+- Instead of purple gradients → Use neutral gray or additional blue tones
+- Instead of sparkles → Use subtle fade-in animations
+- Instead of neon glows → Use soft shadows and borders
+- Instead of rainbow effects → Use monochromatic blue variations
+- Instead of holographic → Use glass morphism with subtle transparency
+
+This ensures Whizboard maintains a premium, professional appearance that stands apart from typical AI-generated interfaces.
