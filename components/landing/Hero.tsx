@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Zap, ArrowRight, Play, Users, Star } from "lucide-react";
-import RealtimeDashboard from "@/components/reatime/whiteboard/RealtimeWhiteboard"
+import RealtimeDashboard from "@/components/reatime/whiteboard/RealtimeWhiteboard";
 
 /**
  * Enhanced hero section with sophisticated dark blue gradients and seamless wave integration
@@ -96,7 +96,7 @@ const Hero = () => {
       className="relative w-full overflow-hidden"
       style={{
         background:
-          "linear-gradient(135deg, #ffffff 0%, #EDF4FB 5%, #C8DFFF 25%, #7FBAFD 45%, #3b82f6 65%, #2563eb 80%, #1e3a8a 92%, #0f172a 100%)",
+          "linear-gradient(135deg, #ffffff 0%, #F0F7FF 3%, #E5F0FF 8%, #D1E5FF 15%, #B3D7FF 25%, #85C1FF 35%, #57A9FF 45%, #3b82f6 55%, #2563eb 65%, #1d4ed8 75%, #1e40af 85%, #1e3a8a 92%, #172554 96%, #0f172a 100%)",
       }}
     >
       {/* Enhanced background texture */}
@@ -143,7 +143,7 @@ const Hero = () => {
             <div className="w-full h-full bg-gradient-to-br from-white/60 to-blue-300/80 rounded-full blur-[0.5px] shadow-lg shadow-blue-300/30" />
           </motion.div>
         ))}
-        
+
         {/* Floating orbs within waves */}
         {[...Array(8)].map((_, i) => (
           <motion.div
@@ -188,27 +188,45 @@ const Hero = () => {
         >
           <defs>
             <linearGradient id="wave6" x1="0%" y1="0%" x2="100%" y2="100%">
-              <motion.stop 
-                offset="0%" 
-                animate={{ stopColor: ["rgba(59, 130, 246, 0.2)", "rgba(147, 197, 253, 0.3)", "rgba(59, 130, 246, 0.2)"] }}
+              <motion.stop
+                offset="0%"
+                animate={{
+                  stopColor: [
+                    "rgba(59, 130, 246, 0.2)",
+                    "rgba(147, 197, 253, 0.3)",
+                    "rgba(59, 130, 246, 0.2)",
+                  ],
+                }}
                 transition={{ duration: 12, repeat: Infinity }}
               />
-              <motion.stop 
-                offset="50%" 
-                animate={{ stopColor: ["rgba(96, 165, 250, 0.15)", "rgba(59, 130, 246, 0.25)", "rgba(96, 165, 250, 0.15)"] }}
+              <motion.stop
+                offset="50%"
+                animate={{
+                  stopColor: [
+                    "rgba(96, 165, 250, 0.15)",
+                    "rgba(59, 130, 246, 0.25)",
+                    "rgba(96, 165, 250, 0.15)",
+                  ],
+                }}
                 transition={{ duration: 14, repeat: Infinity, delay: 2 }}
               />
-              <motion.stop 
-                offset="100%" 
-                animate={{ stopColor: ["rgba(30, 64, 175, 0.25)", "rgba(96, 165, 250, 0.35)", "rgba(30, 64, 175, 0.25)"] }}
+              <motion.stop
+                offset="100%"
+                animate={{
+                  stopColor: [
+                    "rgba(30, 64, 175, 0.25)",
+                    "rgba(96, 165, 250, 0.35)",
+                    "rgba(30, 64, 175, 0.25)",
+                  ],
+                }}
                 transition={{ duration: 16, repeat: Infinity, delay: 4 }}
               />
             </linearGradient>
             <filter id="glow6">
-              <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-              <feMerge> 
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
+              <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
           </defs>
@@ -232,32 +250,52 @@ const Hero = () => {
           style={{
             transform: `translateX(${mousePosition.x * -6}px) translateY(${
               mousePosition.y * -3
-            }px) scale(${1 + mousePosition.y * 0.01}) rotate(${mousePosition.x * 0.5}deg)`,
+            }px) scale(${1 + mousePosition.y * 0.01}) rotate(${
+              mousePosition.x * 0.5
+            }deg)`,
           }}
         >
           <defs>
             <linearGradient id="wave5" x1="0%" y1="0%" x2="100%" y2="100%">
-              <motion.stop 
-                offset="0%" 
-                animate={{ stopColor: ["rgba(96, 165, 250, 0.25)", "rgba(59, 130, 246, 0.35)", "rgba(96, 165, 250, 0.25)"] }}
+              <motion.stop
+                offset="0%"
+                animate={{
+                  stopColor: [
+                    "rgba(96, 165, 250, 0.25)",
+                    "rgba(59, 130, 246, 0.35)",
+                    "rgba(96, 165, 250, 0.25)",
+                  ],
+                }}
                 transition={{ duration: 10, repeat: Infinity }}
               />
-              <motion.stop 
-                offset="50%" 
-                animate={{ stopColor: ["rgba(147, 197, 253, 0.2)", "rgba(96, 165, 250, 0.3)", "rgba(147, 197, 253, 0.2)"] }}
+              <motion.stop
+                offset="50%"
+                animate={{
+                  stopColor: [
+                    "rgba(147, 197, 253, 0.2)",
+                    "rgba(96, 165, 250, 0.3)",
+                    "rgba(147, 197, 253, 0.2)",
+                  ],
+                }}
                 transition={{ duration: 12, repeat: Infinity, delay: 1 }}
               />
-              <motion.stop 
-                offset="100%" 
-                animate={{ stopColor: ["rgba(59, 130, 246, 0.3)", "rgba(30, 64, 175, 0.4)", "rgba(59, 130, 246, 0.3)"] }}
+              <motion.stop
+                offset="100%"
+                animate={{
+                  stopColor: [
+                    "rgba(59, 130, 246, 0.3)",
+                    "rgba(30, 64, 175, 0.4)",
+                    "rgba(59, 130, 246, 0.3)",
+                  ],
+                }}
                 transition={{ duration: 14, repeat: Infinity, delay: 3 }}
               />
             </linearGradient>
             <filter id="glow5">
-              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-              <feMerge> 
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
+              <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
           </defs>
@@ -287,27 +325,45 @@ const Hero = () => {
         >
           <defs>
             <linearGradient id="wave4" x1="0%" y1="0%" x2="100%" y2="100%">
-              <motion.stop 
-                offset="0%" 
-                animate={{ stopColor: ["rgba(147, 197, 253, 0.3)", "rgba(59, 130, 246, 0.4)", "rgba(147, 197, 253, 0.3)"] }}
+              <motion.stop
+                offset="0%"
+                animate={{
+                  stopColor: [
+                    "rgba(147, 197, 253, 0.3)",
+                    "rgba(59, 130, 246, 0.4)",
+                    "rgba(147, 197, 253, 0.3)",
+                  ],
+                }}
                 transition={{ duration: 8, repeat: Infinity }}
               />
-              <motion.stop 
-                offset="50%" 
-                animate={{ stopColor: ["rgba(59, 130, 246, 0.25)", "rgba(96, 165, 250, 0.35)", "rgba(59, 130, 246, 0.25)"] }}
+              <motion.stop
+                offset="50%"
+                animate={{
+                  stopColor: [
+                    "rgba(59, 130, 246, 0.25)",
+                    "rgba(96, 165, 250, 0.35)",
+                    "rgba(59, 130, 246, 0.25)",
+                  ],
+                }}
                 transition={{ duration: 10, repeat: Infinity, delay: 2 }}
               />
-              <motion.stop 
-                offset="100%" 
-                animate={{ stopColor: ["rgba(30, 64, 175, 0.35)", "rgba(147, 197, 253, 0.45)", "rgba(30, 64, 175, 0.35)"] }}
+              <motion.stop
+                offset="100%"
+                animate={{
+                  stopColor: [
+                    "rgba(30, 64, 175, 0.35)",
+                    "rgba(147, 197, 253, 0.45)",
+                    "rgba(30, 64, 175, 0.35)",
+                  ],
+                }}
                 transition={{ duration: 12, repeat: Infinity, delay: 1 }}
               />
             </linearGradient>
             <filter id="glow4">
-              <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
-              <feMerge> 
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
+              <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
           </defs>
@@ -337,32 +393,56 @@ const Hero = () => {
         >
           <defs>
             <linearGradient id="wave1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <motion.stop 
-                offset="0%" 
-                animate={{ stopColor: ["rgba(175, 207, 255, 0.4)", "rgba(59, 130, 246, 0.5)", "rgba(175, 207, 255, 0.4)"] }}
+              <motion.stop
+                offset="0%"
+                animate={{
+                  stopColor: [
+                    "rgba(175, 207, 255, 0.4)",
+                    "rgba(59, 130, 246, 0.5)",
+                    "rgba(175, 207, 255, 0.4)",
+                  ],
+                }}
                 transition={{ duration: 6, repeat: Infinity }}
               />
-              <motion.stop 
-                offset="40%" 
-                animate={{ stopColor: ["rgba(96, 165, 250, 0.35)", "rgba(147, 197, 253, 0.45)", "rgba(96, 165, 250, 0.35)"] }}
+              <motion.stop
+                offset="40%"
+                animate={{
+                  stopColor: [
+                    "rgba(96, 165, 250, 0.35)",
+                    "rgba(147, 197, 253, 0.45)",
+                    "rgba(96, 165, 250, 0.35)",
+                  ],
+                }}
                 transition={{ duration: 8, repeat: Infinity, delay: 1 }}
               />
-              <motion.stop 
-                offset="80%" 
-                animate={{ stopColor: ["rgba(59, 130, 246, 0.4)", "rgba(30, 64, 175, 0.5)", "rgba(59, 130, 246, 0.4)"] }}
+              <motion.stop
+                offset="80%"
+                animate={{
+                  stopColor: [
+                    "rgba(59, 130, 246, 0.4)",
+                    "rgba(30, 64, 175, 0.5)",
+                    "rgba(59, 130, 246, 0.4)",
+                  ],
+                }}
                 transition={{ duration: 10, repeat: Infinity, delay: 2 }}
               />
-              <motion.stop 
-                offset="100%" 
-                animate={{ stopColor: ["rgba(30, 64, 175, 0.45)", "rgba(96, 165, 250, 0.55)", "rgba(30, 64, 175, 0.45)"] }}
+              <motion.stop
+                offset="100%"
+                animate={{
+                  stopColor: [
+                    "rgba(30, 64, 175, 0.45)",
+                    "rgba(96, 165, 250, 0.55)",
+                    "rgba(30, 64, 175, 0.45)",
+                  ],
+                }}
                 transition={{ duration: 12, repeat: Infinity, delay: 3 }}
               />
             </linearGradient>
             <filter id="glow1">
-              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-              <feMerge> 
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
+              <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
           </defs>
@@ -386,37 +466,63 @@ const Hero = () => {
           style={{
             transform: `translateX(${mousePosition.x * 2}px) translateY(${
               mousePosition.y * -1
-            }px) scale(${1 + mousePosition.x * 0.008}) rotate(${mousePosition.y * 0.3}deg)`,
+            }px) scale(${1 + mousePosition.x * 0.008}) rotate(${
+              mousePosition.y * 0.3
+            }deg)`,
           }}
         >
           <defs>
             <linearGradient id="wave2" x1="0%" y1="0%" x2="100%" y2="100%">
-              <motion.stop 
-                offset="0%" 
-                animate={{ stopColor: ["rgba(147, 197, 253, 0.4)", "rgba(96, 165, 250, 0.5)", "rgba(147, 197, 253, 0.4)"] }}
+              <motion.stop
+                offset="0%"
+                animate={{
+                  stopColor: [
+                    "rgba(147, 197, 253, 0.4)",
+                    "rgba(96, 165, 250, 0.5)",
+                    "rgba(147, 197, 253, 0.4)",
+                  ],
+                }}
                 transition={{ duration: 5, repeat: Infinity }}
               />
-              <motion.stop 
-                offset="40%" 
-                animate={{ stopColor: ["rgba(175, 207, 255, 0.45)", "rgba(59, 130, 246, 0.55)", "rgba(175, 207, 255, 0.45)"] }}
+              <motion.stop
+                offset="40%"
+                animate={{
+                  stopColor: [
+                    "rgba(175, 207, 255, 0.45)",
+                    "rgba(59, 130, 246, 0.55)",
+                    "rgba(175, 207, 255, 0.45)",
+                  ],
+                }}
                 transition={{ duration: 7, repeat: Infinity, delay: 1.5 }}
               />
-              <motion.stop 
-                offset="80%" 
-                animate={{ stopColor: ["rgba(59, 130, 246, 0.5)", "rgba(147, 197, 253, 0.6)", "rgba(59, 130, 246, 0.5)"] }}
+              <motion.stop
+                offset="80%"
+                animate={{
+                  stopColor: [
+                    "rgba(59, 130, 246, 0.5)",
+                    "rgba(147, 197, 253, 0.6)",
+                    "rgba(59, 130, 246, 0.5)",
+                  ],
+                }}
                 transition={{ duration: 9, repeat: Infinity, delay: 0.5 }}
               />
-              <motion.stop 
-                offset="100%" 
-                animate={{ stopColor: ["rgba(30, 64, 175, 0.55)", "rgba(175, 207, 255, 0.65)", "rgba(30, 64, 175, 0.55)"] }}
+              <motion.stop
+                offset="100%"
+                animate={{
+                  stopColor: [
+                    "rgba(30, 64, 175, 0.55)",
+                    "rgba(175, 207, 255, 0.65)",
+                    "rgba(30, 64, 175, 0.55)",
+                  ],
+                }}
                 transition={{ duration: 11, repeat: Infinity, delay: 2.5 }}
               />
             </linearGradient>
             <filter id="glow2">
-              <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
-              <feMerge> 
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
+              <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
           </defs>
@@ -441,37 +547,63 @@ const Hero = () => {
           style={{
             transform: `translateX(${mousePosition.x * 6}px) translateY(${
               mousePosition.y * 1
-            }px) scale(${1 + mousePosition.x * 0.012}) rotate(${mousePosition.x * 0.2}deg)`,
+            }px) scale(${1 + mousePosition.x * 0.012}) rotate(${
+              mousePosition.x * 0.2
+            }deg)`,
           }}
         >
           <defs>
             <linearGradient id="wave3" x1="0%" y1="0%" x2="100%" y2="100%">
-              <motion.stop 
-                offset="0%" 
-                animate={{ stopColor: ["rgba(147, 197, 253, 0.5)", "rgba(59, 130, 246, 0.6)", "rgba(147, 197, 253, 0.5)"] }}
+              <motion.stop
+                offset="0%"
+                animate={{
+                  stopColor: [
+                    "rgba(147, 197, 253, 0.5)",
+                    "rgba(59, 130, 246, 0.6)",
+                    "rgba(147, 197, 253, 0.5)",
+                  ],
+                }}
                 transition={{ duration: 4, repeat: Infinity }}
               />
-              <motion.stop 
-                offset="40%" 
-                animate={{ stopColor: ["rgba(96, 165, 250, 0.55)", "rgba(175, 207, 255, 0.65)", "rgba(96, 165, 250, 0.55)"] }}
+              <motion.stop
+                offset="40%"
+                animate={{
+                  stopColor: [
+                    "rgba(96, 165, 250, 0.55)",
+                    "rgba(175, 207, 255, 0.65)",
+                    "rgba(96, 165, 250, 0.55)",
+                  ],
+                }}
                 transition={{ duration: 6, repeat: Infinity, delay: 1 }}
               />
-              <motion.stop 
-                offset="80%" 
-                animate={{ stopColor: ["rgba(175, 207, 255, 0.4)", "rgba(30, 64, 175, 0.6)", "rgba(175, 207, 255, 0.4)"] }}
+              <motion.stop
+                offset="80%"
+                animate={{
+                  stopColor: [
+                    "rgba(175, 207, 255, 0.4)",
+                    "rgba(30, 64, 175, 0.6)",
+                    "rgba(175, 207, 255, 0.4)",
+                  ],
+                }}
                 transition={{ duration: 8, repeat: Infinity, delay: 2 }}
               />
-              <motion.stop 
-                offset="100%" 
-                animate={{ stopColor: ["rgba(30, 64, 175, 0.65)", "rgba(96, 165, 250, 0.75)", "rgba(30, 64, 175, 0.65)"] }}
+              <motion.stop
+                offset="100%"
+                animate={{
+                  stopColor: [
+                    "rgba(30, 64, 175, 0.65)",
+                    "rgba(96, 165, 250, 0.75)",
+                    "rgba(30, 64, 175, 0.65)",
+                  ],
+                }}
                 transition={{ duration: 10, repeat: Infinity, delay: 0.5 }}
               />
             </linearGradient>
             <filter id="glow3">
-              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-              <feMerge> 
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
+              <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
           </defs>
@@ -489,11 +621,11 @@ const Hero = () => {
         </motion.svg>
       </div>
 
-      <main className="relative z-10 flex flex-col h-full">
+      <main className="relative z-10 flex flex-col gap-12 sm:gap-16 lg:gap-20 min-h-screen pt-20 sm:pt-28 lg:pt-36 pb-20 sm:pb-32 lg:pb-44">
         {/* Enhanced main content */}
-        <div className="flex-1 flex items-center justify-center px-6">
+        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
           <motion.div
-            className="max-w-4xl text-center"
+            className="max-w-xs sm:max-w-2xl lg:max-w-4xl xl:max-w-5xl text-center w-full"
             style={{ y: parallaxY }}
           >
             {/* Enhanced social proof with glow effect */}
@@ -505,13 +637,13 @@ const Hero = () => {
                 delay: 0.3,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="mb-10 inline-flex items-center space-x-3 rounded-full bg-white/15 px-4 py-2 backdrop-blur-md border border-white/25"
+              className="mb-6 sm:mb-8 lg:mb-10 inline-flex items-center space-x-2 sm:space-x-3 rounded-full bg-white/15 px-3 sm:px-4 py-1.5 sm:py-2 backdrop-blur-md border border-white/25"
             >
-              <div className="flex -space-x-2">
+              <div className="flex -space-x-1 sm:-space-x-2">
                 {AvatarImages.map((image, i) => (
                   <motion.div
                     key={i}
-                    className="h-6 w-6 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 border-2 border-white/70 shadow-sm"
+                    className="h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 border-2 border-white/70 shadow-sm"
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{
@@ -530,7 +662,7 @@ const Hero = () => {
                 ))}
               </div>
               <motion.span
-                className="text-sm font-medium text-white/95"
+                className="text-xs sm:text-sm font-medium text-white/95"
                 animate={{ opacity: [0.8, 1, 0.8] }}
                 transition={{ duration: 4, repeat: Infinity }}
               >
@@ -538,16 +670,16 @@ const Hero = () => {
               </motion.span>
             </motion.div>
 
-            {/* Enhanced main heading with better effects */}
+            {/* Enhanced main heading with design system colors */}
             <motion.h1
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="mb-8 text-4xl font-bold leading-none font-maison-neue text-white drop-shadow-lg sm:text-5xl md:text-6xl max-w-2xl mx-auto"
+              className="mb-4 sm:mb-6 lg:mb-8 text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight sm:leading-none font-maison-neue text-white drop-shadow-lg mx-auto"
             >
               Turn Ideas into{" "}
               <motion.span
-                className="relative inline-block bg-gradient-to-r from-sky-200 via-white to-blue-100 bg-clip-text text-transparent"
+                className="relative inline-block bg-gradient-to-r from-blue-300 via-white to-blue-300 bg-clip-text text-transparent"
                 animate={{
                   backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
                 }}
@@ -559,8 +691,8 @@ const Hero = () => {
               >
                 Action
                 <motion.div
-                  className="absolute -inset-1 bg-gradient-to-r from-blue-400/20 to-white/20 blur-lg rounded-lg"
-                  animate={{ opacity: [0, 0.5, 0] }}
+                  className="absolute -inset-1 bg-blue-500/10 blur-lg rounded-lg"
+                  animate={{ opacity: [0, 0.3, 0] }}
                   transition={{ duration: 4, repeat: Infinity }}
                 />
               </motion.span>
@@ -576,13 +708,14 @@ const Hero = () => {
                 delay: 0.6,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="mb-10 max-w-xl mx-auto text-md text-white/90 leading-relaxed font-light"
+              className="mb-6 sm:mb-8 lg:mb-10 max-w-sm sm:max-w-xl lg:max-w-2xl mx-auto text-sm sm:text-base lg:text-lg text-white/90 leading-relaxed font-light px-2 sm:px-0"
             >
               Create, collaborate, and bring your ideas to life with the most
-              intuitive whiteboard experience. From concept to completion, all in real-time.
+              intuitive whiteboard experience. From concept to completion, all
+              in real-time.
             </motion.p>
 
-            {/* Enhanced CTA buttons */}
+            {/* Design system CTA buttons */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -591,39 +724,25 @@ const Hero = () => {
                 delay: 0.8,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="flex flex-col items-center gap-5 sm:flex-row sm:justify-center"
+              className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center px-4 sm:px-0"
             >
               <motion.a
                 href="/signup"
                 whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                className="group inline-flex items-center space-x-3 rounded-xl bg-white/95 px-8 py-4 text-md font-medium text-gray-700 backdrop-blur-sm transition-all hover:bg-white"
+                whileTap={{ scale: 0.98 }}
+                className="group relative overflow-hidden bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-medium text-base transition-all duration-300 shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 w-full sm:w-auto min-w-[180px] flex items-center justify-center gap-2"
               >
                 <span>Start for Free</span>
-                <motion.div
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{
-                    duration: 2.5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                >
-                  <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-                </motion.div>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </motion.a>
 
               <motion.a
                 href="#demo"
                 whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                className="inline-flex items-center space-x-3 rounded-xl border border-white/50 bg-white/15 px-8 py-4 text-md font-medium text-white backdrop-blur-md transition-all hover:bg-white/20 hover:border-white/60"
+                whileTap={{ scale: 0.98 }}
+                className="group relative bg-white/[0.06] backdrop-blur-sm border border-white/[0.08] text-white px-8 py-4 rounded-xl font-medium text-base transition-all duration-300 hover:bg-white/[0.08] hover:border-white/[0.12] w-full sm:w-auto min-w-[180px] flex items-center justify-center gap-2"
               >
-                <motion.div
-                  whileHover={{ scale: 1.2, rotate: 360 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                >
-                  <Play className="h-5 w-5" />
-                </motion.div>
+                <Play className="w-4 h-4 transition-transform group-hover:scale-110" />
                 <span>Watch Demo</span>
               </motion.a>
             </motion.div>
@@ -633,23 +752,31 @@ const Hero = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 1.2 }}
-              className="mt-12 flex items-center justify-center space-x-10 text-white/85 text-sm"
+              className="mt-8 sm:mt-10 lg:mt-12 flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-6 lg:space-x-10 text-white/85 text-xs sm:text-sm"
             >
               <div className="flex items-center space-x-2">
-                <Star className="h-5 w-5 fill-white text-white drop-shadow-sm" />
+                <Star className="h-4 w-4 sm:h-5 sm:w-5 fill-white text-white drop-shadow-sm" />
                 <span className="font-medium">4.9/5 rating</span>
               </div>
-              <div className="h-5 w-px bg-white/30" />
+              <div className="hidden sm:block h-5 w-px bg-white/30" />
               <div className="flex items-center space-x-2">
-                <Users className="h-5 w-5 drop-shadow-sm" />
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 drop-shadow-sm" />
                 <span className="font-medium">Free forever plan</span>
               </div>
             </motion.div>
           </motion.div>
         </div>
-        
+
         {/* Realtime Dashboard Integration */}
-        <RealtimeDashboard />
+        <motion.div 
+        className="relative w-full px-2 sm:px-4 lg:px-0" 
+        style={{ y: parallaxY }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 1.2 }}
+        >
+          <RealtimeDashboard />
+        </motion.div>
       </main>
     </div>
   );

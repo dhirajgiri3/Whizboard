@@ -149,70 +149,122 @@ const Pricing = () => {
     >
       {/* Background Elements */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-500/5 to-purple-500/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-purple-500/5 to-indigo-500/5 rounded-full blur-3xl"></div>
-        <div 
-          className="absolute inset-0 opacity-20"
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/3 via-transparent to-gray-600/2"></div>
+        <div className="absolute inset-0 bg-[url('/grid-pattern-dark.svg')] opacity-30"></div>
+        <motion.div 
+          className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-[80px]"
           style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.02) 1px, transparent 0)`,
-            backgroundSize: "40px 40px",
+            background: 'radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 70%)'
+          }}
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.4, 0.6, 0.4]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div 
+          className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-[60px]"
+          style={{
+            background: 'radial-gradient(circle, rgba(107, 114, 128, 0.2) 0%, rgba(107, 114, 128, 0.05) 50%, transparent 70%)'
+          }}
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.2, 0.4, 0.2]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2
+          }}
+        />
+        <motion.div 
+          className="absolute top-3/4 left-1/3 w-64 h-64 rounded-full blur-[40px]"
+          style={{
+            background: 'radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%)'
+          }}
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.2, 0.3, 0.2]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 4
           }}
         />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+        <motion.div 
+          className="flex flex-col items-center space-y-4 sm:space-y-6 pb-16 lg:pb-20"
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-20"
         >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="inline-flex items-center space-x-2 bg-white/[0.02] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm mb-8"
-          >
-            <Rocket className="h-4 w-4 text-blue-400" />
-            <span className="text-white/70 text-sm font-medium">Choose Your Plan</span>
-          </motion.div>
-
-          <h2 className="text-4xl md:text-6xl font-bold text-white mb-8 leading-tight">
-            Simple, Transparent{" "}
-            <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-              Pricing
-            </span>
-          </h2>
-          <p className="text-xl text-white/80 max-w-4xl mx-auto mb-12 leading-relaxed">
-            All plans include unlimited collaborators, 99.9% uptime guarantee, and world-class support
-          </p>
+          <div className="inline-flex items-center space-x-2 bg-white/[0.02] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm">
+            <motion.div
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Rocket className="h-4 w-4 text-blue-400" />
+            </motion.div>
+            <span className="text-white/70 text-sm font-medium">Simple Pricing</span>
+          </div>
+          <div className="flex flex-col items-center space-y-4">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight font-semibold tracking-tight text-center">
+              Choose Your
+              <span className="block bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent">
+                Perfect Plan
+              </span>
+            </h2>
+            <p className="text-base text-white/80 max-w-2xl text-center leading-relaxed">
+              Start free and scale as you grow. No hidden fees, no surprises. 
+              Cancel anytime with our 30-day money-back guarantee.
+            </p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-10 text-sm">
+            <div className="flex items-center space-x-2 text-white/60">
+              <Shield className="h-4 w-4 text-emerald-400" />
+              <span>30-day money back</span>
+            </div>
+            <div className="flex items-center space-x-2 text-white/60">
+              <Zap className="h-4 w-4 text-blue-400" />
+              <span>Instant activation</span>
+            </div>
+            <div className="flex items-center space-x-2 text-white/60">
+              <Users className="h-4 w-4 text-amber-400" />
+              <span>24/7 support</span>
+            </div>
+          </div>
 
           {/* Billing Toggle */}
-          <div className="inline-flex bg-white/[0.05] border border-white/[0.1] rounded-xl p-1 backdrop-blur-sm">
-            <button
-              onClick={() => setBillingCycle('monthly')}
-              className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
-                billingCycle === 'monthly'
-                  ? 'bg-white/[0.1] text-white border border-white/[0.2]'
-                  : 'text-white/60 hover:text-white/80'
-              }`}
-            >
+          <div className="flex items-center justify-center space-x-4">
+            <span className={`text-sm font-medium transition-colors ${
+              billingCycle === 'monthly' ? 'text-white' : 'text-white/60'
+            }`}>
               Monthly
-            </button>
+            </span>
             <button
-              onClick={() => setBillingCycle('yearly')}
-              className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 ${
-                billingCycle === 'yearly'
-                  ? 'bg-white/[0.1] text-white border border-white/[0.2]'
-                  : 'text-white/60 hover:text-white/80'
-              }`}
+              onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
+              className="relative w-14 h-7 bg-white/[0.05] rounded-full border border-white/[0.1] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-black hover:bg-white/[0.08]"
             >
-              <span>Yearly</span>
-              <span className="text-xs bg-green-400/20 text-green-400 px-2 py-1 rounded-full border border-green-400/20">
-                Save 17%
-              </span>
+              <div className={`absolute top-0.5 left-0.5 w-6 h-6 bg-blue-500 rounded-full transition-all duration-300 shadow-lg ${
+                billingCycle === 'yearly' ? 'translate-x-7' : 'translate-x-0'
+              }`} />
             </button>
+            <span className={`text-sm font-medium transition-colors ${
+              billingCycle === 'yearly' ? 'text-white' : 'text-white/60'
+            }`}>
+              Yearly
+              <span className="ml-1 text-xs text-emerald-400 font-medium bg-emerald-400/10 px-2 py-0.5 rounded-full">(Save 20%)</span>
+            </span>
           </div>
         </motion.div>
 
@@ -221,16 +273,41 @@ const Pricing = () => {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="grid md:grid-cols-3 gap-8 mb-24"
+          className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-24"
         >
           {plans.map((plan, index) => (
             <motion.div
               key={index}
               variants={itemVariants}
-              className="group relative"
+              className={`group relative ${
+                plan.popular ? 'lg:scale-105 lg:-mt-4' : ''
+              }`}
             >
-              <div className={`relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-8 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-500 overflow-hidden h-full ${
-                plan.popular ? 'ring-2 ring-blue-400/20' : ''
+              {/* Gradient Orb Background */}
+              <div className="absolute inset-0 rounded-2xl overflow-hidden">
+                <motion.div 
+                  className={`absolute -top-20 -right-20 w-40 h-40 rounded-full blur-[60px] transition-opacity duration-500 ${
+                    plan.popular ? 'opacity-60' : 'opacity-0 group-hover:opacity-40'
+                  }`}
+                  style={{
+                    background: plan.popular 
+                      ? 'radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 70%)'
+                      : 'radial-gradient(circle, rgba(107, 114, 128, 0.3) 0%, rgba(107, 114, 128, 0.1) 50%, transparent 70%)'
+                  }}
+                  animate={{
+                    scale: [1, 1.1, 1],
+                    opacity: plan.popular ? [0.6, 0.8, 0.6] : [0, 0.4, 0]
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+              </div>
+
+              <div className={`relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-8 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-500 overflow-hidden h-full group-hover:scale-[1.02] ${
+                plan.popular ? 'ring-2 ring-blue-400/20 shadow-2xl shadow-blue-500/10' : ''
               }`}>
                 {/* Background glow */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${plan.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
@@ -238,7 +315,7 @@ const Pricing = () => {
                 {/* Popular badge */}
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20">
-                    <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-full text-sm font-medium shadow-lg border border-blue-400/20">
                       {plan.badge}
                     </div>
                   </div>
@@ -260,62 +337,68 @@ const Pricing = () => {
                       )}
                     </div>
                     
-                    <p className="text-white/70 mb-8 leading-relaxed">{plan.description}</p>
+                    <p className="text-white/70 mb-8 leading-relaxed text-sm">{plan.description}</p>
                     
                     {/* Pricing */}
                     {plan.price[billingCycle] !== null ? (
-                      <div className="mb-8">
+                      <div className="mb-6">
                         <div className="flex items-baseline justify-center space-x-2">
-                          <span className="text-5xl font-bold text-white group-hover:scale-105 transition-transform duration-300">
+                          <span className="text-4xl lg:text-5xl font-bold text-white group-hover:scale-105 transition-transform duration-300">
                             ${plan.price[billingCycle]}
                           </span>
-                          <span className="text-white/60">
+                          <span className="text-white/60 text-sm">
                             /user/{billingCycle === 'monthly' ? 'month' : 'month'}
                           </span>
                         </div>
                         {billingCycle === 'yearly' && plan.price.monthly && (
-                          <div className="text-sm text-white/50 mt-2">
+                          <div className="text-sm text-emerald-400 mt-2 bg-emerald-400/10 px-3 py-1 rounded-full inline-block">
                             Billed annually (${plan.price.yearly * 12}/user/year)
                           </div>
                         )}
                       </div>
                     ) : (
-                      <div className="mb-8">
+                      <div className="mb-6">
                         <span className="text-3xl font-bold text-white">Custom Pricing</span>
                         <div className="text-sm text-white/60 mt-2">Contact sales for details</div>
                       </div>
                     )}
+
+                    {/* CTA Button */}
+                    <motion.a
+                      href={plan.href}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`group/btn block w-full text-center py-3 px-6 rounded-lg font-medium transition-all duration-300 mb-8 ${
+                        plan.popular
+                          ? 'bg-white/[0.08] border border-white/[0.12] text-white hover:bg-white/[0.12] hover:border-white/[0.16] backdrop-blur-sm'
+                          : 'bg-white/[0.04] border border-white/[0.08] text-white/90 hover:bg-white/[0.08] hover:border-white/[0.12] hover:text-white backdrop-blur-sm'
+                      }`}
+                    >
+                      <span className="flex items-center justify-center space-x-2">
+                        <span>{plan.cta}</span>
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+                      </span>
+                    </motion.a>
                   </div>
 
                   {/* Features */}
-                  <ul className="space-y-4 mb-10">
+                  <div className="space-y-3">
+                    <h4 className="text-white font-semibold mb-4 text-sm">Everything in {plan.name}:</h4>
                     {plan.features.map((feature, featureIndex) => (
-                      <motion.li
+                      <motion.div
                         key={featureIndex}
                         initial={{ opacity: 0, x: -10 }}
                         animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
                         transition={{ delay: 0.3 + featureIndex * 0.1 }}
                         className="flex items-start space-x-3"
                       >
-                        <Check className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
-                        <span className="text-white/80 group-hover:text-white/90 transition-colors">{feature}</span>
-                      </motion.li>
+                        <div className="flex-shrink-0 mt-0.5">
+                          <Check className="h-4 w-4 text-emerald-400" />
+                        </div>
+                        <span className="text-white/80 text-sm leading-relaxed group-hover:text-white/90 transition-colors">{feature}</span>
+                      </motion.div>
                     ))}
-                  </ul>
-
-                  {/* CTA Button */}
-                  <motion.a
-                    href={plan.href}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`block w-full text-center py-4 px-6 rounded-xl font-semibold transition-all duration-300 ${
-                      plan.popular
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:shadow-lg hover:shadow-blue-500/25'
-                        : 'bg-white/[0.05] border border-white/[0.1] text-white hover:bg-white/[0.1] hover:border-white/[0.2]'
-                    }`}
-                  >
-                    {plan.cta}
-                  </motion.a>
+                  </div>
                 </div>
 
                 {/* Hover effect border */}
@@ -325,86 +408,95 @@ const Pricing = () => {
           ))}
         </motion.div>
 
-        {/* Enterprise Features */}
+        {/* Enterprise Grade Section */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
-          className="text-center"
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="relative"
         >
-          <div className="relative bg-gradient-to-r from-blue-600/10 to-purple-600/10 backdrop-blur-sm border border-white/[0.08] rounded-3xl p-12 overflow-hidden">
-            {/* Background decoration */}
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-blue-500/5"></div>
-            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-purple-500/10 to-transparent rounded-full blur-3xl"></div>
-            
-            <div className="relative z-10">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.6, delay: 0.9 }}
-                className="inline-flex items-center space-x-2 bg-white/[0.05] border border-white/[0.1] rounded-full px-4 py-2 backdrop-blur-sm mb-8"
-              >
-                <Award className="h-4 w-4 text-yellow-400" />
-                <span className="text-white/70 text-sm font-medium">Enterprise Grade</span>
-              </motion.div>
+          {/* Background Elements */}
+          <div className="absolute inset-0 rounded-3xl overflow-hidden">
+            <motion.div 
+              className="absolute top-1/2 left-1/2 w-96 h-96 rounded-full blur-[100px] transform -translate-x-1/2 -translate-y-1/2"
+              style={{
+                background: 'radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%)'
+              }}
+              animate={{
+                scale: [1, 1.1, 1],
+                opacity: [0.15, 0.25, 0.15]
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+          </div>
 
-              <h3 className="text-3xl md:text-4xl font-bold text-white mb-8">
-                Built for Enterprise Scale
-              </h3>
-              
-              <div className="grid md:grid-cols-3 gap-8 mb-12">
-                {enterpriseFeatures.map((feature, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-                    transition={{ delay: 1 + index * 0.1 }}
-                    className="group text-center"
-                  >
-                    <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-8 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-500 overflow-hidden">
-                      {/* Background gradient */}
-                      <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
-                      
-                      <div className="relative z-10">
-                        <div className="inline-flex p-4 rounded-xl bg-white/[0.05] border border-white/[0.1] mb-6 group-hover:scale-110 transition-transform duration-300">
-                          <feature.icon className={`h-8 w-8 ${feature.iconColor}`} />
-                        </div>
-                        <h4 className="text-xl font-semibold text-white mb-4">
-                          {feature.title}
-                        </h4>
-                        <p className="text-white/70 leading-relaxed group-hover:text-white/80 transition-colors">
-                          {feature.description}
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <motion.a
-                  href="#demo"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="group relative overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center justify-center space-x-2"
-                >
-                  <span className="relative z-10">Book Enterprise Demo</span>
-                  <ArrowRight className="h-5 w-5 relative z-10 group-hover:translate-x-1 transition-transform" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </motion.a>
-                
-                <motion.a
-                  href="/contact"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="border-2 border-white/20 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/5 hover:border-white/30 transition-all duration-300 flex items-center justify-center space-x-2"
-                >
-                  <Heart className="h-5 w-5" />
-                  <span>Contact Sales</span>
-                </motion.a>
-              </div>
+          <div className="relative z-10 text-center">
+            <div className="inline-flex items-center space-x-2 bg-white/[0.02] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm mb-6">
+              <Shield className="h-4 w-4 text-blue-400" />
+              <span className="text-white/70 text-sm font-medium">Enterprise Ready</span>
             </div>
+            
+            <h3 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
+              Enterprise Grade
+              <span className="block bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent">
+                Security & Compliance
+              </span>
+            </h3>
+            <p className="text-base text-white/80 max-w-2xl mx-auto mb-12 leading-relaxed">
+              Built for teams that need advanced security, compliance, and dedicated support.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+              {enterpriseFeatures.map((feature, index) => (
+                <motion.div
+                  key={feature.title}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+                  transition={{ duration: 0.6, delay: 0.8 + index * 0.1 }}
+                  className="group relative"
+                >
+                  {/* Gradient Orb Background */}
+                  <div className="absolute inset-0 rounded-xl overflow-hidden">
+                    <motion.div 
+                      className="absolute -top-10 -right-10 w-20 h-20 rounded-full blur-[30px] opacity-0 group-hover:opacity-30 transition-opacity duration-500"
+                      style={{
+                        background: 'radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 70%)'
+                      }}
+                    />
+                  </div>
+
+                  <div className="relative bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 hover:bg-white/[0.05] hover:border-white/[0.12] transition-all duration-300 group-hover:scale-105">
+                    <div className="flex items-center justify-center w-12 h-12 bg-blue-500/10 border border-blue-500/20 rounded-lg mb-4 mx-auto group-hover:bg-blue-500/20 transition-all duration-300">
+                      <feature.icon className="h-6 w-6 text-blue-400" />
+                    </div>
+                    <h4 className="text-lg font-semibold text-white mb-2">{feature.title}</h4>
+                    <p className="text-white/60 text-sm leading-relaxed">{feature.description}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.6, delay: 1.2 }}
+              className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6"
+            >
+              <button className="group bg-white/[0.08] border border-white/[0.12] text-white px-6 py-3 rounded-lg font-medium hover:bg-white/[0.12] hover:border-white/[0.16] transition-all duration-300 backdrop-blur-sm">
+                <span className="flex items-center space-x-2">
+                  <span>Contact Sales</span>
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </span>
+              </button>
+              <button className="group bg-white/[0.04] border border-white/[0.08] text-white/90 hover:text-white hover:bg-white/[0.08] hover:border-white/[0.12] transition-all duration-300 flex items-center space-x-2 px-6 py-3 rounded-lg font-medium backdrop-blur-sm">
+                <span>Schedule a Demo</span>
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </button>
+            </motion.div>
           </div>
         </motion.div>
       </div>

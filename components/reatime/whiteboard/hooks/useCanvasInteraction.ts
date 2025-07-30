@@ -47,28 +47,109 @@ export const useCanvasInteraction = ({
   const [hoveredElementId, setHoveredElementId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  const getCanvasCoordinates = useCallback((e: React.MouseEvent) => {
+  const getCanvasCoordinates = useCallback((e: React.MouseEvent | TouchEvent) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
 
+    // Get client coordinates from either mouse or touch event
+    let clientX: number, clientY: number;
+    if ('touches' in e) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+
+    // Use SVG's built-in coordinate transformation
+    const svgPoint = canvas.createSVGPoint();
+    svgPoint.x = clientX;
+    svgPoint.y = clientY;
+    
+    // Get the current transform matrix and convert to SVG coordinates
+    const ctm = canvas.getScreenCTM();
+    if (ctm) {
+      const transformedPoint = svgPoint.matrixTransform(ctm.inverse());
+      return {
+        x: transformedPoint.x,
+        y: transformedPoint.y,
+      };
+    }
+
+    // Fallback calculation if getScreenCTM fails
     const rect = canvas.getBoundingClientRect();
-    const displayWidth = canvasWidth * (zoomLevel / 100);
-    const displayHeight = canvasHeight * (zoomLevel / 100);
-
-    const offsetX = (rect.width - displayWidth) / 2;
-    const offsetY = (rect.height - displayHeight) / 2;
-
-    const scaleX = canvasWidth / displayWidth;
-    const scaleY = canvasHeight / displayHeight;
-
+    const zoomFactor = zoomLevel / 100;
+    
+    // Simple coordinate mapping
+    const relativeX = clientX - rect.left;
+    const relativeY = clientY - rect.top;
+    
+    // Convert to SVG coordinates
+    const svgX = (relativeX - panOffset.x) / zoomFactor;
+    const svgY = (relativeY - panOffset.y) / zoomFactor;
+    
+    // Map to canvas coordinates using the actual canvas dimensions
+    const canvasX = (svgX / rect.width) * canvasWidth;
+    const canvasY = (svgY / rect.height) * canvasHeight;
+    
     return {
-      x: ((e.clientX - rect.left - offsetX) * scaleX) - panOffset.x,
-      y: ((e.clientY - rect.top - offsetY) * scaleY) - panOffset.y,
+      x: canvasX,
+      y: canvasY,
     };
-  }, [zoomLevel, panOffset, canvasRef, canvasWidth, canvasHeight]);
+  }, [canvasRef, zoomLevel, panOffset, canvasWidth, canvasHeight]);
+
+  // Enhanced element detection function
+  const findElementAtPoint = useCallback((coords: { x: number; y: number }) => {
+    // Check canvas elements first (shapes, notes, text)
+    for (let i = canvasElements.length - 1; i >= 0; i--) {
+      const element = canvasElements[i];
+      let isInside = false;
+
+      switch (element.type) {
+        case 'circle':
+          const distance = Math.sqrt(
+            Math.pow(coords.x - element.x, 2) + Math.pow(coords.y - element.y, 2)
+          );
+          isInside = distance <= (element.radius || 0);
+          break;
+        case 'rectangle':
+          isInside = coords.x >= element.x && 
+                    coords.x <= element.x + (element.width || 0) &&
+                    coords.y >= element.y && 
+                    coords.y <= element.y + (element.height || 0);
+          break;
+        case 'triangle':
+          // Simplified triangle hit detection
+          isInside = coords.x >= element.x && 
+                    coords.x <= element.x + (element.width || 0) &&
+                    coords.y >= element.y && 
+                    coords.y <= element.y + (element.height || 0);
+          break;
+        case 'star':
+          isInside = coords.x >= element.x && 
+                    coords.x <= element.x + (element.width || 0) &&
+                    coords.y >= element.y && 
+                    coords.y <= element.y + (element.height || 0);
+          break;
+        case 'note':
+        case 'text':
+          isInside = coords.x >= element.x && 
+                    coords.x <= element.x + (element.width || 0) &&
+                    coords.y >= element.y && 
+                    coords.y <= element.y + (element.height || 0);
+          break;
+      }
+
+      if (isInside) {
+        return { id: element.id, type: 'element' };
+      }
+    }
+
+    return null;
+  }, [canvasElements]);
 
   const handleCanvasMouseDown = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.MouseEvent | TouchEvent) => {
       const coords = getCanvasCoordinates(e);
       
       if (activeTool === 0) {
@@ -130,40 +211,57 @@ export const useCanvasInteraction = ({
         }
       } else if (activeTool === 7) { // Pan tool
         setIsPanning(true);
-        setLastPoint({ x: e.clientX, y: e.clientY });
+        setLastPoint({ x: 'clientX' in e ? e.clientX : e.touches[0].clientX, y: 'clientY' in e ? e.clientY : e.touches[0].clientY });
       } else if (activeTool === 8) { // Eraser tool
-        // Handle eraser logic here
-        setIsDrawing(false);
-      } else {
-        // Default selection/dragging behavior
-        if (hoveredElementId) {
-          setSelectedElement(hoveredElementId);
-          setIsDragging(true);
-          setLastPoint({ x: e.clientX, y: e.clientY });
-        } else {
+        // Enhanced eraser functionality
+        const elementAtPoint = findElementAtPoint(coords);
+        if (elementAtPoint) {
+          if (elementAtPoint.type === 'element') {
+            setCanvasElements((prevElements) =>
+              prevElements.filter((el) => el.id !== elementAtPoint.id)
+            );
+          }
           setSelectedElement(null);
           setEditingTextElementId(null);
         }
+        setIsDrawing(true); // Enable drawing mode for continuous erasing
+      } else {
+        // Default selection/dragging behavior
+        const elementAtPoint = findElementAtPoint(coords);
+        if (elementAtPoint) {
+          setSelectedElement(elementAtPoint.id);
+          setHoveredElementId(elementAtPoint.id);
+          setIsDragging(true);
+          setLastPoint({ x: 'clientX' in e ? e.clientX : e.touches[0].clientX, y: 'clientY' in e ? e.clientY : e.touches[0].clientY });
+        } else {
+          setSelectedElement(null);
+          setEditingTextElementId(null);
+          setHoveredElementId(null);
+        }
       }
     },
-    [activeTool, getCanvasCoordinates, selectedColor, canvasElements, hoveredElementId, setCanvasElements, setSelectedElement, setEditingTextElementId, setEditingTextContent]
+    [activeTool, getCanvasCoordinates, selectedColor, canvasElements, hoveredElementId, setCanvasElements, setSelectedElement, setEditingTextElementId, setEditingTextContent, findElementAtPoint]
   );
 
   const handleCanvasMouseMove = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.MouseEvent | TouchEvent) => {
       const coords = getCanvasCoordinates(e);
 
       // Set hovered element for all tools except pan
       if (activeTool !== 7) {
-        const elementUnderCursor = canvasElements.find(el => {
-          if (!canvasRef.current) return false;
-          const elementSvg = document.getElementById(el.id);
-          if (elementSvg && elementSvg.contains(e.target as Node)) {
-            return true;
+        const elementAtPoint = findElementAtPoint(coords);
+        setHoveredElementId(elementAtPoint ? elementAtPoint.id : null);
+        
+        // Handle continuous erasing when dragging with eraser tool
+        if (activeTool === 8 && elementAtPoint && isDrawing) {
+          if (elementAtPoint.type === 'element') {
+            setCanvasElements((prevElements) =>
+              prevElements.filter((el) => el.id !== elementAtPoint.id)
+            );
           }
-          return false;
-        });
-        setHoveredElementId(elementUnderCursor ? elementUnderCursor.id : null);
+          setSelectedElement(null);
+          setEditingTextElementId(null);
+        }
       }
 
       if (isDrawing && lastPoint) {
@@ -242,17 +340,21 @@ export const useCanvasInteraction = ({
         }
       } else if (isPanning && lastPoint) {
         // Smooth panning with improved performance
-        const dx = e.clientX - lastPoint.x;
-        const dy = e.clientY - lastPoint.y;
+        const currentClientX = 'clientX' in e ? e.clientX : e.touches[0].clientX;
+        const currentClientY = 'clientY' in e ? e.clientY : e.touches[0].clientY;
+        const dx = currentClientX - lastPoint.x;
+        const dy = currentClientY - lastPoint.y;
         setPanOffset((prev) => ({ 
           x: prev.x + dx, 
           y: prev.y + dy 
         }));
-        setLastPoint({ x: e.clientX, y: e.clientY });
+        setLastPoint({ x: currentClientX, y: currentClientY });
       } else if (isDragging && lastPoint && hoveredElementId) {
         // Smooth element dragging with zoom level compensation
-        const dx = (e.clientX - lastPoint.x) / (zoomLevel / 100);
-        const dy = (e.clientY - lastPoint.y) / (zoomLevel / 100);
+        const currentClientX = 'clientX' in e ? e.clientX : e.touches[0].clientX;
+        const currentClientY = 'clientY' in e ? e.clientY : e.touches[0].clientY;
+        const dx = (currentClientX - lastPoint.x) / (zoomLevel / 100);
+        const dy = (currentClientY - lastPoint.y) / (zoomLevel / 100);
 
         setCanvasElements((prevElements) =>
           prevElements.map((el) =>
@@ -266,11 +368,13 @@ export const useCanvasInteraction = ({
               : el
           )
         );
-        setLastPoint({ x: e.clientX, y: e.clientY });
+        setLastPoint({ x: currentClientX, y: currentClientY });
       } else if (selectedElement && lastPoint) {
         // Allow dragging selected elements even when not in dragging mode
-        const dx = (e.clientX - lastPoint.x) / (zoomLevel / 100);
-        const dy = (e.clientY - lastPoint.y) / (zoomLevel / 100);
+        const currentClientX = 'clientX' in e ? e.clientX : e.touches[0].clientX;
+        const currentClientY = 'clientY' in e ? e.clientY : e.touches[0].clientY;
+        const dx = (currentClientX - lastPoint.x) / (zoomLevel / 100);
+        const dy = (currentClientY - lastPoint.y) / (zoomLevel / 100);
 
         setCanvasElements((prevElements) =>
           prevElements.map((el) =>
@@ -284,10 +388,10 @@ export const useCanvasInteraction = ({
               : el
           )
         );
-        setLastPoint({ x: e.clientX, y: e.clientY });
+        setLastPoint({ x: currentClientX, y: currentClientY });
       }
     },
-    [isDrawing, isDragging, activeTool, lastPoint, getCanvasCoordinates, selectedColor, canvasElements, zoomLevel, isPanning, setCanvasElements, setPanOffset, hoveredElementId, selectedElement]
+    [isDrawing, isDragging, activeTool, lastPoint, getCanvasCoordinates, selectedColor, canvasElements, zoomLevel, isPanning, setCanvasElements, setPanOffset, hoveredElementId, selectedElement, findElementAtPoint]
   );
 
   const handleCanvasMouseUp = useCallback(() => {
@@ -328,14 +432,19 @@ export const useCanvasInteraction = ({
   const handleDeleteElement = useCallback(() => {
     setSelectedElement((prevSelectedId) => {
       if (prevSelectedId) {
+        // Remove from canvas elements
         setCanvasElements((prevElements) =>
           prevElements.filter((el) => el.id !== prevSelectedId)
+        );
+        // Also remove from drawing paths if it's a path
+        setDrawingPaths((prevPaths) =>
+          prevPaths.filter((path) => path.id !== prevSelectedId)
         );
         setEditingTextElementId(null);
       }
       return null;
     });
-  }, [setCanvasElements, setEditingTextElementId, setSelectedElement]);
+  }, [setCanvasElements, setDrawingPaths, setEditingTextElementId, setSelectedElement]);
 
   return {
     isDrawing,

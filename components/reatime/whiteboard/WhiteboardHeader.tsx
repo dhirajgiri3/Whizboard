@@ -17,7 +17,7 @@ const WhiteboardHeader: React.FC<WhiteboardHeaderProps> = ({
   collaborators,
 }) => {
   return (
-    <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100/50 bg-gradient-to-r from-gray-50/80 to-white/80 backdrop-blur-sm">
+    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100/50 bg-gradient-to-r from-gray-50/80 to-white/80 backdrop-blur-sm flex-shrink-0">
       <div className="flex items-center space-x-4">
         <div className="flex space-x-2">
           <div className="w-3 h-3 rounded-full bg-red-400 hover:bg-red-500 transition-colors cursor-pointer shadow-sm"></div>
@@ -31,7 +31,7 @@ const WhiteboardHeader: React.FC<WhiteboardHeaderProps> = ({
               <div className="w-4 h-4 bg-white rounded-md opacity-90"></div>
             </div>
             <div>
-              <div className="font-bold text-gray-800 text-base">CyperBoard</div>
+              <div className="font-bold text-gray-800 text-base">WhizBoard</div>
             </div>
           </div>
         </div>

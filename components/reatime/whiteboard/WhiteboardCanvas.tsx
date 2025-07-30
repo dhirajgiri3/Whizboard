@@ -20,8 +20,8 @@ interface WhiteboardCanvasProps {
   editingTextContent: string;
   collaborators: Cursor[];
   hoveredElementId: string | null;
-  handleCanvasMouseDown: (e: React.MouseEvent) => void;
-  handleCanvasMouseMove: (e: React.MouseEvent) => void;
+  handleCanvasMouseDown: (e: React.MouseEvent | TouchEvent) => void;
+  handleCanvasMouseMove: (e: React.MouseEvent | TouchEvent) => void;
   handleCanvasMouseUp: () => void;
   setEditingTextContent: React.Dispatch<React.SetStateAction<string>>;
   setEditingTextElementId: React.Dispatch<React.SetStateAction<string | null>>;
@@ -62,7 +62,7 @@ const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
   isDragging = false,
 }) => {
   return (
-    <div className="relative h-[500px] bg-gradient-to-br from-gray-50 via-white to-gray-50 overflow-hidden">
+    <div className="relative w-full h-full bg-gradient-to-br from-gray-50 via-white to-gray-50 overflow-hidden">
       {/* Modern Grid with Depth */}
       <div className="absolute inset-0">
         <div
@@ -82,8 +82,9 @@ const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
       {/* SVG Canvas */}
       <svg
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
+        className="absolute inset-0 w-full h-full select-none"
         viewBox={`0 0 ${canvasWidth} ${canvasHeight}`}
+        preserveAspectRatio="xMidYMid meet"
         style={{
           cursor: activeTool === 0
             ? "crosshair"
@@ -95,12 +96,44 @@ const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
                   ? "grab"
                   : "default",
           transform: `scale(${zoomLevel / 100}) translate(${panOffset.x}px, ${panOffset.y}px)`,
-          transformOrigin: 'center center',
+          touchAction: 'none', // Prevent default touch behaviors
         }}
         onMouseDown={handleCanvasMouseDown}
         onMouseMove={handleCanvasMouseMove}
         onMouseUp={handleCanvasMouseUp}
         onMouseLeave={handleCanvasMouseUp}
+        onTouchStart={(e) => {
+          // Handle touch events for mobile accessibility
+          e.preventDefault(); // Prevent default touch behavior
+          handleCanvasMouseDown(e as any);
+        }}
+        onTouchMove={(e) => {
+          // Handle touch move events
+          e.preventDefault(); // Prevent default touch behavior
+          handleCanvasMouseMove(e as any);
+        }}
+        onTouchEnd={(e) => {
+          e.preventDefault(); // Prevent default touch behavior
+          handleCanvasMouseUp();
+        }}
+        role="img"
+        aria-label="Interactive whiteboard canvas"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          // Keyboard accessibility for canvas
+          if (e.key === 'Escape') {
+            setSelectedElement(null);
+            setEditingTextElementId(null);
+          }
+        }}
+        onWheel={(e) => {
+          // Handle zoom with mouse wheel
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -10 : 10;
+            // You can add zoom functionality here if needed
+          }
+        }}
       >
         {/* Enhanced Drawing Paths */}
         {drawingPaths.map((path) => (

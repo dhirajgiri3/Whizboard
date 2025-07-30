@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @tailwind utilities;
 
+button {
+  cursor: pointer;
+}
+
 :root {
   --deep-canvas: #080808;
   --primary-surface: #0A0A0B;

@@ -165,94 +165,123 @@ const FAQ = () => {
 
   return (
     <section ref={ref} className="relative py-24 bg-[#0A0A0B] overflow-hidden">
-      {/* Grid Pattern */}
-      <div
-        className="absolute inset-0 z-0 opacity-20"
-        style={{
-          backgroundImage: 'url(/grid-pattern-dark.svg)',
-          backgroundSize: 'cover',
-        }}
-      ></div>
-
-      {/* Animated Gradient Orbs */}
-      <motion.div
-        className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"
-        animate={{ x: ['0%', '50%', '0%'], y: ['0%', '50%', '0%'] }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
-      ></motion.div>
-      <motion.div
-        className="absolute top-1/2 right-1/4 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"
-        animate={{ x: ['0%', '-50%', '0%'], y: ['0%', '-50%', '0%'] }}
-        transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
-      ></motion.div>
-      <motion.div
-        className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"
-        animate={{ x: ['0%', '50%', '0%'], y: ['0%', '-50%', '0%'] }}
-        transition={{ duration: 14, repeat: Infinity, ease: 'linear' }}
-      ></motion.div>
+      {/* Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/3 via-transparent to-gray-600/2"></div>
+        <div className="absolute inset-0 bg-[url('/grid-pattern-dark.svg')] opacity-30"></div>
+        <motion.div 
+          className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-[80px]"
+          style={{
+            background: 'radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 70%)'
+          }}
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.4, 0.6, 0.4]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div 
+          className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-[60px]"
+          style={{
+            background: 'radial-gradient(circle, rgba(107, 114, 128, 0.2) 0%, rgba(107, 114, 128, 0.05) 50%, transparent 70%)'
+          }}
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.2, 0.4, 0.2]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2
+          }}
+        />
+        <motion.div 
+          className="absolute top-3/4 left-1/3 w-64 h-64 rounded-full blur-[40px]"
+          style={{
+            background: 'radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%)'
+          }}
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.2, 0.3, 0.2]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 4
+          }}
+        />
+      </div>
       
       <div className="relative max-w-4xl mx-auto px-6">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+        <motion.div 
+          className="flex flex-col items-center space-y-4 sm:space-y-6 pb-16 lg:pb-20"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          viewport={{ once: true }}
         >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white/[0.05] border border-white/[0.1] rounded-full text-blue-300 text-sm font-medium mb-6 shadow-lg shadow-blue-500/10"
-          >
-            <HelpCircle className="w-4 h-4 text-blue-400" />
-            <span className="bg-gradient-to-r from-blue-300 to-cyan-300 bg-clip-text text-transparent">Frequently Asked Questions</span>
-          </motion.div>
-          <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent mb-6">
-            Everything You Need to Know
-          </h2>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Get instant answers to common questions. Can't find what you're looking for? 
-            <a href="#contact" className="text-blue-400 hover:text-blue-300 font-semibold ml-1 transition-colors">
-              Contact our support team
-            </a>
-          </p>
+          <div className="inline-flex items-center space-x-2 bg-white/[0.02] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm">
+            <motion.div
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <HelpCircle className="h-4 w-4 text-blue-400" />
+            </motion.div>
+            <span className="text-white/70 text-sm font-medium">FAQ</span>
+          </div>
+          <div className="flex flex-col items-center space-y-4">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight font-semibold tracking-tight text-center">
+              Frequently Asked
+              <span className="block bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent">
+                Questions
+              </span>
+            </h2>
+            <p className="text-base text-white/80 max-w-2xl text-center leading-relaxed">
+              Everything you need to know about our platform. Can't find the answer you're looking for? 
+              <a href="#contact" className="text-blue-400 hover:text-blue-300 transition-colors underline decoration-blue-400/30 hover:decoration-blue-300/50">Contact our support team</a>.
+            </p>
+          </div>
         </motion.div>
 
-        {/* Search and Filter */}
+        {/* Search and Filters */}
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
           className="mb-12"
         >
           {/* Search Bar */}
-          <div className="relative mb-6">
+          <div className="relative mb-8">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/40 h-5 w-5 z-30" />
             <input
               type="text"
-              placeholder="Search FAQs..."
+              placeholder="Search frequently asked questions..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-5 py-3 pl-12 rounded-full bg-white/[0.02] border border-white/[0.05] text-white placeholder-white/40 focus:outline-none focus:border-blue-500/30 focus:bg-white/[0.03] transition-all duration-300 shadow-inner shadow-black/20"
+              className="w-full pl-12 pr-4 py-4 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/30 transition-all duration-300 backdrop-blur-sm hover:bg-white/[0.05] hover:border-white/[0.12]"
             />
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-400" />
           </div>
 
           {/* Category Filters */}
-          <div className="flex flex-wrap justify-center gap-3">
-            {categories.map(category => (
+          <div className="flex flex-wrap gap-3 justify-center">
+            {categories.map((category) => (
               <button
                 key={category.value}
                 onClick={() => setActiveCategory(category.value)}
-                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 relative overflow-hidden group ${activeCategory === category.value
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
-                  : 'bg-white/[0.02] text-gray-300 hover:text-white border border-white/[0.05] hover:border-blue-500/30'}
-                `}
+                className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                  activeCategory === category.value
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25 border border-blue-500/30'
+                    : 'bg-white/[0.03] text-white/70 hover:bg-white/[0.08] hover:text-white border border-white/[0.08] hover:border-white/[0.15]'
+                }`}
               >
-                {activeCategory !== category.value && (
-                  <span className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                )}
-                <span className="relative z-10">{category.name}</span>
+                {category.name}
               </button>
             ))}
           </div>
@@ -263,63 +292,124 @@ const FAQ = () => {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="space-y-4"
+          className="space-y-4 mb-16"
         >
-          <AnimatePresence>
-            {filteredFaqs.map((faq, index) => (
+          {filteredFaqs.length > 0 ? (
+            filteredFaqs.map((faq, index) => (
               <motion.div
                 key={index}
                 variants={itemVariants}
-                layout
-                whileHover={{ y: -2 }}
-                className="group bg-white/[0.02] backdrop-blur-sm rounded-2xl border border-white/[0.05] overflow-hidden hover:border-blue-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10"
+                className="group relative"
               >
-                <button
-                  onClick={() => toggleItem(index)}
-                  className="w-full px-6 py-6 text-left flex items-center justify-between hover:bg-white/[0.03] transition-colors duration-200"
-                >
-                  <div className="flex items-start space-x-4">
-                    <div className={`p-3 rounded-xl bg-gradient-to-r ${faq.gradient} bg-opacity-10 border border-white/[0.1] group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-black/20`}>
-                      <faq.icon className={`h-5 w-5 ${faq.iconColor}`} />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-white group-hover:text-blue-300 transition-colors">
-                          {faq.question}
-                        </h3>
-                        {faq.highlight && (
-                          <span className="px-3 py-1 text-xs font-medium bg-blue-500/20 text-blue-300 rounded-full border border-blue-500/30 hidden sm:inline-block">
-                            {faq.highlight}
-                          </span>
-                        )}
+                {/* Gradient Orb Background */}
+                <div className="absolute inset-0 rounded-2xl overflow-hidden">
+                  <motion.div 
+                    className="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[40px] opacity-0 group-hover:opacity-20 transition-opacity duration-500"
+                    style={{
+                      background: 'radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 70%)'
+                    }}
+                  />
+                </div>
+
+                <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl overflow-hidden hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-500 group-hover:scale-[1.01]">
+                  <button
+                    onClick={() => toggleItem(index)}
+                    className="w-full px-8 py-6 text-left flex items-center justify-between group-hover:bg-white/[0.02] transition-all duration-300"
+                  >
+                    <div className="flex items-start space-x-4">
+                      <div className={`p-3 rounded-xl bg-gradient-to-r ${faq.gradient} bg-opacity-10 border border-white/[0.1] group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-black/20`}>
+                        <faq.icon className={`h-5 w-5 ${faq.iconColor}`} />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-lg font-semibold text-white group-hover:text-blue-300 transition-colors">
+                            {faq.question}
+                          </h3>
+                          {faq.highlight && (
+                            <span className="px-3 py-1 text-xs font-medium bg-blue-500/20 text-blue-300 rounded-full border border-blue-500/30 hidden sm:inline-block">
+                              {faq.highlight}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <ChevronDown className={`h-5 w-5 text-blue-400 transition-colors ${openItems.includes(index) ? 'rotate-180' : ''}`} />
-                </button>
-                
-                <AnimatePresence>
-                  {openItems.includes(index) && (
                     <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                      className="overflow-hidden"
+                      animate={{ rotate: openItems.includes(index) ? 180 : 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="flex-shrink-0"
                     >
-                      <div className="px-6 pb-6">
-                        <div className="border-t border-white/[0.05] pt-4">
-                          <p className="text-white/70 leading-relaxed">
+                      <ChevronDown className="h-6 w-6 text-blue-400 group-hover:text-blue-300 transition-colors" />
+                    </motion.div>
+                  </button>
+                  
+                  <AnimatePresence>
+                    {openItems.includes(index) && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-8 pb-6 pt-2">
+                          <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-6"></div>
+                          <p className="text-white/80 leading-relaxed text-base">
                             {faq.answer}
                           </p>
                         </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </motion.div>
-            ))}
-          </AnimatePresence>
+            ))
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-16"
+            >
+              <div className="relative bg-white/[0.02] border border-white/[0.08] rounded-2xl p-12 backdrop-blur-sm overflow-hidden">
+                {/* Background Orb */}
+                <div className="absolute inset-0">
+                  <motion.div 
+                    className="absolute top-1/2 left-1/2 w-40 h-40 rounded-full blur-[60px] transform -translate-x-1/2 -translate-y-1/2"
+                    style={{
+                      background: 'radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%)'
+                    }}
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      opacity: [0.2, 0.3, 0.2]
+                    }}
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+                </div>
+
+                <div className="relative z-10">
+                  <div className="w-16 h-16 bg-blue-500/10 border border-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Search className="h-8 w-8 text-blue-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-4">No Results Found</h3>
+                  <p className="text-white/60 mb-6 max-w-md mx-auto">
+                    We couldn't find any FAQs matching your search. Try different keywords or browse our categories.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setActiveCategory('all');
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 border border-blue-500/30 shadow-lg hover:shadow-xl"
+                  >
+                    Clear Filters
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </motion.div>
 
         {/* No Results */}
@@ -359,39 +449,59 @@ const FAQ = () => {
           transition={{ delay: 0.8, duration: 0.6 }}
           className="text-center mt-16"
         >
-          <div className="relative bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-blue-600/20 rounded-3xl p-12 border border-gray-700 backdrop-blur-sm overflow-hidden">
-            {/* Background glow */}
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10 rounded-3xl blur-xl" />
+          <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-3xl p-12 overflow-hidden">
+            {/* Background Elements */}
+            <div className="absolute inset-0">
+              <motion.div 
+                className="absolute top-1/2 left-1/2 w-96 h-96 rounded-full blur-[100px] transform -translate-x-1/2 -translate-y-1/2"
+                style={{
+                  background: 'radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%)'
+                }}
+                animate={{
+                  scale: [1, 1.1, 1],
+                  opacity: [0.15, 0.25, 0.15]
+                }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+            </div>
             
-            <div className="relative">
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <Sparkles className="w-6 h-6 text-blue-400" />
-                <h3 className="text-2xl font-bold text-white">
-                  Still have questions?
-                </h3>
-                <Sparkles className="w-6 h-6 text-purple-400" />
+            <div className="relative z-10">
+              <div className="inline-flex items-center space-x-2 bg-white/[0.02] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm mb-6">
+                <MessageCircle className="h-4 w-4 text-blue-400" />
+                <span className="text-white/70 text-sm font-medium">Need Help?</span>
               </div>
-              <p className="text-xl mb-8 text-gray-300">
-                Our support team is here to help you get the most out of Whizboard
+              
+              <h3 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
+                Still have questions?
+              </h3>
+              <p className="text-base text-white/80 mb-8 max-w-2xl mx-auto leading-relaxed">
+                Can't find the answer you're looking for? Our support team is here to help.
               </p>
+              
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <motion.a
                   href="#contact"
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-gray-900 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/[0.08] border border-white/[0.12] text-white rounded-lg font-medium hover:bg-white/[0.12] hover:border-white/[0.16] transition-all duration-300 backdrop-blur-sm"
                 >
-                  <MessageCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <MessageCircle className="w-4 h-4" />
                   Contact Support
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </motion.a>
                 <motion.a
                   href="/docs"
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="group inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-gray-600 text-white rounded-xl font-semibold text-lg hover:bg-gray-800/50 hover:border-gray-500 transition-all duration-300"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/[0.04] border border-white/[0.08] text-white/90 hover:text-white hover:bg-white/[0.08] hover:border-white/[0.12] transition-all duration-300 font-medium rounded-lg backdrop-blur-sm"
                 >
-                  <BookOpen className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <BookOpen className="w-4 h-4" />
                   View Documentation
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </motion.a>
               </div>
             </div>

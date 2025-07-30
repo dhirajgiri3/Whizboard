@@ -40,8 +40,36 @@ const RealtimeWhiteboard: React.FC = () => {
         icon: React.ComponentType<any>;
     }>({ name: "", description: "", shortcut: "", icon: MousePointer });
 
-    const canvasWidth = 800;
-    const canvasHeight = 500;
+    // Responsive canvas dimensions
+    const [canvasWidth, setCanvasWidth] = useState(800);
+    const [canvasHeight, setCanvasHeight] = useState(500);
+
+    // Update canvas dimensions based on screen size
+    useEffect(() => {
+        const updateCanvasDimensions = () => {
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            const vh85 = screenHeight * 0.85;
+            
+            if (screenWidth < 640) { // mobile
+                setCanvasWidth(Math.min(screenWidth - 32, 350));
+                setCanvasHeight(Math.min(vh85 - 200, 400));
+            } else if (screenWidth < 768) { // tablet
+                setCanvasWidth(Math.min(screenWidth - 64, 600));
+                setCanvasHeight(Math.min(vh85 - 180, 500));
+            } else if (screenWidth < 1024) { // small desktop
+                setCanvasWidth(Math.min(screenWidth - 96, 700));
+                setCanvasHeight(Math.min(vh85 - 160, 600));
+            } else { // large desktop
+                setCanvasWidth(800);
+                setCanvasHeight(Math.min(vh85 - 140, 700));
+            }
+        };
+
+        updateCanvasDimensions();
+        window.addEventListener('resize', updateCanvasDimensions);
+        return () => window.removeEventListener('resize', updateCanvasDimensions);
+    }, []);
 
     const { toolbarItems, colorPalettes } = useWhiteboardTools(activeTool);
 
@@ -155,23 +183,14 @@ const RealtimeWhiteboard: React.FC = () => {
 
         const demoPaths: DrawingPath[] = [
             {
-                id: "demo-path-1",
-                path: "M50 50 C 150 10 250 150 350 50 S 450 10 550 150 S 650 10 750 150 L 700 200 C 600 250 500 100 400 200 S 300 250 200 100 S 100 250 50 200",
-                color: "#3b82f6",
-                strokeWidth: 3,
-                user: "user1",
-                timestamp: Date.now(),
-                opacity: 0.9,
-            },
-            {
                 id: "demo-path-2",
                 path: "M10 300 C 100 200 200 400 300 300 S 400 200 500 400 S 600 200 700 400 L 750 350 C 650 250 550 450 450 350 S 350 250 250 450 S 150 250 50 450 L 10 300",
-                color: "#10b981",
+                color: "#3b82f6",
                 strokeWidth: 2.5,
                 user: "user2",
                 timestamp: Date.now() + 1000,
                 opacity: 0.85,
-            },
+            }
         ];
         setDrawingPaths(demoPaths);
     }, [mockCollaborators]);
@@ -237,42 +256,44 @@ const RealtimeWhiteboard: React.FC = () => {
     }, []);
 
     return (
-        <div className="relative w-full max-w-6xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+        <div className="relative w-full max-w-6xl mx-auto px-2 sm:px-4 lg:px-0 canvas-container whiteboard-container" style={{ height: '85vh' }}>
+            <div className="relative bg-white rounded-lg sm:rounded-xl lg:rounded-2xl shadow-lg sm:shadow-xl border border-gray-200 overflow-hidden h-full flex flex-col">
                 <WhiteboardHeader
                     zoomLevel={zoomLevel}
                     setZoomLevel={setZoomLevel}
                     collaborators={collaborators}
                 />
 
-                <WhiteboardCanvas
-                    canvasRef={canvasRef}
-                    canvasWidth={canvasWidth}
-                    canvasHeight={canvasHeight}
-                    zoomLevel={zoomLevel}
-                    panOffset={panOffset}
-                    activeTool={activeTool}
-                    drawingPaths={drawingPaths}
-                    currentPath={currentPath}
-                    canvasElements={canvasElements}
-                    selectedColor={selectedColor}
-                    selectedElement={selectedElement}
-                    editingTextElementId={editingTextElementId}
-                    editingTextContent={editingTextContent}
-                    collaborators={collaborators}
-                    hoveredElementId={hoveredElementId}
-                    handleCanvasMouseDown={handleCanvasMouseDown}
-                    handleCanvasMouseMove={handleCanvasMouseMove}
-                    handleCanvasMouseUp={handleCanvasMouseUp}
-                    setEditingTextContent={setEditingTextContent}
-                    setEditingTextElementId={setEditingTextElementId}
-                    setCanvasElements={setCanvasElements}
-                    handleElementSelect={handleElementSelect}
-                    setHoveredElementId={setHoveredElementId}
-                    setSelectedElement={setSelectedElement}
-                    isPanning={isPanning}
-                    isDragging={isDragging}
-                />
+                <div className="flex-1 relative overflow-hidden">
+                    <WhiteboardCanvas
+                        canvasRef={canvasRef}
+                        canvasWidth={canvasWidth}
+                        canvasHeight={canvasHeight}
+                        zoomLevel={zoomLevel}
+                        panOffset={panOffset}
+                        activeTool={activeTool}
+                        drawingPaths={drawingPaths}
+                        currentPath={currentPath}
+                        canvasElements={canvasElements}
+                        selectedColor={selectedColor}
+                        selectedElement={selectedElement}
+                        editingTextElementId={editingTextElementId}
+                        editingTextContent={editingTextContent}
+                        collaborators={collaborators}
+                        hoveredElementId={hoveredElementId}
+                        handleCanvasMouseDown={handleCanvasMouseDown}
+                        handleCanvasMouseMove={handleCanvasMouseMove}
+                        handleCanvasMouseUp={handleCanvasMouseUp}
+                        setEditingTextContent={setEditingTextContent}
+                        setEditingTextElementId={setEditingTextElementId}
+                        setCanvasElements={setCanvasElements}
+                        handleElementSelect={handleElementSelect}
+                        setHoveredElementId={setHoveredElementId}
+                        setSelectedElement={setSelectedElement}
+                        isPanning={isPanning}
+                        isDragging={isDragging}
+                    />
+                </div>
 
                 <ColorPickerDialog
                     showColorPicker={showColorPicker}
@@ -365,6 +386,36 @@ const RealtimeWhiteboard: React.FC = () => {
         ::selection {
           background-color: rgba(59, 130, 246, 0.2);
           color: rgba(59, 130, 246, 1);
+        }
+
+        /* Prevent text selection on canvas */
+        .canvas-container {
+          -webkit-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+          user-select: none;
+        }
+
+        /* Improve touch interactions */
+        .canvas-container * {
+          -webkit-touch-callout: none;
+          -webkit-user-select: none;
+          -khtml-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+          user-select: none;
+        }
+
+        /* Smooth transitions for better UX */
+        * {
+          transition: all 0.2s ease-in-out;
+        }
+
+        /* Ensure proper height handling */
+        .whiteboard-container {
+          height: 85vh;
+          max-height: 85vh;
+          min-height: 400px;
         }
       `}</style>
         </div>

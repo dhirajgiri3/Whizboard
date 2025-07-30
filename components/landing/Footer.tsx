@@ -98,9 +98,55 @@ const Footer = () => {
     <footer ref={ref} className="relative bg-gradient-to-b from-gray-950 via-gray-900 to-black text-white overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[600px] bg-gradient-radial from-blue-500/3 via-transparent to-transparent rounded-full" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/3 via-transparent to-gray-600/2"></div>
+        <div className="absolute inset-0 bg-[url('/grid-pattern-dark.svg')] opacity-30"></div>
+        <motion.div 
+          className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-[80px]"
+          style={{
+            background: 'radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 70%)'
+          }}
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.4, 0.6, 0.4]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div 
+          className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-[60px]"
+          style={{
+            background: 'radial-gradient(circle, rgba(107, 114, 128, 0.2) 0%, rgba(107, 114, 128, 0.05) 50%, transparent 70%)'
+          }}
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.2, 0.4, 0.2]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2
+          }}
+        />
+        <motion.div 
+          className="absolute top-3/4 left-1/3 w-64 h-64 rounded-full blur-[40px]"
+          style={{
+            background: 'radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%)'
+          }}
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.2, 0.3, 0.2]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 4
+          }}
+        />
       </div>
       
       <div className="relative max-w-7xl mx-auto px-6 py-16">
@@ -169,12 +215,19 @@ const Footer = () => {
           </motion.div>
 
           {/* Footer Links */}
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="relative">
+            {/* Gradient orb background */}
+            <div 
+              className="absolute -top-4 -left-4 w-24 h-24 rounded-full blur-[30px] opacity-20"
+              style={{
+                background: 'radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, transparent 70%)'
+              }}
+            />
             <div className="flex items-center gap-2 mb-6">
               <div className="p-1 bg-blue-500/20 rounded-lg">
                 <Globe className="w-4 h-4 text-blue-400" />
               </div>
-              <h3 className="font-semibold text-white">Product</h3>
+              <h3 className="font-semibold text-white text-sm uppercase tracking-wider">Product</h3>
             </div>
             <ul className="space-y-3">
               {footerLinks.product.map((link, index) => (
@@ -185,9 +238,9 @@ const Footer = () => {
                 >
                   <a 
                     href={link.href}
-                    className="group flex items-center text-gray-400 hover:text-blue-400 transition-all duration-200"
+                    className="group flex items-center text-gray-400 hover:text-blue-400 transition-all duration-200 hover:translate-x-1"
                   >
-                    <ArrowRight className="w-3 h-3 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ArrowRight className="w-3 h-3 mr-2 opacity-0 group-hover:opacity-100 transition-all duration-200 text-blue-400" />
                     <span className="group-hover:translate-x-1 transition-transform">{link.name}</span>
                   </a>
                 </motion.li>
@@ -195,12 +248,19 @@ const Footer = () => {
             </ul>
           </motion.div>
 
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="relative">
+            {/* Gradient orb background */}
+            <div 
+              className="absolute -top-4 -left-4 w-24 h-24 rounded-full blur-[30px] opacity-20"
+              style={{
+                background: 'radial-gradient(circle, rgba(147, 51, 234, 0.3) 0%, transparent 70%)'
+              }}
+            />
             <div className="flex items-center gap-2 mb-6">
               <div className="p-1 bg-purple-500/20 rounded-lg">
                 <Heart className="w-4 h-4 text-purple-400" />
               </div>
-              <h3 className="font-semibold text-white">Company</h3>
+              <h3 className="font-semibold text-white text-sm uppercase tracking-wider">Company</h3>
             </div>
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
@@ -211,9 +271,9 @@ const Footer = () => {
                 >
                   <a 
                     href={link.href}
-                    className="group flex items-center text-gray-400 hover:text-purple-400 transition-all duration-200"
+                    className="group flex items-center text-gray-400 hover:text-purple-400 transition-all duration-200 hover:translate-x-1"
                   >
-                    <ArrowRight className="w-3 h-3 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ArrowRight className="w-3 h-3 mr-2 opacity-0 group-hover:opacity-100 transition-all duration-200 text-purple-400" />
                     <span className="group-hover:translate-x-1 transition-transform">{link.name}</span>
                   </a>
                 </motion.li>
@@ -221,12 +281,19 @@ const Footer = () => {
             </ul>
           </motion.div>
 
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="relative">
+            {/* Gradient orb background */}
+            <div 
+              className="absolute -top-4 -left-4 w-24 h-24 rounded-full blur-[30px] opacity-20"
+              style={{
+                background: 'radial-gradient(circle, rgba(34, 197, 94, 0.3) 0%, transparent 70%)'
+              }}
+            />
             <div className="flex items-center gap-2 mb-6">
               <div className="p-1 bg-green-500/20 rounded-lg">
                 <Shield className="w-4 h-4 text-green-400" />
               </div>
-              <h3 className="font-semibold text-white">Resources</h3>
+              <h3 className="font-semibold text-white text-sm uppercase tracking-wider">Resources</h3>
             </div>
             <ul className="space-y-3">
               {footerLinks.resources.map((link) => (
@@ -237,9 +304,9 @@ const Footer = () => {
                 >
                   <a 
                     href={link.href}
-                    className="group flex items-center text-gray-400 hover:text-green-400 transition-all duration-200"
+                    className="group flex items-center text-gray-400 hover:text-green-400 transition-all duration-200 hover:translate-x-1"
                   >
-                    <ArrowRight className="w-3 h-3 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ArrowRight className="w-3 h-3 mr-2 opacity-0 group-hover:opacity-100 transition-all duration-200 text-green-400" />
                     <span className="group-hover:translate-x-1 transition-transform">{link.name}</span>
                   </a>
                 </motion.li>
@@ -258,8 +325,29 @@ const Footer = () => {
           {/* Background glow */}
           <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10 rounded-3xl blur-xl" />
           
-          <div className="relative grid md:grid-cols-2 gap-8 items-center">
+          {/* Additional animated background orb */}
+          <motion.div 
+            className="absolute top-0 left-1/2 transform -translate-x-1/2 w-96 h-32 rounded-full blur-[60px]"
+            style={{
+              background: 'radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%)'
+            }}
+            animate={{
+              scale: [1, 1.1, 1],
+              opacity: [0.2, 0.4, 0.2]
+            }}
+            transition={{
+              duration: 6,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          
+          <div className="relative grid md:grid-cols-2 gap-8 items-center z-10">
             <div>
+              <div className="inline-flex items-center px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full text-blue-400 text-xs font-medium mb-4">
+                <Mail className="h-3 w-3 mr-1" />
+                Newsletter
+              </div>
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="w-6 h-6 text-blue-400" />
                 <h3 className="text-2xl font-bold text-white">
@@ -297,13 +385,13 @@ const Footer = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+                  className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 backdrop-blur-sm"
                 />
                 <motion.button
                   type="submit"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-6 py-3 bg-white text-gray-900 rounded-lg font-semibold hover:bg-gray-100 transition-all duration-200 flex items-center space-x-2 shadow-lg"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2 shadow-lg border border-blue-400/20 rounded-lg"
                 >
                   <Send className="h-4 w-4" />
                   <span>Subscribe</span>
@@ -329,9 +417,17 @@ const Footer = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ delay: 0.6, duration: 0.6 }}
-          className="border-t border-gray-800 pt-8"
+          className="border-t border-gray-800 pt-8 relative"
         >
-          <div className="flex flex-col lg:flex-row justify-between items-center space-y-6 lg:space-y-0">
+          {/* Background gradient orb */}
+          <div 
+            className="absolute top-0 left-0 w-32 h-16 rounded-full blur-[40px] opacity-10"
+            style={{
+              background: 'radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, transparent 70%)'
+            }}
+          />
+          
+          <div className="flex flex-col lg:flex-row justify-between items-center space-y-6 lg:space-y-0 relative z-10">
             {/* Copyright */}
             <div className="flex items-center gap-2 text-gray-400 text-sm">
               <span>© 2024 Whizboard. All rights reserved.</span>
@@ -348,7 +444,7 @@ const Footer = () => {
                   key={link.name}
                   href={link.href}
                   whileHover={{ y: -1 }}
-                  className="text-gray-400 hover:text-blue-400 transition-colors duration-200 relative group"
+                  className="text-gray-400 hover:text-blue-400 transition-all duration-200 relative group hover:translate-y-[-1px]"
                 >
                   {link.name}
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 group-hover:w-full transition-all duration-300" />
@@ -369,7 +465,7 @@ const Footer = () => {
                   transition={{ delay: 0.8 + index * 0.1 }}
                   className="group p-3 bg-gray-800/50 backdrop-blur-sm rounded-xl text-gray-400 hover:text-white border border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
                 >
-                  <social.icon className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                  <social.icon className="h-5 w-5 group-hover:scale-110 transition-transform group-hover:text-blue-400" />
                 </motion.a>
               ))}
             </div>
