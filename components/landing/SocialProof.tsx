@@ -33,6 +33,50 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
+// Enhanced CSS animations for infinite scroll
+const enhancedScrollStyles = `
+  @keyframes scroll-left {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+  
+  .animate-scroll-left {
+    animation: scroll-left 30s linear infinite;
+  }
+  
+  .animate-scroll-left:hover {
+    animation-play-state: paused;
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .infinite-scroll-container {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .fade-edge-left {
+    mask-image: linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%);
+  }
+  
+  .fade-edge-right {
+    mask-image: linear-gradient(to left, transparent 0%, black 20%, black 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to left, transparent 0%, black 20%, black 80%, transparent 100%);
+  }
+`;
+
 const SocialProof = () => {
   const ref = useRef<HTMLElement>(null);
   const metricsRef = useRef<HTMLDivElement>(null);
@@ -40,9 +84,9 @@ const SocialProof = () => {
   const ctaRef = useRef<HTMLDivElement>(null);
   const floatingCardsRef = useRef<HTMLDivElement>(null);
   const stackingCardsRef = useRef<HTMLDivElement>(null);
+  const testimonialContainerRef = useRef<HTMLDivElement>(null);
   
   const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const [scrollPosition, setScrollPosition] = useState(0);
 
   const testimonials = [
     {
@@ -178,14 +222,14 @@ const SocialProof = () => {
     if (!isInView) return;
 
     const ctx = gsap.context(() => {
-      // Floating cards animation with improved easing
+      // Enhanced floating cards animation
       if (floatingCardsRef.current) {
         gsap.to(floatingCardsRef.current.children, {
-          y: "random(-15, 15)",
-          x: "random(-8, 8)",
-          rotation: "random(-3, 3)",
-          duration: "random(4, 6)",
-          repeat: 999999,
+          y: "random(-10, 10)",
+          x: "random(-4, 4)",
+          rotation: "random(-1, 1)",
+          duration: "random(5, 7)",
+          repeat: -1,
           yoyo: true,
           ease: "sine.inOut",
           stagger: 0.3
@@ -195,16 +239,16 @@ const SocialProof = () => {
       // Enhanced stacking cards scroll animation
       if (stackingCardsRef.current) {
         const cards = stackingCardsRef.current.children;
-        gsap.set(cards, { y: (i) => i * 15 });
+        gsap.set(cards, { y: (i) => i * 12 });
         
         gsap.to(cards, {
-          y: (i) => -i * 80,
-          scale: (i) => 1 - i * 0.03,
+          y: (i) => -i * 60,
+          scale: (i) => 1 - i * 0.02,
           scrollTrigger: {
             trigger: stackingCardsRef.current,
             start: "top bottom",
             end: "bottom top",
-            scrub: 1.5
+            scrub: 1.2
           }
         });
       }
@@ -234,7 +278,7 @@ const SocialProof = () => {
       // Enhanced trust badges parallax
       if (trustRef.current) {
         gsap.to(trustRef.current.children, {
-          y: (i) => (i % 2 === 0 ? -25 : 25),
+          y: (i) => (i % 2 === 0 ? -20 : 20),
           scrollTrigger: {
             trigger: trustRef.current,
             start: "top bottom",
@@ -245,20 +289,27 @@ const SocialProof = () => {
         });
       }
 
-      // Improved Infinite Testimonial Scroll
-      const testimonialContainer = document.querySelector('.testimonial-scroll-container');
-      const testimonialWidth = 352;
-      const totalTestimonialsWidth = testimonialWidth * testimonials.length;
-
-      gsap.to(testimonialContainer, {
-        x: `-=${totalTestimonialsWidth}`,
-        ease: "none",
-        duration: 25,
-        repeat: -1,
-        modifiers: {
-          x: gsap.utils.wrap(-totalTestimonialsWidth, 0)
-        }
-      });
+      // Enhanced Infinite Testimonial Scroll with edge fading
+      if (testimonialContainerRef.current) {
+        const container = testimonialContainerRef.current;
+        const cards = container.querySelectorAll('.testimonial-card');
+        const cardWidth = 320; // Width of each card
+        const gap = 24; // Gap between cards
+        const totalWidth = (cardWidth + gap) * testimonials.length;
+        
+        // Create seamless loop
+        gsap.set(cards, { x: (i) => i * (cardWidth + gap) });
+        
+        gsap.to(cards, {
+          x: `-=${totalWidth}`,
+          ease: "none",
+          duration: 25,
+          repeat: -1,
+          modifiers: {
+            x: gsap.utils.wrap(-totalWidth, 0)
+          }
+        });
+      }
 
     });
 
@@ -272,7 +323,7 @@ const SocialProof = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.12,
+        staggerChildren: 0.1,
         delayChildren: 0.1
       }
     }
@@ -306,10 +357,12 @@ const SocialProof = () => {
   };
 
   return (
-    <section 
-      ref={ref} 
-      className="relative py-24 md:py-32 overflow-hidden bg-[#0A0A0B]"
-    >
+    <>
+      <style dangerouslySetInnerHTML={{ __html: enhancedScrollStyles }} />
+      <section 
+        ref={ref} 
+        className="relative py-24 md:py-32 overflow-hidden bg-[#0A0A0B]"
+      >
       {/* Enhanced Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/4 via-transparent to-gray-600/3"></div>
@@ -317,14 +370,14 @@ const SocialProof = () => {
         <motion.div 
           className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-[60px]"
           style={{
-            background: 'radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 70%)'
+            background: 'radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, rgba(37, 99, 235, 0.08) 50%, transparent 70%)'
           }}
           animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.4, 0.6, 0.4]
+            scale: [1, 1.05, 1],
+            opacity: [0.3, 0.5, 0.3]
           }}
           transition={{
-            duration: 8,
+            duration: 10,
             repeat: 999999,
             ease: "easeInOut"
           }}
@@ -332,17 +385,17 @@ const SocialProof = () => {
         <motion.div 
           className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-[80px]"
           style={{
-            background: 'radial-gradient(circle, rgba(107, 114, 128, 0.2) 0%, rgba(107, 114, 128, 0.05) 50%, transparent 70%)'
+            background: 'radial-gradient(circle, rgba(107, 114, 128, 0.15) 0%, rgba(107, 114, 128, 0.04) 50%, transparent 70%)'
           }}
           animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.4, 0.6, 0.4]
+            scale: [1, 1.05, 1],
+            opacity: [0.3, 0.5, 0.3]
           }}
           transition={{
-            duration: 8,
+            duration: 12,
             repeat: 999999,
             ease: "easeInOut",
-            delay: 2
+            delay: 3
           }}
         />
       </div>
@@ -355,7 +408,7 @@ const SocialProof = () => {
           className="space-y-32"
         >
           {/* Enhanced Floating Metrics Cards */}
-          <div className="text-center mb-24">
+          <div className="text-center">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
@@ -367,19 +420,7 @@ const SocialProof = () => {
                 whileHover={{ scale: 1.02, y: -1 }}
                 transition={{ duration: 0.3 }}
               >
-                <motion.div
-                  animate={{ 
-                    rotate: [0, 360],
-                    scale: [1, 1.05, 1]
-                  }}
-                  transition={{ 
-                    duration: 4, 
-                    repeat: 999999, 
-                    ease: "easeInOut" 
-                  }}
-                >
-                  <BarChart3 className="h-4 w-4 text-blue-400" />
-                </motion.div>
+                <BarChart3 className="h-4 w-4 text-blue-400" />
                 <span className="text-white/70 text-sm font-medium">Trusted by Thousands</span>
               </motion.div>
               
@@ -488,7 +529,7 @@ const SocialProof = () => {
             </div>
           </div>
 
-          {/* Enhanced Infinite Scrolling Testimonials */}
+          {/* Enhanced Infinite Scrolling Testimonials with Edge Fading */}
           <div className="relative overflow-hidden py-16">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
@@ -504,47 +545,72 @@ const SocialProof = () => {
               </p>
             </motion.div>
 
-            <div className="relative h-80 overflow-hidden">
-              <div
-                className="flex space-x-6 absolute testimonial-scroll-container"
-              >
-                {[...testimonials, ...testimonials].map((testimonial, index) => (
-                  <motion.div
-                    key={index}
-                    variants={testimonialVariants}
-                    initial="hidden"
-                    animate={isInView ? "visible" : "hidden"}
-                    transition={{ delay: 0.8 + (index % testimonials.length) * 0.1 }}
-                    className="flex-shrink-0 w-80 bg-white/[0.02] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 hover:bg-white/[0.04] hover:border-white/[0.15] transition-all duration-400"
-                    whileHover={{ scale: 1.02, y: -3 }}
-                  >
-                    <div className="flex items-center space-x-1 mb-4">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                      ))}
-                    </div>
-                    <blockquote className="text-white/80 text-sm leading-relaxed mb-4">
-                      "{testimonial.content}"
-                    </blockquote>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center">
-                        <span className="text-white font-semibold text-sm">
-                          {testimonial.name.split(' ').map(n => n[0]).join('')}
-                        </span>
+            {/* Enhanced Testimonial Container with Infinite Horizontal Scroll */}
+            <div className="relative group">
+              {/* Left Edge Fade */}
+              <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#0A0A0B] to-transparent z-10 pointer-events-none"></div>
+              
+              {/* Right Edge Fade */}
+              <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#0A0A0B] to-transparent z-10 pointer-events-none"></div>
+              
+              {/* Enhanced Testimonial Cards Container with Infinite Scroll */}
+              <div className="relative h-80 overflow-hidden">
+                <div 
+                  ref={testimonialContainerRef}
+                  className="flex space-x-6 absolute animate-scroll-left hover:pause"
+                  style={{
+                    animation: 'scroll-left 30s linear infinite',
+                    animationPlayState: 'running'
+                  }}
+                >
+                  {/* Duplicate testimonials for seamless loop */}
+                  {[...testimonials, ...testimonials, ...testimonials].map((testimonial, index) => (
+                    <motion.div
+                      key={index}
+                      variants={testimonialVariants}
+                      initial="hidden"
+                      animate={isInView ? "visible" : "hidden"}
+                      transition={{ delay: 0.8 + (index % testimonials.length) * 0.1 }}
+                      className="testimonial-card flex-shrink-0 w-80 bg-white/[0.02] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 hover:bg-white/[0.04] hover:border-white/[0.15] transition-all duration-400 group/card"
+                      whileHover={{ scale: 1.02, y: -3 }}
+                    >
+                      <div className="flex items-center space-x-1 mb-4">
+                        {[...Array(testimonial.rating)].map((_, i) => (
+                          <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                        ))}
                       </div>
-                      <div>
-                        <div className="text-white/90 font-medium text-sm">{testimonial.name}</div>
-                        <div className="text-white/50 text-xs">{testimonial.role} at {testimonial.company}</div>
+                      <blockquote className="text-white/80 text-sm leading-relaxed mb-4">
+                        "{testimonial.content}"
+                      </blockquote>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center">
+                          <span className="text-white font-semibold text-sm">
+                            {testimonial.name.split(' ').map(n => n[0]).join('')}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="text-white/90 font-medium text-sm">{testimonial.name}</div>
+                          <div className="text-white/50 text-xs">{testimonial.role} at {testimonial.company}</div>
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                      
+                      {/* Enhanced hover effects */}
+                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"></div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Enhanced Scroll Controls */}
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center space-x-2 bg-white/[0.05] backdrop-blur-sm border border-white/[0.1] rounded-full px-4 py-2">
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                <span className="text-white/60 text-xs font-medium">Auto-scrolling testimonials</span>
               </div>
             </div>
           </div>
 
           {/* Enhanced Trust & Security Section */}
-          <div className="text-center mb-24">
+          <div className="text-center mb-20">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
@@ -556,19 +622,7 @@ const SocialProof = () => {
                 whileHover={{ scale: 1.02, y: -1 }}
                 transition={{ duration: 0.3 }}
               >
-                <motion.div
-                  animate={{ 
-                    rotate: [0, 360],
-                    scale: [1, 1.1, 1]
-                  }}
-                  transition={{ 
-                    duration: 3, 
-                    repeat: 999999, 
-                    ease: "easeInOut" 
-                  }}
-                >
-                  <Shield className="h-5 w-5 text-emerald-400" />
-                </motion.div>
+                <Shield className="h-5 w-5 text-emerald-400" />
                 <span className="text-white/70 text-sm font-medium">Enterprise Security</span>
               </motion.div>
               
@@ -647,7 +701,7 @@ const SocialProof = () => {
           </div>
 
           {/* Enhanced Companies Showcase */}
-          <div className="text-center mb-28">
+          <div className="text-center mb-20">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
@@ -659,19 +713,7 @@ const SocialProof = () => {
                 whileHover={{ scale: 1.02, y: -1 }}
                 transition={{ duration: 0.3 }}
               >
-                <motion.div
-                  animate={{ 
-                    scale: [1, 1.15, 1],
-                    rotate: [0, 180, 360]
-                  }}
-                  transition={{ 
-                    duration: 4, 
-                    repeat: 999999, 
-                    ease: "easeInOut" 
-                  }}
-                >
-                  <Globe className="h-5 w-5 text-blue-400" />
-                </motion.div>
+                <Globe className="h-5 w-5 text-blue-400" />
                 <span className="text-white/70 text-sm font-medium">Trusted Globally</span>
               </motion.div>
               
@@ -820,19 +862,7 @@ const SocialProof = () => {
                   whileHover={{ scale: 1.02, y: -2 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <motion.div
-                    animate={{ 
-                      rotate: [0, 360],
-                      scale: [1, 1.05, 1]
-                    }}
-                    transition={{ 
-                      duration: 3, 
-                      repeat: 999999, 
-                      ease: "easeInOut" 
-                    }}
-                  >
-                    <Zap className="h-5 w-5 text-blue-400" />
-                  </motion.div>
+                  <Zap className="h-5 w-5 text-blue-400" />
                   <span className="text-white/80 text-sm font-medium">Transform Your Workflow</span>
                 </motion.div>
                 
@@ -933,6 +963,7 @@ const SocialProof = () => {
         </motion.div>
       </div>
     </section>
+    </>
   );
 };
 
