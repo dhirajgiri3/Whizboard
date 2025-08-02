@@ -115,6 +115,11 @@ export function useCanvasZoom(stageRef: RefObject<Konva.Stage>): UseCanvasZoomRe
       maxY = -Infinity;
 
     lines.forEach((line) => {
+      // Skip lines that don't have valid points
+      if (!line.points || !Array.isArray(line.points) || line.points.length === 0) {
+        return;
+      }
+      
       for (let i = 0; i < line.points.length; i += 2) {
         const x = line.points[i];
         const y = line.points[i + 1];

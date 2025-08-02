@@ -4,15 +4,15 @@ import { motion, useInView, Variants } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
 import { gsap, Power3, Power2 } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { 
-  Star, 
-  Quote, 
-  TrendingUp, 
-  Users, 
-  Clock, 
-  CheckCircle, 
-  Award, 
-  Heart, 
+import {
+  Star,
+  Quote,
+  TrendingUp,
+  Users,
+  Clock,
+  CheckCircle,
+  Award,
+  Heart,
   Zap,
   Rocket,
   Palette,
@@ -26,8 +26,10 @@ import {
   Layers,
   BarChart3,
   Crown,
+  CheckCircle2,
   Infinity
 } from "lucide-react";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -45,7 +47,7 @@ const enhancedScrollStyles = `
   }
   
   .animate-scroll-left {
-    animation: scroll-left 30s linear infinite;
+    animation: scroll-left 45s linear infinite;
   }
   
   .animate-scroll-left:hover {
@@ -75,6 +77,48 @@ const enhancedScrollStyles = `
     mask-image: linear-gradient(to left, transparent 0%, black 20%, black 80%, transparent 100%);
     -webkit-mask-image: linear-gradient(to left, transparent 0%, black 20%, black 80%, transparent 100%);
   }
+  
+  .testimonial-card {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .testimonial-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+  
+  .testimonial-container {
+    animation: scroll-left 45s linear infinite;
+  }
+  
+  .testimonial-container:hover {
+    animation-play-state: paused;
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+  
+  .testimonial-card {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .testimonial-card:nth-child(even) {
+    animation-delay: 2s;
+  }
+  
+  .testimonial-card:nth-child(3n) {
+    animation-delay: 4s;
+  }
+  
+  .testimonial-card:hover {
+    animation-play-state: paused;
+  }
 `;
 
 const SocialProof = () => {
@@ -85,7 +129,7 @@ const SocialProof = () => {
   const floatingCardsRef = useRef<HTMLDivElement>(null);
   const stackingCardsRef = useRef<HTMLDivElement>(null);
   const testimonialContainerRef = useRef<HTMLDivElement>(null);
-  
+
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   const testimonials = [
@@ -225,14 +269,14 @@ const SocialProof = () => {
       // Enhanced floating cards animation
       if (floatingCardsRef.current) {
         gsap.to(floatingCardsRef.current.children, {
-          y: "random(-10, 10)",
-          x: "random(-4, 4)",
-          rotation: "random(-1, 1)",
-          duration: "random(5, 7)",
+          y: "random(-8, 8)",
+          x: "random(-3, 3)",
+          rotation: "random(-0.5, 0.5)",
+          duration: "random(6, 8)",
           repeat: -1,
           yoyo: true,
           ease: "sine.inOut",
-          stagger: 0.3
+          stagger: 0.4
         });
       }
 
@@ -240,7 +284,7 @@ const SocialProof = () => {
       if (stackingCardsRef.current) {
         const cards = stackingCardsRef.current.children;
         gsap.set(cards, { y: (i) => i * 12 });
-        
+
         gsap.to(cards, {
           y: (i) => -i * 60,
           scale: (i) => 1 - i * 0.02,
@@ -258,7 +302,7 @@ const SocialProof = () => {
         const counters = metricsRef.current.querySelectorAll('.counter');
         counters.forEach((counter) => {
           const target = parseFloat(counter.textContent || "0");
-          gsap.fromTo(counter, 
+          gsap.fromTo(counter,
             { textContent: 0 },
             {
               textContent: target,
@@ -289,26 +333,10 @@ const SocialProof = () => {
         });
       }
 
-      // Enhanced Infinite Testimonial Scroll with edge fading
+      // Enhanced Infinite Testimonial Scroll with CSS animation
       if (testimonialContainerRef.current) {
-        const container = testimonialContainerRef.current;
-        const cards = container.querySelectorAll('.testimonial-card');
-        const cardWidth = 320; // Width of each card
-        const gap = 24; // Gap between cards
-        const totalWidth = (cardWidth + gap) * testimonials.length;
-        
-        // Create seamless loop
-        gsap.set(cards, { x: (i) => i * (cardWidth + gap) });
-        
-        gsap.to(cards, {
-          x: `-=${totalWidth}`,
-          ease: "none",
-          duration: 25,
-          repeat: -1,
-          modifiers: {
-            x: gsap.utils.wrap(-totalWidth, 0)
-          }
-        });
+        // The animation is now handled by CSS for smoother performance
+        // and better hover pause functionality
       }
 
     });
@@ -331,9 +359,9 @@ const SocialProof = () => {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 30, scale: 0.95 },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
+    visible: {
+      opacity: 1,
+      y: 0,
       scale: 1,
       transition: {
         duration: 0.7,
@@ -344,9 +372,9 @@ const SocialProof = () => {
 
   const testimonialVariants: Variants = {
     hidden: { opacity: 0, scale: 0.9, y: 20, rotateX: 10 },
-    visible: { 
-      opacity: 1, 
-      scale: 1, 
+    visible: {
+      opacity: 1,
+      scale: 1,
       y: 0,
       rotateX: 0,
       transition: {
@@ -359,610 +387,666 @@ const SocialProof = () => {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: enhancedScrollStyles }} />
-      <section 
-        ref={ref} 
-        className="relative py-24 md:py-32 overflow-hidden bg-[#0A0A0B]"
+      <section
+        ref={ref}
+        className="relative py-16 md:py-24 overflow-hidden bg-[#0A0A0B]"
       >
-      {/* Enhanced Background Elements */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/4 via-transparent to-gray-600/3"></div>
-        <div className="absolute inset-0 bg-[url('/grid-pattern-dark.svg')] opacity-25"></div>
-        <motion.div 
-          className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-[60px]"
-          style={{
-            background: 'radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, rgba(37, 99, 235, 0.08) 50%, transparent 70%)'
-          }}
-          animate={{
-            scale: [1, 1.05, 1],
-            opacity: [0.3, 0.5, 0.3]
-          }}
-          transition={{
-            duration: 10,
-            repeat: 999999,
-            ease: "easeInOut"
-          }}
-        />
-        <motion.div 
-          className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-[80px]"
-          style={{
-            background: 'radial-gradient(circle, rgba(107, 114, 128, 0.15) 0%, rgba(107, 114, 128, 0.04) 50%, transparent 70%)'
-          }}
-          animate={{
-            scale: [1, 1.05, 1],
-            opacity: [0.3, 0.5, 0.3]
-          }}
-          transition={{
-            duration: 12,
-            repeat: 999999,
-            ease: "easeInOut",
-            delay: 3
-          }}
-        />
-      </div>
+        {/* Enhanced Background Elements */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/4 via-transparent to-gray-600/3"></div>
+          <div className="absolute inset-0 bg-[url('/grid-pattern-dark.svg')] opacity-25"></div>
+          <motion.div
+            className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-[60px]"
+            style={{
+              background: 'radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, rgba(37, 99, 235, 0.08) 50%, transparent 70%)'
+            }}
+            animate={{
+              scale: [1, 1.05, 1],
+              opacity: [0.3, 0.5, 0.3]
+            }}
+            transition={{
+              duration: 10,
+              repeat: 999999,
+              ease: "easeInOut"
+            }}
+          />
+          <motion.div
+            className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-[80px]"
+            style={{
+              background: 'radial-gradient(circle, rgba(107, 114, 128, 0.15) 0%, rgba(107, 114, 128, 0.04) 50%, transparent 70%)'
+            }}
+            animate={{
+              scale: [1, 1.05, 1],
+              opacity: [0.3, 0.5, 0.3]
+            }}
+            transition={{
+              duration: 12,
+              repeat: 999999,
+              ease: "easeInOut",
+              delay: 3
+            }}
+          />
+        </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          className="space-y-32"
-        >
-          {/* Enhanced Floating Metrics Cards */}
-          <div className="text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
-              transition={{ delay: 0.2, duration: 0.9 }}
-              className="flex flex-col items-center space-y-8 mb-20"
-            >
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate={isInView ? "visible" : "hidden"}
+            className="space-y-24"
+          >
+            {/* Enhanced Floating Metrics Cards */}
+            <div className="text-center">
+              <SectionHeader
+                badge={{
+                  icon: TrendingUp,
+                  text: "Trusted by Thousands"
+                }}
+                title="Numbers That Speak Volumes"
+                description="Join a thriving community of professionals who've transformed their workflow with Whizboard. Experience unparalleled productivity gains and see why teams across industries trust us to deliver exceptional results, day after day."
+                stats={[
+                  { icon: Users, text: "150k+ active users", color: "text-blue-400" },
+                  { icon: Star, text: "4.9/5 rating", color: "text-yellow-400" },
+                  { icon: Award, text: "Industry leader", color: "text-emerald-400" }
+                ]}
+                disableAnimation={true}
+                className="mb-16"
+              />
+
               <motion.div 
-                className="inline-flex items-center space-x-3 bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-full px-6 py-3"
-                whileHover={{ scale: 1.02, y: -1 }}
-                transition={{ duration: 0.3 }}
+                ref={floatingCardsRef} 
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative"
+                initial={{ opacity: 0 }}
+                animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+                transition={{ delay: 0.8, duration: 0.6 }}
               >
-                <BarChart3 className="h-4 w-4 text-blue-400" />
-                <span className="text-white/70 text-sm font-medium">Trusted by Thousands</span>
-              </motion.div>
-              
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight">
-                Numbers That
-                <span className="block bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent">
-                  Speak Volumes
-                </span>
-              </h2>
-              
-              <p className="text-white/60 text-lg md:text-xl max-w-3xl text-center leading-relaxed">
-                Join a thriving community of professionals who've transformed their workflow with Whizboard. 
-                <span className="text-white/80 font-medium">See why teams choose us for their most important projects.</span>
-              </p>
-            </motion.div>
+                {metrics.map((metric, index) => (
+                  <motion.div
+                    key={index}
+                    className="group relative"
+                    initial={{ opacity: 0, y: 60, scale: 0.95 }}
+                    animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 60, scale: 0.95 }}
+                    transition={{ 
+                      delay: 1.0 + (index * 0.1), 
+                      duration: 0.8,
+                      ease: "easeOut"
+                    }}
+                    whileHover={{ 
+                      y: -8,
+                      scale: 1.02,
+                      transition: { duration: 0.4, ease: "easeOut" }
+                    }}
+                  >
+                    <div className="relative bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-8 hover:bg-white/[0.05] hover:border-white/[0.12] transition-all duration-300 overflow-hidden">
+                      {/* Subtle hover glow */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-            {/* Enhanced Floating Background Effects */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <motion.div 
-                className="absolute top-20 left-10 w-32 h-32 rounded-full blur-[40px] bg-gradient-to-r from-blue-500/15 to-cyan-500/15"
-                animate={{
-                  x: [0, 80, 0],
-                  y: [0, -40, 0],
-                  scale: [1, 1.15, 1]
-                }}
-                transition={{
-                  duration: 18,
-                  repeat: 999999,
-                  ease: "easeInOut"
-                }}
-              />
-              <motion.div 
-                className="absolute bottom-20 right-10 w-24 h-24 rounded-full blur-[30px] bg-gradient-to-r from-gray-500/15 to-blue-400/15"
-                animate={{
-                  x: [0, -60, 0],
-                  y: [0, 50, 0],
-                  scale: [1.05, 1, 1.05]
-                }}
-                transition={{
-                  duration: 15,
-                  repeat: 999999,
-                  ease: "easeInOut"
-                }}
-              />
-            </div>
+                      <div className="relative z-10 text-center space-y-6">
+                        <motion.div
+                          className="inline-flex p-4 rounded-xl bg-white/[0.05] border border-white/[0.10] group-hover:bg-white/[0.08] group-hover:border-white/[0.15] transition-all duration-300"
+                          whileHover={{
+                            scale: 1.05
+                          }}
+                          transition={{ duration: 0.3, ease: "easeOut" }}
+                        >
+                          {metric.icon === "Users" && (
+                            <Users className={`w-6 h-6 ${metric.iconColor} transition-all duration-300`} />
+                          )}
+                          {metric.icon === "TrendingUp" && (
+                            <TrendingUp className={`w-6 h-6 ${metric.iconColor} transition-all duration-300`} />
+                          )}
+                          {metric.icon === "Star" && (
+                            <Star className={`w-6 h-6 ${metric.iconColor} transition-all duration-300`} />
+                          )}
+                          {metric.icon === "Clock" && (
+                            <Clock className={`w-6 h-6 ${metric.iconColor} transition-all duration-300`} />
+                          )}
+                        </motion.div>
 
-            <div ref={floatingCardsRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 relative">
-              {metrics.map((metric, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, scale: 0.9, y: 50 }}
-                  animate={isInView ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.9, y: 50 }}
-                  transition={{ 
-                    delay: 0.4 + index * 0.12, 
-                    duration: 0.8,
-                    ease: Power3.easeOut
-                  }}
-                  className="group relative"
-                  whileHover={{ 
-                    y: -12, 
-                    scale: 1.03,
-                    rotateY: 3,
-                    rotateX: 2,
-                    transition: { duration: 0.4, ease: Power2.easeOut }
-                  }}
-                  style={{ perspective: "1000px" }}
-                >
-                  <div className="relative bg-white/[0.02] backdrop-blur-2xl border border-white/[0.08] rounded-3xl p-8 hover:bg-white/[0.04] hover:border-white/[0.15] transition-all duration-500 overflow-hidden">
-                    {/* Enhanced glow effect */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${metric.gradient} opacity-0 group-hover:opacity-15 transition-opacity duration-700 rounded-3xl`} />
-                    
-                    <div className="relative z-10 text-center space-y-5">
-                      <motion.div 
-                        className={`inline-flex p-4 rounded-2xl bg-white/[0.08] border border-white/[0.12] group-hover:scale-105 transition-transform duration-400`}
-                        whileHover={{ 
-                          rotate: [0, -8, 8, 0],
-                          scale: 1.15
-                        }}
-                        transition={{ duration: 0.6 }}
-                      >
-                        {metric.icon === "Users" && <Users className={`w-8 h-8 ${metric.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
-                        {metric.icon === "TrendingUp" && <TrendingUp className={`w-8 h-8 ${metric.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
-                        {metric.icon === "Star" && <Star className={`w-8 h-8 ${metric.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
-                        {metric.icon === "Clock" && <Clock className={`w-8 h-8 ${metric.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
-                      </motion.div>
-                      
-                      <div>
-                        <div className="text-4xl font-bold text-white mb-2 counter">
-                          {metric.value}
-                        </div>
-                        <div className="text-lg font-semibold text-white/90 mb-1">
-                          {metric.label}
-                        </div>
-                        <div className="text-sm text-white/50">
-                          {metric.description}
+                        <div className="space-y-2">
+                          <motion.div 
+                            className="text-4xl font-bold text-white group-hover:text-blue-400 transition-colors duration-300"
+                            whileHover={{ scale: 1.02 }}
+                          >
+                            {metric.value}
+                          </motion.div>
+                          <div className="text-lg font-semibold text-white/90 group-hover:text-white transition-colors duration-300">
+                            {metric.label}
+                          </div>
+                          <div className="text-sm text-white/60 group-hover:text-white/70 transition-colors duration-300 leading-relaxed">
+                            {metric.description}
+                          </div>
                         </div>
                       </div>
                     </div>
-                    
-                    {/* Enhanced floating particles */}
-                    <div className="absolute top-3 right-3 w-2 h-2 bg-white/15 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-600" />
-                    <div className="absolute bottom-3 left-3 w-1 h-1 bg-white/25 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-800" />
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                ))}
+              </motion.div>
             </div>
-          </div>
 
-          {/* Enhanced Infinite Scrolling Testimonials with Edge Fading */}
-          <div className="relative overflow-hidden py-16">
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
-              transition={{ delay: 0.6, duration: 0.9 }}
-              className="text-center mb-16"
-            >
-              <h3 className="text-3xl md:text-4xl font-bold text-white mb-6 tracking-tight">
-                What Our Users Say
-              </h3>
-              <p className="text-white/60 text-lg max-w-2xl mx-auto leading-relaxed">
-                Real feedback from real users who've transformed their workflow with Whizboard.
-              </p>
-            </motion.div>
-
-            {/* Enhanced Testimonial Container with Infinite Horizontal Scroll */}
-            <div className="relative group">
-              {/* Left Edge Fade */}
-              <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#0A0A0B] to-transparent z-10 pointer-events-none"></div>
-              
-              {/* Right Edge Fade */}
-              <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#0A0A0B] to-transparent z-10 pointer-events-none"></div>
-              
-              {/* Enhanced Testimonial Cards Container with Infinite Scroll */}
-              <div className="relative h-80 overflow-hidden">
-                <div 
-                  ref={testimonialContainerRef}
-                  className="flex space-x-6 absolute animate-scroll-left hover:pause"
-                  style={{
-                    animation: 'scroll-left 30s linear infinite',
-                    animationPlayState: 'running'
-                  }}
+            {/* Enhanced Infinite Scrolling Testimonials with Edge Fading */}
+            <div className="relative overflow-hidden py-20">
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+                transition={{ delay: 0.6, duration: 0.9 }}
+                className="text-center mb-20"
+              >
+                {/* Redesigned Header - What Our Users Say */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
+                  viewport={{ once: true }}
+                  className="flex flex-col items-center space-y-4 sm:space-y-6"
                 >
-                  {/* Duplicate testimonials for seamless loop */}
-                  {[...testimonials, ...testimonials, ...testimonials].map((testimonial, index) => (
-                    <motion.div
-                      key={index}
-                      variants={testimonialVariants}
-                      initial="hidden"
-                      animate={isInView ? "visible" : "hidden"}
-                      transition={{ delay: 0.8 + (index % testimonials.length) * 0.1 }}
-                      className="testimonial-card flex-shrink-0 w-80 bg-white/[0.02] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 hover:bg-white/[0.04] hover:border-white/[0.15] transition-all duration-400 group/card"
-                      whileHover={{ scale: 1.02, y: -3 }}
-                    >
-                      <div className="flex items-center space-x-1 mb-4">
-                        {[...Array(testimonial.rating)].map((_, i) => (
-                          <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                        ))}
-                      </div>
-                      <blockquote className="text-white/80 text-sm leading-relaxed mb-4">
-                        "{testimonial.content}"
-                      </blockquote>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center">
-                          <span className="text-white font-semibold text-sm">
-                            {testimonial.name.split(' ').map(n => n[0]).join('')}
-                          </span>
+                  {/* Badge */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                    viewport={{ once: true }}
+                    className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
+                  >
+                    <Quote className="h-3.5 w-3.5 text-blue-400/80 group-hover:text-blue-400 transition-colors duration-200" />
+                    <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
+                      User Feedback
+                    </span>
+                  </motion.div>
+
+                  {/* Title */}
+                  <motion.h3
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                    viewport={{ once: true }}
+                    className="text-3xl md:text-4xl font-bold text-white leading-[1.1] tracking-tight text-center"
+                  >
+                    What Our Users Say
+                  </motion.h3>
+
+                  {/* Description */}
+                  <motion.p
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.3 }}
+                    viewport={{ once: true }}
+                    className="text-white/60 text-lg max-w-2xl mx-auto leading-relaxed text-center"
+                  >
+                    Real feedback from real users who've transformed their workflow with Whizboard.
+                  </motion.p>
+                </motion.div>
+              </motion.div>
+
+              {/* Enhanced Testimonial Container with Infinite Horizontal Scroll */}
+              <div className="relative group">
+                {/* Left Edge Fade */}
+                <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#0A0A0B] to-transparent z-10 pointer-events-none"></div>
+
+                {/* Right Edge Fade */}
+                <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#0A0A0B] to-transparent z-10 pointer-events-none"></div>
+
+                {/* Enhanced Testimonial Cards Container with Infinite Scroll */}
+                <div className="relative h-80 overflow-hidden">
+                  <div
+                    ref={testimonialContainerRef}
+                    className="testimonial-container flex space-x-6 absolute"
+                    style={{
+                      width: `${(testimonials.length * 3) * 320 + (testimonials.length * 3 - 1) * 24}px`
+                    }}
+                  >
+                    {/* Duplicate testimonials for seamless loop */}
+                    {[...testimonials, ...testimonials, ...testimonials].map((testimonial, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 20, scale: 0.95 }}
+                        transition={{ 
+                          delay: 0.8 + (index % testimonials.length) * 0.1,
+                          duration: 0.6,
+                          ease: "easeOut"
+                        }}
+                        className="testimonial-card flex-shrink-0 w-80 bg-white/[0.02] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 hover:bg-white/[0.04] hover:border-white/[0.15] group/card relative overflow-hidden"
+                      >
+                        {/* Enhanced gradient overlay on hover */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
+                        
+                        {/* Subtle glow effect */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 rounded-2xl blur-sm"></div>
+
+                        <div className="relative z-10">
+                          <div className="flex items-center space-x-1 mb-4">
+                            {[...Array(testimonial.rating)].map((_, i) => (
+                              <Star key={i} className="w-4 h-4 text-yellow-400 fill-current transition-transform duration-300 group-hover/card:scale-110" />
+                            ))}
+                          </div>
+                          <blockquote className="text-white/80 text-sm leading-relaxed mb-4 group-hover/card:text-white/90 transition-colors duration-300">
+                            "{testimonial.content}"
+                          </blockquote>
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center transition-transform duration-300 group-hover/card:scale-110">
+                              <span className="text-white font-semibold text-sm">
+                                {testimonial.name.split(' ').map(n => n[0]).join('')}
+                              </span>
+                            </div>
+                            <div>
+                              <div className="text-white/90 font-medium text-sm group-hover/card:text-white transition-colors duration-300">{testimonial.name}</div>
+                              <div className="text-white/50 text-xs group-hover/card:text-white/70 transition-colors duration-300">{testimonial.role} at {testimonial.company}</div>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="text-white/90 font-medium text-sm">{testimonial.name}</div>
-                          <div className="text-white/50 text-xs">{testimonial.role} at {testimonial.company}</div>
-                        </div>
-                      </div>
-                      
-                      {/* Enhanced hover effects */}
-                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"></div>
-                    </motion.div>
-                  ))}
+
+                        {/* Enhanced floating particles effect */}
+                        <div className="absolute top-4 right-4 w-1 h-1 bg-blue-400/50 rounded-full opacity-0 group-hover/card:opacity-100 transition-opacity duration-1000 animate-pulse"></div>
+                        <div className="absolute bottom-4 left-4 w-0.5 h-0.5 bg-purple-400/50 rounded-full opacity-0 group-hover/card:opacity-100 transition-opacity duration-1200 animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+                      </motion.div>
+                    ))}
+                  </div>
                 </div>
               </div>
-              
-              {/* Enhanced Scroll Controls */}
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center space-x-2 bg-white/[0.05] backdrop-blur-sm border border-white/[0.1] rounded-full px-4 py-2">
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                <span className="text-white/60 text-xs font-medium">Auto-scrolling testimonials</span>
-              </div>
             </div>
-          </div>
 
-          {/* Enhanced Trust & Security Section */}
-          <div className="text-center mb-20">
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
-              transition={{ delay: 0.7, duration: 0.9 }}
-              className="flex flex-col items-center space-y-8 mb-20"
-            >
-              <motion.div 
-                className="inline-flex items-center space-x-3 bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-full px-6 py-3"
-                whileHover={{ scale: 1.02, y: -1 }}
-                transition={{ duration: 0.3 }}
+            {/* Enhanced Trust & Security Section */}
+            <div className="text-center mb-24">
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+                transition={{ delay: 0.7, duration: 0.9 }}
+                className="flex flex-col items-center space-y-8 mb-20"
               >
-                <Shield className="h-5 w-5 text-emerald-400" />
-                <span className="text-white/70 text-sm font-medium">Enterprise Security</span>
-              </motion.div>
-              
-              <h3 className="text-3xl md:text-4xl font-bold text-white leading-tight tracking-tight">
-                Built for
-                <span className="block bg-gradient-to-r from-emerald-400 via-blue-400 to-blue-500 bg-clip-text text-transparent">
-                  Trust & Security
-                </span>
-              </h3>
-              
-              <p className="text-white/60 text-lg max-w-2xl text-center leading-relaxed">
-                Your data security is our top priority. We maintain the highest standards of protection and compliance.
-              </p>
-            </motion.div>
-
-            {/* Enhanced Stacking Trust Cards */}
-            <div ref={stackingCardsRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {trustBadges.map((badge, index) => (
+                {/* Redesigned Header - Built for Trust & Security */}
                 <motion.div
-                  key={index}
-                  initial={{ opacity: 0, scale: 0.9, y: 50 }}
-                  animate={isInView ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.9, y: 50 }}
-                  transition={{ 
-                    delay: 0.8 + index * 0.12, 
-                    duration: 0.7,
-                    ease: Power3.easeOut
-                  }}
-                  className="group relative"
-                  whileHover={{ 
-                    y: -8, 
-                    scale: 1.03,
-                    rotateY: 5,
-                    rotateX: 3,
-                    transition: { duration: 0.4, ease: Power2.easeOut }
-                  }}
-                  style={{ perspective: "1000px" }}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
+                  viewport={{ once: true }}
+                  className="flex flex-col items-center space-y-4 sm:space-y-6"
                 >
-                  <div className={`relative bg-white/[0.02] backdrop-blur-xl border ${badge.color} rounded-2xl p-6 hover:bg-white/[0.04] hover:border-opacity-60 transition-all duration-500 overflow-hidden`}>
-                    {/* Enhanced hover glow effect */}
-                    <div className={`absolute inset-0 ${badge.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-600 rounded-2xl`} />
-                    
-                    <div className="relative z-10 text-center space-y-4">
-                      <motion.div 
-                        className={`inline-flex p-3 rounded-xl bg-white/[0.06] border border-white/[0.1] group-hover:scale-105 transition-transform duration-400`}
-                        whileHover={{ 
-                          rotate: [0, -5, 5, 0],
-                          scale: 1.12
-                        }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        {badge.icon === "Shield" && <Shield className={`w-6 h-6 ${badge.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
-                        {badge.icon === "CheckCircle" && <CheckCircle className={`w-6 h-6 ${badge.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
-                        {badge.icon === "TrendingUp" && <TrendingUp className={`w-6 h-6 ${badge.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
-                        {badge.icon === "Heart" && <Heart className={`w-6 h-6 ${badge.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
-                      </motion.div>
-                      
-                      <div>
-                        <div className="text-lg font-semibold text-white/90 mb-2">
-                          {badge.title}
-                        </div>
-                        <div className="text-sm text-white/50">
-                          {badge.description}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Enhanced status indicator */}
-                    <div className="absolute top-3 right-3 w-2 h-2 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-600" />
-                    
-                    {/* Enhanced floating particle effect */}
-                    <div className="absolute bottom-3 left-3 w-1 h-1 bg-white/25 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-800" />
-                  </div>
+                  {/* Badge */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                    viewport={{ once: true }}
+                    className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
+                  >
+                    <Shield className="h-3.5 w-3.5 text-blue-400/80 group-hover:text-blue-400 transition-colors duration-200" />
+                    <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
+                      Enterprise Security
+                    </span>
+                  </motion.div>
+
+                  {/* Title */}
+                  <motion.h3
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                    viewport={{ once: true }}
+                    className="text-3xl md:text-4xl font-bold text-white leading-tight tracking-tight text-center"
+                  >
+                    Built for
+                    <span className="block bg-gradient-to-r from-emerald-400 via-blue-400 to-blue-500 bg-clip-text text-transparent">
+                      Trust & Security
+                    </span>
+                  </motion.h3>
+
+                  {/* Description */}
+                  <motion.p
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.3 }}
+                    viewport={{ once: true }}
+                    className="text-white/60 text-lg max-w-2xl text-center leading-relaxed"
+                  >
+                    Your data security is our top priority. We maintain the highest standards of protection and compliance.
+                  </motion.p>
                 </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* Enhanced Companies Showcase */}
-          <div className="text-center mb-20">
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
-              transition={{ delay: 0.8, duration: 0.9 }}
-              className="flex flex-col items-center space-y-8 mb-20"
-            >
-              <motion.div 
-                className="inline-flex items-center space-x-3 bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-full px-6 py-3"
-                whileHover={{ scale: 1.02, y: -1 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Globe className="h-5 w-5 text-blue-400" />
-                <span className="text-white/70 text-sm font-medium">Trusted Globally</span>
               </motion.div>
-              
-              <h3 className="text-3xl md:text-4xl font-bold text-white leading-tight tracking-tight">
-                Powering Innovation at
-                <span className="block bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 bg-clip-text text-transparent">
-                  Leading Companies
-                </span>
-              </h3>
-              
-              <p className="text-white/60 text-lg max-w-2xl text-center leading-relaxed">
-                From startups to Fortune 500 companies, teams worldwide choose Whizboard for their most important collaborations.
-              </p>
-            </motion.div>
 
-            {/* Enhanced Floating Company Grid */}
-            <div className="relative">
-              {/* Enhanced background decoration */}
-              <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <motion.div 
-                  className="absolute top-1/2 left-1/2 w-96 h-96 rounded-full blur-[60px] bg-gradient-to-r from-blue-500/8 to-blue-400/8 transform -translate-x-1/2 -translate-y-1/2"
-                  animate={{
-                    scale: [1, 1.15, 1],
-                    rotate: [0, 180, 360]
-                  }}
-                  transition={{
-                    duration: 25,
-                    repeat: 999999,
-                    ease: "linear"
-                  }}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-                {companies.map((company, index) => (
+              {/* Enhanced Stacking Trust Cards */}
+              <div ref={stackingCardsRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {trustBadges.map((badge, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, scale: 0.9, y: 50 }}
                     animate={isInView ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.9, y: 50 }}
-                    transition={{ 
-                      delay: 0.9 + index * 0.12, 
+                    transition={{
+                      delay: 0.8 + index * 0.12,
                       duration: 0.7,
                       ease: Power3.easeOut
                     }}
                     className="group relative"
-                    whileHover={{ 
-                      y: -10, 
-                      scale: 1.05,
-                      rotateY: 8,
-                      rotateX: 4,
+                    whileHover={{
+                      y: -8,
+                      scale: 1.03,
+                      rotateY: 5,
+                      rotateX: 3,
                       transition: { duration: 0.4, ease: Power2.easeOut }
                     }}
                     style={{ perspective: "1000px" }}
                   >
-                    <div className="relative bg-white/[0.02] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-8 hover:bg-white/[0.04] hover:border-white/[0.15] transition-all duration-500 overflow-hidden">
+                    <div className={`relative bg-white/[0.02] backdrop-blur-xl border ${badge.color} rounded-2xl p-6 hover:bg-white/[0.04] hover:border-opacity-60 transition-all duration-500 overflow-hidden`}>
                       {/* Enhanced hover glow effect */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/8 to-blue-400/8 opacity-0 group-hover:opacity-100 transition-opacity duration-600 rounded-2xl" />
-                      
-                      <div className="relative z-10 flex flex-col items-center space-y-4">
-                        <motion.div 
-                          className="p-4 rounded-xl bg-white/[0.06] border border-white/[0.1] group-hover:scale-105 transition-transform duration-400"
-                          whileHover={{ 
-                            rotate: [0, -8, 8, 0],
-                            scale: 1.15
+                      <div className={`absolute inset-0 ${badge.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-600 rounded-2xl`} />
+
+                      <div className="relative z-10 text-center space-y-4">
+                        <motion.div
+                          className={`inline-flex p-3 rounded-xl bg-white/[0.06] border border-white/[0.1] group-hover:scale-105 transition-transform duration-400`}
+                          whileHover={{
+                            rotate: [0, -5, 5, 0],
+                            scale: 1.12
                           }}
-                          transition={{ duration: 0.6 }}
+                          transition={{ duration: 0.5 }}
                         >
-                          {company.logo === "Building" && <Building className={`w-8 h-8 ${company.color} group-hover:scale-110 transition-transform duration-300`} />}
-                          {company.logo === "Palette" && <Palette className={`w-8 h-8 ${company.color} group-hover:scale-110 transition-transform duration-300`} />}
-                          {company.logo === "Target" && <Target className={`w-8 h-8 ${company.color} group-hover:scale-110 transition-transform duration-300`} />}
-                          {company.logo === "Lightbulb" && <Lightbulb className={`w-8 h-8 ${company.color} group-hover:scale-110 transition-transform duration-300`} />}
-                          {company.logo === "Crown" && <Crown className={`w-8 h-8 ${company.color} group-hover:scale-110 transition-transform duration-300`} />}
-                          {company.logo === "Layers" && <Layers className={`w-8 h-8 ${company.color} group-hover:scale-110 transition-transform duration-300`} />}
+                          {badge.icon === "Shield" && <Shield className={`w-6 h-6 ${badge.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
+                          {badge.icon === "CheckCircle" && <CheckCircle className={`w-6 h-6 ${badge.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
+                          {badge.icon === "TrendingUp" && <TrendingUp className={`w-6 h-6 ${badge.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
+                          {badge.icon === "Heart" && <Heart className={`w-6 h-6 ${badge.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
                         </motion.div>
-                        
-                        <div className="text-center">
-                          <div className="text-sm font-semibold text-white/90 group-hover:text-white transition-colors">
-                            {company.name}
+
+                        <div>
+                          <div className="text-lg font-semibold text-white/90 mb-2">
+                            {badge.title}
+                          </div>
+                          <div className="text-sm text-white/50">
+                            {badge.description}
                           </div>
                         </div>
                       </div>
-                      
-                      {/* Enhanced subtle particle effect */}
-                      <div className="absolute top-2 right-2 w-2 h-2 bg-blue-400/25 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-600" />
-                      <div className="absolute bottom-2 left-2 w-1 h-1 bg-blue-500/25 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-800" />
+
+                      {/* Enhanced status indicator */}
+                      <div className="absolute top-3 right-3 w-2 h-2 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-600" />
+
+                      {/* Enhanced floating particle effect */}
+                      <div className="absolute bottom-3 left-3 w-1 h-1 bg-white/25 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-800" />
                     </div>
                   </motion.div>
                 ))}
               </div>
             </div>
-          </div>
 
-          {/* Enhanced Revolutionary CTA Section */}
-          <motion.div
-            ref={ctaRef}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
-            transition={{ delay: 1.2, duration: 1.1, ease: Power3.easeOut }}
-            className="relative overflow-hidden"
-          >
-            {/* Enhanced Dynamic Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A0B]/60 via-blue-600/20 to-[#0F0F10]/60 backdrop-blur-3xl rounded-[2rem] border border-white/[0.06]" />
-            
-            {/* Enhanced Animated Background Elements */}
-            <div className="absolute inset-0 overflow-hidden rounded-[2rem]">
-              <motion.div 
-                className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-blue-500/15 to-blue-400/15 blur-3xl"
-                animate={{
-                  scale: [1, 1.25, 1],
-                  rotate: [0, 180, 360],
-                  x: [0, 40, 0],
-                  y: [0, -25, 0]
-                }}
-                transition={{
-                  duration: 18,
-                  repeat: 999999,
-                  ease: "easeInOut"
-                }}
-              />
-              <motion.div 
-                className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-gradient-to-tr from-blue-400/15 to-blue-500/15 blur-3xl"
-                animate={{
-                  scale: [1.15, 1, 1.15],
-                  rotate: [360, 180, 0],
-                  x: [0, -25, 0],
-                  y: [0, 35, 0]
-                }}
-                transition={{
-                  duration: 15,
-                  repeat: 999999,
-                  ease: "easeInOut"
-                }}
-              />
-            </div>
-
-            <div className="relative z-10 text-center p-16 lg:p-20">
-              {/* Enhanced Header Section */}
+            {/* Enhanced Companies Showcase */}
+            <div className="text-center mb-24">
               <motion.div
-                initial={{ y: 40, opacity: 0 }}
-                animate={isInView ? { opacity: 1, y: 0 } : { y: 40, opacity: 0 }}
-                transition={{ delay: 1.4, duration: 0.9 }}
-                className="mb-16"
+                initial={{ opacity: 0, y: 40 }}
+                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+                transition={{ delay: 0.8, duration: 0.8, ease: "easeOut" }}
+                className="flex flex-col items-center space-y-8 mb-20"
               >
-                <motion.div 
-                  className="inline-flex items-center space-x-3 bg-white/[0.06] border border-white/[0.1] rounded-full px-6 py-3 mb-10 backdrop-blur-xl"
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  transition={{ duration: 0.3 }}
+                {/* Redesigned Header - Powering Innovation at Leading Companies */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
+                  viewport={{ once: true }}
+                  className="flex flex-col items-center space-y-4 sm:space-y-6"
                 >
-                  <Zap className="h-5 w-5 text-blue-400" />
-                  <span className="text-white/80 text-sm font-medium">Transform Your Workflow</span>
-                </motion.div>
-                
-                <h3 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-8 leading-tight tracking-tight">
-                  Ready to
-                  <span className="block bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 bg-clip-text text-transparent">
-                    Revolutionize
-                  </span>
-                  Your Team?
-                </h3>
-                
-                <p className="text-white/60 text-xl max-w-3xl mx-auto leading-relaxed">
-                  Join over 50,000+ teams who've transformed their collaboration with Whizboard. 
-                  <span className="text-white/80 font-medium">Start your journey to seamless productivity today.</span>
-                </p>
-              </motion.div>
-              
-              {/* Enhanced CTA Buttons */}
-              <motion.div
-                initial={{ y: 50, opacity: 0 }}
-                animate={isInView ? { y: 0, opacity: 1 } : { y: 50, opacity: 0 }}
-                transition={{ delay: 1.6, duration: 0.9 }}
-                className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16"
-              >
-                {/* Enhanced Primary CTA */}
-                <motion.button
-                  className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold px-12 py-6 rounded-2xl transition-all duration-500 shadow-2xl"
-                  whileHover={{ 
-                    scale: 1.03, 
-                    y: -3,
-                    boxShadow: "0 25px 50px -12px rgba(59, 130, 246, 0.4)"
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <span className="relative z-10 flex items-center space-x-3 text-lg">
-                    <span>Start Free Trial</span>
-                    <motion.div
-                      className="group-hover:translate-x-1 transition-transform duration-300"
-                      whileHover={{ x: 3 }}
-                    >
-                      <ArrowRight className="w-6 h-6" />
-                    </motion.div>
-                  </span>
-                  
-                  {/* Enhanced animated border */}
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-600 blur-sm" />
-                  <div className="absolute inset-[2px] rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700" />
-                </motion.button>
-                
-                {/* Enhanced Secondary CTA */}
-                <motion.button
-                  className="group relative bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] hover:border-white/[0.2] text-white font-semibold px-12 py-6 rounded-2xl transition-all duration-500 backdrop-blur-xl"
-                  whileHover={{ 
-                    scale: 1.03, 
-                    y: -3,
-                    boxShadow: "0 20px 40px -12px rgba(255, 255, 255, 0.08)"
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <span className="flex items-center space-x-3 text-lg">
-                    <Play className="w-6 h-6 group-hover:scale-110 transition-transform duration-300" />
-                    <span>Watch Demo</span>
-                  </span>
-                </motion.button>
-              </motion.div>
-              
-              {/* Enhanced Trust Indicators */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-                transition={{ delay: 1.8, duration: 0.9 }}
-                className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto"
-              >
-                {[
-                  { icon: CheckCircle, text: "No credit card required", color: "text-emerald-400" },
-                  { icon: Shield, text: "Enterprise-grade security", color: "text-blue-400" },
-                  { icon: Zap, text: "Setup in under 5 minutes", color: "text-yellow-400" }
-                ].map((item, index) => (
+                  {/* Badge */}
                   <motion.div
-                    key={index}
-                    className="flex items-center justify-center space-x-3 text-white/60 group"
-                    whileHover={{ scale: 1.02, y: -1 }}
-                    transition={{ duration: 0.3 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                    viewport={{ once: true }}
+                    className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
                   >
-                    <motion.div
-                      className={`${item.color} group-hover:scale-110 transition-transform duration-300`}
-                      whileHover={{ rotate: 360 }}
-                      transition={{ duration: 0.6 }}
-                    >
-                      <item.icon className="w-5 h-5" />
-                    </motion.div>
-                    <span className="font-medium group-hover:text-white/80 transition-colors duration-300">{item.text}</span>
+                    <Globe className="h-3.5 w-3.5 text-blue-400/80 group-hover:text-blue-400 transition-colors duration-200" />
+                    <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
+                      Trusted Globally
+                    </span>
                   </motion.div>
-                ))}
+
+                  {/* Title */}
+                  <motion.h3
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                    viewport={{ once: true }}
+                    className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight tracking-tight text-center"
+                  >
+                    Powering Innovation at
+                    <span className="block bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent">
+                      Leading Companies
+                    </span>
+                  </motion.h3>
+
+                  {/* Description */}
+                  <motion.p
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.3 }}
+                    viewport={{ once: true }}
+                    className="text-white/60 text-lg max-w-2xl text-center leading-relaxed"
+                  >
+                    From startups to Fortune 500 companies, teams worldwide choose Whizboard for their most important collaborations.
+                  </motion.p>
+                </motion.div>
               </motion.div>
+
+              {/* Premium Company Grid */}
+              <div className="relative">
+                {/* Animated Background Orb */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                  <motion.div
+                    className="absolute top-1/2 left-1/2 w-96 h-96 gradient-orb-blue transform -translate-x-1/2 -translate-y-1/2"
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      opacity: [0.4, 0.6, 0.4]
+                    }}
+                    transition={{
+                      duration: 8,
+                      repeat: 999999,
+                      ease: "easeInOut"
+                    }}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 sm:gap-8">
+                  {companies.map((company, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                      transition={{
+                        delay: 0.9 + index * 0.1,
+                        duration: 0.6,
+                        ease: "easeOut"
+                      }}
+                      className="group relative"
+                      whileHover={{
+                        y: -8,
+                        transition: { duration: 0.3, ease: "easeOut" }
+                      }}
+                    >
+                      <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.05] rounded-2xl p-6 hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300 overflow-hidden">
+                        {/* Subtle Glow Effect */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
+
+                        <div className="relative z-10 flex flex-col items-center space-y-3">
+                          <motion.div
+                            className="p-3 rounded-xl bg-white/[0.05] border border-white/[0.08] group-hover:bg-white/[0.08] group-hover:border-white/[0.12] transition-all duration-300"
+                            whileHover={{
+                              scale: 1.05
+                            }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            {company.logo === "Building" && <Building className={`w-6 h-6 ${company.color}`} />}
+                            {company.logo === "Palette" && <Palette className={`w-6 h-6 ${company.color}`} />}
+                            {company.logo === "Target" && <Target className={`w-6 h-6 ${company.color}`} />}
+                            {company.logo === "Lightbulb" && <Lightbulb className={`w-6 h-6 ${company.color}`} />}
+                            {company.logo === "Crown" && <Crown className={`w-6 h-6 ${company.color}`} />}
+                            {company.logo === "Layers" && <Layers className={`w-6 h-6 ${company.color}`} />}
+                          </motion.div>
+
+                          <div className="text-center">
+                            <div className="text-sm font-medium text-white/80 group-hover:text-white transition-colors duration-300">
+                              {company.name}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Minimal Status Indicator */}
+                        <div className="absolute top-3 right-3 w-1.5 h-1.5 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-70 transition-opacity duration-300" />
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
             </div>
+
+            {/* Enhanced Revolutionary CTA Section */}
+            <motion.div
+              ref={ctaRef}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.98 }}
+              transition={{ delay: 1.2, duration: 0.8, ease: Power3.easeOut }}
+              className="relative overflow-hidden h-[80vh] flex items-center justify-center"
+            >
+              {/* Enhanced Dynamic Background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A0B]/90 via-blue-600/30 to-[#0F0F10]/90 backdrop-blur-3xl rounded-[2rem] border-none shadow-none outline-none" />
+              {/* Enhanced Animated Background Elements */}
+              <div className="absolute inset-0 overflow-hidden rounded-[2rem]">
+                <motion.div
+                  className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-blue-600/30 to-blue-500/50 blur-3xl"
+                  animate={{
+                    scale: [1, 1.25, 1],
+                    rotate: [0, 180, 360],
+                    x: [0, 40, 0],
+                    y: [0, -25, 0]
+                  }}
+                  transition={{
+                    duration: 18,
+                    repeat: 999999,
+                    ease: "easeInOut"
+                  }}
+                />
+                <motion.div
+                  className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-gradient-to-tr from-blue-600/30 to-blue-500/50 blur-3xl"
+                  animate={{
+                    scale: [1.15, 1, 1.15],
+                    rotate: [360, 180, 0],
+                    x: [0, -25, 0],
+                    y: [0, 35, 0]
+                  }}
+                  transition={{
+                    duration: 15,
+                    repeat: 999999,
+                    ease: "easeInOut"
+                  }}
+                />
+              </div>
+
+              <div className="relative z-10 text-center px-8 lg:px-16">
+                {/* Minimal Header */}
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : { y: 20, opacity: 0 }}
+                  transition={{ delay: 1.4, duration: 0.6 }}
+                  className="mb-16"
+                >
+                  {/* Redesigned Header - Ready to get started? */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    viewport={{ once: true }}
+                    className="flex flex-col items-center space-y-4 sm:space-y-6"
+                  >
+                    {/* Badge */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: 0.1 }}
+                      viewport={{ once: true }}
+                      className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
+                    >
+                      <Rocket className="h-3.5 w-3.5 text-blue-400/80 group-hover:text-blue-400 transition-colors duration-200" />
+                      <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
+                        Get Started
+                      </span>
+                    </motion.div>
+
+                    {/* Title */}
+                    <motion.h3
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: 0.2 }}
+                      viewport={{ once: true }}
+                      className="flex flex-wrap justify-center items-center gap-3 text-4xl md:text-5xl lg:text-6xl font-light text-white leading-tight tracking-tight text-center"
+                    >
+                      <span>Ready to get</span>
+                      <span className="bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent">
+                        started?
+                      </span>
+                    </motion.h3>
+
+                    {/* Description */}
+                    <motion.p
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: 0.3 }}
+                      viewport={{ once: true }}
+                      className="text-white/60 text-xl max-w-2xl mx-auto font-light leading-relaxed text-center"
+                    >
+                      Join thousands of teams building better together.
+                    </motion.p>
+                  </motion.div>
+                </motion.div>
+
+                {/* Minimal CTA Buttons */}
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={isInView ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
+                  transition={{ delay: 1.6, duration: 0.6 }}
+                  className="flex flex-col sm:flex-row gap-8 justify-center items-center mb-16"
+                >
+                  <motion.button
+                    className="bg-white text-black font-medium px-10 py-4 rounded-full transition-all duration-300 hover:bg-white/90"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <span className="flex items-center space-x-2 text-lg">
+                      <span>Start building</span>
+                      <ArrowRight className="w-5 h-5" />
+                    </span>
+                  </motion.button>
+
+                  <motion.button
+                    className="text-white/80 hover:text-white font-medium px-10 py-4 transition-colors duration-300"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <span className="flex items-center space-x-2 text-lg">
+                      <Play className="w-5 h-5" />
+                      <span>View demo</span>
+                    </span>
+                  </motion.button>
+                </motion.div>
+
+                {/* Minimal Trust Indicators */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+                  transition={{ delay: 1.8, duration: 0.6 }}
+                  className="flex flex-col md:flex-row items-center justify-center space-y-6 md:space-y-0 md:space-x-16 text-white/50 text-sm"
+                >
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Free trial</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Shield className="w-4 h-4" />
+                    <span>Secure</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Zap className="w-4 h-4" />
+                    <span>Quick setup</span>
+                  </div>
+                </motion.div>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      </div>
-    </section>
+        </div>
+      </section>
     </>
   );
 };

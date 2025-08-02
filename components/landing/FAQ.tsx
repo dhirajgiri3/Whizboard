@@ -16,6 +16,7 @@ import {
   Clock,
   CheckCircle
 } from "lucide-react";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 const FAQ = () => {
   const ref = useRef(null);
@@ -155,7 +156,7 @@ const FAQ = () => {
   };
 
   return (
-    <section ref={ref} className="relative py-24 bg-[#0A0A0B] overflow-hidden">
+    <section ref={ref} className="relative py-16 md:py-20 bg-[#0A0A0B] overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/3 via-transparent to-gray-600/2"></div>
@@ -212,33 +213,27 @@ const FAQ = () => {
       <div className="relative max-w-4xl mx-auto px-6">
         {/* Header */}
         <motion.div 
-          className="flex flex-col items-center space-y-4 sm:space-y-6 pb-16 lg:pb-20"
+          className="flex flex-col items-center space-y-4 sm:space-y-6 pb-16 lg:pb-18"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <div className="inline-flex items-center space-x-2 bg-white/[0.02] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm">
-            <motion.div
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <HelpCircle className="h-4 w-4 text-blue-400" />
-            </motion.div>
-            <span className="text-white/70 text-sm font-medium">FAQ</span>
-          </div>
-          <div className="flex flex-col items-center space-y-4">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight font-semibold tracking-tight text-center">
-              Frequently Asked
-              <span className="block bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent">
-                Questions
-              </span>
-            </h2>
-            <p className="text-base text-white/80 max-w-2xl text-center leading-relaxed">
-              Everything you need to know about our platform. Can't find the answer you're looking for? 
-              <a href="#contact" className="text-blue-400 hover:text-blue-300 transition-colors underline decoration-blue-400/30 hover:decoration-blue-300/50">Contact our support team</a>.
-            </p>
-          </div>
+          <SectionHeader
+            badge={{
+              icon: HelpCircle,
+              text: "FAQ"
+            }}
+            title="Frequently Asked Questions"
+            description="Everything you need to know about our platform. Can't find the answer you're looking for?"
+            stats={[
+              { icon: MessageCircle, text: "24/7 support", color: "text-blue-400" },
+              { icon: BookOpen, text: "Comprehensive docs", color: "text-emerald-400" },
+              { icon: Clock, text: "Quick responses", color: "text-yellow-400" }
+            ]}
+            disableAnimation={true}
+            className="mb-12"
+          />
         </motion.div>
 
         {/* Search and Filters */}
@@ -249,7 +244,7 @@ const FAQ = () => {
           className="mb-12"
         >
           {/* Search Bar */}
-          <div className="relative mb-8">
+          <div className="relative mb-10">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/40 h-5 w-5 z-30" />
             <input
               type="text"
@@ -261,7 +256,7 @@ const FAQ = () => {
           </div>
 
           {/* Category Filters */}
-          <div className="flex flex-wrap gap-3 justify-center">
+          <div className="flex flex-wrap gap-4 justify-center">
             {categories.map((category) => (
               <button
                 key={category.value}
@@ -408,7 +403,7 @@ const FAQ = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           transition={{ delay: 0.8, duration: 0.6 }}
-          className="text-center mt-16"
+          className="text-center mt-20"
         >
           <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-3xl p-12 overflow-hidden">
             {/* Background Elements */}
@@ -431,24 +426,54 @@ const FAQ = () => {
             </div>
             
             <div className="relative z-10">
-              <div className="inline-flex items-center space-x-2 bg-white/[0.02] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm mb-6">
-                <MessageCircle className="h-4 w-4 text-blue-400" />
-                <span className="text-white/70 text-sm font-medium">Need Help?</span>
-              </div>
-              
-              <h3 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
-                Still have questions?
-              </h3>
-              <p className="text-base text-white/80 mb-8 max-w-2xl mx-auto leading-relaxed">
-                Can't find the answer you're looking for? Our support team is here to help.
-              </p>
+              {/* Redesigned Header - Still have questions? */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                viewport={{ once: true }}
+                className="flex flex-col items-center space-y-4 sm:space-y-6 mb-12"
+              >
+                {/* Badge */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.1 }}
+                  viewport={{ once: true }}
+                  className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
+                >
+                  <MessageCircle className="h-3.5 w-3.5 text-blue-400/80 group-hover:text-blue-400 transition-colors duration-200" />
+                  <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
+                    Need Help?
+                  </span>
+                </motion.div>
+                
+                <motion.h3
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  viewport={{ once: true }}
+                  className="text-3xl md:text-4xl font-bold text-white leading-[1.1] tracking-tight text-center"
+                >
+                  Still have questions?
+                </motion.h3>
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.3 }}
+                  viewport={{ once: true }}
+                  className="text-base text-white/80 max-w-2xl mx-auto leading-relaxed text-center"
+                >
+                  Can't find the answer you're looking for? Our support team is here to help.
+                </motion.p>
+              </motion.div>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <motion.a
                   href="#contact"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/[0.08] border border-white/[0.12] text-white rounded-lg font-medium hover:bg-white/[0.12] hover:border-white/[0.16] transition-all duration-300 backdrop-blur-sm"
+                  className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/[0.08] border border-white/[0.12] text-white rounded-lg font-medium hover:bg-white/[0.12] hover:border-white/[0.16] transition-all duration-300 backdrop-blur-sm"
                 >
                   <MessageCircle className="w-4 h-4" />
                   Contact Support
@@ -458,7 +483,7 @@ const FAQ = () => {
                   href="/docs"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/[0.04] border border-white/[0.08] text-white/90 hover:text-white hover:bg-white/[0.08] hover:border-white/[0.12] transition-all duration-300 font-medium rounded-lg backdrop-blur-sm"
+                  className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/[0.04] border border-white/[0.08] text-white/90 hover:text-white hover:bg-white/[0.08] hover:border-white/[0.12] transition-all duration-300 font-medium rounded-lg backdrop-blur-sm"
                 >
                   <BookOpen className="w-4 h-4" />
                   View Documentation

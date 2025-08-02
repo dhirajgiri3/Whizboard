@@ -19,9 +19,13 @@ import {
   TrendingUp,
   Clock,
   Globe,
+  Lock,
   MessageSquare,
-  Building2,
-  CheckCircle2
+  FileText,
+  Palette,
+  BarChart3,
+  Settings,
+  Building2
 } from "lucide-react";
 import SectionHeader from "@/components/ui/SectionHeader";
 
@@ -143,7 +147,7 @@ const Pricing = () => {
   ];
 
   const trustIndicators = [
-    { icon: CheckCircle2, text: "30-day money back guarantee", color: "text-emerald-400" },
+    { icon: CheckCircle, text: "30-day money back guarantee", color: "text-emerald-400" },
     { icon: Zap, text: "Instant activation", color: "text-blue-400" },
     { icon: Shield, text: "Bank-level security", color: "text-blue-400" },
     { icon: Users, text: "24/7 support", color: "text-blue-400" },
@@ -274,53 +278,37 @@ const Pricing = () => {
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          {/* Enhanced Savings Banner */}
+          {/* Savings Banner */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            className="relative overflow-hidden bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-emerald-500/10 border border-emerald-500/20 rounded-xl px-6 py-3 backdrop-blur-sm"
+            className="bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 rounded-xl px-6 py-3 backdrop-blur-sm"
           >
-            {/* Animated background gradient */}
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-blue-500/5 to-emerald-500/5"
-              animate={{
-                backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            />
-            <div className="relative flex items-center justify-center space-x-2">
-              <Sparkles className="h-4 w-4 text-emerald-400 animate-pulse" />
+            <div className="flex items-center justify-center space-x-2">
+              <Sparkles className="h-4 w-4 text-emerald-400" />
               <span className="text-emerald-400 font-medium text-sm">
                 Save up to 17% with yearly billing
               </span>
             </div>
           </motion.div>
 
-          {/* Enhanced Toggle */}
+          {/* Toggle */}
           <div className="flex items-center justify-center space-x-6">
-            <span className={`text-sm font-medium transition-colors duration-200 ${billingCycle === 'monthly' ? 'text-white' : 'text-white/60'}`}>
+            <span className={`text-sm font-medium transition-colors ${billingCycle === 'monthly' ? 'text-white' : 'text-white/60'}`}>
               Monthly
             </span>
             <button
               onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
-              className="relative w-16 h-8 bg-white/[0.05] rounded-full border border-white/[0.1] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-black hover:bg-white/[0.08] group"
+              className="relative w-16 h-8 bg-white/[0.05] rounded-full border border-white/[0.1] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-black hover:bg-white/[0.08]"
             >
-              <motion.div 
-                className={`absolute top-0.5 left-0.5 w-7 h-7 bg-gradient-to-r from-blue-600 to-blue-500 rounded-full shadow-lg transition-all duration-300 ${billingCycle === 'yearly' ? 'translate-x-8' : 'translate-x-0'}`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              />
+              <div className={`absolute top-0.5 left-0.5 w-7 h-7 bg-blue-500 rounded-full transition-all duration-300 shadow-lg ${billingCycle === 'yearly' ? 'translate-x-8' : 'translate-x-0'}`} />
             </button>
             <div className="flex items-center space-x-2">
-              <span className={`text-sm font-medium transition-colors duration-200 ${billingCycle === 'yearly' ? 'text-white' : 'text-white/60'}`}>
+              <span className={`text-sm font-medium transition-colors ${billingCycle === 'yearly' ? 'text-white' : 'text-white/60'}`}>
                 Yearly
               </span>
-              <span className="text-xs text-emerald-400 font-medium bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20">
+              <span className="text-xs text-emerald-400 font-medium bg-emerald-400/10 px-2 py-0.5 rounded-full">
                 Save 17%
               </span>
             </div>
@@ -364,35 +352,23 @@ const Pricing = () => {
 
               <motion.div
                 variants={cardHoverVariants}
-                className={`relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-8 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-300 h-full group-hover:scale-[1.01] ${plan.popular ? 'ring-1 ring-blue-400/20 shadow-lg shadow-blue-500/5' : ''}`}
+                className={`relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-8 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-300 overflow-hidden h-full group-hover:scale-[1.01] ${plan.popular ? 'ring-1 ring-blue-400/20 shadow-lg shadow-blue-500/5' : ''}`}
               >
-                {/* Fixed Popular badge - moved inside card with proper spacing */}
+                {/* Popular badge */}
                 {plan.popular && (
-                  <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
-                    <motion.div 
-                      className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-1.5 rounded-full text-xs font-medium shadow-lg border border-blue-500/20 backdrop-blur-sm"
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.5, duration: 0.3 }}
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-3 w-3" />
-                        <span>{plan.badge}</span>
-                      </div>
-                    </motion.div>
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-20">
+                    <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-1.5 rounded-full text-xs font-medium shadow-lg border border-blue-500/20">
+                      {plan.badge}
+                    </div>
                   </div>
                 )}
 
                 <div className="relative z-10">
-                  {/* Enhanced Header with proper spacing for popular badge */}
-                  <div className={`text-center mb-8 ${plan.popular ? 'pt-8' : ''}`}>
-                    <motion.div 
-                      className="inline-flex p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 mb-6 group-hover:scale-105 transition-transform duration-300"
-                      whileHover={{ rotate: 5 }}
-                    >
+                  {/* Enhanced Header */}
+                  <div className="text-center mb-8">
+                    <div className="inline-flex p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 mb-6 group-hover:scale-105 transition-transform duration-300">
                       <plan.icon className={`h-6 w-6 ${plan.iconColor}`} />
-                    </motion.div>
+                    </div>
 
                     <div className="flex items-center justify-center space-x-2 mb-4">
                       <h3 className="text-2xl font-bold text-white">{plan.name}</h3>
@@ -405,7 +381,7 @@ const Pricing = () => {
 
                     <p className="text-white/70 mb-8 leading-relaxed text-sm">{plan.description}</p>
 
-                    {/* Enhanced Pricing with better visual hierarchy */}
+                    {/* Enhanced Pricing */}
                     {plan.price[billingCycle] !== null ? (
                       <div className="mb-8">
                         <div className="flex items-baseline justify-center space-x-2 mb-2">
@@ -414,26 +390,18 @@ const Pricing = () => {
                               ${plan.originalPrice[billingCycle]}
                             </span>
                           )}
-                          <motion.span 
-                            className="text-4xl lg:text-5xl font-bold text-white group-hover:scale-105 transition-transform duration-300"
-                            whileHover={{ scale: 1.05 }}
-                          >
+                          <span className="text-4xl lg:text-5xl font-bold text-white group-hover:scale-105 transition-transform duration-300">
                             ${plan.price[billingCycle]}
-                          </motion.span>
+                          </span>
                           <span className="text-white/60 text-sm">
                             /user/{billingCycle === 'monthly' ? 'month' : 'month'}
                           </span>
                         </div>
                         
                         {plan.savings && plan.savings[billingCycle] && (
-                          <motion.div 
-                            className="text-sm text-emerald-400 mt-2 bg-emerald-400/10 px-3 py-1 rounded-full inline-block border border-emerald-400/20"
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.3, duration: 0.3 }}
-                          >
+                          <div className="text-sm text-emerald-400 mt-2 bg-emerald-400/10 px-3 py-1 rounded-full inline-block">
                             Save ${plan.savings[billingCycle]}/user/year
-                          </motion.div>
+                          </div>
                         )}
                         
                         {billingCycle === 'yearly' && plan.price.monthly && (
@@ -466,7 +434,7 @@ const Pricing = () => {
                     </motion.a>
                   </div>
 
-                  {/* Enhanced Features with better spacing and animations */}
+                  {/* Enhanced Features */}
                   <div className="space-y-3">
                     <h4 className="text-white font-semibold mb-4 text-sm">Everything in {plan.name}:</h4>
                     {plan.features.map((feature, featureIndex) => (
@@ -475,10 +443,10 @@ const Pricing = () => {
                         initial={{ opacity: 0, x: -10 }}
                         animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
                         transition={{ delay: 0.2 + featureIndex * 0.05 }}
-                        className="flex items-start space-x-3 group/feature"
+                        className="flex items-start space-x-3"
                       >
                         <div className="flex-shrink-0 mt-0.5">
-                          <CheckCircle2 className="h-4 w-4 text-emerald-400 group-hover/feature:scale-110 transition-transform duration-200" />
+                          <Check className="h-4 w-4 text-emerald-400" />
                         </div>
                         <span className="text-white/80 text-sm leading-relaxed group-hover:text-white/90 transition-colors">{feature}</span>
                       </motion.div>
@@ -504,9 +472,9 @@ const Pricing = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
                 transition={{ delay: 0.9 + index * 0.1, duration: 0.5 }}
-                className="flex items-center justify-center space-x-2 text-white/60 text-xs group hover:text-white/80 transition-colors duration-200"
+                className="flex items-center justify-center space-x-2 text-white/60 text-xs"
               >
-                <indicator.icon className={`h-3 w-3 ${indicator.color} group-hover:scale-110 transition-transform duration-200`} />
+                <indicator.icon className={`h-3 w-3 ${indicator.color}`} />
                 <span>{indicator.text}</span>
               </motion.div>
             ))}
@@ -605,12 +573,9 @@ const Pricing = () => {
                   </div>
 
                   <div className="relative bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 hover:bg-white/[0.05] hover:border-white/[0.12] transition-all duration-300 group-hover:scale-105">
-                    <motion.div 
-                      className="flex items-center justify-center w-12 h-12 bg-blue-500/10 border border-blue-500/20 rounded-lg mb-4 mx-auto group-hover:bg-blue-500/20 transition-all duration-300"
-                      whileHover={{ rotate: 5, scale: 1.05 }}
-                    >
+                    <div className="flex items-center justify-center w-12 h-12 bg-blue-500/10 border border-blue-500/20 rounded-lg mb-4 mx-auto group-hover:bg-blue-500/20 transition-all duration-300">
                       <feature.icon className="h-6 w-6 text-blue-400" />
-                    </motion.div>
+                    </div>
                     <h4 className="text-lg font-semibold text-white mb-3">{feature.title}</h4>
                     <p className="text-white/60 text-sm leading-relaxed mb-3">{feature.description}</p>
                     <div className="text-blue-400 text-xs font-medium">{feature.stats}</div>
@@ -710,23 +675,23 @@ const Pricing = () => {
                   className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-10"
                 >
                   <motion.button
-                    className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold px-10 py-4 rounded-lg transition-all duration-300 shadow-lg shadow-blue-500/10 text-lg group"
+                    className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold px-10 py-4 rounded-lg transition-all duration-300 shadow-lg shadow-blue-500/10 text-lg"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     <span className="flex items-center space-x-2">
                       <span>Start Free Trial</span>
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
+                      <ArrowRight className="w-5 h-5" />
                     </span>
                   </motion.button>
 
                   <motion.button
-                    className="text-white/90 hover:text-white font-semibold px-10 py-4 transition-colors duration-300 border border-white/10 hover:border-white/20 rounded-lg backdrop-blur-sm text-lg group"
+                    className="text-white/90 hover:text-white font-semibold px-10 py-4 transition-colors duration-300 border border-white/10 hover:border-white/20 rounded-lg backdrop-blur-sm text-lg"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     <span className="flex items-center space-x-2">
-                      <Play className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+                      <Play className="w-5 h-5" />
                       <span>View Demo</span>
                     </span>
                   </motion.button>
@@ -739,16 +704,16 @@ const Pricing = () => {
                   transition={{ delay: 2.2, duration: 0.5 }}
                   className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-12 text-white/50 text-sm"
                 >
-                  <div className="flex items-center space-x-2 group hover:text-white/70 transition-colors duration-200">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform duration-200" />
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-400" />
                     <span>30-day money back</span>
                   </div>
-                  <div className="flex items-center space-x-2 group hover:text-white/70 transition-colors duration-200">
-                    <Shield className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform duration-200" />
+                  <div className="flex items-center space-x-2">
+                    <Shield className="w-4 h-4 text-blue-400" />
                     <span>Instant activation</span>
                   </div>
-                  <div className="flex items-center space-x-2 group hover:text-white/70 transition-colors duration-200">
-                    <MessageSquare className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform duration-200" />
+                  <div className="flex items-center space-x-2">
+                    <MessageSquare className="w-4 h-4 text-blue-400" />
                     <span>24/7 support</span>
                   </div>
                 </motion.div>

@@ -419,6 +419,11 @@ export function useCanvasInteractions({
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     
     lines.forEach(line => {
+      // Skip lines that don't have valid points
+      if (!line.points || !Array.isArray(line.points) || line.points.length === 0) {
+        return;
+      }
+      
       for (let i = 0; i < line.points.length; i += 2) {
         const x = line.points[i];
         const y = line.points[i + 1];
@@ -755,12 +760,17 @@ export function useCanvasInteractions({
 
     if (isDrawingInFrame && activeFrameId) {
       const frame = frames.find(f => f.id === activeFrameId);
-      if (frame) {
+      if (frame && lines.length > 0) {
+        const lastLine = lines[lines.length - 1];
+        if (!lastLine.points || !Array.isArray(lastLine.points)) {
+          return; // Skip if the last line doesn't have valid points
+        }
+        
         const clippedPoint = handleDrawingInFrame(stagePoint, frame);
-        const newPoints = [...lines[lines.length - 1].points, clippedPoint.x, clippedPoint.y];
+        const newPoints = [...lastLine.points, clippedPoint.x, clippedPoint.y];
         
         const updatedLine = {
-          ...lines[lines.length - 1],
+          ...lastLine,
           points: newPoints,
         };
 
@@ -786,10 +796,19 @@ export function useCanvasInteractions({
         }
       }
     } else {
-      const newPoints = [...lines[lines.length - 1].points, stagePoint.x, stagePoint.y];
+      if (lines.length === 0) {
+        return; // Skip if there are no lines to update
+      }
+      
+      const lastLine = lines[lines.length - 1];
+      if (!lastLine.points || !Array.isArray(lastLine.points)) {
+        return; // Skip if the last line doesn't have valid points
+      }
+      
+      const newPoints = [...lastLine.points, stagePoint.x, stagePoint.y];
       
       const updatedLine = {
-        ...lines[lines.length - 1],
+        ...lastLine,
         points: newPoints,
       };
 

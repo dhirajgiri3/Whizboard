@@ -621,7 +621,7 @@ const Hero = () => {
         </motion.svg>
       </div>
 
-      <main className="relative z-10 flex flex-col gap-12 sm:gap-16 lg:gap-20 min-h-screen pt-20 sm:pt-28 lg:pt-36 pb-20 sm:pb-32 lg:pb-44">
+      <main className="relative z-10 flex flex-col gap-12 sm:gap-16 lg:gap-20 min-h-screen pt-16 sm:pt-24 lg:pt-32 pb-16 sm:pb-24 lg:pb-32">
         {/* Enhanced main content */}
         <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -670,36 +670,36 @@ const Hero = () => {
               </motion.span>
             </motion.div>
 
-            {/* Enhanced main heading with design system colors */}
+            {/* Enhanced main heading with minimal, beautiful design */}
             <motion.h1
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="mb-4 sm:mb-6 lg:mb-8 text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight sm:leading-none font-maison-neue text-white drop-shadow-lg mx-auto"
+              className="mb-4 sm:mb-6 lg:mb-8 text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold leading-[0.95] tracking-tight text-white mx-auto"
             >
               Turn Ideas into{" "}
               <motion.span
-                className="relative inline-block bg-gradient-to-r from-blue-300 via-white to-blue-300 bg-clip-text text-transparent"
+                className="relative inline-block bg-gradient-to-r from-blue-500 via-white to-blue-500 bg-clip-text text-transparent bg-[length:200%_100%]"
                 animate={{
                   backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
                 }}
                 transition={{
-                  duration: 8,
+                  duration: 6,
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
               >
                 Action
                 <motion.div
-                  className="absolute -inset-1 bg-blue-500/10 blur-lg rounded-lg"
-                  animate={{ opacity: [0, 0.3, 0] }}
-                  transition={{ duration: 4, repeat: Infinity }}
+                  className="absolute -inset-2 bg-gradient-to-r from-blue-600/20 to-blue-500/20 blur-xl rounded-lg"
+                  animate={{ opacity: [0, 0.4, 0] }}
+                  transition={{ duration: 3, repeat: Infinity }}
                 />
               </motion.span>
               , Together.
             </motion.h1>
 
-            {/* Enhanced description */}
+            {/* Enhanced description with minimal, beautiful styling */}
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -708,14 +708,14 @@ const Hero = () => {
                 delay: 0.6,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="mb-6 sm:mb-8 lg:mb-10 max-w-sm sm:max-w-xl lg:max-w-2xl mx-auto text-sm sm:text-base lg:text-lg text-white/90 leading-relaxed font-light px-2 sm:px-0"
+              className="mb-6 sm:mb-8 lg:mb-10 max-w-lg sm:max-w-2xl lg:max-w-3xl mx-auto text-base sm:text-lg lg:text-xl text-white/80 leading-relaxed font-light px-2 sm:px-0"
             >
               Create, collaborate, and bring your ideas to life with the most
               intuitive whiteboard experience. From concept to completion, all
               in real-time.
             </motion.p>
 
-            {/* Design system CTA buttons */}
+            {/* Enhanced CTA buttons with minimal, beautiful design */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -730,7 +730,7 @@ const Hero = () => {
                 href="/signup"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="group relative overflow-hidden bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-medium text-base transition-all duration-300 shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 w-full sm:w-auto min-w-[180px] flex items-center justify-center gap-2"
+                className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-8 py-4 rounded-xl font-semibold text-base transition-all duration-300 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/35 w-full sm:w-auto min-w-[180px] flex items-center justify-center gap-2"
               >
                 <span>Start for Free</span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -740,7 +740,7 @@ const Hero = () => {
                 href="#demo"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="group relative bg-white/[0.06] backdrop-blur-sm border border-white/[0.08] text-white px-8 py-4 rounded-xl font-medium text-base transition-all duration-300 hover:bg-white/[0.08] hover:border-white/[0.12] w-full sm:w-auto min-w-[180px] flex items-center justify-center gap-2"
+                className="group relative bg-white/[0.04] backdrop-blur-sm border border-white/[0.08] text-white px-8 py-4 rounded-xl font-semibold text-base transition-all duration-300 hover:bg-white/[0.08] hover:border-white/[0.15] w-full sm:w-auto min-w-[180px] flex items-center justify-center gap-2"
               >
                 <Play className="w-4 h-4 transition-transform group-hover:scale-110" />
                 <span>Watch Demo</span>
@@ -752,7 +752,7 @@ const Hero = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 1.2 }}
-              className="mt-8 sm:mt-10 lg:mt-12 flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-6 lg:space-x-10 text-white/85 text-xs sm:text-sm"
+              className="mt-8 sm:mt-10 lg:mt-12 flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-8 lg:space-x-12 text-white/85 text-xs sm:text-sm"
             >
               <div className="flex items-center space-x-2">
                 <Star className="h-4 w-4 sm:h-5 sm:w-5 fill-white text-white drop-shadow-sm" />

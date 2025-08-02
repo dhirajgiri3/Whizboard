@@ -26,6 +26,7 @@ import {
   Clock,
   Award
 } from "lucide-react";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 const Features = () => {
   const ref = useRef(null);
@@ -221,44 +222,21 @@ const Features = () => {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col">
         {/* Header */}
-        <motion.div
-          variants={itemVariants}
-          className="flex flex-col items-center space-y-4 sm:space-y-6 pb-16 lg:pb-20"
-        >
-          <div className="inline-flex items-center space-x-2 bg-white/[0.02] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm group/badge hover:scale-105 transition-transform duration-300">
-            <Zap className="h-4 w-4 text-blue-400 group-hover/badge:animate-pulse" />
-            <span className="text-white/70 text-sm font-medium">Professional Toolkit</span>
-          </div>
-          
-          <div className="flex flex-col items-center space-y-4">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight font-semibold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500 text-center">
-              Complete Professional Toolkit
-            </h2>
-            
-            <p className="text-base text-white/80 max-w-2xl text-center leading-relaxed">
-              Everything you need to create, collaborate, and bring your ideas to life
-            </p>
-            
-            {/* Enhanced stats preview */}
-            <motion.div 
-              variants={itemVariants}
-              className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-10 text-sm"
-            >
-              <div className="flex items-center space-x-2 text-white/60">
-                <Users className="h-4 w-4 text-blue-400" />
-                <span>150k+ users worldwide</span>
-              </div>
-              <div className="flex items-center space-x-2 text-white/60">
-                <Star className="h-4 w-4 text-yellow-400" />
-                <span>4.9/5 rating</span>
-              </div>
-              <div className="flex items-center space-x-2 text-white/60">
-                <Award className="h-4 w-4 text-emerald-400" />
-                <span>Enterprise ready</span>
-              </div>
-            </motion.div>
-          </div>
-        </motion.div>
+        <SectionHeader
+          badge={{
+            icon: Zap,
+            text: "Professional Toolkit"
+          }}
+          title="Complete Professional Toolkit"
+          description="Everything you need to create, collaborate, and bring your ideas to life"
+          stats={[
+            { icon: Users, text: "150k+ users worldwide", color: "text-blue-400" },
+            { icon: Star, text: "4.9/5 rating", color: "text-yellow-400" },
+            { icon: Award, text: "Enterprise ready", color: "text-emerald-400" }
+          ]}
+          disableAnimation={true}
+          className="pb-16 lg:pb-20"
+        />
 
         {/* Enhanced Bento Grid Features */}
         <motion.div
@@ -487,18 +465,44 @@ const Features = () => {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="flex flex-col pb-16 lg:pb-20"
+          className="flex flex-col pb-20 lg:pb-24"
         >
-          <motion.h3
+          {/* Redesigned Header - Professional Drawing Tools */}
+          <motion.div
             variants={itemVariants}
-            className="text-2xl sm:text-3xl font-bold text-center text-white pb-8 sm:pb-12"
+            className="flex flex-col items-center space-y-4 sm:space-y-6 pb-12 sm:pb-16"
           >
-            Professional Drawing Tools
-          </motion.h3>
+            {/* Badge */}
+            <motion.div
+              variants={itemVariants}
+              className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
+            >
+              <Palette className="h-3.5 w-3.5 text-blue-400/80 group-hover:text-blue-400 transition-colors duration-200" />
+              <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
+                Professional Tools
+              </span>
+            </motion.div>
+
+            {/* Title */}
+            <motion.h3
+              variants={itemVariants}
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-[1.1] tracking-tight text-center"
+            >
+              Professional Drawing Tools
+            </motion.h3>
+
+            {/* Description */}
+            <motion.p
+              variants={itemVariants}
+              className="text-white/70 max-w-2xl leading-relaxed text-sm sm:text-base text-center"
+            >
+              Everything you need to create, collaborate, and bring your ideas to life with precision and ease.
+            </motion.p>
+          </motion.div>
           
           <motion.div
             variants={containerVariants}
-            className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4"
+            className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4 sm:gap-6"
           >
             {tools.map((tool, index) => (
               <motion.div
@@ -529,7 +533,7 @@ const Features = () => {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6"
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8"
         >
           <motion.div
             variants={itemVariants}

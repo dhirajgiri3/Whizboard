@@ -66,7 +66,7 @@ export default function HomePage() {
   return (
     <SmoothScrollProvider>
       <div className="relative">
-        <main>
+        <main className="">
           <Hero />
           <ValueProposition />
           <SocialProof />

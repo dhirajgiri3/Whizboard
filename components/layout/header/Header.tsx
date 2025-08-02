@@ -297,7 +297,7 @@ const CreateBoardButton = ({ onClick, isMobile = false }: {
     onClick={onClick}
     whileHover={{ scale: 1.02 }}
     whileTap={{ scale: 0.98 }}
-    className={`group relative flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-500 via-blue-500 to-blue-600 text-white text-sm font-medium rounded-full hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-sm ${isMobile ? "w-full" : ""
+    className={`group relative flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 via-blue-500 to-blue-600 text-white text-sm font-medium rounded-full hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-sm ${isMobile ? "w-full" : ""
       }`}
   >
     <Plus className="w-4 h-4" />
