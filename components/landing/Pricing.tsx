@@ -21,7 +21,18 @@ import {
   Globe,
   MessageSquare,
   Building2,
-  CheckCircle2
+  CheckCircle2,
+  PenTool,
+  Square,
+  Type,
+  FileText,
+  Download,
+  Layers,
+  Palette,
+  Share2,
+  Image,
+  Frame,
+  StickyNote
 } from "lucide-react";
 import SectionHeader from "@/components/ui/SectionHeader";
 
@@ -32,18 +43,21 @@ const Pricing = () => {
 
   const plans = [
     {
-      name: "Free Forever",
+      name: "Free",
       description: "Perfect for individuals and small teams getting started",
       price: { monthly: 0, yearly: 0 },
       originalPrice: { monthly: 0, yearly: 0 },
       features: [
         "3 collaborative boards",
-        "All drawing and collaboration tools",
-        "Basic export options (PNG, PDF)",
-        "Email support",
-        "Up to 5 team members",
-        "Real-time collaboration",
-        "Basic templates"
+        "Real-time drawing and collaboration tools",
+        "Basic shapes and text elements",
+        "Sticky notes and frames",
+        "Export to PNG format",
+        "Up to 3 team members",
+        "Live cursor tracking",
+        "Basic templates",
+        "Auto-save functionality",
+        "Mobile-responsive design"
       ],
       cta: "Start Free",
       href: "/signup",
@@ -62,15 +76,17 @@ const Pricing = () => {
       originalPrice: { monthly: 15, yearly: 12 },
       features: [
         "Unlimited boards and storage",
-        "Advanced templates and frames",
-        "Priority support and training",
-        "Enhanced exports (SVG, JSON, Figma)",
-        "Team analytics dashboard",
-        "Up to 50 team members",
-        "Custom branding",
+        "Advanced drawing tools with pressure sensitivity",
+        "All frame templates (mobile, desktop, social media)",
+        "Enhanced exports (PNG, SVG, JSON)",
+        "Team analytics and collaboration insights",
+        "Up to 25 team members",
+        "Custom branding and themes",
         "Advanced integrations",
-        "Version history",
-        "Advanced security features"
+        "Version history and recovery",
+        "Priority support",
+        "Advanced security features",
+        "Presentation mode"
       ],
       cta: "Start 14-Day Free Trial",
       href: "/signup",
@@ -79,7 +95,7 @@ const Pricing = () => {
       iconColor: "text-blue-400",
       badge: "Most Popular",
       badgeColor: "bg-blue-500/10 text-blue-400",
-      savings: { monthly: 20, yearly: 17 },
+      savings: { monthly: 3, yearly: 24 },
       highlight: true
     },
     {
@@ -90,14 +106,16 @@ const Pricing = () => {
       features: [
         "Everything in Pro, plus:",
         "SSO integration (SAML, OIDC)",
-        "Advanced security controls",
+        "Advanced security controls and audit logs",
         "Dedicated customer success manager",
         "Custom integrations and API access",
         "Unlimited team members",
         "Advanced compliance features",
         "Custom contract terms",
         "SLA guarantees",
-        "On-premise deployment options"
+        "On-premise deployment options",
+        "Advanced role-based permissions",
+        "Custom training and onboarding"
       ],
       cta: "Contact Sales",
       href: "/contact",
@@ -404,11 +422,11 @@ const Pricing = () => {
 
                     <p className="text-white/70 mb-8 leading-relaxed text-sm">{plan.description}</p>
 
-                    {/* Enhanced Pricing with better visual hierarchy */}
+                    {/* Enhanced Pricing with better visual hierarchy and fixed calculations */}
                     {plan.price[billingCycle] !== null ? (
                       <div className="mb-8">
                         <div className="flex items-baseline justify-center space-x-2 mb-2">
-                          {plan.originalPrice[billingCycle] && plan.originalPrice[billingCycle] > plan.price[billingCycle] && (
+                          {plan.originalPrice[billingCycle] !== null && plan.originalPrice[billingCycle] > 0 && plan.originalPrice[billingCycle] > plan.price[billingCycle] && (
                             <span className="text-lg text-white/50 line-through">
                               ${plan.originalPrice[billingCycle]}
                             </span>
@@ -417,14 +435,16 @@ const Pricing = () => {
                             className="text-4xl lg:text-5xl font-bold text-white group-hover:scale-105 transition-transform duration-300"
                             whileHover={{ scale: 1.05 }}
                           >
-                            ${plan.price[billingCycle]}
+                            {plan.price[billingCycle] === 0 ? 'Free' : `$${plan.price[billingCycle]}`}
                           </motion.span>
-                          <span className="text-white/60 text-sm">
-                            /user/{billingCycle === 'monthly' ? 'month' : 'month'}
-                          </span>
+                          {plan.price[billingCycle] > 0 && (
+                            <span className="text-white/60 text-sm">
+                              /user/{billingCycle === 'monthly' ? 'month' : 'year'}
+                            </span>
+                          )}
                         </div>
                         
-                        {plan.savings && plan.savings[billingCycle] && (
+                        {plan.savings && plan.savings[billingCycle] && plan.savings[billingCycle] !== null && plan.savings[billingCycle] > 0 && (
                           <motion.div 
                             className="text-sm text-emerald-400 mt-2 bg-emerald-400/10 px-3 py-1 rounded-full inline-block border border-emerald-400/20"
                             initial={{ opacity: 0, scale: 0.9 }}
@@ -435,7 +455,7 @@ const Pricing = () => {
                           </motion.div>
                         )}
                         
-                        {billingCycle === 'yearly' && plan.price.monthly && (
+                        {billingCycle === 'yearly' && plan.price.monthly && plan.price.monthly > 0 && (
                           <div className="text-sm text-white/60 mt-2">
                             Billed annually (${plan.price.yearly * 12}/user/year)
                           </div>
