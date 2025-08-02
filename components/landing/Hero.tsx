@@ -115,60 +115,117 @@ const Hero = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-slate-900/10" />
       </div>
 
-      {/* Enhanced floating particles with better physics */}
+      {/* Enhanced minimal floating particles with white colors */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(25)].map((_, i) => (
+        {/* Small, crystal clear particles distributed throughout */}
+        {[...Array(40)].map((_, i) => (
           <motion.div
-            key={i}
+            key={`particle-${i}`}
             className="absolute rounded-full"
             style={{
-              left: `${5 + i * 3.8}%`,
-              top: `${10 + i * 3.2}%`,
-              width: i % 4 === 0 ? "3px" : i % 3 === 0 ? "2px" : "1px",
-              height: i % 4 === 0 ? "3px" : i % 3 === 0 ? "2px" : "1px",
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              width: i % 5 === 0 ? "2px" : i % 3 === 0 ? "1.5px" : "1px",
+              height: i % 5 === 0 ? "2px" : i % 3 === 0 ? "1.5px" : "1px",
             }}
             animate={{
-              y: [-30, 40, -30],
-              x: [0, i % 2 === 0 ? 15 : -15, 0],
-              opacity: [0.1, 0.6, 0.1],
-              scale: [0.5, 1.5, 0.5],
+              y: [-20, 30, -20],
+              x: [0, i % 2 === 0 ? 10 : -10, 0],
+              opacity: [0.2, 0.8, 0.2],
+              scale: [0.6, 1.2, 0.6],
             }}
             transition={{
-              duration: 6 + i * 0.4,
+              duration: 8 + i * 0.3,
               repeat: Infinity,
-              delay: i * 0.3,
+              delay: i * 0.2,
               ease: "easeInOut",
             }}
           >
-            <div className="w-full h-full bg-gradient-to-br from-white/60 to-blue-300/80 rounded-full blur-[0.5px] shadow-lg shadow-blue-300/30" />
+            <div className="w-full h-full bg-white/70 rounded-full shadow-sm shadow-white/20" />
           </motion.div>
         ))}
 
-        {/* Floating orbs within waves */}
-        {[...Array(8)].map((_, i) => (
+        {/* Medium-sized crystal clear orbs */}
+        {[...Array(15)].map((_, i) => (
           <motion.div
             key={`orb-${i}`}
             className="absolute rounded-full"
             style={{
-              left: `${10 + i * 12}%`,
-              bottom: `${5 + i * 2}%`,
-              width: "6px",
-              height: "6px",
+              left: `${15 + i * 5.5}%`,
+              top: `${20 + i * 4}%`,
+              width: "3px",
+              height: "3px",
             }}
             animate={{
-              y: [-10, 20, -10],
-              x: [0, i % 2 === 0 ? 8 : -8, 0],
-              opacity: [0.3, 0.8, 0.3],
-              scale: [0.8, 1.2, 0.8],
+              y: [-15, 25, -15],
+              x: [0, i % 2 === 0 ? 12 : -12, 0],
+              opacity: [0.3, 0.9, 0.3],
+              scale: [0.7, 1.3, 0.7],
             }}
             transition={{
-              duration: 8 + i * 0.5,
+              duration: 10 + i * 0.4,
+              repeat: Infinity,
+              delay: i * 0.6,
+              ease: "easeInOut",
+            }}
+          >
+            <div className="w-full h-full bg-white/80 rounded-full shadow-lg shadow-white/30" />
+          </motion.div>
+        ))}
+
+        {/* Larger accent particles */}
+        {[...Array(8)].map((_, i) => (
+          <motion.div
+            key={`accent-${i}`}
+            className="absolute rounded-full"
+            style={{
+              left: `${25 + i * 8}%`,
+              top: `${10 + i * 6}%`,
+              width: "4px",
+              height: "4px",
+            }}
+            animate={{
+              y: [-25, 35, -25],
+              x: [0, i % 2 === 0 ? 15 : -15, 0],
+              opacity: [0.4, 1, 0.4],
+              scale: [0.8, 1.4, 0.8],
+            }}
+            transition={{
+              duration: 12 + i * 0.5,
               repeat: Infinity,
               delay: i * 0.8,
               ease: "easeInOut",
             }}
           >
-            <div className="w-full h-full bg-gradient-to-br from-cyan-300/60 to-blue-400/80 rounded-full shadow-xl shadow-blue-400/40 blur-[1px]" />
+            <div className="w-full h-full bg-white/90 rounded-full shadow-xl shadow-white/40" />
+          </motion.div>
+        ))}
+
+        {/* Floating orbs within waves */}
+        {[...Array(6)].map((_, i) => (
+          <motion.div
+            key={`wave-orb-${i}`}
+            className="absolute rounded-full"
+            style={{
+              left: `${8 + i * 15}%`,
+              bottom: `${8 + i * 3}%`,
+              width: "5px",
+              height: "5px",
+            }}
+            animate={{
+              y: [-12, 18, -12],
+              x: [0, i % 2 === 0 ? 10 : -10, 0],
+              opacity: [0.4, 0.9, 0.4],
+              scale: [0.9, 1.1, 0.9],
+            }}
+            transition={{
+              duration: 9 + i * 0.6,
+              repeat: Infinity,
+              delay: i * 1.2,
+              ease: "easeInOut",
+            }}
+          >
+            <div className="w-full h-full bg-white/75 rounded-full shadow-lg shadow-white/35" />
           </motion.div>
         ))}
       </div>
@@ -675,7 +732,7 @@ const Hero = () => {
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="mb-4 sm:mb-6 lg:mb-8 text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold leading-[0.95] tracking-tight text-white mx-auto"
+              className="mb-4 sm:mb-6 lg:mb-8 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[0.95] tracking-tight text-white text-center max-w-2xl mx-auto"
             >
               Turn Ideas into{" "}
               <motion.span

@@ -294,7 +294,6 @@ const Pricing = () => {
               }}
             />
             <div className="relative flex items-center justify-center space-x-2">
-              <Sparkles className="h-4 w-4 text-emerald-400 animate-pulse" />
               <span className="text-emerald-400 font-medium text-sm">
                 Save up to 17% with yearly billing
               </span>
