@@ -44,7 +44,7 @@ const Pricing = () => {
   const plans = [
     {
       name: "Free",
-      description: "Perfect for individuals and small teams getting started",
+      description: "Great for individuals and small teams",
       price: { monthly: 0, yearly: 0 },
       originalPrice: { monthly: 0, yearly: 0 },
       features: [
@@ -59,36 +59,35 @@ const Pricing = () => {
         "Auto-save functionality",
         "Mobile-responsive design"
       ],
-      cta: "Start Free",
+      cta: "Get Started",
       href: "/signup",
       popular: false,
       icon: Heart,
       iconColor: "text-blue-400",
-      badge: "Forever Free",
-      badgeColor: "bg-white/[0.05] text-white/70",
+      badge: "No Credit Card",
+      badgeColor: "bg-emerald-500/10 text-emerald-400",
       savings: null,
       highlight: false
     },
     {
       name: "Pro",
-      description: "Most popular for growing teams and professionals",
+      description: "Ideal for growing teams and professionals",
       price: { monthly: 12, yearly: 10 },
       originalPrice: { monthly: 15, yearly: 12 },
       features: [
-        "Unlimited boards and storage",
         "Advanced drawing tools with pressure sensitivity",
-        "All frame templates (mobile, desktop, social media)",
-        "Enhanced exports (PNG, SVG, JSON)",
-        "Team analytics and collaboration insights",
-        "Up to 25 team members",
-        "Custom branding and themes",
-        "Advanced integrations",
-        "Version history and recovery",
-        "Priority support",
-        "Advanced security features",
-        "Presentation mode"
+        "All premium frame templates (mobile, desktop, social media)",
+        "Enhanced exports (PNG, SVG, JSON, PDF)",
+        "Team analytics & collaboration insights",
+        "Up to 25 team members & roles",
+        "Custom branding & themes",
+        "Advanced integrations & API access",
+        "Version history & recovery",
+        "Priority customer support",
+        "Advanced security & compliance",
+        "Presentation & whiteboarding mode"
       ],
-      cta: "Start 14-Day Free Trial",
+      cta: "Try Free for 14 Days",
       href: "/signup",
       popular: true,
       icon: Crown,
@@ -104,18 +103,16 @@ const Pricing = () => {
       price: { monthly: null, yearly: null },
       originalPrice: { monthly: null, yearly: null },
       features: [
-        "Everything in Pro, plus:",
-        "SSO integration (SAML, OIDC)",
-        "Advanced security controls and audit logs",
+        "SSO & SAML integration",
+        "Advanced audit logs & security controls",
         "Dedicated customer success manager",
-        "Custom integrations and API access",
-        "Unlimited team members",
-        "Advanced compliance features",
-        "Custom contract terms",
-        "SLA guarantees",
+        "Custom integrations & API access",
+        "Unlimited team members & boards",
+        "Advanced compliance features (SOC2, GDPR)",
+        "Custom contract terms & SLA guarantees",
         "On-premise deployment options",
         "Advanced role-based permissions",
-        "Custom training and onboarding"
+        "Custom training & onboarding"
       ],
       cta: "Contact Sales",
       href: "/contact",
@@ -384,22 +381,7 @@ const Pricing = () => {
                 className={`relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-8 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-300 h-full group-hover:scale-[1.01] ${plan.popular ? 'ring-1 ring-blue-400/20 shadow-lg shadow-blue-500/5' : ''}`}
               >
                 {/* Fixed Popular badge - moved inside card with proper spacing */}
-                {plan.popular && (
-                  <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
-                    <motion.div 
-                      className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-1.5 rounded-full text-xs font-medium shadow-lg border border-blue-500/20 backdrop-blur-sm"
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.5, duration: 0.3 }}
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-3 w-3" />
-                        <span>{plan.badge}</span>
-                      </div>
-                    </motion.div>
-                  </div>
-                )}
+                {/* Removed the absolute positioned popular badge as it's now inline with the title */}
 
                 <div className="relative z-10">
                   {/* Enhanced Header with proper spacing for popular badge */}
@@ -413,7 +395,7 @@ const Pricing = () => {
 
                     <div className="flex items-center justify-center space-x-2 mb-4">
                       <h3 className="text-2xl font-bold text-white">{plan.name}</h3>
-                      {!plan.popular && (
+                      {plan.badge && (
                         <span className={`text-xs font-medium px-2 py-1 rounded-full ${plan.badgeColor}`}>
                           {plan.badge}
                         </span>
@@ -426,7 +408,7 @@ const Pricing = () => {
                     {plan.price[billingCycle] !== null ? (
                       <div className="mb-8">
                         <div className="flex items-baseline justify-center space-x-2 mb-2">
-                          {plan.originalPrice[billingCycle] !== null && plan.originalPrice[billingCycle] > 0 && plan.originalPrice[billingCycle] > plan.price[billingCycle] && (
+                          {plan.originalPrice[billingCycle] !== null && plan.originalPrice[billingCycle] > 0 && plan.originalPrice[billingCycle] > plan.price[billingCycle] && plan.price[billingCycle] > 0 && (
                             <span className="text-lg text-white/50 line-through">
                               ${plan.originalPrice[billingCycle]}
                             </span>
@@ -435,7 +417,7 @@ const Pricing = () => {
                             className="text-4xl lg:text-5xl font-bold text-white group-hover:scale-105 transition-transform duration-300"
                             whileHover={{ scale: 1.05 }}
                           >
-                            {plan.price[billingCycle] === 0 ? 'Free' : `$${plan.price[billingCycle]}`}
+                            {plan.price[billingCycle] === 0 ? '$0' : `$${plan.price[billingCycle]}`}
                           </motion.span>
                           {plan.price[billingCycle] > 0 && (
                             <span className="text-white/60 text-sm">
@@ -455,9 +437,14 @@ const Pricing = () => {
                           </motion.div>
                         )}
                         
-                        {billingCycle === 'yearly' && plan.price.monthly && plan.price.monthly > 0 && (
+                        {billingCycle === 'yearly' && plan.price.monthly && plan.price.monthly > 0 && plan.price.yearly > 0 && (
                           <div className="text-sm text-white/60 mt-2">
                             Billed annually (${plan.price.yearly * 12}/user/year)
+                          </div>
+                        )}
+                        {billingCycle === 'yearly' && plan.price.yearly === 0 && (
+                          <div className="text-sm text-white/60 mt-2">
+                            No credit card required
                           </div>
                         )}
                       </div>
