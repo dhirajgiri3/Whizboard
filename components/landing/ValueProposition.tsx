@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { motion, useInView, Variants } from "framer-motion";
 import { useRef } from "react";
 import {
@@ -8,15 +9,6 @@ import {
   Shield,
   ArrowRight,
   CheckCircle,
-  Globe,
-  Smartphone,
-  Laptop,
-  Clock,
-  Lock,
-  Target,
-  X,
-  Star,
-  Award,
   Link,
   BookOpen,
   UserCheck,
@@ -30,7 +22,6 @@ import {
   Gift,
   Smartphone as Mobile,
   TrendingUp,
-  Award as Trophy,
   CheckCircle2,
   Cloud,
   HelpCircle,
@@ -39,7 +30,12 @@ import {
   ChevronUp,
   ArrowUpRight,
   Calendar,
-  Clock as TimeIcon
+  Clock as TimeIcon,
+  Target,
+  Clock,
+  X,
+  Star,
+  Lock
 } from "lucide-react";
 import SectionHeader from "@/components/ui/SectionHeader";
 
@@ -157,8 +153,8 @@ const ValueProposition = () => {
     {
       icon: Target,
       title: "Precision Drawing",
-      description: "Professional-grade drawing tools with pixel-perfect accuracy for detailed designs and technical diagrams.",
-      metric: "99.9% accuracy",
+      description: "Professional-grade drawing tools with pixel-perfect accuracy for detailed designs and technical diagrams. Boost design accuracy by 30% and reduce revision cycles.",
+      metric: "99.9% Accuracy",
       stats: "50k+ drawings daily",
       iconColor: "text-blue-400",
       gradient: "from-blue-600/10 to-blue-400/5"
@@ -166,17 +162,17 @@ const ValueProposition = () => {
     {
       icon: Users,
       title: "Real-time Collaboration",
-      description: "Work together seamlessly with live cursors, instant updates, and team presence indicators.",
-      metric: "<50ms latency",
+      description: "Work together seamlessly with live cursors, instant updates, and team presence indicators. Improve team productivity by 40% and decision-making speed.",
+      metric: "<50ms Latency",
       stats: "150k+ active users",
       iconColor: "text-emerald-400",
       gradient: "from-emerald-600/10 to-emerald-400/5"
     },
     {
       icon: Zap,
-      title: "Lightning Fast",
-      description: "Optimized performance ensures smooth drawing even with complex diagrams and large teams.",
-      metric: "60fps rendering",
+      title: "Lightning Fast Performance",
+      description: "Optimized performance ensures smooth drawing even with complex diagrams and large teams. Experience 2x faster loading and zero lag.",
+      metric: "60fps Rendering",
       stats: "2x faster loading",
       iconColor: "text-amber-400",
       gradient: "from-amber-600/10 to-amber-400/5"
@@ -232,7 +228,7 @@ const ValueProposition = () => {
       <style dangerouslySetInnerHTML={{ __html: enhancedScrollbarStyles }} />
       <section
         ref={ref}
-        className="relative py-16 sm:py-20 lg:py-24 overflow-hidden bg-[#0A0A0B]"
+        className="relative py-12 sm:py-16 lg:py-20 overflow-hidden bg-[#0A0A0B]"
       >
         {/* Background Elements */}
         <div className="absolute inset-0">
@@ -261,13 +257,13 @@ const ValueProposition = () => {
           />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-16 lg:gap-20">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-8 lg:gap-12">
           {/* Main Value Proposition */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate={isInView ? "visible" : "hidden"}
-            className="flex flex-col items-center gap-6 sm:gap-8"
+            className="flex flex-col items-center gap-3 sm:gap-4"
           >
             <SectionHeader
               badge={{
@@ -281,6 +277,11 @@ const ValueProposition = () => {
                 { icon: Star, text: "4.9/5 rating", color: "text-yellow-400" },
                 { icon: Shield, text: "Enterprise ready", color: "text-emerald-400" }
               ]}
+              useCases={[
+                "Streamline brainstorming sessions",
+                "Enhance remote team collaboration",
+                "Accelerate project planning and execution"
+              ]}
               disableAnimation={true}
             />
           </motion.div>
@@ -290,7 +291,7 @@ const ValueProposition = () => {
             variants={containerVariants}
             initial="hidden"
             animate={isInView ? "visible" : "hidden"}
-            className="grid md:grid-cols-3 gap-8 lg:gap-10"
+            className="grid md:grid-cols-3 gap-6 lg:gap-8"
           >
             {benefits.map((benefit, index) => (
               <motion.div
@@ -299,24 +300,24 @@ const ValueProposition = () => {
                 className="group relative"
                 whileHover={{ y: -8 }}
               >
-                <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-8 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-500 overflow-hidden h-full">
+                <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-6 sm:p-8 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-500 overflow-hidden h-full">
                   {/* Gradient Orb Background */}
                   <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[40px] group-hover:scale-110 transition-transform duration-500 ${benefit.gradient.includes('amber') ? 'bg-amber-600/20' : benefit.gradient.includes('blue') ? 'bg-blue-600/20' : 'bg-emerald-600/20'}`}></div>
 
                   {/* Content */}
                   <div className="relative z-10 flex flex-col h-full">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className={`inline-flex p-4 rounded-xl border group-hover:scale-105 transition-all duration-300 ${benefit.gradient.includes('amber') ? 'bg-amber-600/10 border-amber-600/20 group-hover:bg-amber-600/15' : benefit.gradient.includes('blue') ? 'bg-blue-600/10 border-blue-600/20 group-hover:bg-blue-600/15' : 'bg-emerald-600/10 border-emerald-600/20 group-hover:bg-emerald-600/15'}`}>
-                        <benefit.icon className={`h-6 w-6 ${benefit.iconColor}`} />
+                    <div className="flex items-center justify-between mb-4 sm:mb-6">
+                      <div className={`inline-flex p-3 sm:p-4 rounded-xl border group-hover:scale-105 transition-all duration-300 ${benefit.gradient.includes('amber') ? 'bg-amber-600/10 border-amber-600/20 group-hover:bg-amber-600/15' : benefit.gradient.includes('blue') ? 'bg-blue-600/10 border-blue-600/20 group-hover:bg-blue-600/15' : 'bg-emerald-600/10 border-emerald-600/20 group-hover:bg-emerald-600/15'}`}>
+                        <benefit.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${benefit.iconColor}`} />
                       </div>
-                      <span className={`text-xs font-medium bg-white/[0.05] px-3 py-1 rounded-full ${benefit.iconColor}`}>
+                      <span className={`text-xs font-medium bg-white/[0.05] px-2 sm:px-3 py-1 rounded-full ${benefit.iconColor}`}>
                         {benefit.stats}
                       </span>
                     </div>
-                    <h3 className="text-xl font-semibold text-white mb-4 group-hover:text-white transition-colors">
+                    <h3 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4 group-hover:text-white transition-colors">
                       {benefit.title}
                     </h3>
-                    <p className="text-white/70 leading-relaxed group-hover:text-white/80 transition-colors mb-6 flex-grow">
+                    <p className="text-white/70 leading-[1.6] group-hover:text-white/80 transition-colors mb-4 sm:mb-6 flex-grow">
                       {benefit.description}
                     </p>
                     <div className="flex items-center justify-between mt-auto">
@@ -338,15 +339,15 @@ const ValueProposition = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             viewport={{ once: true }}
-            className="flex flex-col gap-16 lg:gap-20"
+            className="flex flex-col gap-12 lg:gap-16"
           >
-            <div className="text-center flex flex-col gap-8 lg:gap-10">
+            <div className="text-center flex flex-col gap-6 lg:gap-8">
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
                 viewport={{ once: true }}
-                className="flex flex-col items-center space-y-4"
+                className="flex flex-col items-center space-y-3 sm:space-y-4"
               >
                 {/* Badge */}
                 <motion.div
@@ -368,7 +369,7 @@ const ValueProposition = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
                   viewport={{ once: true }}
-                  className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-[1.1] tracking-tight text-center"
+                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-[1.1] tracking-tight text-center"
                 >
                   Why Teams Choose{" "}
                   <span className="bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent">
@@ -382,7 +383,7 @@ const ValueProposition = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.3 }}
                   viewport={{ once: true }}
-                  className="text-white/70 max-w-xl leading-relaxed text-sm sm:text-base text-center"
+                  className="text-white/70 max-w-xl leading-[1.6] text-sm sm:text-base text-center"
                 >
                   See the difference between traditional tools and our modern approach to collaborative whiteboarding.
                 </motion.p>
@@ -559,67 +560,6 @@ const ValueProposition = () => {
                 </div>
               </motion.div>
             </div>
-
-            {/* Enhanced Stats Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.7 }}
-              viewport={{ once: true }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-6"
-            >
-              {[
-                {
-                  title: "Time Saved",
-                  value: "85%",
-                  description: "Faster than traditional tools",
-                  icon: Clock,
-                  color: "emerald"
-                },
-                {
-                  title: "User Satisfaction",
-                  value: "4.9/5",
-                  description: "Average rating from users",
-                  icon: Star,
-                  color: "blue"
-                },
-                {
-                  title: "Cost Reduction",
-                  value: "60%",
-                  description: "Lower than enterprise solutions",
-                  icon: Shield,
-                  color: "blue"
-                }
-              ].map((stat, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.8 + index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="group relative"
-                >
-                  <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-xl p-6 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-300 overflow-hidden h-full">
-                    {/* Subtle background glow */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                    <div className="relative z-10">
-                      <div className={`inline-flex w-10 h-10 rounded-lg bg-white/[0.05] border border-white/[0.1] items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300`}>
-                        <stat.icon className={`w-5 h-5 ${
-                          stat.color === 'emerald' ? 'text-emerald-400' : 'text-blue-400'
-                        }`} />
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div className="text-2xl font-bold text-white">{stat.value}</div>
-                        <div className="text-white/70 text-sm font-medium">{stat.title}</div>
-                        <div className="text-white/50 text-xs leading-relaxed">{stat.description}</div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
           </motion.section>
 
           {/* Feature Highlights */}
@@ -630,40 +570,20 @@ const ValueProposition = () => {
             className="text-center flex flex-col gap-12 sm:gap-16"
           >
             {/* Redesigned Header - Everything You Need to Succeed */}
-            <motion.div
-              variants={itemVariants}
-              className="flex flex-col items-center gap-4 sm:gap-6"
-            >
-              {/* Badge */}
-              <motion.div
-                variants={itemVariants}
-                className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-4 py-2 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
-              >
-                <Rocket className="h-3.5 w-3.5 text-blue-400/80 group-hover:text-blue-400 transition-colors duration-200" />
-                <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
-                  Complete Toolkit
-                </span>
-              </motion.div>
-
-              {/* Title */}
-              <motion.h3
-                variants={itemVariants}
-                className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-[1.1] tracking-tight text-center max-w-4xl"
-              >
-                Everything You Need to{" "}
-                <span className="bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent">
-                  Succeed
-                </span>
-              </motion.h3>
-
-              {/* Description */}
-              <motion.p
-                variants={itemVariants}
-                className="text-white/70 max-w-2xl leading-relaxed text-base text-center"
-              >
-                Professional-grade features designed for modern teams and workflows
-              </motion.p>
-            </motion.div>
+            <SectionHeader
+              badge={{
+                icon: Rocket,
+                text: "Complete Toolkit"
+              }}
+              title="Everything You Need to Succeed"
+              description="Professional-grade features designed for modern teams and workflows"
+              useCases={[
+                "Rapidly iterate on designs and ideas",
+                "Simplify complex project planning",
+                "Facilitate engaging remote workshops"
+              ]}
+              disableAnimation={true}
+            />
 
             <motion.div
               variants={containerVariants}
@@ -703,18 +623,18 @@ const ValueProposition = () => {
             </motion.div>
           </motion.div>
 
-          {/* Redesigned CTA Section - ValueProposition Content with Green Gradients */}
+          {/* Minimalistic CTA Section - Clean & Neat Design */}
           <motion.div
             ref={ctaRef}
             initial={{ opacity: 0, scale: 0.98 }}
             animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.98 }}
             transition={{ delay: 1.2, duration: 0.8, ease: "easeOut" }}
-            className="relative overflow-hidden min-h-[80vh] flex items-center justify-center"
+            className="relative overflow-hidden h-[80vh] flex items-center justify-center"
           >
-            {/* Enhanced Dynamic Background with Glowing Green Gradients */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A0B] via-emerald-600/30 to-[#0F0F10] backdrop-blur-3xl rounded-[2rem] border-none shadow-none outline-none" />
+            {/* Enhanced Dynamic Background with Emerald Gradients */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A0B]/90 via-emerald-600/30 to-[#0F0F10]/90 backdrop-blur-3xl rounded-[2rem]" />
             
-            {/* Enhanced Animated Background Elements with Glowing Green */}
+            {/* Enhanced Animated Background Elements with Emerald Glow */}
             <div className="absolute inset-0 overflow-hidden rounded-[2rem]">
               <motion.div
                 className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-emerald-600/30 to-emerald-500/50 blur-3xl"
@@ -726,7 +646,7 @@ const ValueProposition = () => {
                 }}
                 transition={{
                   duration: 18,
-                  repeat: 999999,
+                  repeat: Infinity,
                   ease: "easeInOut"
                 }}
               />
@@ -740,27 +660,26 @@ const ValueProposition = () => {
                 }}
                 transition={{
                   duration: 15,
-                  repeat: 999999,
+                  repeat: Infinity,
                   ease: "easeInOut"
                 }}
               />
             </div>
 
-            <div className="relative z-10 text-center px-8 lg:px-16">
+            <div className="relative z-10 text-center px-8 lg:px-16 flex flex-col gap-12 lg:gap-16">
               {/* Minimal Header */}
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={isInView ? { opacity: 1, y: 0 } : { y: 20, opacity: 0 }}
                 transition={{ delay: 1.4, duration: 0.6 }}
-                className="mb-16"
               >
-                {/* Redesigned Header - Transform Your Ideas Into Reality */}
+                {/* Redesigned Header */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6 }}
                   viewport={{ once: true }}
-                  className="flex flex-col items-center space-y-4 sm:space-y-6"
+                  className="flex flex-col items-center gap-4 sm:gap-6"
                 >
                   {/* Badge */}
                   <motion.div
@@ -770,11 +689,13 @@ const ValueProposition = () => {
                     viewport={{ once: true }}
                     className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
                   >
-                    <Rocket className="h-3.5 w-3.5 text-emerald-400/80 group-hover:text-emerald-400 transition-colors duration-200" />
+                    <Zap className="h-3.5 w-3.5 text-emerald-400/80 group-hover:text-emerald-400 transition-colors duration-200" />
                     <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
-                      Ready to Transform
+                      Limited Time Offer
                     </span>
                   </motion.div>
+
+                  <div className="flex flex-col items-center gap-2">
 
                   {/* Title */}
                   <motion.h3
@@ -782,14 +703,12 @@ const ValueProposition = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
                     viewport={{ once: true }}
-                    className="text-4xl md:text-5xl lg:text-6xl font-light text-white leading-tight tracking-tight text-center"
+                    className="flex flex-wrap justify-center items-center gap-3 text-4xl md:text-5xl lg:text-6xl font-light text-white leading-tight tracking-tight text-center"
                   >
-                    Transform Your{" "}
-                    <span className="bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 bg-clip-text text-transparent">
-                      Ideas
+                    <span>Get 10 Whiteboards</span>
+                    <span className="bg-gradient-to-r from-emerald-400 to-emerald-500 bg-clip-text text-transparent">
+                      Absolutely Free
                     </span>
-                    <br />
-                    Into Reality
                   </motion.h3>
 
                   {/* Description */}
@@ -798,15 +717,16 @@ const ValueProposition = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.3 }}
                     viewport={{ once: true }}
-                    className="text-white/60 text-xl max-w-2xl mx-auto font-light leading-relaxed text-center"
+                    className="text-white/60 text-base max-w-xl mx-auto font-light leading-relaxed text-center"
                   >
-                    Join 150,000+ teams already collaborating faster and smarter. 
-                    Start your journey today with our powerful, intuitive platform.
+                    Normally, new users get only 3 free whiteboards. But for a limited time, 
+                    we're giving you 10 whiteboards to explore everything Whizboard has to offer.
                   </motion.p>
+                  </div>
                 </motion.div>
               </motion.div>
 
-              {/* Minimal CTA Buttons */}
+              {/* Minimal CTA with Whiteboard Comparison */}
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={isInView ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
@@ -818,20 +738,41 @@ const ValueProposition = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <span className="flex items-center space-x-2 text-lg">
-                    <span>Start Free Trial</span>
+                  <span className="flex items-center gap-2 text-lg">
+                    <span>Claim 10 Free Whiteboards</span>
                     <ArrowRight className="w-5 h-5" />
                   </span>
                 </motion.button>
 
+                {/* Whiteboard Comparison - Positioned on the right */}
+                <div className="flex items-center gap-4 text-white/60 text-sm">
+                  <div className="text-center">
+                    <div className="text-white/40 line-through">3 Whiteboards</div>
+                    <div className="text-white/60 text-xs">Usually</div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-emerald-400" />
+                  <div className="text-center">
+                    <div className="text-white font-medium">10 Whiteboards</div>
+                    <div className="text-emerald-400 text-xs font-medium">Limited Time</div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Alternative CTA */}
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={isInView ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
+                transition={{ delay: 1.7, duration: 0.6 }}
+                className="flex justify-center"
+              >
                 <motion.button
                   className="text-white/80 hover:text-white font-medium px-10 py-4 transition-colors duration-300"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <span className="flex items-center space-x-2 text-lg">
+                  <span className="flex items-center gap-2 text-lg">
                     <Play className="w-5 h-5" />
-                    <span>Watch Demo</span>
+                    <span>Watch 2-Min Demo</span>
                   </span>
                 </motion.button>
               </motion.div>
@@ -849,11 +790,11 @@ const ValueProposition = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Shield className="w-4 h-4" />
-                  <span>Free forever plan</span>
+                  <span>Bank-level security</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Zap className="w-4 h-4" />
-                  <span>Setup in 2 minutes</span>
+                  <span>Setup in 30 seconds</span>
                 </div>
               </motion.div>
             </div>

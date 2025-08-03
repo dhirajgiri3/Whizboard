@@ -180,7 +180,7 @@ const Features = () => {
   };
 
   return (
-    <section ref={ref} className="relative py-16 sm:py-20 lg:py-24 bg-[#0A0A0B] overflow-hidden">
+    <section ref={ref} className="relative py-12 sm:py-16 lg:py-20 bg-[#0A0A0B] overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute inset-0" style={{
@@ -220,7 +220,7 @@ const Features = () => {
         animate={{...orbAnimation, transition: {...orbAnimation.transition, delay: 4}}}
       />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-16 lg:gap-20">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-8 lg:gap-12">
         {/* Header */}
         <SectionHeader
           badge={{
@@ -260,15 +260,15 @@ const Features = () => {
               {/* Content */}
               <div className="relative z-10 h-full flex flex-col justify-between">
                 <div className="flex flex-col space-y-4 sm:space-y-6">
-                  <div className="inline-flex p-4 rounded-xl bg-blue-600/10 border border-blue-600/20 group-hover:bg-blue-600/15 transition-colors self-start">
-                    <PenTool className="h-8 w-8 text-blue-400" />
+                  <div className="inline-flex p-3 sm:p-4 rounded-xl bg-blue-600/10 border border-blue-600/20 group-hover:bg-blue-600/15 transition-colors self-start">
+                    <PenTool className="h-6 w-6 sm:h-8 sm:w-8 text-blue-400" />
                   </div>
                   
                   <div className="flex flex-col space-y-3 sm:space-y-4">
-                    <h3 className="text-xl sm:text-2xl font-semibold text-white">
+                    <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-white">
                       Drawing & Design
                     </h3>
-                    <p className="text-white/70 leading-relaxed">
+                    <p className="text-white/70 leading-[1.6]">
                       Express ideas naturally with customizable tools and professional-grade drawing capabilities.
                     </p>
                   </div>
@@ -283,7 +283,7 @@ const Features = () => {
                         className="flex items-start space-x-3"
                       >
                         <CheckCircle className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                        <span className="text-white/60 text-sm">{detail}</span>
+                        <span className="text-white/60 text-sm leading-[1.5]">{detail}</span>
                       </motion.div>
                     ))}
                   </div>
@@ -309,7 +309,7 @@ const Features = () => {
                   href={features[0].demo}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="inline-flex items-center space-x-2 text-blue-400 font-medium hover:text-blue-300 transition-colors group/link self-start"
+                  className="inline-flex items-center space-x-2 text-blue-400 font-medium hover:text-blue-300 transition-colors group/link self-start focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-black"
                 >
                   <Play className="h-4 w-4 group-hover/link:translate-x-1 transition-transform" />
                   <span>Watch Demo</span>
@@ -331,14 +331,14 @@ const Features = () => {
               <div className="relative z-10 h-full flex flex-col justify-between">
                 <div className="flex flex-col space-y-3 sm:space-y-4">
                   <div className="inline-flex p-3 rounded-lg bg-blue-600/10 border border-blue-600/20 group-hover:bg-blue-600/15 transition-colors self-start">
-                    <Users className="h-6 w-6 text-blue-400" />
+                    <Users className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400" />
                   </div>
                   
                   <div className="flex flex-col space-y-2">
-                    <h3 className="text-lg font-semibold text-white">
+                    <h3 className="text-base sm:text-lg font-semibold text-white">
                       Real-Time Collaboration
                     </h3>
-                    <p className="text-white/60 text-sm leading-relaxed">
+                    <p className="text-white/60 text-sm leading-[1.6]">
                       See exactly where teammates are working with live cursor tracking and instant sync.
                     </p>
                   </div>
@@ -376,10 +376,10 @@ const Features = () => {
                   </div>
                   
                   <div className="flex flex-col space-y-2">
-                    <h3 className="text-base font-semibold text-white">
+                    <h3 className="text-sm sm:text-base font-semibold text-white">
                       Advanced Canvas
                     </h3>
-                    <p className="text-white/60 text-xs leading-relaxed">
+                    <p className="text-white/60 text-xs leading-[1.5]">
                       Navigate and organize large, complex boards with infinite zoom and layer management.
                     </p>
                   </div>
@@ -401,14 +401,14 @@ const Features = () => {
               <div className="relative z-10 h-full flex flex-col justify-between">
                 <div className="flex flex-col space-y-3 sm:space-y-4">
                   <div className="inline-flex p-3 rounded-lg bg-blue-600/10 border border-blue-600/20 group-hover:bg-blue-600/15 transition-colors self-start">
-                    <Globe className="h-6 w-6 text-blue-400" />
+                    <Globe className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400" />
                   </div>
                   
                   <div className="flex flex-col space-y-2">
-                    <h3 className="text-lg font-semibold text-white">
+                    <h3 className="text-base sm:text-lg font-semibold text-white">
                       Cross-Platform
                     </h3>
-                    <p className="text-white/60 text-sm leading-relaxed">
+                    <p className="text-white/60 text-sm leading-[1.6]">
                       Work seamlessly across all devices with browser-based access and mobile optimization.
                     </p>
                   </div>
@@ -446,10 +446,10 @@ const Features = () => {
                   </div>
                   
                   <div className="flex flex-col space-y-2">
-                    <h3 className="text-base font-semibold text-white">
+                    <h3 className="text-sm sm:text-base font-semibold text-white">
                       Security & Compliance
                     </h3>
-                    <p className="text-white/60 text-xs leading-relaxed">
+                    <p className="text-white/60 text-xs leading-[1.5]">
                       Enterprise-grade security with SOC 2 compliance and end-to-end encryption.
                     </p>
                   </div>
@@ -464,12 +464,12 @@ const Features = () => {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="flex flex-col gap-12 sm:gap-16"
+          className="flex flex-col gap-6 sm:gap-8"
         >
           {/* Redesigned Header - Professional Drawing Tools */}
           <motion.div
             variants={itemVariants}
-            className="flex flex-col items-center gap-4 sm:gap-6"
+            className="flex flex-col items-center gap-3 sm:gap-4"
           >
             {/* Badge */}
             <motion.div
@@ -485,7 +485,7 @@ const Features = () => {
             {/* Title */}
             <motion.h3
               variants={itemVariants}
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-[1.1] tracking-tight text-center"
+              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-[1.1] tracking-tight text-center"
             >
               Professional Drawing Tools
             </motion.h3>
@@ -493,7 +493,7 @@ const Features = () => {
             {/* Description */}
             <motion.p
               variants={itemVariants}
-              className="text-white/70 max-w-2xl leading-relaxed text-sm sm:text-base text-center"
+              className="text-white/70 max-w-2xl leading-[1.6] text-sm sm:text-base text-center"
             >
               Everything you need to create, collaborate, and bring your ideas to life with precision and ease.
             </motion.p>

@@ -156,7 +156,7 @@ const FAQ = () => {
   };
 
   return (
-    <section ref={ref} className="relative py-16 sm:py-20 lg:py-24 bg-[#0A0A0B] overflow-hidden">
+    <section ref={ref} className="relative py-12 sm:py-16 lg:py-20 bg-[#0A0A0B] overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/3 via-transparent to-gray-600/2"></div>
@@ -210,10 +210,10 @@ const FAQ = () => {
         />
       </div>
       
-      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-12">
+      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-6 sm:gap-8">
         {/* Header */}
         <motion.div 
-          className="flex flex-col items-center gap-4 sm:gap-6"
+          className="flex flex-col items-center gap-3 sm:gap-4"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -240,7 +240,7 @@ const FAQ = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ delay: 0.4, duration: 0.6 }}
-          className="flex flex-col gap-10"
+          className="flex flex-col gap-6 sm:gap-8"
         >
           {/* Search Bar */}
           <div className="relative">
@@ -251,20 +251,22 @@ const FAQ = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-4 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/30 transition-all duration-300 backdrop-blur-sm hover:bg-white/[0.05] hover:border-white/[0.12]"
+              aria-label="Search FAQ questions"
             />
           </div>
 
           {/* Category Filters */}
-          <div className="flex flex-wrap gap-4 justify-center">
+          <div className="flex flex-wrap gap-3 sm:gap-4 justify-center">
             {categories.map((category) => (
               <button
                 key={category.value}
                 onClick={() => setActiveCategory(category.value)}
-                className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                className={`px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-black ${
                   activeCategory === category.value
                     ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25 border border-blue-500/30'
                     : 'bg-white/[0.03] text-white/70 hover:bg-white/[0.08] hover:text-white border border-white/[0.08] hover:border-white/[0.15]'
                 }`}
+                aria-label={`Filter by ${category.name} category`}
               >
                 {category.name}
               </button>
@@ -277,7 +279,7 @@ const FAQ = () => {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="flex flex-col gap-4"
+          className="flex flex-col gap-3 sm:gap-4"
         >
           {filteredFaqs.length > 0 ? (
             filteredFaqs.map((faq, index) => (
@@ -299,19 +301,21 @@ const FAQ = () => {
                 <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl overflow-hidden hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-500 group-hover:scale-[1.01]">
                   <button
                     onClick={() => toggleItem(index)}
-                    className="w-full px-8 py-6 text-left flex items-center justify-between group-hover:bg-white/[0.02] transition-all duration-300"
+                    className="w-full px-6 sm:px-8 py-4 sm:py-6 text-left flex items-center justify-between group-hover:bg-white/[0.02] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-black"
+                    aria-expanded={openItems.includes(index)}
+                    aria-controls={`faq-answer-${index}`}
                   >
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-black/20">
-                        <faq.icon className={`h-5 w-5 ${faq.iconColor}`} />
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div className="p-2 sm:p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-black/20">
+                        <faq.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${faq.iconColor}`} />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-semibold text-white group-hover:text-blue-300 transition-colors">
+                          <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-blue-300 transition-colors">
                             {faq.question}
                           </h3>
                           {faq.highlight && (
-                            <span className="px-3 py-1 text-xs font-medium bg-blue-500/20 text-blue-300 rounded-full border border-blue-500/30 hidden sm:inline-block">
+                            <span className="px-2 sm:px-3 py-1 text-xs font-medium bg-blue-500/20 text-blue-300 rounded-full border border-blue-500/30 hidden sm:inline-block">
                               {faq.highlight}
                             </span>
                           )}
@@ -323,7 +327,7 @@ const FAQ = () => {
                       transition={{ duration: 0.3 }}
                       className="flex-shrink-0"
                     >
-                      <ChevronDown className="h-6 w-6 text-blue-400 group-hover:text-blue-300 transition-colors" />
+                      <ChevronDown className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400 group-hover:text-blue-300 transition-colors" />
                     </motion.div>
                   </button>
                   
@@ -335,10 +339,11 @@ const FAQ = () => {
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                         className="overflow-hidden"
+                        id={`faq-answer-${index}`}
                       >
-                        <div className="px-8 pb-6 pt-2">
-                          <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-6"></div>
-                          <p className="text-white/80 leading-relaxed text-base">
+                        <div className="px-6 sm:px-8 pb-4 sm:pb-6 pt-2">
+                          <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-4 sm:mb-6"></div>
+                          <p className="text-white/80 leading-[1.6] text-sm sm:text-base">
                             {faq.answer}
                           </p>
                         </div>
@@ -352,9 +357,9 @@ const FAQ = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-16"
+              className="text-center py-12 sm:py-16"
             >
-              <div className="relative bg-white/[0.02] border border-white/[0.08] rounded-2xl p-12 backdrop-blur-sm overflow-hidden">
+              <div className="relative bg-white/[0.02] border border-white/[0.08] rounded-2xl p-8 sm:p-12 backdrop-blur-sm overflow-hidden">
                 {/* Background Orb */}
                 <div className="absolute inset-0">
                   <motion.div 
@@ -378,8 +383,8 @@ const FAQ = () => {
                   <div className="w-16 h-16 bg-blue-500/10 border border-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Search className="h-8 w-8 text-blue-400" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">No Results Found</h3>
-                  <p className="text-white/60 mb-6 max-w-md mx-auto">
+                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-4">No Results Found</h3>
+                  <p className="text-white/60 mb-6 max-w-md mx-auto leading-[1.6]">
                     We couldn't find any FAQs matching your search. Try different keywords or browse our categories.
                   </p>
                   <button
@@ -387,7 +392,7 @@ const FAQ = () => {
                       setSearchQuery('');
                       setActiveCategory('all');
                     }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 border border-blue-500/30 shadow-lg hover:shadow-xl"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 border border-blue-500/30 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-black"
                   >
                     Clear Filters
                   </button>
@@ -404,7 +409,7 @@ const FAQ = () => {
           transition={{ delay: 0.8, duration: 0.6 }}
           className="text-center"
         >
-          <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-3xl p-12 overflow-hidden">
+          <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-3xl p-8 sm:p-12 overflow-hidden">
             {/* Background Elements */}
             <div className="absolute inset-0">
               <motion.div 
@@ -431,7 +436,7 @@ const FAQ = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
                 viewport={{ once: true }}
-                className="flex flex-col items-center gap-4 sm:gap-6"
+                className="flex flex-col items-center gap-3 sm:gap-4"
               >
                 {/* Badge */}
                 <motion.div
@@ -452,7 +457,7 @@ const FAQ = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
                   viewport={{ once: true }}
-                  className="text-3xl md:text-4xl font-bold text-white leading-[1.1] tracking-tight text-center"
+                  className="text-2xl sm:text-3xl md:text-4xl font-bold text-white leading-[1.1] tracking-tight text-center"
                 >
                   Still have questions?
                 </motion.h3>
@@ -461,31 +466,31 @@ const FAQ = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.3 }}
                   viewport={{ once: true }}
-                  className="text-base text-white/80 max-w-2xl mx-auto leading-relaxed text-center"
+                  className="text-sm sm:text-base text-white/80 max-w-2xl mx-auto leading-[1.6] text-center"
                 >
                   Can't find the answer you're looking for? Our support team is here to help.
                 </motion.p>
               </motion.div>
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6 sm:mt-8">
                 <motion.a
                   href="#contact"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/[0.08] border border-white/[0.12] text-white rounded-lg font-medium hover:bg-white/[0.12] hover:border-white/[0.16] transition-all duration-300 backdrop-blur-sm"
+                  className="group inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white/[0.08] border border-white/[0.12] text-white rounded-lg font-medium hover:bg-white/[0.12] hover:border-white/[0.16] transition-all duration-300 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  Contact Support
+                  Get Expert Help
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </motion.a>
                 <motion.a
                   href="/docs"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/[0.04] border border-white/[0.08] text-white/90 hover:text-white hover:bg-white/[0.08] hover:border-white/[0.12] transition-all duration-300 font-medium rounded-lg backdrop-blur-sm"
+                  className="group inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white/[0.04] border border-white/[0.08] text-white/90 hover:text-white hover:bg-white/[0.08] hover:border-white/[0.12] transition-all duration-300 font-medium rounded-lg backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black"
                 >
                   <BookOpen className="w-4 h-4" />
-                  View Documentation
+                  Browse Documentation
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </motion.a>
               </div>

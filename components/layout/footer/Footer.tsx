@@ -390,7 +390,7 @@ const Footer = () => {
                   className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all duration-200 flex items-center space-x-2 shadow-lg border border-blue-500/20 rounded-lg"
                 >
                   <Send className="h-4 w-4" />
-                  <span>Subscribe</span>
+                  <span>Get Free Updates</span>
                 </motion.button>
               </div>
               

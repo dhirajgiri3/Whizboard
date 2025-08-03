@@ -60,6 +60,22 @@ export const metadata: Metadata = {
   verification: {
     google: "your-google-verification-code",
   },
+  // Add JSON-LD structured data
+  other: {
+    "application/ld+json": JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Whizboard",
+      "description": "Real-time collaborative whiteboard for modern teams",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }),
+  },
 };
 
 export default function HomePage() {

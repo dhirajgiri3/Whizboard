@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Zap, ArrowRight, Play, Users, Star } from "lucide-react";
+import { ArrowRight, Play, Users, Star, Zap } from "lucide-react";
 import RealtimeDashboard from "@/components/reatime/whiteboard/RealtimeWhiteboard";
 
 /**
@@ -12,6 +12,19 @@ const Hero = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const { scrollY } = useScroll();
   const parallaxY = useTransform(scrollY, [0, 500], [0, -50]);
+
+  // Mobile optimization - reduce animation intensity on mobile
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Track mouse movement with proper typing
   useEffect(() => {
@@ -115,27 +128,49 @@ const Hero = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-slate-900/10" />
       </div>
 
-      {/* Enhanced minimal floating particles with white colors */}
+      {/* Enhanced minimal floating particles with white colors - Mobile optimized */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Small, crystal clear particles distributed throughout */}
-        {[...Array(40)].map((_, i) => (
+        {/* Small, crystal clear particles distributed throughout - Reduced count on mobile */}
+        {[...Array(isMobile ? 20 : 40)].map((_, i) => (
           <motion.div
             key={`particle-${i}`}
             className="absolute rounded-full"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              width: i % 5 === 0 ? "2px" : i % 3 === 0 ? "1.5px" : "1px",
-              height: i % 5 === 0 ? "2px" : i % 3 === 0 ? "1.5px" : "1px",
+              width:
+                i % 5 === 0
+                  ? isMobile
+                    ? "1.5px"
+                    : "2px"
+                  : i % 3 === 0
+                  ? isMobile
+                    ? "1px"
+                    : "1.5px"
+                  : "1px",
+              height:
+                i % 5 === 0
+                  ? isMobile
+                    ? "1.5px"
+                    : "2px"
+                  : i % 3 === 0
+                  ? isMobile
+                    ? "1px"
+                    : "1.5px"
+                  : "1px",
             }}
             animate={{
               y: [-20, 30, -20],
-              x: [0, i % 2 === 0 ? 10 : -10, 0],
+              x: [
+                0,
+                i % 2 === 0 ? (isMobile ? 5 : 10) : isMobile ? -5 : -10,
+                0,
+              ],
               opacity: [0.2, 0.8, 0.2],
               scale: [0.6, 1.2, 0.6],
             }}
             transition={{
-              duration: 8 + i * 0.3,
+              duration: isMobile ? 10 + i * 0.4 : 8 + i * 0.3,
               repeat: Infinity,
               delay: i * 0.2,
               ease: "easeInOut",
@@ -145,25 +180,29 @@ const Hero = () => {
           </motion.div>
         ))}
 
-        {/* Medium-sized crystal clear orbs */}
-        {[...Array(15)].map((_, i) => (
+        {/* Medium-sized crystal clear orbs - Reduced count and size on mobile */}
+        {[...Array(isMobile ? 8 : 15)].map((_, i) => (
           <motion.div
             key={`orb-${i}`}
             className="absolute rounded-full"
             style={{
               left: `${15 + i * 5.5}%`,
               top: `${20 + i * 4}%`,
-              width: "3px",
-              height: "3px",
+              width: isMobile ? "2px" : "3px",
+              height: isMobile ? "2px" : "3px",
             }}
             animate={{
               y: [-15, 25, -15],
-              x: [0, i % 2 === 0 ? 12 : -12, 0],
+              x: [
+                0,
+                i % 2 === 0 ? (isMobile ? 6 : 12) : isMobile ? -6 : -12,
+                0,
+              ],
               opacity: [0.3, 0.9, 0.3],
               scale: [0.7, 1.3, 0.7],
             }}
             transition={{
-              duration: 10 + i * 0.4,
+              duration: isMobile ? 12 + i * 0.5 : 10 + i * 0.4,
               repeat: Infinity,
               delay: i * 0.6,
               ease: "easeInOut",
@@ -173,25 +212,29 @@ const Hero = () => {
           </motion.div>
         ))}
 
-        {/* Larger accent particles */}
-        {[...Array(8)].map((_, i) => (
+        {/* Larger accent particles - Reduced count on mobile */}
+        {[...Array(isMobile ? 4 : 8)].map((_, i) => (
           <motion.div
             key={`accent-${i}`}
             className="absolute rounded-full"
             style={{
               left: `${25 + i * 8}%`,
               top: `${10 + i * 6}%`,
-              width: "4px",
-              height: "4px",
+              width: isMobile ? "3px" : "4px",
+              height: isMobile ? "3px" : "4px",
             }}
             animate={{
               y: [-25, 35, -25],
-              x: [0, i % 2 === 0 ? 15 : -15, 0],
+              x: [
+                0,
+                i % 2 === 0 ? (isMobile ? 8 : 15) : isMobile ? -8 : -15,
+                0,
+              ],
               opacity: [0.4, 1, 0.4],
               scale: [0.8, 1.4, 0.8],
             }}
             transition={{
-              duration: 12 + i * 0.5,
+              duration: isMobile ? 15 + i * 0.6 : 12 + i * 0.5,
               repeat: Infinity,
               delay: i * 0.8,
               ease: "easeInOut",
@@ -201,25 +244,29 @@ const Hero = () => {
           </motion.div>
         ))}
 
-        {/* Floating orbs within waves */}
-        {[...Array(6)].map((_, i) => (
+        {/* Floating orbs within waves - Reduced count on mobile */}
+        {[...Array(isMobile ? 3 : 6)].map((_, i) => (
           <motion.div
             key={`wave-orb-${i}`}
             className="absolute rounded-full"
             style={{
               left: `${8 + i * 15}%`,
               bottom: `${8 + i * 3}%`,
-              width: "5px",
-              height: "5px",
+              width: isMobile ? "3px" : "5px",
+              height: isMobile ? "3px" : "5px",
             }}
             animate={{
               y: [-12, 18, -12],
-              x: [0, i % 2 === 0 ? 10 : -10, 0],
+              x: [
+                0,
+                i % 2 === 0 ? (isMobile ? 5 : 10) : isMobile ? -5 : -10,
+                0,
+              ],
               opacity: [0.4, 0.9, 0.4],
               scale: [0.9, 1.1, 0.9],
             }}
             transition={{
-              duration: 9 + i * 0.6,
+              duration: isMobile ? 11 + i * 0.7 : 9 + i * 0.6,
               repeat: Infinity,
               delay: i * 1.2,
               ease: "easeInOut",
@@ -230,17 +277,21 @@ const Hero = () => {
         ))}
       </div>
 
-      {/* STUNNING ENHANCED WAVE LAYERS */}
-      <div className="absolute bottom-0 left-0 w-full h-[40vh] pointer-events-none">
+      {/* STUNNING ENHANCED WAVE LAYERS - Mobile optimized */}
+      <div className="absolute bottom-0 left-0 w-full h-[35vh] sm:h-[40vh] pointer-events-none">
         {/* Wave 6 - Deepest background layer with glow */}
         <motion.svg
           className="absolute bottom-0 left-0 w-full h-full opacity-40"
           preserveAspectRatio="none"
           viewBox="0 0 1440 320"
           style={{
-            transform: `translateX(${mousePosition.x * -8}px) translateY(${
-              mousePosition.y * -4
-            }px) scale(${1 + mousePosition.x * 0.02})`,
+            transform: `translateX(${
+              isMobile ? mousePosition.x * -1 : mousePosition.x * -8
+            }px) translateY(${
+              isMobile ? mousePosition.y * -0.5 : mousePosition.y * -4
+            }px) scale(${
+              1 + (isMobile ? mousePosition.x * 0.002 : mousePosition.x * 0.02)
+            })`,
           }}
         >
           <defs>
@@ -305,10 +356,15 @@ const Hero = () => {
           preserveAspectRatio="none"
           viewBox="0 0 1440 320"
           style={{
-            transform: `translateX(${mousePosition.x * -6}px) translateY(${
-              mousePosition.y * -3
-            }px) scale(${1 + mousePosition.y * 0.01}) rotate(${
-              mousePosition.x * 0.5
+            transform: `translateX(${
+              isMobile ? mousePosition.x * -0.75 : mousePosition.x * -6
+            }px) translateY(${
+              isMobile ? mousePosition.y * -0.375 : mousePosition.y * -3
+            }px) scale(${
+              1 +
+              (isMobile ? mousePosition.y * 0.00125 : mousePosition.y * 0.01)
+            }) rotate(${
+              isMobile ? mousePosition.x * 0.0625 : mousePosition.x * 0.5
             }deg)`,
           }}
         >
@@ -375,9 +431,13 @@ const Hero = () => {
           preserveAspectRatio="none"
           viewBox="0 0 1440 320"
           style={{
-            transform: `translateX(${mousePosition.x * -4}px) translateY(${
-              mousePosition.y * -2
-            }px) scale(${1 + mousePosition.x * 0.015})`,
+            transform: `translateX(${
+              isMobile ? mousePosition.x * -0.5 : mousePosition.x * -4
+            }px) translateY(${
+              isMobile ? mousePosition.y * -0.25 : mousePosition.y * -2
+            }px) scale(${
+              1 + (isMobile ? mousePosition.x * 0.002 : mousePosition.x * 0.015)
+            })`,
           }}
         >
           <defs>
@@ -443,9 +503,14 @@ const Hero = () => {
           preserveAspectRatio="none"
           viewBox="0 0 1440 320"
           style={{
-            transform: `translateX(${mousePosition.x * -3}px) translateY(${
-              mousePosition.y * -2
-            }px) scale(${1 + mousePosition.y * 0.01})`,
+            transform: `translateX(${
+              isMobile ? mousePosition.x * -0.375 : mousePosition.x * -3
+            }px) translateY(${
+              isMobile ? mousePosition.y * -0.25 : mousePosition.y * -2
+            }px) scale(${
+              1 +
+              (isMobile ? mousePosition.y * 0.00125 : mousePosition.y * 0.01)
+            })`,
           }}
         >
           <defs>
@@ -521,10 +586,14 @@ const Hero = () => {
           preserveAspectRatio="none"
           viewBox="0 0 1440 320"
           style={{
-            transform: `translateX(${mousePosition.x * 2}px) translateY(${
-              mousePosition.y * -1
-            }px) scale(${1 + mousePosition.x * 0.008}) rotate(${
-              mousePosition.y * 0.3
+            transform: `translateX(${
+              isMobile ? mousePosition.x * 0.25 : mousePosition.x * 2
+            }px) translateY(${
+              isMobile ? mousePosition.y * -0.125 : mousePosition.y * -1
+            }px) scale(${
+              1 + (isMobile ? mousePosition.x * 0.001 : mousePosition.x * 0.008)
+            }) rotate(${
+              isMobile ? mousePosition.y * 0.0375 : mousePosition.y * 0.3
             }deg)`,
           }}
         >
@@ -602,10 +671,15 @@ const Hero = () => {
           preserveAspectRatio="none"
           viewBox="0 0 1440 320"
           style={{
-            transform: `translateX(${mousePosition.x * 6}px) translateY(${
-              mousePosition.y * 1
-            }px) scale(${1 + mousePosition.x * 0.012}) rotate(${
-              mousePosition.x * 0.2
+            transform: `translateX(${
+              isMobile ? mousePosition.x * 0.75 : mousePosition.x * 6
+            }px) translateY(${
+              isMobile ? mousePosition.y * 0.125 : mousePosition.y * 1
+            }px) scale(${
+              1 +
+              (isMobile ? mousePosition.x * 0.0015 : mousePosition.x * 0.012)
+            }) rotate(${
+              isMobile ? mousePosition.x * 0.025 : mousePosition.x * 0.2
             }deg)`,
           }}
         >
@@ -678,14 +752,14 @@ const Hero = () => {
         </motion.svg>
       </div>
 
-      <main className="relative z-10 flex flex-col min-h-screen pt-10">
-        {/* Enhanced main content */}
-        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
+      <main className="relative z-10 flex flex-col min-h-screen pt-16 sm:pt-12">
+        {/* Enhanced main content - Mobile responsive spacing */}
+        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-16 lg:py-20">
           <motion.div
-            className="w-full max-w-6xl flex flex-col items-center gap-4 sm:gap-6 lg:gap-8 text-center"
+            className="w-full max-w-6xl flex flex-col items-center gap-3 sm:gap-4 lg:gap-6 text-center"
             style={{ y: parallaxY }}
           >
-            {/* Enhanced social proof with glow effect */}
+            {/* Enhanced social proof with glow effect - Mobile optimized */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -700,7 +774,7 @@ const Hero = () => {
                 {AvatarImages.map((image, i) => (
                   <motion.div
                     key={i}
-                    className="h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 border-2 border-white/70 shadow-sm"
+                    className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 border-2 border-white/70 shadow-sm"
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{
@@ -709,7 +783,7 @@ const Hero = () => {
                       stiffness: 300,
                       damping: 20,
                     }}
-                    whileHover={{ scale: 1.1, zIndex: 10 }}
+                    whileHover={{ scale: isMobile ? 1.05 : 1.1, zIndex: 10 }}
                     style={{
                       backgroundImage: `url(${image})`,
                       backgroundSize: "cover",
@@ -727,52 +801,58 @@ const Hero = () => {
               </motion.span>
             </motion.div>
 
-            {/* Enhanced main heading with minimal, beautiful design */}
-            <motion.h1
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[0.95] tracking-tight text-white text-center max-w-xl"
-            >
-              Turn Ideas into{" "}
-              <motion.span
-                className="relative inline-block bg-gradient-to-r from-blue-500 via-white to-blue-500 bg-clip-text text-transparent bg-[length:200%_100%]"
-                animate={{
-                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-                }}
+            <div className="flex flex-col items-center justify-center">
+              {/* Enhanced main heading with minimal, beautiful design - Mobile optimized */}
+              <motion.h1
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  duration: 6,
-                  repeat: Infinity,
-                  ease: "easeInOut",
+                  duration: 1,
+                  delay: 0.4,
+                  ease: [0.22, 1, 0.36, 1],
                 }}
+                className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight text-white text-center max-w-sm sm:max-w-2xl md:max-w-4xl lg:max-w-5xl px-2 sm:px-0"
               >
-                Action
-                <motion.div
-                  className="absolute -inset-2 bg-gradient-to-r from-blue-600/20 to-blue-500/20 blur-xl rounded-lg"
-                  animate={{ opacity: [0, 0.4, 0] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                />
-              </motion.span>
-              , Together.
-            </motion.h1>
+                Transform Brainstorms into{" "}
+                <motion.span
+                  className="relative inline-block bg-gradient-to-r from-blue-500 via-white to-blue-500 bg-clip-text text-transparent bg-[length:200%_100%]"
+                  animate={{
+                    backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                  }}
+                  transition={{
+                    duration: 6,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                >
+                  Action
+                  <motion.div
+                    className="absolute -inset-2 bg-gradient-to-r from-blue-600/20 to-blue-500/20 blur-xl rounded-lg"
+                    animate={{ opacity: [0, 0.4, 0] }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                  />
+                </motion.span>
+                , Together.
+              </motion.h1>
 
-            {/* Enhanced description with minimal, beautiful styling */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.8,
-                delay: 0.6,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-              className="max-w-2xl text-base lg:text-lg text-white/80 leading-relaxed font-light"
-            >
-              Create, collaborate, and bring your ideas to life with the most
-              intuitive whiteboard experience. From concept to completion, all
-              in real-time.
-            </motion.p>
+              {/* Enhanced description with minimal, beautiful styling - Mobile optimized */}
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.8,
+                  delay: 0.6,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="max-w-lg md:max-w-xl lg:max-w-2xl text-sm sm:text-base lg:text-lg text-white/80 leading-[1.6] font-light px-4 sm:px-0 mt-2 sm:mt-3"
+              >
+                Create, collaborate, and bring your ideas to life with the most
+                intuitive whiteboard experience. From concept to completion, all
+                in real-time.
+              </motion.p>
+            </div>
 
-            {/* Enhanced CTA buttons with minimal, beautiful design */}
+            {/* Enhanced CTA buttons with minimal, beautiful design - Mobile optimized */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -781,15 +861,15 @@ const Hero = () => {
                 delay: 0.8,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="flex flex-col sm:flex-row items-center gap-4 justify-center w-full"
+              className="flex max-w-[100px] sm:max-w-lg md:max-w-xl lg:max-w-2xl flex-col sm:flex-row items-center gap-3 sm:gap-4 md:gap-6 justify-center w-full px-4 sm:px-0 mt-4 sm:mt-6"
             >
               <motion.a
                 href="/signup"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-8 py-4 rounded-xl font-semibold text-base transition-all duration-300 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/35 w-full sm:w-auto min-w-[180px] flex items-center justify-center gap-2"
+                className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-6 py-4 sm:px-8 sm:py-4 rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/35 w-full sm:w-auto min-w-[200px] flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-black"
               >
-                <span>Start for Free</span>
+                <span>Start Free Trial</span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </motion.a>
 
@@ -797,37 +877,44 @@ const Hero = () => {
                 href="#demo"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="group relative bg-white/[0.04] backdrop-blur-sm border border-white/[0.08] text-white px-8 py-4 rounded-xl font-semibold text-base transition-all duration-300 hover:bg-white/[0.08] hover:border-white/[0.15] w-full sm:w-auto min-w-[180px] flex items-center justify-center gap-2"
+                className="group relative bg-white/[0.04] backdrop-blur-sm border border-white/[0.08] text-white px-6 py-4 sm:px-8 sm:py-4 rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 hover:bg-white/[0.08] hover:border-white/[0.15] w-full sm:w-auto min-w-[200px] flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black"
               >
                 <Play className="w-4 h-4 transition-transform group-hover:scale-110" />
-                <span>Watch Demo</span>
+                <span>See 2-Min Demo</span>
               </motion.a>
             </motion.div>
 
-            {/* Enhanced trust indicators */}
+            {/* Enhanced trust indicators with better messaging - Mobile optimized */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 1.2 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 lg:gap-12 text-white/85 text-xs sm:text-sm"
+              className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 lg:gap-8 text-white/85 text-xs sm:text-sm px-4 sm:px-0 mt-6 sm:mt-8"
             >
               <div className="flex items-center gap-2">
                 <Star className="h-4 w-4 sm:h-5 sm:w-5 fill-white text-white drop-shadow-sm" />
-                <span className="font-medium">4.9/5 rating</span>
+                <span className="font-medium">
+                  4.9/5 rating from 10K+ users
+                </span>
               </div>
               <div className="hidden sm:block h-5 w-px bg-white/30" />
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 sm:h-5 sm:w-5 drop-shadow-sm" />
-                <span className="font-medium">Free forever plan</span>
+                <span className="font-medium">Free forever plan available</span>
+              </div>
+              <div className="hidden sm:block h-5 w-px bg-white/30" />
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 sm:h-5 sm:w-5 drop-shadow-sm" />
+                <span className="font-medium">Setup in 30 seconds</span>
               </div>
             </motion.div>
           </motion.div>
         </div>
 
-        {/* Realtime Dashboard Integration */}
-        <div className="px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20 lg:pb-24">
-          <motion.div 
-            className="w-full max-w-7xl mx-auto" 
+        {/* Realtime Dashboard Integration - Mobile optimized */}
+        <div className="px-4 sm:px-6 lg:px-8 pb-8 sm:pb-12 md:pb-16 lg:pb-20">
+          <motion.div
+            className="w-full max-w-7xl mx-auto"
             style={{ y: parallaxY }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
