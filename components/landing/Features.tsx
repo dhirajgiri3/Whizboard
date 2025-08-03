@@ -180,7 +180,7 @@ const Features = () => {
   };
 
   return (
-    <section ref={ref} className="relative py-16 md:py-24 bg-[#0A0A0B] overflow-hidden">
+    <section ref={ref} className="relative py-16 sm:py-20 lg:py-24 bg-[#0A0A0B] overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute inset-0" style={{
@@ -220,7 +220,7 @@ const Features = () => {
         animate={{...orbAnimation, transition: {...orbAnimation.transition, delay: 4}}}
       />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-16 lg:gap-20">
         {/* Header */}
         <SectionHeader
           badge={{
@@ -235,7 +235,6 @@ const Features = () => {
             { icon: Award, text: "Enterprise ready", color: "text-emerald-400" }
           ]}
           disableAnimation={true}
-          className="pb-16 lg:pb-20"
         />
 
         {/* Enhanced Bento Grid Features */}
@@ -243,7 +242,7 @@ const Features = () => {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="flex-1 pb-16 lg:pb-20"
+          className="flex-shrink-0"
         >
           <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-4 sm:gap-6 auto-rows-[240px]">
             {/* Large Feature Card - Drawing & Design */}
@@ -465,12 +464,12 @@ const Features = () => {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="flex flex-col pb-20 lg:pb-24"
+          className="flex flex-col gap-12 sm:gap-16"
         >
           {/* Redesigned Header - Professional Drawing Tools */}
           <motion.div
             variants={itemVariants}
-            className="flex flex-col items-center space-y-4 sm:space-y-6 pb-12 sm:pb-16"
+            className="flex flex-col items-center gap-4 sm:gap-6"
           >
             {/* Badge */}
             <motion.div

@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useInView, Variants } from "framer-motion";
-import { useRef, useEffect, useState } from "react";
+import { motion, useInView } from "framer-motion";
+import { useRef, useEffect } from "react";
 import { gsap, Power3, Power2 } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
@@ -24,10 +24,7 @@ import {
   Globe,
   Target,
   Layers,
-  BarChart3,
-  Crown,
-  CheckCircle2,
-  Infinity
+  Crown
 } from "lucide-react";
 import SectionHeader from "@/components/ui/SectionHeader";
 
@@ -35,56 +32,11 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-// Enhanced CSS animations for infinite scroll
-const enhancedScrollStyles = `
+// CSS animations for testimonials
+const testimonialStyles = `
   @keyframes scroll-left {
-    0% {
-      transform: translateX(0);
-    }
-    100% {
-      transform: translateX(-50%);
-    }
-  }
-  
-  .animate-scroll-left {
-    animation: scroll-left 45s linear infinite;
-  }
-  
-  .animate-scroll-left:hover {
-    animation-play-state: paused;
-  }
-  
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .infinite-scroll-container {
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .fade-edge-left {
-    mask-image: linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%);
-  }
-  
-  .fade-edge-right {
-    mask-image: linear-gradient(to left, transparent 0%, black 20%, black 80%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to left, transparent 0%, black 20%, black 80%, transparent 100%);
-  }
-  
-  .testimonial-card {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .testimonial-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
   }
   
   .testimonial-container {
@@ -95,29 +47,12 @@ const enhancedScrollStyles = `
     animation-play-state: paused;
   }
   
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-4px);
-    }
-  }
-  
   .testimonial-card {
-    animation: float 6s ease-in-out infinite;
-  }
-  
-  .testimonial-card:nth-child(even) {
-    animation-delay: 2s;
-  }
-  
-  .testimonial-card:nth-child(3n) {
-    animation-delay: 4s;
+    transition: all 0.3s ease;
   }
   
   .testimonial-card:hover {
-    animation-play-state: paused;
+    transform: translateY(-4px);
   }
 `;
 
@@ -127,7 +62,6 @@ const SocialProof = () => {
   const trustRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   const floatingCardsRef = useRef<HTMLDivElement>(null);
-  const stackingCardsRef = useRef<HTMLDivElement>(null);
   const testimonialContainerRef = useRef<HTMLDivElement>(null);
 
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -153,7 +87,7 @@ const SocialProof = () => {
       name: "Emily Watson",
       role: "Engineering Manager",
       company: "DevCorp",
-      content: "Whizboard's integration capabilities saved us countless hours. It's become an essential part of our development workflow.",
+      content: "Whizboard&apos;s integration capabilities saved us countless hours. It&apos;s become an essential part of our development workflow.",
       rating: 5,
       avatar: "/avatars/emily.jpg"
     },
@@ -188,33 +122,25 @@ const SocialProof = () => {
       value: "150K+",
       label: "Active Users",
       icon: "Users" as const,
-      gradient: "from-blue-500 to-cyan-500",
-      iconColor: "text-blue-400",
-      description: "Professionals worldwide"
+      iconColor: "text-blue-400"
     },
     {
       value: "99.9%",
       label: "Uptime",
       icon: "TrendingUp" as const,
-      gradient: "from-emerald-400 to-emerald-600",
-      iconColor: "text-emerald-400",
-      description: "Reliable performance"
+      iconColor: "text-emerald-400"
     },
     {
       value: "4.9/5",
       label: "User Rating",
       icon: "Star" as const,
-      gradient: "from-yellow-400 to-orange-500",
-      iconColor: "text-yellow-400",
-      description: "Customer satisfaction"
+      iconColor: "text-yellow-400"
     },
     {
       value: "<2min",
       label: "Setup Time",
       icon: "Clock" as const,
-      gradient: "from-gray-500 to-blue-400",
-      iconColor: "text-blue-400",
-      description: "Quick onboarding"
+      iconColor: "text-blue-400"
     }
   ];
 
@@ -280,22 +206,7 @@ const SocialProof = () => {
         });
       }
 
-      // Enhanced stacking cards scroll animation
-      if (stackingCardsRef.current) {
-        const cards = stackingCardsRef.current.children;
-        gsap.set(cards, { y: (i) => i * 12 });
 
-        gsap.to(cards, {
-          y: (i) => -i * 60,
-          scale: (i) => 1 - i * 0.02,
-          scrollTrigger: {
-            trigger: stackingCardsRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: 1.2
-          }
-        });
-      }
 
       // Enhanced metrics counter animation
       if (metricsRef.current) {
@@ -319,16 +230,15 @@ const SocialProof = () => {
         });
       }
 
-      // Enhanced trust badges parallax
+      // Simple trust badges parallax
       if (trustRef.current) {
         gsap.to(trustRef.current.children, {
-          y: (i) => (i % 2 === 0 ? -20 : 20),
+          y: (i) => (i % 2 === 0 ? -10 : 10),
           scrollTrigger: {
             trigger: trustRef.current,
             start: "top bottom",
             end: "bottom top",
-            scrub: 1.2,
-            toggleActions: "play none none reverse"
+            scrub: 1.2
           }
         });
       }
@@ -357,39 +267,14 @@ const SocialProof = () => {
     }
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30, scale: 0.95 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        duration: 0.7,
-        ease: Power3.easeOut
-      }
-    }
-  };
 
-  const testimonialVariants: Variants = {
-    hidden: { opacity: 0, scale: 0.9, y: 20, rotateX: 10 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      y: 0,
-      rotateX: 0,
-      transition: {
-        duration: 0.7,
-        ease: Power3.easeOut
-      }
-    }
-  };
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: enhancedScrollStyles }} />
+      <style dangerouslySetInnerHTML={{ __html: testimonialStyles }} />
       <section
         ref={ref}
-        className="relative py-16 md:py-24 overflow-hidden bg-[#0A0A0B]"
+        className="relative py-16 sm:py-20 lg:py-24 overflow-hidden bg-[#0A0A0B]"
       >
         {/* Enhanced Background Elements */}
         <div className="absolute inset-0">
@@ -406,7 +291,7 @@ const SocialProof = () => {
             }}
             transition={{
               duration: 10,
-              repeat: 999999,
+              repeat: Infinity,
               ease: "easeInOut"
             }}
           />
@@ -421,22 +306,22 @@ const SocialProof = () => {
             }}
             transition={{
               duration: 12,
-              repeat: 999999,
+              repeat: Infinity,
               ease: "easeInOut",
               delay: 3
             }}
           />
         </div>
 
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate={isInView ? "visible" : "hidden"}
-            className="space-y-24"
+            className="flex flex-col gap-16 lg:gap-20"
           >
             {/* Enhanced Floating Metrics Cards */}
-            <div className="text-center">
+            <div className="text-center flex flex-col gap-12 lg:gap-16">
               <SectionHeader
                 badge={{
                   icon: TrendingUp,
@@ -450,7 +335,6 @@ const SocialProof = () => {
                   { icon: Award, text: "Industry leader", color: "text-emerald-400" }
                 ]}
                 disableAnimation={true}
-                className="mb-16"
               />
 
               <motion.div 
@@ -464,30 +348,28 @@ const SocialProof = () => {
                   <motion.div
                     key={index}
                     className="group relative"
-                    initial={{ opacity: 0, y: 60, scale: 0.95 }}
-                    animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 60, scale: 0.95 }}
+                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                    animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 30, scale: 0.95 }}
                     transition={{ 
                       delay: 1.0 + (index * 0.1), 
-                      duration: 0.8,
+                      duration: 0.6,
                       ease: "easeOut"
                     }}
                     whileHover={{ 
-                      y: -8,
+                      y: -4,
                       scale: 1.02,
-                      transition: { duration: 0.4, ease: "easeOut" }
+                      transition: { duration: 0.3, ease: "easeOut" }
                     }}
                   >
-                    <div className="relative bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-8 hover:bg-white/[0.05] hover:border-white/[0.12] transition-all duration-300 overflow-hidden">
+                    <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.06] rounded-2xl p-6 hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-300 overflow-hidden">
                       {/* Subtle hover glow */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/3 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
 
-                      <div className="relative z-10 text-center space-y-6">
+                      <div className="relative z-10 text-center flex flex-col items-center gap-4">
                         <motion.div
-                          className="inline-flex p-4 rounded-xl bg-white/[0.05] border border-white/[0.10] group-hover:bg-white/[0.08] group-hover:border-white/[0.15] transition-all duration-300"
-                          whileHover={{
-                            scale: 1.05
-                          }}
-                          transition={{ duration: 0.3, ease: "easeOut" }}
+                          className="flex items-center justify-center w-12 h-12 rounded-lg bg-white/[0.04] border border-white/[0.06] group-hover:bg-white/[0.06] group-hover:border-white/[0.08] transition-all duration-300"
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ duration: 0.2 }}
                         >
                           {metric.icon === "Users" && (
                             <Users className={`w-6 h-6 ${metric.iconColor} transition-all duration-300`} />
@@ -503,18 +385,16 @@ const SocialProof = () => {
                           )}
                         </motion.div>
 
-                        <div className="space-y-2">
+                        <div className="flex flex-col gap-2">
                           <motion.div 
-                            className="text-4xl font-bold text-white group-hover:text-blue-400 transition-colors duration-300"
+                            className="text-3xl font-bold text-white"
                             whileHover={{ scale: 1.02 }}
+                            transition={{ duration: 0.2 }}
                           >
                             {metric.value}
                           </motion.div>
-                          <div className="text-lg font-semibold text-white/90 group-hover:text-white transition-colors duration-300">
+                          <div className="text-sm font-medium text-white/70">
                             {metric.label}
-                          </div>
-                          <div className="text-sm text-white/60 group-hover:text-white/70 transition-colors duration-300 leading-relaxed">
-                            {metric.description}
                           </div>
                         </div>
                       </div>
@@ -525,12 +405,12 @@ const SocialProof = () => {
             </div>
 
             {/* Enhanced Infinite Scrolling Testimonials with Edge Fading */}
-            <div className="relative overflow-hidden py-20">
+            <div className="relative overflow-hidden flex flex-col gap-12">
               <motion.div
                 initial={{ opacity: 0, y: 40 }}
                 animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
                 transition={{ delay: 0.6, duration: 0.9 }}
-                className="text-center mb-20"
+                className="text-center"
               >
                 {/* Redesigned Header - What Our Users Say */}
                 <motion.div
@@ -538,7 +418,7 @@ const SocialProof = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6 }}
                   viewport={{ once: true }}
-                  className="flex flex-col items-center space-y-4 sm:space-y-6"
+                  className="flex flex-col items-center gap-4 sm:gap-6"
                 >
                   {/* Badge */}
                   <motion.div
@@ -573,7 +453,7 @@ const SocialProof = () => {
                     viewport={{ once: true }}
                     className="text-white/60 text-lg max-w-2xl mx-auto leading-relaxed text-center"
                   >
-                    Real feedback from real users who've transformed their workflow with Whizboard.
+                    Real feedback from real users who&apos;ve transformed their workflow with Whizboard.
                   </motion.p>
                 </motion.div>
               </motion.div>
@@ -590,7 +470,7 @@ const SocialProof = () => {
                 <div className="relative h-80 overflow-hidden">
                   <div
                     ref={testimonialContainerRef}
-                    className="testimonial-container flex space-x-6 absolute"
+                    className="testimonial-container flex gap-6 absolute"
                     style={{
                       width: `${(testimonials.length * 3) * 320 + (testimonials.length * 3 - 1) * 24}px`
                     }}
@@ -615,15 +495,15 @@ const SocialProof = () => {
                         <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 rounded-2xl blur-sm"></div>
 
                         <div className="relative z-10">
-                          <div className="flex items-center space-x-1 mb-4">
+                          <div className="flex items-center gap-1 mb-4">
                             {[...Array(testimonial.rating)].map((_, i) => (
                               <Star key={i} className="w-4 h-4 text-yellow-400 fill-current transition-transform duration-300 group-hover/card:scale-110" />
                             ))}
                           </div>
                           <blockquote className="text-white/80 text-sm leading-relaxed mb-4 group-hover/card:text-white/90 transition-colors duration-300">
-                            "{testimonial.content}"
+                            {testimonial.content}
                           </blockquote>
-                          <div className="flex items-center space-x-3">
+                          <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center transition-transform duration-300 group-hover/card:scale-110">
                               <span className="text-white font-semibold text-sm">
                                 {testimonial.name.split(' ').map(n => n[0]).join('')}
@@ -647,12 +527,12 @@ const SocialProof = () => {
             </div>
 
             {/* Enhanced Trust & Security Section */}
-            <div className="text-center mb-24">
+            <div className="text-center flex flex-col gap-16 lg:gap-20">
               <motion.div
                 initial={{ opacity: 0, y: 40 }}
                 animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
                 transition={{ delay: 0.7, duration: 0.9 }}
-                className="flex flex-col items-center space-y-8 mb-20"
+                className="flex flex-col items-center gap-8"
               >
                 {/* Redesigned Header - Built for Trust & Security */}
                 <motion.div
@@ -660,7 +540,7 @@ const SocialProof = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6 }}
                   viewport={{ once: true }}
-                  className="flex flex-col items-center space-y-4 sm:space-y-6"
+                  className="flex flex-col items-center gap-4 sm:gap-6"
                 >
                   {/* Badge */}
                   <motion.div
@@ -703,62 +583,128 @@ const SocialProof = () => {
                 </motion.div>
               </motion.div>
 
-              {/* Enhanced Stacking Trust Cards */}
-              <div ref={stackingCardsRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Enhanced Trust & Security Cards */}
+              <div ref={trustRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+                {/* Background gradient effect */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <motion.div 
+                    className="absolute top-1/2 left-1/2 w-[500px] h-[500px] rounded-full opacity-30 blur-[100px] transform -translate-x-1/2 -translate-y-1/2"
+                    style={{
+                      background: 'radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, rgba(16, 185, 129, 0.07) 50%, transparent 70%)'
+                    }}
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      opacity: [0.2, 0.3, 0.2]
+                    }}
+                    transition={{
+                      duration: 8,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+                </div>
+                
                 {trustBadges.map((badge, index) => (
                   <motion.div
                     key={index}
-                    initial={{ opacity: 0, scale: 0.9, y: 50 }}
-                    animate={isInView ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.9, y: 50 }}
+                    initial={{ opacity: 0, scale: 0.9, y: 50, rotateX: 15 }}
+                    animate={isInView ? { opacity: 1, scale: 1, y: 0, rotateX: 0 } : { opacity: 0, scale: 0.9, y: 50, rotateX: 15 }}
                     transition={{
                       delay: 0.8 + index * 0.12,
-                      duration: 0.7,
+                      duration: 0.8,
                       ease: Power3.easeOut
                     }}
                     className="group relative"
                     whileHover={{
-                      y: -8,
-                      scale: 1.03,
-                      rotateY: 5,
-                      rotateX: 3,
+                      y: -10,
+                      scale: 1.05,
+                      rotateY: index % 2 === 0 ? 5 : -5,
+                      rotateX: 2,
                       transition: { duration: 0.4, ease: Power2.easeOut }
                     }}
-                    style={{ perspective: "1000px" }}
+                    style={{ perspective: "1200px" }}
                   >
-                    <div className={`relative bg-white/[0.02] backdrop-blur-xl border ${badge.color} rounded-2xl p-6 hover:bg-white/[0.04] hover:border-opacity-60 transition-all duration-500 overflow-hidden`}>
+                    <div className={`relative bg-white/[0.03] backdrop-blur-xl border ${badge.color} rounded-2xl p-8 hover:bg-white/[0.05] hover:border-opacity-70 transition-all duration-500 overflow-hidden shadow-lg shadow-black/5 group-hover:shadow-xl group-hover:shadow-black/10`}>
                       {/* Enhanced hover glow effect */}
                       <div className={`absolute inset-0 ${badge.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-600 rounded-2xl`} />
+                      
+                      {/* Subtle pattern overlay */}
+                      <div className="absolute inset-0 opacity-20 mix-blend-overlay pointer-events-none bg-[url('/grid-pattern-dark.svg')]"></div>
 
-                      <div className="relative z-10 text-center space-y-4">
-                        <motion.div
-                          className={`inline-flex p-3 rounded-xl bg-white/[0.06] border border-white/[0.1] group-hover:scale-105 transition-transform duration-400`}
-                          whileHover={{
-                            rotate: [0, -5, 5, 0],
-                            scale: 1.12
-                          }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          {badge.icon === "Shield" && <Shield className={`w-6 h-6 ${badge.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
-                          {badge.icon === "CheckCircle" && <CheckCircle className={`w-6 h-6 ${badge.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
-                          {badge.icon === "TrendingUp" && <TrendingUp className={`w-6 h-6 ${badge.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
-                          {badge.icon === "Heart" && <Heart className={`w-6 h-6 ${badge.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
-                        </motion.div>
+                      <div className="relative z-10 text-center flex flex-col items-center gap-5">
+                        <div className="relative">
+                          {/* Glow effect behind icon */}
+                          <div className={`absolute inset-0 rounded-xl ${badge.gradient.replace('/20', '/10')} blur-md opacity-70 group-hover:opacity-100 group-hover:blur-lg transition-all duration-500`}></div>
+                          
+                          <motion.div
+                            className={`relative flex items-center justify-center w-16 h-16 rounded-xl bg-white/[0.06] border border-white/[0.12] group-hover:bg-white/[0.09] group-hover:border-white/[0.18] transition-all duration-400 backdrop-blur-sm`}
+                            whileHover={{
+                              rotate: [0, -5, 5, 0],
+                              scale: 1.12
+                            }}
+                            transition={{ duration: 0.5 }}
+                          >
+                            {badge.icon === "Shield" && <Shield className={`w-8 h-8 ${badge.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
+                            {badge.icon === "CheckCircle" && <CheckCircle className={`w-8 h-8 ${badge.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
+                            {badge.icon === "TrendingUp" && <TrendingUp className={`w-8 h-8 ${badge.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
+                            {badge.icon === "Heart" && <Heart className={`w-8 h-8 ${badge.iconColor} group-hover:scale-110 transition-transform duration-300`} />}
+                            
+                            {/* Inner glow effect */}
+                            <div className={`absolute inset-0 rounded-xl ${badge.iconColor.replace('text', 'bg')}/5 opacity-0 group-hover:opacity-100 transition-all duration-500`}></div>
+                          </motion.div>
+                        </div>
 
-                        <div>
-                          <div className="text-lg font-semibold text-white/90 mb-2">
+                        <div className="flex flex-col gap-2">
+                          <motion.div 
+                            className="text-lg font-semibold text-white/90 group-hover:text-white transition-colors duration-300"
+                            whileHover={{ scale: 1.02 }}
+                            transition={{ duration: 0.2 }}
+                          >
                             {badge.title}
-                          </div>
-                          <div className="text-sm text-white/50">
+                          </motion.div>
+                          <motion.div 
+                            className="text-sm text-white/60 group-hover:text-white/70 leading-relaxed transition-colors duration-300"
+                            initial={{ opacity: 0.9 }}
+                            whileHover={{ opacity: 1 }}
+                          >
                             {badge.description}
-                          </div>
+                          </motion.div>
                         </div>
                       </div>
 
-                      {/* Enhanced status indicator */}
-                      <div className="absolute top-3 right-3 w-2 h-2 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-600" />
+                      {/* Enhanced status indicator with animation */}
+                      <div className="absolute top-3 right-3 flex items-center justify-center">
+                        <motion.div 
+                          className={`w-2 h-2 ${badge.iconColor.replace('text', 'bg')} rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-600`}
+                          animate={{
+                            scale: [1, 1.5, 1],
+                            opacity: [0, 0.8, 0]
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            repeatDelay: 1
+                          }}
+                        />
+                        <motion.div 
+                          className={`absolute w-3 h-3 ${badge.iconColor.replace('text', 'bg')}/30 rounded-full opacity-0 group-hover:opacity-80`}
+                          animate={{
+                            scale: [1, 2.5, 1],
+                            opacity: [0, 0.3, 0]
+                          }}
+                          transition={{
+                            duration: 2.5,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            delay: 0.2
+                          }}
+                        />
+                      </div>
 
-                      {/* Enhanced floating particle effect */}
+                      {/* Multiple floating particle effects */}
                       <div className="absolute bottom-3 left-3 w-1 h-1 bg-white/25 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-800" />
+                      <div className="absolute bottom-5 right-5 w-0.5 h-0.5 bg-white/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" style={{animationDelay: '0.3s'}} />
                     </div>
                   </motion.div>
                 ))}
@@ -766,12 +712,12 @@ const SocialProof = () => {
             </div>
 
             {/* Enhanced Companies Showcase */}
-            <div className="text-center mb-24">
+            <div className="text-center flex flex-col gap-16 lg:gap-20">
               <motion.div
                 initial={{ opacity: 0, y: 40 }}
                 animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
                 transition={{ delay: 0.8, duration: 0.8, ease: "easeOut" }}
-                className="flex flex-col items-center space-y-8 mb-20"
+                className="flex flex-col items-center gap-8"
               >
                 {/* Redesigned Header - Powering Innovation at Leading Companies */}
                 <motion.div
@@ -779,7 +725,7 @@ const SocialProof = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6 }}
                   viewport={{ once: true }}
-                  className="flex flex-col items-center space-y-4 sm:space-y-6"
+                  className="flex flex-col items-center gap-4 sm:gap-6"
                 >
                   {/* Badge */}
                   <motion.div
@@ -834,7 +780,7 @@ const SocialProof = () => {
                     }}
                     transition={{
                       duration: 8,
-                      repeat: 999999,
+                      repeat: Infinity,
                       ease: "easeInOut"
                     }}
                   />
@@ -861,7 +807,7 @@ const SocialProof = () => {
                         {/* Subtle Glow Effect */}
                         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
 
-                        <div className="relative z-10 flex flex-col items-center space-y-3">
+                        <div className="relative z-10 flex flex-col items-center gap-3">
                           <motion.div
                             className="p-3 rounded-xl bg-white/[0.05] border border-white/[0.08] group-hover:bg-white/[0.08] group-hover:border-white/[0.12] transition-all duration-300"
                             whileHover={{
@@ -915,7 +861,7 @@ const SocialProof = () => {
                   }}
                   transition={{
                     duration: 18,
-                    repeat: 999999,
+                    repeat: Infinity,
                     ease: "easeInOut"
                   }}
                 />
@@ -929,19 +875,18 @@ const SocialProof = () => {
                   }}
                   transition={{
                     duration: 15,
-                    repeat: 999999,
+                    repeat: Infinity,
                     ease: "easeInOut"
                   }}
                 />
               </div>
 
-              <div className="relative z-10 text-center px-8 lg:px-16">
+              <div className="relative z-10 text-center px-8 lg:px-16 flex flex-col gap-12 lg:gap-16">
                 {/* Minimal Header */}
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={isInView ? { opacity: 1, y: 0 } : { y: 20, opacity: 0 }}
                   transition={{ delay: 1.4, duration: 0.6 }}
-                  className="mb-16"
                 >
                   {/* Redesigned Header - Ready to get started? */}
                   <motion.div
@@ -949,7 +894,7 @@ const SocialProof = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
                     viewport={{ once: true }}
-                    className="flex flex-col items-center space-y-4 sm:space-y-6"
+                    className="flex flex-col items-center gap-4 sm:gap-6"
                   >
                     {/* Badge */}
                     <motion.div
@@ -997,14 +942,14 @@ const SocialProof = () => {
                   initial={{ y: 20, opacity: 0 }}
                   animate={isInView ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
                   transition={{ delay: 1.6, duration: 0.6 }}
-                  className="flex flex-col sm:flex-row gap-8 justify-center items-center mb-16"
+                  className="flex flex-col sm:flex-row gap-6 justify-center items-center"
                 >
                   <motion.button
                     className="bg-white text-black font-medium px-10 py-4 rounded-full transition-all duration-300 hover:bg-white/90"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <span className="flex items-center space-x-2 text-lg">
+                    <span className="flex items-center gap-2 text-lg">
                       <span>Start building</span>
                       <ArrowRight className="w-5 h-5" />
                     </span>
@@ -1015,7 +960,7 @@ const SocialProof = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <span className="flex items-center space-x-2 text-lg">
+                    <span className="flex items-center gap-2 text-lg">
                       <Play className="w-5 h-5" />
                       <span>View demo</span>
                     </span>
@@ -1027,17 +972,17 @@ const SocialProof = () => {
                   initial={{ opacity: 0 }}
                   animate={isInView ? { opacity: 1 } : { opacity: 0 }}
                   transition={{ delay: 1.8, duration: 0.6 }}
-                  className="flex flex-col md:flex-row items-center justify-center space-y-6 md:space-y-0 md:space-x-16 text-white/50 text-sm"
+                  className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16 text-white/50 text-sm"
                 >
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4" />
                     <span>Free trial</span>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
                     <Shield className="w-4 h-4" />
                     <span>Secure</span>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
                     <Zap className="w-4 h-4" />
                     <span>Quick setup</span>
                   </div>

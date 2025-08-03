@@ -160,9 +160,9 @@ const SectionHeader = ({
   // Optimized container with better spacing
   const Container = motion.div;
   const containerProps = disableAnimation ? {
-    className: `flex flex-col ${alignmentClasses} space-y-2 sm:space-y-3 lg:space-y-4 ${className}`
+    className: `flex flex-col ${alignmentClasses} gap-2 sm:gap-3 lg:gap-4 ${className}`
   } : {
-    className: `flex flex-col ${alignmentClasses} space-y-2 sm:space-y-3 lg:space-y-4 ${className}`,
+    className: `flex flex-col ${alignmentClasses} gap-2 sm:gap-3 lg:gap-4 ${className}`,
     variants: containerVariants,
     initial: "hidden",
     whileInView: "visible",
@@ -172,33 +172,19 @@ const SectionHeader = ({
   return (
     <Container {...containerProps}>
       {/* Refined badge with proper spacing */}
-      <div className="flex flex-col items-center gap-4">
-      {badge && (
-        <div className="mb-0">
-          <BadgeComponent />
-        </div>
-      )}
+      {badge && <BadgeComponent />}
 
       {/* Title section with optimized spacing */}
-      <div className="mb-0">
+      <div className="flex flex-col gap-2">
         <TitleComponent />
         {subtitle && <SubtitleComponent />}
       </div>
 
       {/* Description with proper spacing */}
-      {description && (
-        <div className="mt-0">
-          <DescriptionComponent />
-        </div>
-      )}
+      {description && <DescriptionComponent />}
 
       {/* Stats with clean spacing */}
-      {stats && stats.length > 0 && (
-        <div className="mt-0">
-          <StatsComponent />
-        </div>
-      )}
-      </div>
+      {stats && stats.length > 0 && <StatsComponent />}
     </Container>
   );
 };

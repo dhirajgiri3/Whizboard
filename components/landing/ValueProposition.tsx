@@ -232,7 +232,7 @@ const ValueProposition = () => {
       <style dangerouslySetInnerHTML={{ __html: enhancedScrollbarStyles }} />
       <section
         ref={ref}
-        className="relative py-20 md:py-28 lg:py-36 overflow-hidden bg-[#0A0A0B]"
+        className="relative py-16 sm:py-20 lg:py-24 overflow-hidden bg-[#0A0A0B]"
       >
         {/* Background Elements */}
         <div className="absolute inset-0">
@@ -261,13 +261,13 @@ const ValueProposition = () => {
           />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-16 lg:gap-20">
           {/* Main Value Proposition */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate={isInView ? "visible" : "hidden"}
-            className="flex flex-col items-center space-y-6 sm:space-y-8"
+            className="flex flex-col items-center gap-6 sm:gap-8"
           >
             <SectionHeader
               badge={{
@@ -282,7 +282,6 @@ const ValueProposition = () => {
                 { icon: Shield, text: "Enterprise ready", color: "text-emerald-400" }
               ]}
               disableAnimation={true}
-              className="pb-16 lg:pb-20"
             />
           </motion.div>
 
@@ -291,7 +290,7 @@ const ValueProposition = () => {
             variants={containerVariants}
             initial="hidden"
             animate={isInView ? "visible" : "hidden"}
-            className="grid md:grid-cols-3 gap-8 lg:gap-10 mb-20 lg:mb-28"
+            className="grid md:grid-cols-3 gap-8 lg:gap-10"
           >
             {benefits.map((benefit, index) => (
               <motion.div
@@ -339,9 +338,9 @@ const ValueProposition = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             viewport={{ once: true }}
-            className="mb-24 lg:mb-32"
+            className="flex flex-col gap-16 lg:gap-20"
           >
-            <div className="text-center mb-16 lg:mb-20">
+            <div className="text-center flex flex-col gap-8 lg:gap-10">
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -355,7 +354,7 @@ const ValueProposition = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.1 }}
                   viewport={{ once: true }}
-                  className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200 mb-6"
+                  className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
                 >
                   <Target className="h-3.5 w-3.5 text-blue-400/80 group-hover:text-blue-400 transition-colors duration-200" />
                   <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
@@ -567,7 +566,7 @@ const ValueProposition = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.7 }}
               viewport={{ once: true }}
-              className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-6"
+              className="grid grid-cols-1 md:grid-cols-3 gap-6"
             >
               {[
                 {
@@ -628,12 +627,12 @@ const ValueProposition = () => {
             variants={containerVariants}
             initial="hidden"
             animate={isInView ? "visible" : "visible"}
-            className="text-center mb-24"
+            className="text-center flex flex-col gap-12 sm:gap-16"
           >
             {/* Redesigned Header - Everything You Need to Succeed */}
             <motion.div
               variants={itemVariants}
-              className="flex flex-col items-center space-y-4 pb-16"
+              className="flex flex-col items-center gap-4 sm:gap-6"
             >
               {/* Badge */}
               <motion.div
@@ -710,7 +709,7 @@ const ValueProposition = () => {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.98 }}
             transition={{ delay: 1.2, duration: 0.8, ease: "easeOut" }}
-            className="relative overflow-hidden h-[80vh] flex items-center justify-center"
+            className="relative overflow-hidden min-h-[80vh] flex items-center justify-center"
           >
             {/* Enhanced Dynamic Background with Glowing Green Gradients */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A0B] via-emerald-600/30 to-[#0F0F10] backdrop-blur-3xl rounded-[2rem] border-none shadow-none outline-none" />
@@ -812,7 +811,7 @@ const ValueProposition = () => {
                 initial={{ y: 20, opacity: 0 }}
                 animate={isInView ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
                 transition={{ delay: 1.6, duration: 0.6 }}
-                className="flex flex-col sm:flex-row gap-8 justify-center items-center mb-16"
+                className="flex flex-col sm:flex-row gap-6 justify-center items-center"
               >
                 <motion.button
                   className="bg-white text-black font-medium px-10 py-4 rounded-full transition-all duration-300 hover:bg-white/90"
@@ -842,17 +841,17 @@ const ValueProposition = () => {
                 initial={{ opacity: 0 }}
                 animate={isInView ? { opacity: 1 } : { opacity: 0 }}
                 transition={{ delay: 1.8, duration: 0.6 }}
-                className="flex flex-col md:flex-row items-center justify-center space-y-6 md:space-y-0 md:space-x-16 text-white/50 text-sm"
+                className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16 text-white/50 text-sm"
               >
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4" />
                   <span>No credit card required</span>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2">
                   <Shield className="w-4 h-4" />
                   <span>Free forever plan</span>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2">
                   <Zap className="w-4 h-4" />
                   <span>Setup in 2 minutes</span>
                 </div>

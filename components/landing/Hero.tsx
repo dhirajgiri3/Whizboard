@@ -678,11 +678,11 @@ const Hero = () => {
         </motion.svg>
       </div>
 
-      <main className="relative z-10 flex flex-col gap-12 sm:gap-16 lg:gap-20 min-h-screen pt-16 sm:pt-24 lg:pt-32 pb-16 sm:pb-24 lg:pb-32">
+      <main className="relative z-10 flex flex-col min-h-screen pt-10">
         {/* Enhanced main content */}
-        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
           <motion.div
-            className="max-w-xs sm:max-w-2xl lg:max-w-4xl xl:max-w-5xl text-center w-full"
+            className="w-full max-w-6xl flex flex-col items-center gap-4 sm:gap-6 lg:gap-8 text-center"
             style={{ y: parallaxY }}
           >
             {/* Enhanced social proof with glow effect */}
@@ -694,7 +694,7 @@ const Hero = () => {
                 delay: 0.3,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="mb-6 sm:mb-8 lg:mb-10 inline-flex items-center space-x-2 sm:space-x-3 rounded-full bg-white/15 px-3 sm:px-4 py-1.5 sm:py-2 backdrop-blur-md border border-white/25"
+              className="inline-flex items-center gap-2 sm:gap-3 rounded-full bg-white/15 px-3 sm:px-4 py-1.5 sm:py-2 backdrop-blur-md border border-white/25"
             >
               <div className="flex -space-x-1 sm:-space-x-2">
                 {AvatarImages.map((image, i) => (
@@ -732,7 +732,7 @@ const Hero = () => {
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="mb-4 sm:mb-6 lg:mb-8 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[0.95] tracking-tight text-white text-center max-w-2xl mx-auto"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[0.95] tracking-tight text-white text-center max-w-xl"
             >
               Turn Ideas into{" "}
               <motion.span
@@ -765,7 +765,7 @@ const Hero = () => {
                 delay: 0.6,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="mb-6 sm:mb-8 lg:mb-10 max-w-lg sm:max-w-2xl lg:max-w-3xl mx-auto text-base sm:text-lg lg:text-xl text-white/80 leading-relaxed font-light px-2 sm:px-0"
+              className="max-w-2xl text-base lg:text-lg text-white/80 leading-relaxed font-light"
             >
               Create, collaborate, and bring your ideas to life with the most
               intuitive whiteboard experience. From concept to completion, all
@@ -781,7 +781,7 @@ const Hero = () => {
                 delay: 0.8,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center px-4 sm:px-0"
+              className="flex flex-col sm:flex-row items-center gap-4 justify-center w-full"
             >
               <motion.a
                 href="/signup"
@@ -809,14 +809,14 @@ const Hero = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 1.2 }}
-              className="mt-8 sm:mt-10 lg:mt-12 flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-8 lg:space-x-12 text-white/85 text-xs sm:text-sm"
+              className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 lg:gap-12 text-white/85 text-xs sm:text-sm"
             >
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 <Star className="h-4 w-4 sm:h-5 sm:w-5 fill-white text-white drop-shadow-sm" />
                 <span className="font-medium">4.9/5 rating</span>
               </div>
               <div className="hidden sm:block h-5 w-px bg-white/30" />
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 sm:h-5 sm:w-5 drop-shadow-sm" />
                 <span className="font-medium">Free forever plan</span>
               </div>
@@ -825,15 +825,17 @@ const Hero = () => {
         </div>
 
         {/* Realtime Dashboard Integration */}
-        <motion.div 
-        className="relative w-full px-2 sm:px-4 lg:px-0" 
-        style={{ y: parallaxY }}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 1.2 }}
-        >
-          <RealtimeDashboard />
-        </motion.div>
+        <div className="px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20 lg:pb-24">
+          <motion.div 
+            className="w-full max-w-7xl mx-auto" 
+            style={{ y: parallaxY }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.2 }}
+          >
+            <RealtimeDashboard />
+          </motion.div>
+        </div>
       </main>
     </div>
   );

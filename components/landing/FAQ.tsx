@@ -156,7 +156,7 @@ const FAQ = () => {
   };
 
   return (
-    <section ref={ref} className="relative py-16 md:py-20 bg-[#0A0A0B] overflow-hidden">
+    <section ref={ref} className="relative py-16 sm:py-20 lg:py-24 bg-[#0A0A0B] overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/3 via-transparent to-gray-600/2"></div>
@@ -210,10 +210,10 @@ const FAQ = () => {
         />
       </div>
       
-      <div className="relative max-w-4xl mx-auto px-6">
+      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-12">
         {/* Header */}
         <motion.div 
-          className="flex flex-col items-center space-y-4 sm:space-y-6 pb-16 lg:pb-18"
+          className="flex flex-col items-center gap-4 sm:gap-6"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -232,7 +232,6 @@ const FAQ = () => {
               { icon: Clock, text: "Quick responses", color: "text-yellow-400" }
             ]}
             disableAnimation={true}
-            className="mb-12"
           />
         </motion.div>
 
@@ -241,10 +240,10 @@ const FAQ = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ delay: 0.4, duration: 0.6 }}
-          className="mb-12"
+          className="flex flex-col gap-10"
         >
           {/* Search Bar */}
-          <div className="relative mb-10">
+          <div className="relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/40 h-5 w-5 z-30" />
             <input
               type="text"
@@ -278,7 +277,7 @@ const FAQ = () => {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="space-y-4 mb-16"
+          className="flex flex-col gap-4"
         >
           {filteredFaqs.length > 0 ? (
             filteredFaqs.map((faq, index) => (
@@ -302,12 +301,12 @@ const FAQ = () => {
                     onClick={() => toggleItem(index)}
                     className="w-full px-8 py-6 text-left flex items-center justify-between group-hover:bg-white/[0.02] transition-all duration-300"
                   >
-                    <div className="flex items-start space-x-4">
+                    <div className="flex items-start gap-4">
                       <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-black/20">
                         <faq.icon className={`h-5 w-5 ${faq.iconColor}`} />
                       </div>
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
+                        <div className="flex items-center gap-3">
                           <h3 className="text-lg font-semibold text-white group-hover:text-blue-300 transition-colors">
                             {faq.question}
                           </h3>
@@ -403,7 +402,7 @@ const FAQ = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           transition={{ delay: 0.8, duration: 0.6 }}
-          className="text-center mt-20"
+          className="text-center"
         >
           <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-3xl p-12 overflow-hidden">
             {/* Background Elements */}
@@ -432,7 +431,7 @@ const FAQ = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
                 viewport={{ once: true }}
-                className="flex flex-col items-center space-y-4 sm:space-y-6 mb-12"
+                className="flex flex-col items-center gap-4 sm:gap-6"
               >
                 {/* Badge */}
                 <motion.div

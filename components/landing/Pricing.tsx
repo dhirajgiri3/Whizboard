@@ -3,8 +3,6 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
 import {
-  Check,
-  Star,
   Zap,
   Shield,
   Users,
@@ -14,25 +12,13 @@ import {
   Heart,
   Award,
   Play,
-  CheckCircle,
-  Sparkles,
   TrendingUp,
   Clock,
   Globe,
   MessageSquare,
   Building2,
   CheckCircle2,
-  PenTool,
-  Square,
-  Type,
-  FileText,
-  Download,
-  Layers,
-  Palette,
-  Share2,
-  Image,
-  Frame,
-  StickyNote
+  Star,
 } from "lucide-react";
 import SectionHeader from "@/components/ui/SectionHeader";
 
@@ -45,7 +31,7 @@ const Pricing = () => {
     {
       name: "Free",
       description: "Great for individuals and small teams",
-      price: { monthly: 0, yearly: 0 },
+      price: { monthly: 1, yearly: 0 },
       originalPrice: { monthly: 0, yearly: 0 },
       features: [
         "3 collaborative boards",
@@ -199,7 +185,7 @@ const Pricing = () => {
   return (
     <section
       ref={ref}
-      className="relative py-16 md:py-24 overflow-hidden"
+      className="relative py-16 sm:py-20 lg:py-24 overflow-hidden"
       style={{
         background: "linear-gradient(135deg, #0A0A0B 0%, #0F0F10 25%, #141416 50%, #1A1A1C 75%, #0A0A0B 100%)",
       }}
@@ -263,28 +249,26 @@ const Pricing = () => {
         />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-12 lg:gap-16">
         {/* Enhanced Header Section */}
-        <div className="mb-12">
-          <SectionHeader
-            badge={{
-              icon: Rocket,
-              text: "Simple Pricing"
-            }}
-            title="Choose Your Perfect Plan"
-            description="Start free and scale as you grow. No hidden fees, no surprises. Cancel anytime with our 30-day money-back guarantee."
-            stats={[
-              { icon: Shield, text: "30-day money back", color: "text-emerald-400" },
-              { icon: Zap, text: "Instant activation", color: "text-blue-400" },
-              { icon: Users, text: "24/7 support", color: "text-blue-400" }
-            ]}
-            disableAnimation={true}
-          />
-        </div>
+        <SectionHeader
+          badge={{
+            icon: Rocket,
+            text: "Simple Pricing"
+          }}
+          title="Choose Your Perfect Plan"
+          description="Start free and scale as you grow. No hidden fees, no surprises. Cancel anytime with our 30-day money-back guarantee."
+          stats={[
+            { icon: Shield, text: "30-day money back", color: "text-emerald-400" },
+            { icon: Zap, text: "Instant activation", color: "text-blue-400" },
+            { icon: Users, text: "24/7 support", color: "text-blue-400" }
+          ]}
+          disableAnimation={true}
+        />
 
         {/* Enhanced Billing Toggle Section */}
         <motion.div
-          className="flex flex-col items-center space-y-6 mb-16"
+          className="flex flex-col items-center gap-6"
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ delay: 0.3, duration: 0.5 }}
@@ -316,7 +300,7 @@ const Pricing = () => {
           </motion.div>
 
           {/* Enhanced Toggle */}
-          <div className="flex items-center justify-center space-x-6">
+          <div className="flex items-center justify-center gap-6">
             <span className={`text-sm font-medium transition-colors duration-200 ${billingCycle === 'monthly' ? 'text-white' : 'text-white/60'}`}>
               Monthly
             </span>
@@ -330,7 +314,7 @@ const Pricing = () => {
                 whileTap={{ scale: 0.95 }}
               />
             </button>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <span className={`text-sm font-medium transition-colors duration-200 ${billingCycle === 'yearly' ? 'text-white' : 'text-white/60'}`}>
                 Yearly
               </span>
@@ -346,7 +330,7 @@ const Pricing = () => {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-20"
+          className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8"
         >
           {plans.map((plan, index) => (
             <motion.div
@@ -501,7 +485,6 @@ const Pricing = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ delay: 0.8, duration: 0.5 }}
-          className="mb-16"
         >
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {trustIndicators.map((indicator, index) => (
@@ -510,7 +493,7 @@ const Pricing = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
                 transition={{ delay: 0.9 + index * 0.1, duration: 0.5 }}
-                className="flex items-center justify-center space-x-2 text-white/60 text-xs group hover:text-white/80 transition-colors duration-200"
+                className="flex items-center justify-center gap-2 text-white/60 text-xs group hover:text-white/80 transition-colors duration-200"
               >
                 <indicator.icon className={`h-3 w-3 ${indicator.color} group-hover:scale-110 transition-transform duration-200`} />
                 <span>{indicator.text}</span>
@@ -546,13 +529,13 @@ const Pricing = () => {
           </div>
 
           <div className="relative z-10 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-              className="flex flex-col items-center space-y-4 sm:space-y-6 mb-12"
-            >
+                          <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                viewport={{ once: true }}
+                className="flex flex-col items-center gap-4 sm:gap-6"
+              >
               {/* Enhanced Badge */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -591,7 +574,7 @@ const Pricing = () => {
               </motion.p>
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {enterpriseFeatures.map((feature, index) => (
                 <motion.div
                   key={feature.title}
@@ -660,12 +643,12 @@ const Pricing = () => {
                   className="mb-10"
                 >
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    viewport={{ once: true }}
-                    className="flex flex-col items-center space-y-6"
-                  >
+                                      initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  viewport={{ once: true }}
+                  className="flex flex-col items-center gap-6"
+                >
                     {/* Enhanced Badge */}
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
@@ -713,7 +696,7 @@ const Pricing = () => {
                   initial={{ y: 20, opacity: 0 }}
                   animate={isInView ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
                   transition={{ delay: 2.0, duration: 0.5 }}
-                  className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-10"
+                  className="flex flex-col sm:flex-row gap-4 justify-center items-center"
                 >
                   <motion.button
                     className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold px-10 py-4 rounded-lg transition-all duration-300 shadow-lg shadow-blue-500/10 text-lg group"
@@ -743,17 +726,17 @@ const Pricing = () => {
                   initial={{ opacity: 0 }}
                   animate={isInView ? { opacity: 1 } : { opacity: 0 }}
                   transition={{ delay: 2.2, duration: 0.5 }}
-                  className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-12 text-white/50 text-sm"
+                  className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-12 text-white/50 text-sm"
                 >
-                  <div className="flex items-center space-x-2 group hover:text-white/70 transition-colors duration-200">
+                  <div className="flex items-center gap-2 group hover:text-white/70 transition-colors duration-200">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform duration-200" />
                     <span>30-day money back</span>
                   </div>
-                  <div className="flex items-center space-x-2 group hover:text-white/70 transition-colors duration-200">
+                  <div className="flex items-center gap-2 group hover:text-white/70 transition-colors duration-200">
                     <Shield className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform duration-200" />
                     <span>Instant activation</span>
                   </div>
-                  <div className="flex items-center space-x-2 group hover:text-white/70 transition-colors duration-200">
+                  <div className="flex items-center gap-2 group hover:text-white/70 transition-colors duration-200">
                     <MessageSquare className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform duration-200" />
                     <span>24/7 support</span>
                   </div>
