@@ -119,8 +119,8 @@ const AboutTeam = () => {
       <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0" style={{
           backgroundImage: `
-            linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)
+            linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px)
           `,
           backgroundSize: '24px 24px'
         }}></div>
@@ -185,7 +185,7 @@ const AboutTeam = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed mb-8"
+            className="text-base text-gray-300 max-w-4xl mx-auto leading-relaxed mb-8"
           >
             Meet the solo founder who's redefining what it means to build a product from scratch. 
             <br />
