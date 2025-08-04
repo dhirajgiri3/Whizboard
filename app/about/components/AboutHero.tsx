@@ -128,11 +128,11 @@ const AboutHero = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-            className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl  font-bold leading-[1.1] tracking-tight text-white mb-4"
+            className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl  font-bold leading-[1.1] tracking-tight text-white mb-4"
           >
             About{" "}
             <motion.span
-              className="relative inline-block bg-gradient-to-r from-blue-500 via-white to-blue-500 bg-clip-text text-transparent bg-[length:200%_100%]"
+              className="relative uppercase inline-block bg-gradient-to-r from-blue-500 via-white to-blue-500 bg-clip-text text-transparent bg-[length:200%_100%]"
               animate={{
                 backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
               }}

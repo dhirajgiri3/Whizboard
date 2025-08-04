@@ -268,11 +268,11 @@ const Hero = () => {
         </motion.svg>
       </div>
 
-      <main className="relative z-10 flex flex-col min-h-screen pt-16 sm:pt-12">
+      <main className="relative z-10 flex flex-col min-h-screen pt-16">
         {/* Enhanced main content - Mobile responsive spacing */}
-        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-16 lg:py-20">
+        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-16 pb-12">
           <motion.div
-            className="w-full max-w-6xl flex flex-col items-center gap-4 sm:gap-6 lg:gap-8 text-center"
+            className="w-full max-w-6xl flex flex-col items-center gap-4 text-center"
             style={{ y: parallaxY }}
           >
             {/* Enhanced social proof with better mobile design */}
@@ -284,7 +284,7 @@ const Hero = () => {
                 delay: 0.3,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="inline-flex items-center gap-2 sm:gap-3 rounded-full bg-white/15 px-3 sm:px-4 py-2 backdrop-blur-md border border-white/25"
+              className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 sm:px-4 py-2 backdrop-blur-md border border-white/25"
             >
               <div className="flex -space-x-1 sm:-space-x-2">
                 {AvatarImages.map((image, i) => (
@@ -317,7 +317,7 @@ const Hero = () => {
               </motion.span>
             </motion.div>
 
-            <div className="flex flex-col items-center justify-center space-y-4 sm:space-y-6">
+            <div className="flex flex-col items-center justify-center space-y-2">
               {/* Enhanced main heading with better responsive typography */}
               <motion.h1
                 initial={{ opacity: 0, y: 40 }}
@@ -327,7 +327,7 @@ const Hero = () => {
                   delay: 0.4,
                   ease: [0.22, 1, 0.36, 1],
                 }}
-                className="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.1] tracking-tight text-white text-center max-w-sm sm:max-w-2xl lg:max-w-4xl xl:max-w-5xl px-2 sm:px-0"
+                className="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight text-white text-center max-w-sm sm:max-w-2xl px-2 sm:px-0"
               >
                 Transform Brainstorms into{" "}
                 <motion.span
@@ -360,7 +360,7 @@ const Hero = () => {
                   delay: 0.6,
                   ease: [0.22, 1, 0.36, 1],
                 }}
-                className="max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl text-sm sm:text-base lg:text-lg xl:text-xl text-white/80 leading-[1.6] font-light px-4 sm:px-0"
+                className="max-w-lg md:max-w-xl text-sm sm:text-base lg:text-lg text-white/80 leading-[1.6] font-light px-4 sm:px-0"
               >
                 Create, collaborate, and bring your ideas to life with the most
                 intuitive whiteboard experience. From concept to completion, all
@@ -430,7 +430,7 @@ const Hero = () => {
         {/* Realtime Dashboard Integration - Enhanced mobile responsiveness */}
         <div className="px-4 sm:px-6 lg:px-8 pb-8 sm:pb-12 md:pb-16 lg:pb-20">
           <motion.div
-            className="w-full max-w-7xl mx-auto"
+            className="w-full mx-auto"
             style={{ y: parallaxY }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

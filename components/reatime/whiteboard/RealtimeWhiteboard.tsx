@@ -51,7 +51,7 @@ const RealtimeWhiteboard: React.FC = () => {
         const updateCanvasDimensions = () => {
             const screenWidth = window.innerWidth;
             const screenHeight = window.innerHeight;
-            const vh85 = screenHeight * 0.85;
+            const vh90 = screenHeight * 0.9;
             
             // Device detection
             setIsMobile(screenWidth < 640);
@@ -59,22 +59,22 @@ const RealtimeWhiteboard: React.FC = () => {
             
             if (screenWidth < 480) { // small mobile
                 setCanvasWidth(Math.min(screenWidth - 16, 320));
-                setCanvasHeight(Math.min(vh85 - 240, 350));
+                setCanvasHeight(Math.min(vh90 - 160, 400));
             } else if (screenWidth < 640) { // mobile
                 setCanvasWidth(Math.min(screenWidth - 24, 400));
-                setCanvasHeight(Math.min(vh85 - 220, 400));
+                setCanvasHeight(Math.min(vh90 - 140, 450));
             } else if (screenWidth < 768) { // tablet
                 setCanvasWidth(Math.min(screenWidth - 48, 600));
-                setCanvasHeight(Math.min(vh85 - 200, 500));
+                setCanvasHeight(Math.min(vh90 - 120, 550));
             } else if (screenWidth < 1024) { // small desktop
                 setCanvasWidth(Math.min(screenWidth - 64, 700));
-                setCanvasHeight(Math.min(vh85 - 180, 600));
+                setCanvasHeight(Math.min(vh90 - 100, 650));
             } else if (screenWidth < 1280) { // desktop
                 setCanvasWidth(Math.min(screenWidth - 80, 800));
-                setCanvasHeight(Math.min(vh85 - 160, 650));
+                setCanvasHeight(Math.min(vh90 - 80, 700));
             } else { // large desktop
                 setCanvasWidth(Math.min(screenWidth - 96, 900));
-                setCanvasHeight(Math.min(vh85 - 140, 700));
+                setCanvasHeight(Math.min(vh90 - 60, 750));
             }
         };
 
@@ -268,10 +268,10 @@ const RealtimeWhiteboard: React.FC = () => {
     }, []);
 
     return (
-        <div className="relative w-full max-w-6xl mx-auto px-2 sm:px-4 lg:px-6 xl:px-8 canvas-container whiteboard-container" 
+          <div className="relative w-full max-w-7xl mx-auto px-2 sm:px-3 lg:px-4 xl:px-6 canvas-container" 
              style={{ 
-                 height: isMobile ? '70vh' : isTablet ? '75vh' : '85vh',
-                 minHeight: isMobile ? '400px' : isTablet ? '500px' : '600px'
+                 height: isMobile ? '85vh' : isTablet ? '88vh' : '92vh',
+                 minHeight: isMobile ? '500px' : isTablet ? '600px' : '700px'
              }}>
             <div className="relative bg-white rounded-lg sm:rounded-xl lg:rounded-2xl shadow-lg sm:shadow-xl border border-gray-200 overflow-hidden h-full flex flex-col">
                 <WhiteboardHeader
@@ -441,9 +441,9 @@ const RealtimeWhiteboard: React.FC = () => {
 
         /* Responsive height handling */
         .whiteboard-container {
-          height: ${isMobile ? '70vh' : isTablet ? '75vh' : '85vh'};
-          max-height: ${isMobile ? '70vh' : isTablet ? '75vh' : '85vh'};
-          min-height: ${isMobile ? '400px' : isTablet ? '500px' : '600px'};
+          height: ${isMobile ? '85vh' : isTablet ? '88vh' : '92vh'};
+          max-height: ${isMobile ? '85vh' : isTablet ? '88vh' : '92vh'};
+          min-height: ${isMobile ? '500px' : isTablet ? '600px' : '700px'};
         }
 
         /* Remove borders and outlines from canvas elements */
@@ -508,13 +508,6 @@ const RealtimeWhiteboard: React.FC = () => {
             animation-duration: 0.01ms !important;
             animation-iteration-count: 1 !important;
             transition-duration: 0.01ms !important;
-          }
-        }
-
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-          .canvas-container {
-            background-color: rgba(0, 0, 0, 0.02);
           }
         }
       `}</style>

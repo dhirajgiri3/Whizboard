@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { motion, useInView } from "framer-motion";
-import { TrendingUp, Users, Star, Award } from "lucide-react";
+import { motion, useInView, useScroll, useTransform } from "framer-motion";
+import { TrendingUp, Users, Star, Award, Globe, Zap, Shield, Heart, Target, Rocket, Activity, Sparkles } from "lucide-react";
 
 interface CompanyStat {
   id: string;
@@ -11,6 +11,9 @@ interface CompanyStat {
   description: string;
   prefix?: string;
   suffix?: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  color: string;
+  gradientColors: string[];
   isVisible: boolean;
   order: number;
 }
@@ -66,7 +69,7 @@ const AnimatedCounter = ({ end, duration = 2000, prefix = "", suffix = "" }: Ani
   }, [isVisible, end, duration]);
 
   return (
-    <span ref={ref} className="tabular-nums">
+    <span ref={ref} className="tabular-nums font-bold">
       {prefix}{count.toLocaleString()}{suffix}
     </span>
   );
@@ -75,243 +78,351 @@ const AnimatedCounter = ({ end, duration = 2000, prefix = "", suffix = "" }: Ani
 const AboutStats = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const [companyStats, setCompanyStats] = useState<CompanyStat[]>([]);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await fetch('/api/about/stats');
-        if (response.ok) {
-          const statsData: CompanyStat[] = await response.json();
-          setCompanyStats(statsData);
-        } else {
-          // Fallback data if API fails
-          setCompanyStats([
-            {
-              id: "1",
-              name: "Active Users",
-              value: "150000",
-              description: "Teams worldwide trust WhizBoard",
-              suffix: "+",
-              isVisible: true,
-              order: 1
-            },
-            {
-              id: "2", 
-              name: "Countries",
-              value: "45",
-              description: "Global reach and impact",
-              suffix: "+",
-              isVisible: true,
-              order: 2
-            },
-            {
-              id: "3",
-              name: "Uptime",
-              value: "99.9",
-              description: "Enterprise-grade reliability",
-              suffix: "%",
-              isVisible: true,
-              order: 3
-            },
-            {
-              id: "4",
-              name: "Customer Rating",
-              value: "4.9",
-              description: "Out of 5 stars from users",
-              suffix: "/5",
-              isVisible: true,
-              order: 4
-            }
-          ]);
-        }
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-        // Use fallback data
-        setCompanyStats([
-          {
-            id: "1",
-            name: "Active Users",
-            value: "150000",
-            description: "Teams worldwide trust WhizBoard",
-            suffix: "+",
-            isVisible: true,
-            order: 1
-          },
-          {
-            id: "2", 
-            name: "Countries",
-            value: "45",
-            description: "Global reach and impact",
-            suffix: "+",
-            isVisible: true,
-            order: 2
-          },
-          {
-            id: "3",
-            name: "Uptime",
-            value: "99.9",
-            description: "Enterprise-grade reliability",
-            suffix: "%",
-            isVisible: true,
-            order: 3
-          },
-          {
-            id: "4",
-            name: "Customer Rating",
-            value: "4.9",
-            description: "Out of 5 stars from users",
-            suffix: "/5",
-            isVisible: true,
-            order: 4
-          }
-        ]);
-      }
-    };
-
-    fetchStats();
-  }, []);
+  const { scrollY } = useScroll();
+  const parallaxY = useTransform(scrollY, [0, 500], [0, -20]);
+  
+  // Hardcoded data with vibrant multi-color gradients
+  const [companyStats] = useState<CompanyStat[]>([
+    {
+      id: "1",
+      name: "Active Users",
+      value: "150000",
+      description: "Teams worldwide trust WhizBoard for their collaborative needs",
+      suffix: "+",
+      icon: Users,
+      color: "blue",
+      gradientColors: ["#3B82F6", "#8B5CF6", "#EC4899", "#F59E0B"],
+      isVisible: true,
+      order: 1
+    },
+    {
+      id: "2", 
+      name: "Countries",
+      value: "45",
+      description: "Global reach and impact across diverse markets",
+      suffix: "+",
+      icon: Globe,
+      color: "emerald",
+      gradientColors: ["#10B981", "#8B5CF6", "#F59E0B", "#EF4444"],
+      isVisible: true,
+      order: 2
+    },
+    {
+      id: "3",
+      name: "Uptime",
+      value: "99.9",
+      description: "Enterprise-grade reliability and performance",
+      suffix: "%",
+      icon: Shield,
+      color: "green",
+      gradientColors: ["#22C55E", "#EC4899", "#3B82F6", "#F59E0B"],
+      isVisible: true,
+      order: 3
+    },
+    {
+      id: "4",
+      name: "Customer Rating",
+      value: "4.9",
+      description: "Out of 5 stars from satisfied users worldwide",
+      suffix: "/5",
+      icon: Star,
+      color: "yellow",
+      gradientColors: ["#F59E0B", "#EC4899", "#8B5CF6", "#10B981"],
+      isVisible: true,
+      order: 4
+    }
+  ]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.1
+        staggerChildren: 0.15,
+        delayChildren: 0.2
       }
     }
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
+    hidden: { opacity: 0, y: 40 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.6,
-        ease: [0.22, 1, 0.36, 1]
+        duration: 0.8,
+        ease: [0.22, 1, 0.36, 1] as const
       }
     }
   };
 
   const orbAnimation = {
-    scale: [1, 1.1, 1],
-    opacity: [0.4, 0.6, 0.4],
+    scale: [1, 1.05, 1],
+    opacity: [0.3, 0.5, 0.3],
     transition: {
-      duration: 8,
+      duration: 12,
       repeat: Infinity,
-      ease: "easeInOut"
+      ease: "easeInOut" as const
     }
   };
 
-  return (
-    <section ref={ref} className="py-16 md:py-24 relative z-10">
-      {/* Background Elements */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `
-            linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
-          `,
-          backgroundSize: '32px 32px'
-        }}></div>
-      </div>
-      
-      {/* Enhanced Gradient Orbs */}
-      <motion.div 
-        className="absolute top-1/4 left-1/4 w-96 h-96"
-        style={{
-          background: 'radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 70%)',
-          filter: 'blur(60px)'
-        }}
-        animate={orbAnimation}
-      />
-      <motion.div 
-        className="absolute bottom-1/4 right-1/4 w-80 h-80"
-        style={{
-          background: 'radial-gradient(circle, rgba(107, 114, 128, 0.3) 0%, rgba(107, 114, 128, 0.08) 50%, transparent 70%)',
-          filter: 'blur(80px)'
-        }}
-        animate={{...orbAnimation, transition: {...orbAnimation.transition, delay: 2}}}
-      />
-      
-      {/* Additional subtle orbs */}
-      <motion.div 
-        className="absolute top-3/4 left-1/3 w-64 h-64"
-        style={{
-          background: 'radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%)',
-          filter: 'blur(40px)'
-        }}
-        animate={{...orbAnimation, transition: {...orbAnimation.transition, delay: 4}}}
-      />
+  const getColorClasses = (color: string) => {
+    const colorMap = {
+      blue: "bg-blue-600/10 border-blue-600/20 text-blue-400",
+      emerald: "bg-emerald-600/10 border-emerald-600/20 text-emerald-400",
+      green: "bg-green-600/10 border-green-600/20 text-green-400",
+      yellow: "bg-yellow-600/10 border-yellow-600/20 text-yellow-400",
+      purple: "bg-purple-600/10 border-purple-600/20 text-purple-400",
+      orange: "bg-orange-600/10 border-orange-600/20 text-orange-400"
+    };
+    return colorMap[color as keyof typeof colorMap] || colorMap.blue;
+  };
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+  return (
+    <section ref={ref} className="relative py-16 md:py-24 lg:py-32 overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0">
+        {/* Primary Background */}
+        <div className="absolute inset-0 bg-gray-950" />
+        
+        {/* Grid Pattern - Enhanced visibility */}
+        <div className="absolute inset-0 opacity-20">
+          <div
+            className="w-full h-full"
+            style={{
+              backgroundImage: `
+                linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px)
+              `,
+              backgroundSize: "24px 24px",
+            }}
+          />
+        </div>
+
+        {/* Optimized Gradient Orbs - Reduced blur for performance */}
+        <motion.div 
+          className="absolute top-1/4 left-1/4 w-64 h-64 sm:w-80 sm:h-80 lg:w-96 lg:h-96"
+          style={{
+            background: 'radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, rgba(37, 99, 235, 0.08) 50%, transparent 70%)',
+            filter: 'blur(40px)',
+            willChange: 'transform'
+          }}
+          animate={orbAnimation}
+        />
+        
+        <motion.div 
+          className="absolute bottom-1/4 right-1/4 w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80"
+          style={{
+            background: 'radial-gradient(circle, rgba(115, 115, 115, 0.15) 0%, rgba(115, 115, 115, 0.03) 50%, transparent 70%)',
+            filter: 'blur(50px)',
+            willChange: 'transform'
+          }}
+          animate={{...orbAnimation, transition: {...orbAnimation.transition, delay: 4}} as const}
+        />
+
+        {/* Additional subtle orb */}
+        <motion.div 
+          className="absolute top-3/4 left-1/3 w-32 h-32 sm:w-40 sm:h-40"
+          style={{
+            background: 'radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%)',
+            filter: 'blur(40px)',
+            willChange: 'transform'
+          }}
+          animate={{...orbAnimation, transition: {...orbAnimation.transition, delay: 8}} as const}
+        />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header Section - Clean and minimal */}
         <motion.div
-          initial="initial"
-          whileInView="animate"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
-          variants={fadeInUp}
-          className="flex flex-col items-center space-y-4 sm:space-y-6 pb-16"
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          style={{ y: parallaxY }}
+          className="text-center space-y-3 mb-12 lg:mb-16"
         >
-          <div className="inline-flex items-center space-x-2 bg-white/[0.02] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm group/badge hover:scale-105 transition-transform duration-300">
-            <TrendingUp className="h-4 w-4 text-blue-400 group-hover/badge:animate-pulse" />
-            <span className="text-white/70 text-sm font-medium">Growing Fast</span>
+          {/* Badge - Minimal styling */}
+          <div className="inline-flex items-center space-x-2 bg-white/[0.03] border border-white/[0.08] rounded-full px-3 py-1.5 backdrop-blur-sm">
+            <TrendingUp className="h-3 w-3 text-blue-400" />
+            <span className="text-white/70 text-xs font-medium">Growing Fast</span>
           </div>
           
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight font-semibold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
-            Our Achievements
+          {/* Title - Clean typography */}
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight tracking-tight">
+            Our{" "}
+            <span className="bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent">
+              Achievements
+            </span>
           </h2>
           
-          <p className="text-base text-white/80 max-w-2xl text-center leading-relaxed">
-            Milestones that showcase our commitment to excellence and innovation
+          {/* Description - Concise */}
+          <p className="text-sm sm:text-base text-white/60 max-w-xl mx-auto leading-relaxed">
+            Milestones that showcase our commitment to excellence
           </p>
         </motion.div>
         
+        {/* Stats Grid - Clean and minimal */}
         <motion.div 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-          initial="initial"
-          whileInView="animate"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6"
+          initial="hidden"
+          whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
           variants={containerVariants}
         >
-          {companyStats.map((stat) => (
-            <motion.div 
-              key={stat.id} 
-              className="group relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] overflow-hidden hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300 backdrop-blur-sm text-center flex flex-col items-center justify-center"
-              variants={itemVariants}
-              whileHover={{ y: -8, transition: { duration: 0.3, ease: "easeOut" as const } }}
-            >
-              {/* Enhanced Gradient Orb Background */}
-              <div className="absolute -top-10 -right-10 w-20 h-20" style={{
-                background: 'radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, transparent 70%)',
-                filter: 'blur(40px)'
-              }}></div>
-              
-              <div className="relative z-10 flex flex-col items-center">
-                <div className="text-5xl sm:text-6xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
-                  <AnimatedCounter 
-                    end={parseInt(stat.value)} 
-                    prefix={stat.prefix} 
-                    suffix={stat.suffix} 
-                  />
+          {companyStats.map((stat, index) => {
+            const IconComponent = stat.icon;
+            return (
+              <motion.div 
+                key={stat.id} 
+                className="group relative p-5 sm:p-6 rounded-2xl border border-white/[0.08] overflow-hidden transition-all duration-300 backdrop-blur-sm"
+                variants={itemVariants}
+                whileHover={{ 
+                  scale: 1.01, 
+                  y: -2,
+                  transition: { duration: 0.2, ease: "easeOut" }
+                }}
+              >
+                {/* Primary Multi-Color Gradient Background */}
+                <motion.div 
+                  className="absolute inset-0 rounded-2xl"
+                  style={{
+                    background: `linear-gradient(45deg, ${stat.gradientColors.join(', ')})`,
+                    backgroundSize: '300% 300%',
+                    filter: 'blur(60px)',
+                    opacity: 0.4
+                  }}
+                  animate={{
+                    backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
+                    transition: {
+                      duration: 15,
+                      repeat: Infinity,
+                      ease: "linear" as const,
+                      delay: index * 1.5
+                    }
+                  } as const}
+                />
+                
+                {/* Secondary Multi-Color Gradient Layer */}
+                <motion.div 
+                  className="absolute inset-0 rounded-2xl"
+                  style={{
+                    background: `linear-gradient(135deg, ${stat.gradientColors.slice(1).concat(stat.gradientColors[0]).join(', ')})`,
+                    backgroundSize: '250% 250%',
+                    filter: 'blur(40px)',
+                    opacity: 0.25
+                  }}
+                  animate={{
+                    backgroundPosition: ["100% 0%", "0% 100%", "100% 0%"],
+                    transition: {
+                      duration: 12,
+                      repeat: Infinity,
+                      ease: "linear" as const,
+                      delay: index * 1.5 + 0.5
+                    }
+                  } as const}
+                />
+
+                {/* Tertiary Gradient Layer for Extra Depth */}
+                <motion.div 
+                  className="absolute inset-0 rounded-2xl"
+                  style={{
+                    background: `linear-gradient(225deg, ${stat.gradientColors.slice(2).concat(stat.gradientColors.slice(0, 2)).join(', ')})`,
+                    backgroundSize: '200% 200%',
+                    filter: 'blur(30px)',
+                    opacity: 0.15
+                  }}
+                  animate={{
+                    backgroundPosition: ["0% 100%", "100% 0%", "0% 100%"],
+                    transition: {
+                      duration: 18,
+                      repeat: Infinity,
+                      ease: "linear" as const,
+                      delay: index * 1.5 + 1
+                    }
+                  } as const}
+                />
+
+                {/* Additional Glow Layer */}
+                <motion.div 
+                  className="absolute inset-0 rounded-2xl"
+                  style={{
+                    background: `radial-gradient(circle at 30% 20%, ${stat.gradientColors[0]}40, transparent 50%), radial-gradient(circle at 70% 80%, ${stat.gradientColors[1]}30, transparent 50%)`,
+                    filter: 'blur(20px)',
+                    opacity: 0.2
+                  }}
+                  animate={{
+                    opacity: [0.2, 0.4, 0.2],
+                    transition: {
+                      duration: 8,
+                      repeat: Infinity,
+                      ease: "easeInOut" as const,
+                      delay: index * 0.5
+                    }
+                  } as const}
+                />
+
+                {/* Card content - Clean and minimal */}
+                <div className="relative z-10 h-full flex flex-col">
+                  {/* Icon - Premium styling with white color */}
+                  <div className="inline-flex p-2.5 rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm transition-all duration-200 self-start mb-4 group-hover:scale-105 group-hover:bg-white/10">
+                    {IconComponent && (
+                      <IconComponent className="h-5 w-5 text-white/90" />
+                    )}
+                  </div>
+                  
+                  {/* Stats - Premium typography with white color */}
+                  <div className="space-y-2 mb-3">
+                    <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+                      <AnimatedCounter 
+                        end={parseInt(stat.value)} 
+                        prefix={stat.prefix} 
+                        suffix={stat.suffix} 
+                      />
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-semibold text-white/90">{stat.name}</h3>
+                  </div>
+                  
+                  {/* Description - Premium styling */}
+                  <p className="text-white/70 text-sm leading-relaxed font-medium">
+                    {stat.description}
+                  </p>
+
+
                 </div>
-                <h3 className="text-xl sm:text-2xl font-semibold mb-2 text-white">{stat.name}</h3>
-                <p className="text-white/60 text-sm leading-relaxed">{stat.description}</p>
-              </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+
+        {/* Trust Indicators - Minimal */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+          className="flex flex-wrap items-center justify-center gap-4 lg:gap-6 mt-12 lg:mt-16"
+        >
+          {[
+            { icon: Zap, text: "Fast", color: "text-blue-400" },
+            { icon: Shield, text: "Secure", color: "text-green-400" },
+            { icon: Heart, text: "User First", color: "text-red-400" },
+            { icon: Award, text: "Award Winning", color: "text-yellow-400" }
+          ].map((item, index) => (
+            <motion.div 
+              key={index}
+              className={`flex items-center space-x-1.5 text-white/50 text-xs ${item.color}`}
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.15 }}
+            >
+              <item.icon className="h-3 w-3" />
+              <span className="font-medium">{item.text}</span>
             </motion.div>
           ))}
         </motion.div>
       </div>
     </section>
   );
-};
-
-// Animation variants
-const fadeInUp = {
-  initial: { opacity: 0, y: 60 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, ease: [0.6, -0.05, 0.01, 0.99] }
 };
 
 export default AboutStats; 
