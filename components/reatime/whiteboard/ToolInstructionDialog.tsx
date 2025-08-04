@@ -12,12 +12,16 @@ interface ToolInstructionDialogProps {
     shortcut: string;
     icon: React.ComponentType<any>;
   };
+  isMobile?: boolean;
+  isTablet?: boolean;
 }
 
 const ToolInstructionDialog: React.FC<ToolInstructionDialogProps> = ({
   showToolInstruction,
   setShowToolInstruction,
   toolInstructionContent,
+  isMobile = false,
+  isTablet = false,
 }) => {
   return (
     <AnimatePresence>

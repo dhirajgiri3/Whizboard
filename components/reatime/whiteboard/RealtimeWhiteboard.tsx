@@ -40,28 +40,40 @@ const RealtimeWhiteboard: React.FC = () => {
         icon: React.ComponentType<any>;
     }>({ name: "", description: "", shortcut: "", icon: MousePointer });
 
-    // Responsive canvas dimensions
+    // Enhanced responsive canvas dimensions
     const [canvasWidth, setCanvasWidth] = useState(800);
     const [canvasHeight, setCanvasHeight] = useState(500);
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
 
-    // Update canvas dimensions based on screen size
+    // Update canvas dimensions and device detection based on screen size
     useEffect(() => {
         const updateCanvasDimensions = () => {
             const screenWidth = window.innerWidth;
             const screenHeight = window.innerHeight;
             const vh85 = screenHeight * 0.85;
             
-            if (screenWidth < 640) { // mobile
-                setCanvasWidth(Math.min(screenWidth - 32, 350));
-                setCanvasHeight(Math.min(vh85 - 200, 400));
+            // Device detection
+            setIsMobile(screenWidth < 640);
+            setIsTablet(screenWidth >= 640 && screenWidth < 1024);
+            
+            if (screenWidth < 480) { // small mobile
+                setCanvasWidth(Math.min(screenWidth - 16, 320));
+                setCanvasHeight(Math.min(vh85 - 240, 350));
+            } else if (screenWidth < 640) { // mobile
+                setCanvasWidth(Math.min(screenWidth - 24, 400));
+                setCanvasHeight(Math.min(vh85 - 220, 400));
             } else if (screenWidth < 768) { // tablet
-                setCanvasWidth(Math.min(screenWidth - 64, 600));
-                setCanvasHeight(Math.min(vh85 - 180, 500));
+                setCanvasWidth(Math.min(screenWidth - 48, 600));
+                setCanvasHeight(Math.min(vh85 - 200, 500));
             } else if (screenWidth < 1024) { // small desktop
-                setCanvasWidth(Math.min(screenWidth - 96, 700));
-                setCanvasHeight(Math.min(vh85 - 160, 600));
+                setCanvasWidth(Math.min(screenWidth - 64, 700));
+                setCanvasHeight(Math.min(vh85 - 180, 600));
+            } else if (screenWidth < 1280) { // desktop
+                setCanvasWidth(Math.min(screenWidth - 80, 800));
+                setCanvasHeight(Math.min(vh85 - 160, 650));
             } else { // large desktop
-                setCanvasWidth(800);
+                setCanvasWidth(Math.min(screenWidth - 96, 900));
                 setCanvasHeight(Math.min(vh85 - 140, 700));
             }
         };
@@ -229,10 +241,10 @@ const RealtimeWhiteboard: React.FC = () => {
                 setShowToolInstruction(true);
                 setTimeout(() => {
                     setShowToolInstruction(false);
-                }, 7000);
+                }, isMobile ? 5000 : 7000);
             }
         }
-    }, [toolbarItems]);
+    }, [toolbarItems, isMobile]);
 
     const handleElementSelect = useCallback(
         (elementId: string) => {
@@ -256,12 +268,18 @@ const RealtimeWhiteboard: React.FC = () => {
     }, []);
 
     return (
-        <div className="relative w-full max-w-6xl mx-auto px-2 sm:px-4 lg:px-0 canvas-container whiteboard-container" style={{ height: '85vh' }}>
+        <div className="relative w-full max-w-6xl mx-auto px-2 sm:px-4 lg:px-6 xl:px-8 canvas-container whiteboard-container" 
+             style={{ 
+                 height: isMobile ? '70vh' : isTablet ? '75vh' : '85vh',
+                 minHeight: isMobile ? '400px' : isTablet ? '500px' : '600px'
+             }}>
             <div className="relative bg-white rounded-lg sm:rounded-xl lg:rounded-2xl shadow-lg sm:shadow-xl border border-gray-200 overflow-hidden h-full flex flex-col">
                 <WhiteboardHeader
                     zoomLevel={zoomLevel}
                     setZoomLevel={setZoomLevel}
                     collaborators={collaborators}
+                    isMobile={isMobile}
+                    isTablet={isTablet}
                 />
 
                 <div className="flex-1 relative overflow-hidden">
@@ -292,6 +310,8 @@ const RealtimeWhiteboard: React.FC = () => {
                         setSelectedElement={setSelectedElement}
                         isPanning={isPanning}
                         isDragging={isDragging}
+                        isMobile={isMobile}
+                        isTablet={isTablet}
                     />
                 </div>
 
@@ -301,12 +321,16 @@ const RealtimeWhiteboard: React.FC = () => {
                     selectedColor={selectedColor}
                     setSelectedColor={setSelectedColor}
                     colorPalettes={colorPalettes}
+                    isMobile={isMobile}
+                    isTablet={isTablet}
                 />
 
                 <ToolInstructionDialog
                     showToolInstruction={showToolInstruction}
                     setShowToolInstruction={setShowToolInstruction}
                     toolInstructionContent={toolInstructionContent}
+                    isMobile={isMobile}
+                    isTablet={isTablet}
                 />
 
                 <WhiteboardToolbar
@@ -316,11 +340,13 @@ const RealtimeWhiteboard: React.FC = () => {
                     selectedElement={selectedElement}
                     handleToolSelect={handleToolSelect}
                     handleDeleteElement={handleDeleteElement}
+                    isMobile={isMobile}
+                    isTablet={isTablet}
                 />
             </div>
 
             <style jsx>{`
-        /* Modern glassmorphism effects */
+        /* Enhanced glassmorphism effects with better performance */
         .backdrop-blur-sm {
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
@@ -336,20 +362,20 @@ const RealtimeWhiteboard: React.FC = () => {
           -webkit-backdrop-filter: blur(24px);
         }
 
-        /* Custom scrollbars */
+        /* Optimized scrollbars for better mobile experience */
         ::-webkit-scrollbar {
-          width: 6px;
-          height: 6px;
+          width: ${isMobile ? '4px' : '6px'};
+          height: ${isMobile ? '4px' : '6px'};
         }
 
         ::-webkit-scrollbar-track {
           background: rgba(0, 0, 0, 0.05);
-          border-radius: 3px;
+          border-radius: ${isMobile ? '2px' : '3px'};
         }
 
         ::-webkit-scrollbar-thumb {
           background: rgba(156, 163, 175, 0.5);
-          border-radius: 3px;
+          border-radius: ${isMobile ? '2px' : '3px'};
           transition: background 0.2s ease;
         }
 
@@ -359,44 +385,45 @@ const RealtimeWhiteboard: React.FC = () => {
 
         /* Dialog specific scrollbars */
         .dialog-scrollbar::-webkit-scrollbar {
-          width: 4px;
+          width: ${isMobile ? '3px' : '4px'};
         }
 
         .dialog-scrollbar::-webkit-scrollbar-track {
           background: rgba(0, 0, 0, 0.02);
-          border-radius: 2px;
+          border-radius: ${isMobile ? '1.5px' : '2px'};
         }
 
         .dialog-scrollbar::-webkit-scrollbar-thumb {
           background: rgba(156, 163, 175, 0.4);
-          border-radius: 2px;
+          border-radius: ${isMobile ? '1.5px' : '2px'};
         }
 
         .dialog-scrollbar::-webkit-scrollbar-thumb:hover {
           background: rgba(156, 163, 175, 0.6);
         }
 
-        /* Focus states for accessibility */
+        /* Enhanced focus states for better accessibility */
         button:focus-visible {
           outline: 2px solid rgba(59, 130, 246, 0.6);
-          outline-offset: 2px;
+          outline-offset: ${isMobile ? '1px' : '2px'};
         }
 
-        /* Text selection styling */
+        /* Improved text selection styling */
         ::selection {
           background-color: rgba(59, 130, 246, 0.2);
           color: rgba(59, 130, 246, 1);
         }
 
-        /* Prevent text selection on canvas */
+        /* Prevent text selection on canvas with better touch handling */
         .canvas-container {
           -webkit-user-select: none;
           -moz-user-select: none;
           -ms-user-select: none;
           user-select: none;
+          touch-action: manipulation;
         }
 
-        /* Improve touch interactions */
+        /* Enhanced touch interactions for mobile */
         .canvas-container * {
           -webkit-touch-callout: none;
           -webkit-user-select: none;
@@ -404,18 +431,19 @@ const RealtimeWhiteboard: React.FC = () => {
           -moz-user-select: none;
           -ms-user-select: none;
           user-select: none;
+          touch-action: manipulation;
         }
 
-        /* Smooth transitions for better UX */
+        /* Optimized transitions for better performance */
         * {
           transition: all 0.2s ease-in-out;
         }
 
-        /* Ensure proper height handling */
+        /* Responsive height handling */
         .whiteboard-container {
-          height: 85vh;
-          max-height: 85vh;
-          min-height: 400px;
+          height: ${isMobile ? '70vh' : isTablet ? '75vh' : '85vh'};
+          max-height: ${isMobile ? '70vh' : isTablet ? '75vh' : '85vh'};
+          min-height: ${isMobile ? '400px' : isTablet ? '500px' : '600px'};
         }
 
         /* Remove borders and outlines from canvas elements */
@@ -438,6 +466,56 @@ const RealtimeWhiteboard: React.FC = () => {
           outline: none !important;
           border: none !important;
           box-shadow: none !important;
+        }
+
+        /* Mobile-specific optimizations */
+        @media (max-width: 640px) {
+          .canvas-container {
+            touch-action: manipulation;
+            -webkit-overflow-scrolling: touch;
+          }
+          
+          /* Reduce animation complexity on mobile */
+          * {
+            transition: all 0.15s ease-in-out;
+          }
+        }
+
+        /* Tablet-specific optimizations */
+        @media (min-width: 641px) and (max-width: 1023px) {
+          .canvas-container {
+            touch-action: manipulation;
+          }
+        }
+
+        /* Desktop-specific enhancements */
+        @media (min-width: 1024px) {
+          .canvas-container {
+            touch-action: auto;
+          }
+        }
+
+        /* High DPI display optimizations */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+          .canvas-container svg {
+            shape-rendering: geometricPrecision;
+          }
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+          * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+          .canvas-container {
+            background-color: rgba(0, 0, 0, 0.02);
+          }
         }
       `}</style>
         </div>

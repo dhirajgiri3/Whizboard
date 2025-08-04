@@ -23,20 +23,20 @@ const AboutHero = () => {
   }, []);
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-32">
       {/* Background Elements */}
       <div className="absolute inset-0">
         {/* Primary Background */}
         <div className="absolute inset-0 bg-gray-950" />
         
-        {/* Grid Pattern - Improved visibility */}
-        <div className="absolute inset-0 opacity-20">
+        {/* Grid Pattern - Enhanced visibility */}
+        <div className="absolute inset-0 opacity-40">
           <div
             className="w-full h-full"
             style={{
               backgroundImage: `
-                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)
+                linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px)
               `,
               backgroundSize: "24px 24px",
             }}
@@ -67,12 +67,49 @@ const AboutHero = () => {
         </div>
       </div>
 
+      {/* Colorful Background Particles - Minimal and Premium */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(isMobile ? 15 : 25)].map((_, i) => (
+          <motion.div
+            key={`particle-${i}`}
+            className="absolute rounded-full"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              width: i % 8 === 0 ? (isMobile ? "3px" : "4px") : i % 4 === 0 ? (isMobile ? "2px" : "3px") : (isMobile ? "1px" : "2px"),
+              height: i % 8 === 0 ? (isMobile ? "3px" : "4px") : i % 4 === 0 ? (isMobile ? "2px" : "3px") : (isMobile ? "1px" : "2px"),
+            }}
+            animate={{
+              y: [-20, 30, -20],
+              x: [0, i % 2 === 0 ? (isMobile ? 10 : 20) : (isMobile ? -10 : -20), 0],
+              opacity: [0.2, 0.8, 0.2],
+              scale: [0.5, 1.5, 0.5],
+            }}
+            transition={{
+              duration: isMobile ? 20 + i * 0.8 : 15 + i * 0.6,
+              repeat: Infinity,
+              delay: i * 0.3,
+              ease: "easeInOut",
+            }}
+          >
+            <div className={`w-full h-full rounded-full shadow-sm ${
+              i % 6 === 0 ? "bg-blue-400/60" : 
+              i % 5 === 0 ? "bg-emerald-400/50" : 
+              i % 4 === 0 ? "bg-purple-400/50" :
+              i % 3 === 0 ? "bg-pink-400/50" :
+              i % 2 === 0 ? "bg-yellow-400/50" :
+              "bg-cyan-400/50"
+            }`} />
+          </motion.div>
+        ))}
+      </div>
+
       {/* Main Content - Centered Layout */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-screen">
         
         {/* Top Section - Hero Content */}
         <motion.div
-          className="text-center max-w-4xl mx-auto mb-16 lg:mb-20"
+          className="text-center max-w-4xl mx-auto mb-12 lg:mb-16"
           style={{ y: parallaxY }}
         >
           {/* Badge */}
@@ -80,7 +117,7 @@ const AboutHero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="inline-flex items-center space-x-2 bg-white/[0.03] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm mb-8"
+            className="inline-flex items-center space-x-2 bg-white/[0.03] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm mb-6"
           >
             <Target className="h-4 w-4 text-blue-400" />
             <span className="text-white/70 text-sm font-medium">Our Story</span>
@@ -91,12 +128,27 @@ const AboutHero = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight text-white mb-4"
+            className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl  font-bold leading-[1.1] tracking-tight text-white mb-4"
           >
             About{" "}
-            <span className="bg-gradient-to-r from-white via-blue-300 to-blue-400 bg-clip-text text-transparent">
+            <motion.span
+              className="relative inline-block bg-gradient-to-r from-blue-500 via-white to-blue-500 bg-clip-text text-transparent bg-[length:200%_100%]"
+              animate={{
+                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+              }}
+              transition={{
+                duration: 6,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
               WhizBoard
-            </span>
+              <motion.div
+                className="absolute -inset-2 bg-gradient-to-r from-blue-600/20 to-blue-500/20 blur-xl rounded-lg"
+                animate={{ opacity: [0, 0.4, 0] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              />
+            </motion.span>
           </motion.h1>
 
           {/* Description - Fixed spacing */}
@@ -104,7 +156,7 @@ const AboutHero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-            className="text-lg sm:text-xl lg:text-2xl text-white/70 leading-relaxed font-light mb-8 max-w-3xl mx-auto"
+            className="text-base text-white/70 leading-relaxed font-light mb-8 max-w-lg mx-auto"
           >
             We're building the future of collaborative whiteboarding. Learn about our journey, 
             values, and the people behind the innovation that's transforming how teams work together.
@@ -115,7 +167,7 @@ const AboutHero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-            className="flex flex-col sm:flex-row items-center gap-4 justify-center mb-12"
+            className="flex flex-col sm:flex-row items-center gap-4 justify-center mb-10"
           >
             <Link
               href="/contact"
@@ -163,13 +215,13 @@ const AboutHero = () => {
           transition={{ duration: 1, delay: 1, ease: "easeOut" }}
           className="w-full max-w-6xl mx-auto"
         >
-          {/* Bento Grid Container - 5 Blocks Layout */}
+          {/* Bento Grid Container - 5 Blocks Layout with Proper Spacing */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             
-            {/* Large Feature Card - Mission (Spans 2 columns on large screens) */}
+            {/* Large Feature Card - Mission (Spans 2 columns and 2 rows) */}
             <motion.div
               whileHover={{ scale: 1.02, y: -4 }}
-              className="group p-6 sm:p-8 rounded-3xl bg-white/[0.03] border border-white/[0.08] overflow-hidden hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 backdrop-blur-sm md:col-span-2 lg:col-span-2"
+              className="group p-6 sm:p-8 rounded-3xl bg-white/[0.03] border border-white/[0.08] overflow-hidden hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 backdrop-blur-sm md:col-span-2 lg:col-span-2 lg:row-span-2"
             >
               <div className="relative z-10 h-full flex flex-col">
                 {/* Header section with improved spacing */}
@@ -225,16 +277,28 @@ const AboutHero = () => {
               </div>
             </motion.div>
 
-            {/* Innovation Card */}
+            {/* Innovation Card - Now spans only 1 row */}
             <motion.div
               whileHover={{ scale: 1.02, y: -4 }}
               className="group p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 backdrop-blur-sm"
             >
-              <div className="inline-flex p-3 rounded-xl bg-emerald-600/10 border border-emerald-600/20 group-hover:bg-emerald-600/15 transition-colors self-start mb-4">
-                <Rocket className="w-6 h-6 text-emerald-400" />
+              <div className="inline-flex p-3 rounded-xl bg-orange-600/10 border border-orange-600/20 group-hover:bg-orange-600/15 transition-colors self-start mb-4">
+                <Rocket className="w-6 h-6 text-orange-400" />
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">Innovation First</h3>
               <p className="text-white/70 text-sm leading-relaxed">Cutting-edge technology that pushes the boundaries of collaborative creativity.</p>
+            </motion.div>
+
+            {/* Enterprise Security Card - Fills the empty space */}
+            <motion.div
+              whileHover={{ scale: 1.02, y: -4 }}
+              className="group p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 backdrop-blur-sm"
+            >
+              <div className="inline-flex p-3 rounded-xl bg-green-600/10 border border-green-600/20 group-hover:bg-green-600/15 transition-colors self-start mb-4">
+                <Shield className="w-6 h-6 text-green-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Enterprise Security</h3>
+              <p className="text-white/70 text-sm leading-relaxed">Bank-grade security with SOC 2 compliance and end-to-end encryption.</p>
             </motion.div>
 
             {/* Performance Card */}
@@ -242,8 +306,8 @@ const AboutHero = () => {
               whileHover={{ scale: 1.02, y: -4 }}
               className="group p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 backdrop-blur-sm"
             >
-              <div className="inline-flex p-3 rounded-xl bg-amber-600/10 border border-amber-600/20 group-hover:bg-amber-600/15 transition-colors self-start mb-4">
-                <Award className="w-6 h-6 text-amber-400" />
+              <div className="inline-flex p-3 rounded-xl bg-yellow-600/10 border border-yellow-600/20 group-hover:bg-yellow-600/15 transition-colors self-start mb-4">
+                <Award className="w-6 h-6 text-yellow-400" />
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">Lightning Fast</h3>
               <p className="text-white/70 text-sm leading-relaxed">Real-time collaboration with zero latency and instant synchronization.</p>
@@ -271,18 +335,6 @@ const AboutHero = () => {
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">Global Reach</h3>
               <p className="text-white/70 text-sm leading-relaxed">Serving teams worldwide with localized support and infrastructure.</p>
-            </motion.div>
-
-            {/* Security Card */}
-            <motion.div
-              whileHover={{ scale: 1.02, y: -4 }}
-              className="group p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 backdrop-blur-sm"
-            >
-              <div className="inline-flex p-3 rounded-xl bg-green-600/10 border border-green-600/20 group-hover:bg-green-600/15 transition-colors self-start mb-4">
-                <Shield className="w-6 h-6 text-green-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Enterprise Security</h3>
-              <p className="text-white/70 text-sm leading-relaxed">Bank-grade security with SOC 2 compliance and end-to-end encryption.</p>
             </motion.div>
           </div>
         </motion.div>

@@ -20,6 +20,8 @@ interface WhiteboardToolbarProps {
   selectedElement: string | null;
   handleToolSelect: (index: number) => void;
   handleDeleteElement: () => void;
+  isMobile?: boolean;
+  isTablet?: boolean;
 }
 
 const WhiteboardToolbar: React.FC<WhiteboardToolbarProps> = ({
@@ -29,6 +31,8 @@ const WhiteboardToolbar: React.FC<WhiteboardToolbarProps> = ({
   selectedElement,
   handleToolSelect,
   handleDeleteElement,
+  isMobile = false,
+  isTablet = false,
 }) => {
   return (
     <div className="absolute bottom-0 left-0 right-0 z-50 bg-[#0F0F10]/95 backdrop-blur-xl border-t border-white/[0.08] rounded-b-lg">

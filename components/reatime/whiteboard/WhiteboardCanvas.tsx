@@ -31,6 +31,8 @@ interface WhiteboardCanvasProps {
   setSelectedElement: React.Dispatch<React.SetStateAction<string | null>>;
   isPanning: boolean;
   isDragging?: boolean;
+  isMobile?: boolean;
+  isTablet?: boolean;
 }
 
 const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
@@ -60,6 +62,8 @@ const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
   setSelectedElement,
   isPanning,
   isDragging = false,
+  isMobile = false,
+  isTablet = false,
 }) => {
   return (
     <div className="relative w-full h-full bg-gradient-to-br from-gray-50 via-white to-gray-50 overflow-hidden focus:outline-none" style={{ outline: 'none', border: 'none' }}>

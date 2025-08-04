@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Play, Users, Star, Zap } from "lucide-react";
+import { ArrowRight, Play, Users, Star, Zap, CheckCircle } from "lucide-react";
 import RealtimeDashboard from "@/components/reatime/whiteboard/RealtimeWhiteboard";
 
 /**
- * Enhanced hero section with sophisticated dark blue gradients and seamless wave integration
+ * Enhanced hero section with sophisticated responsive design and optimized performance
  */
 const Hero = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -39,15 +39,13 @@ const Hero = () => {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  // Enhanced wave patterns with more variety and complexity
+  // Optimized wave patterns with better performance
   const waveVariants = {
     wave1: {
       d: [
         "M0,224L48,213.3C96,203,192,181,288,192C384,203,480,245,576,256C672,267,768,245,864,213.3C960,181,1056,139,1152,133.3C1248,128,1344,160,1392,176L1440,192L1440,320L0,320Z",
         "M0,256L48,240C96,224,192,192,288,197.3C384,203,480,245,576,261.3C672,277,768,267,864,234.7C960,203,1056,149,1152,138.7C1248,128,1344,160,1392,176L1440,192L1440,320L0,320Z",
         "M0,192L48,181.3C96,171,192,149,288,160C384,171,480,213,576,224C672,235,768,213,864,197.3C960,181,1056,171,1152,165.3C1248,160,1344,192,1392,208L1440,224L1440,320L0,320Z",
-        "M0,280L48,261.3C96,243,192,207,288,202.7C384,198,480,226,576,245.3C672,265,768,275,864,261.3C960,248,1056,212,1152,197.3C1248,183,1344,189,1392,192L1440,195L1440,320L0,320Z",
-        "M0,224L48,213.3C96,203,192,181,288,192C384,203,480,245,576,256C672,267,768,245,864,213.3C960,181,1056,139,1152,133.3C1248,128,1344,160,1392,176L1440,192L1440,320L0,320Z",
       ],
     },
     wave2: {
@@ -55,8 +53,6 @@ const Hero = () => {
         "M0,224L48,218.7C96,213,192,203,288,208C384,213,480,235,576,229.3C672,224,768,192,864,181.3C960,171,1056,181,1152,186.7C1248,192,1344,192,1392,192L1440,192L1440,320L0,320Z",
         "M0,192L48,208C96,224,192,256,288,229.3C384,203,480,117,576,117.3C672,117,768,203,864,213.3C960,224,1056,160,1152,149.3C1248,139,1344,181,1392,202.7L1440,224L1440,320L0,320Z",
         "M0,160L48,170.7C96,181,192,203,288,197.3C384,192,480,160,576,144C672,128,768,128,864,149.3C960,171,1056,213,1152,218.7C1248,224,1344,192,1392,176L1440,160L1440,320L0,320Z",
-        "M0,288L48,277.3C96,267,192,245,288,240C384,235,480,245,576,261.3C672,277,768,309,864,298.7C960,288,1056,224,1152,197.3C1248,171,1344,181,1392,186.7L1440,192L1440,320L0,320Z",
-        "M0,224L48,218.7C96,213,192,203,288,208C384,213,480,235,576,229.3C672,224,768,192,864,181.3C960,171,1056,181,1152,186.7C1248,192,1344,192,1392,192L1440,192L1440,320L0,320Z",
       ],
     },
     wave3: {
@@ -64,35 +60,6 @@ const Hero = () => {
         "M0,256L48,245.3C96,235,192,213,288,192C384,171,480,149,576,160C672,171,768,213,864,224C960,235,1056,213,1152,197.3C1248,181,1344,171,1392,165.3L1440,160L1440,320L0,320Z",
         "M0,224L48,208C96,192,192,160,288,170.7C384,181,480,235,576,240C672,245,768,203,864,197.3C960,192,1056,224,1152,213.3C1248,203,1344,149,1392,122.7L1440,96L1440,320L0,320Z",
         "M0,288L48,277.3C96,267,192,245,288,240C384,235,480,245,576,261.3C672,277,768,309,864,298.7C960,288,1056,224,1152,197.3C1248,171,1344,181,1392,186.7L1440,192L1440,320L0,320Z",
-        "M0,192L48,202.7C96,213,192,235,288,245.3C384,256,480,256,576,245.3C672,235,768,213,864,208C960,203,1056,213,1152,229.3C1248,245,1344,267,1392,278.7L1440,290L1440,320L0,320Z",
-        "M0,256L48,245.3C96,235,192,213,288,192C384,171,480,149,576,160C672,171,768,213,864,224C960,235,1056,213,1152,197.3C1248,181,1344,171,1392,165.3L1440,160L1440,320L0,320Z",
-      ],
-    },
-    wave4: {
-      d: [
-        "M0,160L48,170.7C96,181,192,203,288,197.3C384,192,480,160,576,144C672,128,768,128,864,149.3C960,171,1056,213,1152,218.7C1248,224,1344,192,1392,176L1440,160L1440,320L0,320Z",
-        "M0,96L48,122.7C96,149,192,203,288,229.3C384,256,480,256,576,234.7C672,213,768,171,864,160C960,149,1056,171,1152,176C1248,181,1344,171,1392,165.3L1440,160L1440,320L0,320Z",
-        "M0,224L48,213.3C96,203,192,181,288,192C384,203,480,245,576,256C672,267,768,245,864,213.3C960,181,1056,139,1152,133.3C1248,128,1344,160,1392,176L1440,192L1440,320L0,320Z",
-        "M0,192L48,181.3C96,171,192,149,288,160C384,171,480,213,576,224C672,235,768,213,864,197.3C960,181,1056,171,1152,165.3C1248,160,1344,192,1392,208L1440,224L1440,320L0,320Z",
-        "M0,160L48,170.7C96,181,192,203,288,197.3C384,192,480,160,576,144C672,128,768,128,864,149.3C960,171,1056,213,1152,218.7C1248,224,1344,192,1392,176L1440,160L1440,320L0,320Z",
-      ],
-    },
-    wave5: {
-      d: [
-        "M0,128L48,144C96,160,192,192,288,197.3C384,203,480,181,576,170.7C672,160,768,160,864,181.3C960,203,1056,245,1152,250.7C1248,256,1344,224,1392,208L1440,192L1440,320L0,320Z",
-        "M0,288L48,277.3C96,267,192,245,288,240C384,235,480,245,576,261.3C672,277,768,309,864,298.7C960,288,1056,224,1152,197.3C1248,171,1344,181,1392,186.7L1440,192L1440,320L0,320Z",
-        "M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,229.3C672,224,768,192,864,181.3C960,171,1056,181,1152,186.7C1248,192,1344,192,1392,192L1440,192L1440,320L0,320Z",
-        "M0,224L48,208C96,192,192,160,288,170.7C384,181,480,235,576,240C672,245,768,203,864,197.3C960,192,1056,224,1152,213.3C1248,203,1344,149,1392,122.7L1440,96L1440,320L0,320Z",
-        "M0,128L48,144C96,160,192,192,288,197.3C384,203,480,181,576,170.7C672,160,768,160,864,181.3C960,203,1056,245,1152,250.7C1248,256,1344,224,1392,208L1440,192L1440,320L0,320Z",
-      ],
-    },
-    wave6: {
-      d: [
-        "M0,64L48,80C96,96,192,128,288,154.7C384,181,480,203,576,197.3C672,192,768,160,864,144C960,128,1056,128,1152,149.3C1248,171,1344,213,1392,234.7L1440,256L1440,320L0,320Z",
-        "M0,192L48,181.3C96,171,192,149,288,160C384,171,480,213,576,224C672,235,768,213,864,197.3C960,181,1056,171,1152,165.3C1248,160,1344,192,1392,208L1440,224L1440,320L0,320Z",
-        "M0,256L48,245.3C96,235,192,213,288,192C384,171,480,149,576,160C672,171,768,213,864,224C960,235,1056,213,1152,197.3C1248,181,1344,171,1392,165.3L1440,160L1440,320L0,320Z",
-        "M0,96L48,122.7C96,149,192,203,288,229.3C384,256,480,256,576,234.7C672,213,768,171,864,160C960,149,1056,171,1152,176C1248,181,1344,171,1392,165.3L1440,160L1440,320L0,320Z",
-        "M0,64L48,80C96,96,192,128,288,154.7C384,181,480,203,576,197.3C672,192,768,160,864,144C960,128,1056,128,1152,149.3C1248,171,1344,213,1392,234.7L1440,256L1440,320L0,320Z",
       ],
     },
   };
@@ -128,44 +95,22 @@ const Hero = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-slate-900/10" />
       </div>
 
-      {/* Enhanced minimal floating particles with white colors - Mobile optimized */}
+      {/* Optimized floating particles - Reduced count for better performance */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Small, crystal clear particles distributed throughout - Reduced count on mobile */}
-        {[...Array(isMobile ? 20 : 40)].map((_, i) => (
+        {/* Small particles - Reduced count on mobile */}
+        {[...Array(isMobile ? 12 : 24)].map((_, i) => (
           <motion.div
             key={`particle-${i}`}
             className="absolute rounded-full"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              width:
-                i % 5 === 0
-                  ? isMobile
-                    ? "1.5px"
-                    : "2px"
-                  : i % 3 === 0
-                  ? isMobile
-                    ? "1px"
-                    : "1.5px"
-                  : "1px",
-              height:
-                i % 5 === 0
-                  ? isMobile
-                    ? "1.5px"
-                    : "2px"
-                  : i % 3 === 0
-                  ? isMobile
-                    ? "1px"
-                    : "1.5px"
-                  : "1px",
+              width: i % 5 === 0 ? (isMobile ? "1.5px" : "2px") : "1px",
+              height: i % 5 === 0 ? (isMobile ? "1.5px" : "2px") : "1px",
             }}
             animate={{
               y: [-20, 30, -20],
-              x: [
-                0,
-                i % 2 === 0 ? (isMobile ? 5 : 10) : isMobile ? -5 : -10,
-                0,
-              ],
+              x: [0, i % 2 === 0 ? (isMobile ? 5 : 10) : isMobile ? -5 : -10, 0],
               opacity: [0.2, 0.8, 0.2],
               scale: [0.6, 1.2, 0.6],
             }}
@@ -180,8 +125,8 @@ const Hero = () => {
           </motion.div>
         ))}
 
-        {/* Medium-sized crystal clear orbs - Reduced count and size on mobile */}
-        {[...Array(isMobile ? 8 : 15)].map((_, i) => (
+        {/* Medium-sized orbs - Reduced count */}
+        {[...Array(isMobile ? 6 : 10)].map((_, i) => (
           <motion.div
             key={`orb-${i}`}
             className="absolute rounded-full"
@@ -193,11 +138,7 @@ const Hero = () => {
             }}
             animate={{
               y: [-15, 25, -15],
-              x: [
-                0,
-                i % 2 === 0 ? (isMobile ? 6 : 12) : isMobile ? -6 : -12,
-                0,
-              ],
+              x: [0, i % 2 === 0 ? (isMobile ? 6 : 12) : isMobile ? -6 : -12, 0],
               opacity: [0.3, 0.9, 0.3],
               scale: [0.7, 1.3, 0.7],
             }}
@@ -212,8 +153,8 @@ const Hero = () => {
           </motion.div>
         ))}
 
-        {/* Larger accent particles - Reduced count on mobile */}
-        {[...Array(isMobile ? 4 : 8)].map((_, i) => (
+        {/* Larger accent particles - Reduced count */}
+        {[...Array(isMobile ? 3 : 5)].map((_, i) => (
           <motion.div
             key={`accent-${i}`}
             className="absolute rounded-full"
@@ -225,11 +166,7 @@ const Hero = () => {
             }}
             animate={{
               y: [-25, 35, -25],
-              x: [
-                0,
-                i % 2 === 0 ? (isMobile ? 8 : 15) : isMobile ? -8 : -15,
-                0,
-              ],
+              x: [0, i % 2 === 0 ? (isMobile ? 8 : 15) : isMobile ? -8 : -15, 0],
               opacity: [0.4, 1, 0.4],
               scale: [0.8, 1.4, 0.8],
             }}
@@ -243,105 +180,29 @@ const Hero = () => {
             <div className="w-full h-full bg-white/90 rounded-full shadow-xl shadow-white/40" />
           </motion.div>
         ))}
-
-        {/* Floating orbs within waves - Reduced count on mobile */}
-        {[...Array(isMobile ? 3 : 6)].map((_, i) => (
-          <motion.div
-            key={`wave-orb-${i}`}
-            className="absolute rounded-full"
-            style={{
-              left: `${8 + i * 15}%`,
-              bottom: `${8 + i * 3}%`,
-              width: isMobile ? "3px" : "5px",
-              height: isMobile ? "3px" : "5px",
-            }}
-            animate={{
-              y: [-12, 18, -12],
-              x: [
-                0,
-                i % 2 === 0 ? (isMobile ? 5 : 10) : isMobile ? -5 : -10,
-                0,
-              ],
-              opacity: [0.4, 0.9, 0.4],
-              scale: [0.9, 1.1, 0.9],
-            }}
-            transition={{
-              duration: isMobile ? 11 + i * 0.7 : 9 + i * 0.6,
-              repeat: Infinity,
-              delay: i * 1.2,
-              ease: "easeInOut",
-            }}
-          >
-            <div className="w-full h-full bg-white/75 rounded-full shadow-lg shadow-white/35" />
-          </motion.div>
-        ))}
       </div>
 
-      {/* STUNNING ENHANCED WAVE LAYERS - Mobile optimized */}
+      {/* Optimized wave layers - Reduced complexity for better performance */}
       <div className="absolute bottom-0 left-0 w-full h-[35vh] sm:h-[40vh] pointer-events-none">
-        {/* Wave 6 - Deepest background layer with glow */}
+        {/* Wave 3 - Background layer */}
         <motion.svg
           className="absolute bottom-0 left-0 w-full h-full opacity-40"
           preserveAspectRatio="none"
           viewBox="0 0 1440 320"
           style={{
-            transform: `translateX(${
-              isMobile ? mousePosition.x * -1 : mousePosition.x * -8
-            }px) translateY(${
-              isMobile ? mousePosition.y * -0.5 : mousePosition.y * -4
-            }px) scale(${
-              1 + (isMobile ? mousePosition.x * 0.002 : mousePosition.x * 0.02)
-            })`,
+            transform: `translateX(${isMobile ? mousePosition.x * -1 : mousePosition.x * -8}px) translateY(${isMobile ? mousePosition.y * -0.5 : mousePosition.y * -4}px)`,
           }}
         >
           <defs>
-            <linearGradient id="wave6" x1="0%" y1="0%" x2="100%" y2="100%">
-              <motion.stop
-                offset="0%"
-                animate={{
-                  stopColor: [
-                    "rgba(59, 130, 246, 0.2)",
-                    "rgba(147, 197, 253, 0.3)",
-                    "rgba(59, 130, 246, 0.2)",
-                  ],
-                }}
-                transition={{ duration: 12, repeat: Infinity }}
-              />
-              <motion.stop
-                offset="50%"
-                animate={{
-                  stopColor: [
-                    "rgba(96, 165, 250, 0.15)",
-                    "rgba(59, 130, 246, 0.25)",
-                    "rgba(96, 165, 250, 0.15)",
-                  ],
-                }}
-                transition={{ duration: 14, repeat: Infinity, delay: 2 }}
-              />
-              <motion.stop
-                offset="100%"
-                animate={{
-                  stopColor: [
-                    "rgba(30, 64, 175, 0.25)",
-                    "rgba(96, 165, 250, 0.35)",
-                    "rgba(30, 64, 175, 0.25)",
-                  ],
-                }}
-                transition={{ duration: 16, repeat: Infinity, delay: 4 }}
-              />
+            <linearGradient id="wave3" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(59, 130, 246, 0.2)" />
+              <stop offset="50%" stopColor="rgba(96, 165, 250, 0.15)" />
+              <stop offset="100%" stopColor="rgba(30, 64, 175, 0.25)" />
             </linearGradient>
-            <filter id="glow6">
-              <feGaussianBlur stdDeviation="4" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
           </defs>
           <motion.path
-            fill="url(#wave6)"
-            filter="url(#glow6)"
-            animate={{ d: waveVariants.wave6.d }}
+            fill="url(#wave3)"
+            animate={{ d: waveVariants.wave3.d }}
             transition={{
               duration: 45,
               repeat: Infinity,
@@ -350,72 +211,25 @@ const Hero = () => {
           />
         </motion.svg>
 
-        {/* Wave 5 - Deep background layer */}
+        {/* Wave 2 - Middle layer */}
         <motion.svg
-          className="absolute bottom-0 left-0 w-full h-full opacity-50"
+          className="absolute bottom-0 left-0 w-full h-full opacity-60"
           preserveAspectRatio="none"
           viewBox="0 0 1440 320"
           style={{
-            transform: `translateX(${
-              isMobile ? mousePosition.x * -0.75 : mousePosition.x * -6
-            }px) translateY(${
-              isMobile ? mousePosition.y * -0.375 : mousePosition.y * -3
-            }px) scale(${
-              1 +
-              (isMobile ? mousePosition.y * 0.00125 : mousePosition.y * 0.01)
-            }) rotate(${
-              isMobile ? mousePosition.x * 0.0625 : mousePosition.x * 0.5
-            }deg)`,
+            transform: `translateX(${isMobile ? mousePosition.x * -0.5 : mousePosition.x * -4}px) translateY(${isMobile ? mousePosition.y * -0.25 : mousePosition.y * -2}px)`,
           }}
         >
           <defs>
-            <linearGradient id="wave5" x1="0%" y1="0%" x2="100%" y2="100%">
-              <motion.stop
-                offset="0%"
-                animate={{
-                  stopColor: [
-                    "rgba(96, 165, 250, 0.25)",
-                    "rgba(59, 130, 246, 0.35)",
-                    "rgba(96, 165, 250, 0.25)",
-                  ],
-                }}
-                transition={{ duration: 10, repeat: Infinity }}
-              />
-              <motion.stop
-                offset="50%"
-                animate={{
-                  stopColor: [
-                    "rgba(147, 197, 253, 0.2)",
-                    "rgba(96, 165, 250, 0.3)",
-                    "rgba(147, 197, 253, 0.2)",
-                  ],
-                }}
-                transition={{ duration: 12, repeat: Infinity, delay: 1 }}
-              />
-              <motion.stop
-                offset="100%"
-                animate={{
-                  stopColor: [
-                    "rgba(59, 130, 246, 0.3)",
-                    "rgba(30, 64, 175, 0.4)",
-                    "rgba(59, 130, 246, 0.3)",
-                  ],
-                }}
-                transition={{ duration: 14, repeat: Infinity, delay: 3 }}
-              />
+            <linearGradient id="wave2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(147, 197, 253, 0.3)" />
+              <stop offset="50%" stopColor="rgba(59, 130, 246, 0.25)" />
+              <stop offset="100%" stopColor="rgba(30, 64, 175, 0.35)" />
             </linearGradient>
-            <filter id="glow5">
-              <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
           </defs>
           <motion.path
-            fill="url(#wave5)"
-            filter="url(#glow5)"
-            animate={{ d: waveVariants.wave5.d }}
+            fill="url(#wave2)"
+            animate={{ d: waveVariants.wave2.d }}
             transition={{
               duration: 38,
               repeat: Infinity,
@@ -425,328 +239,30 @@ const Hero = () => {
           />
         </motion.svg>
 
-        {/* Wave 4 - Mid-deep layer */}
-        <motion.svg
-          className="absolute bottom-0 left-0 w-full h-full opacity-60"
-          preserveAspectRatio="none"
-          viewBox="0 0 1440 320"
-          style={{
-            transform: `translateX(${
-              isMobile ? mousePosition.x * -0.5 : mousePosition.x * -4
-            }px) translateY(${
-              isMobile ? mousePosition.y * -0.25 : mousePosition.y * -2
-            }px) scale(${
-              1 + (isMobile ? mousePosition.x * 0.002 : mousePosition.x * 0.015)
-            })`,
-          }}
-        >
-          <defs>
-            <linearGradient id="wave4" x1="0%" y1="0%" x2="100%" y2="100%">
-              <motion.stop
-                offset="0%"
-                animate={{
-                  stopColor: [
-                    "rgba(147, 197, 253, 0.3)",
-                    "rgba(59, 130, 246, 0.4)",
-                    "rgba(147, 197, 253, 0.3)",
-                  ],
-                }}
-                transition={{ duration: 8, repeat: Infinity }}
-              />
-              <motion.stop
-                offset="50%"
-                animate={{
-                  stopColor: [
-                    "rgba(59, 130, 246, 0.25)",
-                    "rgba(96, 165, 250, 0.35)",
-                    "rgba(59, 130, 246, 0.25)",
-                  ],
-                }}
-                transition={{ duration: 10, repeat: Infinity, delay: 2 }}
-              />
-              <motion.stop
-                offset="100%"
-                animate={{
-                  stopColor: [
-                    "rgba(30, 64, 175, 0.35)",
-                    "rgba(147, 197, 253, 0.45)",
-                    "rgba(30, 64, 175, 0.35)",
-                  ],
-                }}
-                transition={{ duration: 12, repeat: Infinity, delay: 1 }}
-              />
-            </linearGradient>
-            <filter id="glow4">
-              <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-          <motion.path
-            fill="url(#wave4)"
-            filter="url(#glow4)"
-            animate={{ d: waveVariants.wave4.d }}
-            transition={{
-              duration: 32,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 4,
-            }}
-          />
-        </motion.svg>
-
-        {/* Wave 1 - Enhanced with glow and color shifting */}
-        <motion.svg
-          className="absolute bottom-0 left-0 w-full h-full opacity-70"
-          preserveAspectRatio="none"
-          viewBox="0 0 1440 320"
-          style={{
-            transform: `translateX(${
-              isMobile ? mousePosition.x * -0.375 : mousePosition.x * -3
-            }px) translateY(${
-              isMobile ? mousePosition.y * -0.25 : mousePosition.y * -2
-            }px) scale(${
-              1 +
-              (isMobile ? mousePosition.y * 0.00125 : mousePosition.y * 0.01)
-            })`,
-          }}
-        >
-          <defs>
-            <linearGradient id="wave1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <motion.stop
-                offset="0%"
-                animate={{
-                  stopColor: [
-                    "rgba(175, 207, 255, 0.4)",
-                    "rgba(59, 130, 246, 0.5)",
-                    "rgba(175, 207, 255, 0.4)",
-                  ],
-                }}
-                transition={{ duration: 6, repeat: Infinity }}
-              />
-              <motion.stop
-                offset="40%"
-                animate={{
-                  stopColor: [
-                    "rgba(96, 165, 250, 0.35)",
-                    "rgba(147, 197, 253, 0.45)",
-                    "rgba(96, 165, 250, 0.35)",
-                  ],
-                }}
-                transition={{ duration: 8, repeat: Infinity, delay: 1 }}
-              />
-              <motion.stop
-                offset="80%"
-                animate={{
-                  stopColor: [
-                    "rgba(59, 130, 246, 0.4)",
-                    "rgba(30, 64, 175, 0.5)",
-                    "rgba(59, 130, 246, 0.4)",
-                  ],
-                }}
-                transition={{ duration: 10, repeat: Infinity, delay: 2 }}
-              />
-              <motion.stop
-                offset="100%"
-                animate={{
-                  stopColor: [
-                    "rgba(30, 64, 175, 0.45)",
-                    "rgba(96, 165, 250, 0.55)",
-                    "rgba(30, 64, 175, 0.45)",
-                  ],
-                }}
-                transition={{ duration: 12, repeat: Infinity, delay: 3 }}
-              />
-            </linearGradient>
-            <filter id="glow1">
-              <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-          <motion.path
-            fill="url(#wave1)"
-            filter="url(#glow1)"
-            animate={{ d: waveVariants.wave1.d }}
-            transition={{
-              duration: 35,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-        </motion.svg>
-
-        {/* Wave 2 - Enhanced middle layer */}
+        {/* Wave 1 - Foreground layer */}
         <motion.svg
           className="absolute bottom-0 left-0 w-full h-full opacity-80"
           preserveAspectRatio="none"
           viewBox="0 0 1440 320"
           style={{
-            transform: `translateX(${
-              isMobile ? mousePosition.x * 0.25 : mousePosition.x * 2
-            }px) translateY(${
-              isMobile ? mousePosition.y * -0.125 : mousePosition.y * -1
-            }px) scale(${
-              1 + (isMobile ? mousePosition.x * 0.001 : mousePosition.x * 0.008)
-            }) rotate(${
-              isMobile ? mousePosition.y * 0.0375 : mousePosition.y * 0.3
-            }deg)`,
+            transform: `translateX(${isMobile ? mousePosition.x * -0.375 : mousePosition.x * -3}px) translateY(${isMobile ? mousePosition.y * -0.25 : mousePosition.y * -2}px)`,
           }}
         >
           <defs>
-            <linearGradient id="wave2" x1="0%" y1="0%" x2="100%" y2="100%">
-              <motion.stop
-                offset="0%"
-                animate={{
-                  stopColor: [
-                    "rgba(147, 197, 253, 0.4)",
-                    "rgba(96, 165, 250, 0.5)",
-                    "rgba(147, 197, 253, 0.4)",
-                  ],
-                }}
-                transition={{ duration: 5, repeat: Infinity }}
-              />
-              <motion.stop
-                offset="40%"
-                animate={{
-                  stopColor: [
-                    "rgba(175, 207, 255, 0.45)",
-                    "rgba(59, 130, 246, 0.55)",
-                    "rgba(175, 207, 255, 0.45)",
-                  ],
-                }}
-                transition={{ duration: 7, repeat: Infinity, delay: 1.5 }}
-              />
-              <motion.stop
-                offset="80%"
-                animate={{
-                  stopColor: [
-                    "rgba(59, 130, 246, 0.5)",
-                    "rgba(147, 197, 253, 0.6)",
-                    "rgba(59, 130, 246, 0.5)",
-                  ],
-                }}
-                transition={{ duration: 9, repeat: Infinity, delay: 0.5 }}
-              />
-              <motion.stop
-                offset="100%"
-                animate={{
-                  stopColor: [
-                    "rgba(30, 64, 175, 0.55)",
-                    "rgba(175, 207, 255, 0.65)",
-                    "rgba(30, 64, 175, 0.55)",
-                  ],
-                }}
-                transition={{ duration: 11, repeat: Infinity, delay: 2.5 }}
-              />
+            <linearGradient id="wave1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(175, 207, 255, 0.4)" />
+              <stop offset="40%" stopColor="rgba(96, 165, 250, 0.35)" />
+              <stop offset="80%" stopColor="rgba(59, 130, 246, 0.4)" />
+              <stop offset="100%" stopColor="rgba(30, 64, 175, 0.45)" />
             </linearGradient>
-            <filter id="glow2">
-              <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
           </defs>
           <motion.path
-            fill="url(#wave2)"
-            filter="url(#glow2)"
-            animate={{ d: waveVariants.wave2.d }}
+            fill="url(#wave1)"
+            animate={{ d: waveVariants.wave1.d }}
             transition={{
-              duration: 28,
+              duration: 35,
               repeat: Infinity,
               ease: "easeInOut",
-              delay: 3,
-            }}
-          />
-        </motion.svg>
-
-        {/* Wave 3 - Enhanced foreground layer with intense glow */}
-        <motion.svg
-          className="absolute bottom-0 left-0 w-full h-full opacity-90"
-          preserveAspectRatio="none"
-          viewBox="0 0 1440 320"
-          style={{
-            transform: `translateX(${
-              isMobile ? mousePosition.x * 0.75 : mousePosition.x * 6
-            }px) translateY(${
-              isMobile ? mousePosition.y * 0.125 : mousePosition.y * 1
-            }px) scale(${
-              1 +
-              (isMobile ? mousePosition.x * 0.0015 : mousePosition.x * 0.012)
-            }) rotate(${
-              isMobile ? mousePosition.x * 0.025 : mousePosition.x * 0.2
-            }deg)`,
-          }}
-        >
-          <defs>
-            <linearGradient id="wave3" x1="0%" y1="0%" x2="100%" y2="100%">
-              <motion.stop
-                offset="0%"
-                animate={{
-                  stopColor: [
-                    "rgba(147, 197, 253, 0.5)",
-                    "rgba(59, 130, 246, 0.6)",
-                    "rgba(147, 197, 253, 0.5)",
-                  ],
-                }}
-                transition={{ duration: 4, repeat: Infinity }}
-              />
-              <motion.stop
-                offset="40%"
-                animate={{
-                  stopColor: [
-                    "rgba(96, 165, 250, 0.55)",
-                    "rgba(175, 207, 255, 0.65)",
-                    "rgba(96, 165, 250, 0.55)",
-                  ],
-                }}
-                transition={{ duration: 6, repeat: Infinity, delay: 1 }}
-              />
-              <motion.stop
-                offset="80%"
-                animate={{
-                  stopColor: [
-                    "rgba(175, 207, 255, 0.4)",
-                    "rgba(30, 64, 175, 0.6)",
-                    "rgba(175, 207, 255, 0.4)",
-                  ],
-                }}
-                transition={{ duration: 8, repeat: Infinity, delay: 2 }}
-              />
-              <motion.stop
-                offset="100%"
-                animate={{
-                  stopColor: [
-                    "rgba(30, 64, 175, 0.65)",
-                    "rgba(96, 165, 250, 0.75)",
-                    "rgba(30, 64, 175, 0.65)",
-                  ],
-                }}
-                transition={{ duration: 10, repeat: Infinity, delay: 0.5 }}
-              />
-            </linearGradient>
-            <filter id="glow3">
-              <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-          <motion.path
-            fill="url(#wave3)"
-            filter="url(#glow3)"
-            animate={{ d: waveVariants.wave3.d }}
-            transition={{
-              duration: 22,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 6,
             }}
           />
         </motion.svg>
@@ -756,10 +272,10 @@ const Hero = () => {
         {/* Enhanced main content - Mobile responsive spacing */}
         <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-16 lg:py-20">
           <motion.div
-            className="w-full max-w-6xl flex flex-col items-center gap-3 sm:gap-4 lg:gap-6 text-center"
+            className="w-full max-w-6xl flex flex-col items-center gap-4 sm:gap-6 lg:gap-8 text-center"
             style={{ y: parallaxY }}
           >
-            {/* Enhanced social proof with glow effect - Mobile optimized */}
+            {/* Enhanced social proof with better mobile design */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -768,7 +284,7 @@ const Hero = () => {
                 delay: 0.3,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="inline-flex items-center gap-2 sm:gap-3 rounded-full bg-white/15 px-3 sm:px-4 py-1.5 sm:py-2 backdrop-blur-md border border-white/25"
+              className="inline-flex items-center gap-2 sm:gap-3 rounded-full bg-white/15 px-3 sm:px-4 py-2 backdrop-blur-md border border-white/25"
             >
               <div className="flex -space-x-1 sm:-space-x-2">
                 {AvatarImages.map((image, i) => (
@@ -801,8 +317,8 @@ const Hero = () => {
               </motion.span>
             </motion.div>
 
-            <div className="flex flex-col items-center justify-center">
-              {/* Enhanced main heading with minimal, beautiful design - Mobile optimized */}
+            <div className="flex flex-col items-center justify-center space-y-4 sm:space-y-6">
+              {/* Enhanced main heading with better responsive typography */}
               <motion.h1
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -811,7 +327,7 @@ const Hero = () => {
                   delay: 0.4,
                   ease: [0.22, 1, 0.36, 1],
                 }}
-                className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight text-white text-center max-w-sm sm:max-w-2xl md:max-w-4xl lg:max-w-5xl px-2 sm:px-0"
+                className="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.1] tracking-tight text-white text-center max-w-sm sm:max-w-2xl lg:max-w-4xl xl:max-w-5xl px-2 sm:px-0"
               >
                 Transform Brainstorms into{" "}
                 <motion.span
@@ -835,7 +351,7 @@ const Hero = () => {
                 , Together.
               </motion.h1>
 
-              {/* Enhanced description with minimal, beautiful styling - Mobile optimized */}
+              {/* Enhanced description with better responsive design */}
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -844,7 +360,7 @@ const Hero = () => {
                   delay: 0.6,
                   ease: [0.22, 1, 0.36, 1],
                 }}
-                className="max-w-lg md:max-w-xl lg:max-w-2xl text-sm sm:text-base lg:text-lg text-white/80 leading-[1.6] font-light px-4 sm:px-0 mt-2 sm:mt-3"
+                className="max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl text-sm sm:text-base lg:text-lg xl:text-xl text-white/80 leading-[1.6] font-light px-4 sm:px-0"
               >
                 Create, collaborate, and bring your ideas to life with the most
                 intuitive whiteboard experience. From concept to completion, all
@@ -852,7 +368,7 @@ const Hero = () => {
               </motion.p>
             </div>
 
-            {/* Enhanced CTA buttons with minimal, beautiful design - Mobile optimized */}
+            {/* Enhanced CTA buttons with better mobile design */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -861,13 +377,13 @@ const Hero = () => {
                 delay: 0.8,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="flex max-w-[100px] sm:max-w-lg md:max-w-xl lg:max-w-2xl flex-col sm:flex-row items-center gap-3 sm:gap-4 md:gap-6 justify-center w-full px-4 sm:px-0 mt-4 sm:mt-6"
+              className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 md:gap-6 justify-center w-full px-4 sm:px-0 mt-6 sm:mt-8"
             >
               <motion.a
                 href="/signup"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-6 py-4 sm:px-8 sm:py-4 rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/35 w-full sm:w-auto min-w-[200px] flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-black"
+                className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-6 py-4 sm:px-8 sm:py-4 rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/35 w-full sm:w-auto min-w-[200px] min-h-[44px] flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-black"
               >
                 <span>Start Free Trial</span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -877,19 +393,19 @@ const Hero = () => {
                 href="#demo"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="group relative bg-white/[0.04] backdrop-blur-sm border border-white/[0.08] text-white px-6 py-4 sm:px-8 sm:py-4 rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 hover:bg-white/[0.08] hover:border-white/[0.15] w-full sm:w-auto min-w-[200px] flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black"
+                className="group relative bg-white/[0.04] backdrop-blur-sm border border-white/[0.08] text-white px-6 py-4 sm:px-8 sm:py-4 rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 hover:bg-white/[0.08] hover:border-white/[0.15] w-full sm:w-auto min-w-[200px] min-h-[44px] flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black"
               >
                 <Play className="w-4 h-4 transition-transform group-hover:scale-110" />
                 <span>See 2-Min Demo</span>
               </motion.a>
             </motion.div>
 
-            {/* Enhanced trust indicators with better messaging - Mobile optimized */}
+            {/* Enhanced trust indicators with better mobile layout */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 1.2 }}
-              className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 lg:gap-8 text-white/85 text-xs sm:text-sm px-4 sm:px-0 mt-6 sm:mt-8"
+              className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 lg:gap-8 text-white/85 text-xs sm:text-sm px-4 sm:px-0 mt-6 sm:mt-8"
             >
               <div className="flex items-center gap-2">
                 <Star className="h-4 w-4 sm:h-5 sm:w-5 fill-white text-white drop-shadow-sm" />
@@ -911,7 +427,7 @@ const Hero = () => {
           </motion.div>
         </div>
 
-        {/* Realtime Dashboard Integration - Mobile optimized */}
+        {/* Realtime Dashboard Integration - Enhanced mobile responsiveness */}
         <div className="px-4 sm:px-6 lg:px-8 pb-8 sm:pb-12 md:pb-16 lg:pb-20">
           <motion.div
             className="w-full max-w-7xl mx-auto"

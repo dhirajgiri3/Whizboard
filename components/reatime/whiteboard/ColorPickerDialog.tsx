@@ -11,6 +11,8 @@ interface ColorPickerDialogProps {
   selectedColor: string;
   setSelectedColor: (color: string) => void;
   colorPalettes: ColorPalette[];
+  isMobile?: boolean;
+  isTablet?: boolean;
 }
 
 const ColorPickerDialog: React.FC<ColorPickerDialogProps> = ({
@@ -19,6 +21,8 @@ const ColorPickerDialog: React.FC<ColorPickerDialogProps> = ({
   selectedColor,
   setSelectedColor,
   colorPalettes,
+  isMobile = false,
+  isTablet = false,
 }) => {
   return (
     <AnimatePresence>

@@ -19,6 +19,7 @@ import {
   HelpCircle,
   MessageSquare,
   FileText,
+  ChevronRight,
 } from "lucide-react";
 import CreateBoardModal from "@/components/ui/modal/CreateBoardModal";
 import SuccessModal from "@/components/ui/modal/SuccessModal";
@@ -199,11 +200,37 @@ const animations = {
     transition: { duration: 0.2, ease: "easeOut" as const },
   },
   mobileMenu: {
-    initial: { opacity: 0, height: 0 },
-    animate: { opacity: 1, height: "auto" },
-    exit: { opacity: 0, height: 0 },
-    transition: { duration: 0.3, ease: "easeInOut" as const },
+    initial: { opacity: 0, y: -20 },
+    animate: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut" as const,
+        staggerChildren: 0.05
+      }
+    },
+    exit: { 
+      opacity: 0, 
+      y: -20,
+      transition: {
+        duration: 0.2,
+        ease: "easeIn" as const
+      }
+    },
   },
+  mobileMenuItem: {
+    initial: { opacity: 0, x: -20 },
+    animate: { 
+      opacity: 1, 
+      x: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut" as const
+      }
+    },
+    exit: { opacity: 0, x: -20 }
+  }
 };
 
 // Reusable Components
@@ -242,6 +269,8 @@ const DropdownMenu = ({
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       className="group px-3 py-1.5 rounded-full text-sm font-medium text-gray-700 hover:text-gray-950 transition-all duration-300 flex items-center gap-2"
+      aria-expanded={isOpen}
+      aria-haspopup="true"
     >
       <span>{label}</span>
       <motion.div
@@ -260,6 +289,7 @@ const DropdownMenu = ({
           exit={{ opacity: 0, y: -10, scale: 0.95 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
           className="absolute top-full left-0 mt-3 w-72 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/60 py-3 z-50"
+          role="menu"
         >
           {items.map((item, index) => (
             <motion.div
@@ -272,6 +302,7 @@ const DropdownMenu = ({
                 href={item.href}
                 className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 hover:text-gray-900 transition-all duration-200 group"
                 onClick={onToggle}
+                role="menuitem"
               >
                 <div className="p-2.5 rounded-xl bg-gray-100/80 group-hover:bg-blue-100/80 transition-colors">
                   <item.icon className="w-4 h-4 text-gray-600 group-hover:text-blue-600" />
@@ -297,13 +328,13 @@ const CreateBoardButton = ({ onClick, isMobile = false }: {
     onClick={onClick}
     whileHover={{ scale: 1.02 }}
     whileTap={{ scale: 0.98 }}
-    className={`group relative flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 via-blue-500 to-blue-600 text-white text-sm font-medium rounded-full hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-sm ${isMobile ? "w-full" : ""
-      }`}
+    className={`group relative flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 via-blue-500 to-blue-600 text-white text-sm font-medium rounded-full hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-sm ${
+      isMobile ? "w-full" : ""
+    }`}
+    aria-label="Create new board"
   >
     <Plus className="w-4 h-4" />
-    <span className={isMobile ? "" : "hidden lg:inline"}>
-      {isMobile ? "Create Board" : "Create Board"}
-    </span>
+    <span>Create Board</span>
   </motion.button>
 );
 
@@ -316,8 +347,12 @@ const UserAvatar = ({ session, isDropdownOpen, onClick }: {
     onClick={onClick}
     whileHover={{ scale: 1.02 }}
     whileTap={{ scale: 0.98 }}
-    className={`group flex items-center gap-2 px-2 py-1 rounded-full transition-all duration-300 hover:bg-gray-100/80 ${isDropdownOpen ? "bg-gray-100/80" : ""
-      }`}
+    className={`group flex items-center gap-2 px-2 py-1 rounded-full transition-all duration-300 hover:bg-gray-100/80 ${
+      isDropdownOpen ? "bg-gray-100/80" : ""
+    }`}
+    aria-expanded={isDropdownOpen}
+    aria-haspopup="true"
+    aria-label="User menu"
   >
     <motion.div whileHover={{ scale: 1.05 }} className="relative">
       <Image
@@ -351,6 +386,7 @@ const UserDropdown = ({ session, isOpen, onClose }: {
         animate="animate"
         exit="exit"
         className="absolute right-0 mt-3 w-80 lg:w-96 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 py-4 z-[55] overflow-hidden"
+        role="menu"
       >
         {/* User Info */}
         <div className="px-6 py-4 border-b border-gray-100/80">
@@ -392,6 +428,7 @@ const UserDropdown = ({ session, isOpen, onClose }: {
                   href={item.href}
                   className="flex items-center gap-4 px-6 py-3 text-sm font-medium text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-slate-50 hover:text-gray-900 transition-all duration-300 group"
                   onClick={onClose}
+                  role="menuitem"
                 >
                   <div className={`p-2 rounded-full ${item.color.bg} ${item.color.text} group-hover:${item.color.hover.bg} transition-colors`}>
                     <item.icon className="w-4 h-4" />
@@ -408,6 +445,7 @@ const UserDropdown = ({ session, isOpen, onClose }: {
                     item.action?.();
                   }}
                   className="flex items-center gap-4 px-6 py-3 text-sm font-medium text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 hover:text-red-700 transition-all duration-300 w-full text-left group"
+                  role="menuitem"
                 >
                   <div className={`p-2 rounded-full ${item.color.bg} ${item.color.text} group-hover:${item.color.hover.bg} transition-colors`}>
                     <item.icon className="w-4 h-4" />
@@ -426,265 +464,318 @@ const UserDropdown = ({ session, isOpen, onClose }: {
   </AnimatePresence>
 );
 
-const MobileMenuItem = ({ item, onClick }: {
-  item: NavigationItem;
-  onClick: () => void;
+// Enhanced Mobile Menu Components
+const MobileMenuSection = ({ 
+  title, 
+  children 
+}: { 
+  title: string; 
+  children: React.ReactNode;
 }) => (
   <motion.div
-    whileHover={{ x: 4 }}
-    whileTap={{ scale: 0.98 }}
-    initial={{ opacity: 0, x: -20 }}
-    animate={{ opacity: 1, x: 0 }}
-    transition={{ delay: 0.1 }}
+    variants={animations.mobileMenuItem}
+    className="space-y-2"
   >
-    <Link
-      href={item.href}
-      className={`flex items-center gap-4 px-4 py-4 text-sm font-medium text-gray-700 hover:bg-gradient-to-r hover:from-${item.color.bg.split('-')[1]}-50/80 hover:text-${item.color.text.split('-')[1]}-600 rounded-2xl transition-all duration-300 group`}
-      onClick={onClick}
-    >
-      <div>
-        <div className="font-medium">{item.label}</div>
-        <div className="text-xs text-gray-500">
-          {item.description || `Go to ${item.label.toLowerCase()}`}
-        </div>
-      </div>
-    </Link>
+    <div className="px-6 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+      {title}
+    </div>
+    {children}
   </motion.div>
 );
+
+const MobileMenuLink = ({ 
+  href, 
+  icon: Icon, 
+  label, 
+  description, 
+  onClick,
+  variant = "default"
+}: {
+  href?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  description: string;
+  onClick?: () => void;
+  variant?: "default" | "danger";
+}) => {
+  const baseClasses = "flex items-center gap-4 px-6 py-4 text-sm font-medium rounded-2xl mx-3 transition-all duration-300 group active:scale-[0.98]";
+  const variantClasses = variant === "danger" 
+    ? "text-red-600 hover:bg-red-50/80 focus:bg-red-50/80" 
+    : "text-gray-700 hover:bg-gray-50/80 focus:bg-gray-50/80";
+
+  const content = (
+    <>
+      <div className={`p-3 rounded-xl transition-colors ${
+        variant === "danger" 
+          ? "bg-red-100/80 group-hover:bg-red-200/80 group-focus:bg-red-200/80" 
+          : "bg-gray-100/80 group-hover:bg-blue-100/80 group-focus:bg-blue-100/80"
+      }`}>
+        <Icon className={`w-5 h-5 transition-colors ${
+          variant === "danger" 
+            ? "text-red-600" 
+            : "text-gray-600 group-hover:text-blue-600 group-focus:text-blue-600"
+        }`} />
+      </div>
+      <div className="flex-1">
+        <div className="font-medium">{label}</div>
+        <div className="text-xs text-gray-500 mt-0.5">{description}</div>
+      </div>
+      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+    </>
+  );
+
+  if (href) {
+    return (
+      <motion.div variants={animations.mobileMenuItem}>
+        <Link
+          href={href}
+          className={`${baseClasses} ${variantClasses}`}
+          onClick={onClick}
+        >
+          {content}
+        </Link>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div variants={animations.mobileMenuItem}>
+      <button
+        onClick={onClick}
+        className={`${baseClasses} ${variantClasses} w-full text-left`}
+      >
+        {content}
+      </button>
+    </motion.div>
+  );
+};
 
 const MobileMenu = ({
   isOpen,
   status,
+  session,
   onClose,
   onCreateBoard
 }: {
   isOpen: boolean;
   status: string;
+  session: any;
   onClose: () => void;
   onCreateBoard: () => void;
 }) => (
   <AnimatePresence>
     {isOpen && (
-      <motion.div
-        variants={animations.mobileMenu}
-        initial="initial"
-        animate="animate"
-        exit="exit"
-        className="lg:hidden border-t border-gray-100 bg-white/95 backdrop-blur-xl"
-      >
-        <div className="container mx-auto px-4 sm:px-6 py-6 space-y-3 max-h-[80vh] overflow-y-auto">
-          {status === "authenticated" ? (
-            <>
-              {navigationItems.map((item, index) => (
-                <MobileMenuItem
-                  key={item.label}
-                  item={item}
-                  onClick={onClose}
-                />
-              ))}
+      <>
+        {/* Backdrop */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+          onClick={onClose}
+        />
+        
+        {/* Mobile Menu */}
+        <motion.div
+          variants={animations.mobileMenu}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-xl z-50 lg:hidden shadow-2xl"
+        >
+          {/* Mobile Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <motion.div
+              variants={animations.mobileMenuItem}
+              className="flex items-center gap-3"
+            >
+              <Image
+                src={logo}
+                alt="WhizBoard Logo"
+                width={80}
+                height={80}
+                className="w-20 h-auto object-contain"
+              />
+            </motion.div>
+            
+            <motion.button
+              variants={animations.mobileMenuItem}
+              onClick={onClose}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              aria-label="Close menu"
+            >
+              <X className="w-6 h-6 text-gray-600" />
+            </motion.button>
+          </div>
 
-              {/* Company Menu Items */}
-              <div className="space-y-2">
-                <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                  Company
-                </div>
-                {companyMenuItems.map((item, index) => (
+          {/* Menu Content */}
+          <div className="max-h-[calc(100vh-80px)] overflow-y-auto">
+            <div className="py-6 space-y-8">
+              {status === "authenticated" ? (
+                <>
+                  {/* User Info Section */}
                   <motion.div
-                    key={item.label}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 + index * 0.1 }}
+                    variants={animations.mobileMenuItem}
+                    className="px-6"
                   >
-                    <Link
-                      href={item.href}
-                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200"
-                      onClick={onClose}
-                    >
-                      <div className="p-2 rounded-lg bg-gray-100">
-                        <item.icon className="w-4 h-4 text-gray-600" />
+                    <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl">
+                      <div className="relative">
+                        <Image
+                          src={session?.user?.image || "/default-avatar.png"}
+                          alt="User Avatar"
+                          width={48}
+                          height={48}
+                          className="w-12 h-12 rounded-full ring-3 ring-blue-200"
+                        />
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white" />
                       </div>
-                      <div>
-                        <div className="font-medium">{item.label}</div>
-                        <div className="text-xs text-gray-500">{item.description}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-base font-bold text-gray-900 truncate">
+                          {session?.user?.name || "User"}
+                        </div>
+                        <div className="text-sm text-gray-600 truncate">
+                          {session?.user?.email}
+                        </div>
                       </div>
-                    </Link>
+                    </div>
                   </motion.div>
-                ))}
-              </div>
 
-              {/* Support Menu Items */}
-              <div className="space-y-2">
-                <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                  Support
-                </div>
-                {supportMenuItems.map((item, index) => (
+                  {/* Create Board Button */}
                   <motion.div
-                    key={item.label}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 + index * 0.1 }}
+                    variants={animations.mobileMenuItem}
+                    className="px-6"
                   >
-                    <Link
-                      href={item.href}
-                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200"
-                      onClick={onClose}
-                    >
-                      <div className="p-2 rounded-lg bg-gray-100">
-                        <item.icon className="w-4 h-4 text-gray-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium">{item.label}</div>
-                        <div className="text-xs text-gray-500">{item.description}</div>
-                      </div>
-                    </Link>
+                    <CreateBoardButton onClick={onCreateBoard} isMobile />
                   </motion.div>
-                ))}
-              </div>
 
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                <CreateBoardButton onClick={onCreateBoard} isMobile />
-              </motion.div>
-
-              <div className="border-t border-gray-100/50 pt-3 mt-3 space-y-2">
-                {userMenuItems.map((item, index) => (
-                  <motion.div
-                    key={item.label}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 + index * 0.1 }}
-                  >
-                    {item.href ? (
-                      <Link
+                  {/* Navigation Section */}
+                  <MobileMenuSection title="Navigation">
+                    {navigationItems.map((item) => (
+                      <MobileMenuLink
+                        key={item.label}
                         href={item.href}
-                        className={`flex items-center gap-4 px-4 py-4 text-sm font-medium text-gray-700 hover:bg-gradient-to-r hover:from-${item.color.bg.split('-')[1]}-50/80 hover:text-${item.color.text.split('-')[1]}-600 rounded-2xl transition-all duration-300 group`}
+                        icon={item.label === "Home" ? Info : FileText}
+                        label={item.label}
+                        description={item.description || `Go to ${item.label.toLowerCase()}`}
+                        onClick={onClose}
+                      />
+                    ))}
+                  </MobileMenuSection>
+
+                  {/* Account Section */}
+                  <MobileMenuSection title="Account">
+                    {userMenuItems.slice(0, -1).map((item) => (
+                      <MobileMenuLink
+                        key={item.label}
+                        href={item.href}
+                        icon={item.icon}
+                        label={item.label}
+                        description={item.description}
+                        onClick={onClose}
+                      />
+                    ))}
+                  </MobileMenuSection>
+
+                  {/* Company Section */}
+                  <MobileMenuSection title="Company">
+                    {companyMenuItems.map((item) => (
+                      <MobileMenuLink
+                        key={item.label}
+                        href={item.href}
+                        icon={item.icon}
+                        label={item.label}
+                        description={item.description}
+                        onClick={onClose}
+                      />
+                    ))}
+                  </MobileMenuSection>
+
+                  {/* Support Section */}
+                  <MobileMenuSection title="Support">
+                    {supportMenuItems.map((item) => (
+                      <MobileMenuLink
+                        key={item.label}
+                        href={item.href}
+                        icon={item.icon}
+                        label={item.label}
+                        description={item.description}
+                        onClick={onClose}
+                      />
+                    ))}
+                  </MobileMenuSection>
+
+                  {/* Sign Out */}
+                  <div className="border-t border-gray-100 pt-6">
+                    <MobileMenuLink
+                      icon={LogOut}
+                      label="Sign Out"
+                      description="End your session"
+                      variant="danger"
+                      onClick={() => {
+                        onClose();
+                        signOut();
+                      }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Company Section */}
+                  <MobileMenuSection title="Company">
+                    {companyMenuItems.map((item) => (
+                      <MobileMenuLink
+                        key={item.label}
+                        href={item.href}
+                        icon={item.icon}
+                        label={item.label}
+                        description={item.description}
+                        onClick={onClose}
+                      />
+                    ))}
+                  </MobileMenuSection>
+
+                  {/* Support Section */}
+                  <MobileMenuSection title="Support">
+                    {supportMenuItems.map((item) => (
+                      <MobileMenuLink
+                        key={item.label}
+                        href={item.href}
+                        icon={item.icon}
+                        label={item.label}
+                        description={item.description}
+                        onClick={onClose}
+                      />
+                    ))}
+                  </MobileMenuSection>
+
+                  {/* Auth Buttons */}
+                  <div className="px-6 space-y-4">
+                    <motion.div variants={animations.mobileMenuItem}>
+                      <Link
+                        href="/login"
+                        className="block w-full px-6 py-4 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-all duration-300 text-center border border-gray-200"
                         onClick={onClose}
                       >
-                        <div className={`p-2 rounded-full ${item.color.bg} ${item.color.text} group-hover:${item.color.hover.bg} transition-colors`}>
-                          <item.icon className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <div className="font-medium">{item.label}</div>
-                          <div className="text-xs text-gray-500">{item.description}</div>
-                        </div>
+                        Sign In
                       </Link>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          onClose();
-                          item.action?.();
-                        }}
-                        className={`flex items-center gap-4 px-4 py-4 text-sm font-medium text-red-600 hover:bg-gradient-to-r hover:from-red-50/80 rounded-2xl w-full text-left transition-all duration-300 group`}
+                    </motion.div>
+
+                    <motion.div variants={animations.mobileMenuItem}>
+                      <Link
+                        href="/signup"
+                        className="block w-full px-6 py-4 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-2xl transition-all duration-300 text-center shadow-sm"
+                        onClick={onClose}
                       >
-                        <div className={`p-2 rounded-full ${item.color.bg} ${item.color.text} group-hover:${item.color.hover.bg} transition-colors`}>
-                          <item.icon className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <div className="font-medium">{item.label}</div>
-                          <div className="text-xs text-gray-500">{item.description}</div>
-                        </div>
-                      </button>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="space-y-3">
-              {/* Company Menu Items */}
-              <div className="space-y-2">
-                <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                  Company
-                </div>
-                {companyMenuItems.map((item, index) => (
-                  <motion.div
-                    key={item.label}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 + index * 0.1 }}
-                  >
-                    <Link
-                      href={item.href}
-                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200"
-                      onClick={onClose}
-                    >
-                      <div className="p-2 rounded-lg bg-gray-100">
-                        <item.icon className="w-4 h-4 text-gray-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium">{item.label}</div>
-                        <div className="text-xs text-gray-500">{item.description}</div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Support Menu Items */}
-              <div className="space-y-2">
-                <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                  Support
-                </div>
-                {supportMenuItems.map((item, index) => (
-                  <motion.div
-                    key={item.label}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 + index * 0.1 }}
-                  >
-                    <Link
-                      href={item.href}
-                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200"
-                      onClick={onClose}
-                    >
-                      <div className="p-2 rounded-lg bg-gray-100">
-                        <item.icon className="w-4 h-4 text-gray-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium">{item.label}</div>
-                        <div className="text-xs text-gray-500">{item.description}</div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                ))}
-              </div>
-
-              <div className="border-t border-gray-100/50 pt-3 mt-3 space-y-3">
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  <Link
-                    href="/login"
-                    className="block px-6 py-3 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all duration-300 text-center border border-gray-200"
-                    onClick={onClose}
-                  >
-                    Sign In
-                  </Link>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  <Link
-                    href="/signup"
-                    className="block px-6 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-300 text-center"
-                    onClick={onClose}
-                  >
-                    Get Started
-                  </Link>
-                </motion.div>
-              </div>
+                        Get Started
+                      </Link>
+                    </motion.div>
+                  </div>
+                </>
+              )}
             </div>
-          )}
-        </div>
-      </motion.div>
+          </div>
+        </motion.div>
+      </>
     )}
   </AnimatePresence>
 );
@@ -715,13 +806,25 @@ const Header = () => {
       ) {
         setIsDropdownOpen(false);
       }
-      // Close active dropdown when clicking outside
       setActiveDropdown(null);
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
 
   const handleCreateBoard = () => {
     setShowCreateModal(true);
@@ -736,15 +839,14 @@ const Header = () => {
     }, 200);
   };
 
-
-
   // Determine header visibility based on scroll direction
   const shouldShowHeader = scrollDirection === 'up' || scrollY < 100;
 
   return (
     <>
+      {/* Desktop Header */}
       <motion.header
-        className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8"
+        className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 hidden lg:block"
         variants={animations.header}
         animate={shouldShowHeader ? "visible" : "hidden"}
         transition={{
@@ -757,7 +859,7 @@ const Header = () => {
       >
         <div className="bg-white/80 backdrop-blur-md rounded-full border">
           <nav className="flex w-full items-center justify-between py-2 px-6">
-            {/* Enhanced Logo */}
+            {/* Logo */}
             <motion.div
               initial="initial"
               animate="animate"
@@ -773,13 +875,12 @@ const Header = () => {
                   height={100}
                   className="w-24 sm:w-28 h-auto object-contain object-center"
                 />
-
               </Link>
             </motion.div>
 
             {/* Desktop Navigation */}
             {status === "authenticated" ? (
-              <div className="hidden lg:flex items-center space-x-4">
+              <div className="flex items-center space-x-4">
                 {/* Navigation Links */}
                 <motion.div
                   variants={animations.fadeInUp}
@@ -788,7 +889,7 @@ const Header = () => {
                   transition={{ delay: 0.3 }}
                   className="flex items-center space-x-3"
                 >
-                  {navigationItems.map((item, index) => (
+                  {navigationItems.map((item) => (
                     <NavigationLink
                       key={item.label}
                       item={item}
@@ -849,7 +950,7 @@ const Header = () => {
                 initial="initial"
                 animate="animate"
                 transition={{ delay: 0.3 }}
-                className="hidden sm:flex items-center space-x-4"
+                className="flex items-center space-x-4"
               >
                 {/* Company Dropdown */}
                 <DropdownMenu
@@ -886,6 +987,43 @@ const Header = () => {
                 </motion.div>
               </motion.div>
             )}
+          </nav>
+        </div>
+      </motion.header>
+
+      {/* Mobile Header */}
+      <motion.header
+        className="fixed top-0 left-0 right-0 z-40 lg:hidden"
+        variants={animations.header}
+        animate={shouldShowHeader ? "visible" : "hidden"}
+        transition={{
+          duration: 0.3,
+          ease: "easeInOut",
+          type: "spring",
+          stiffness: 100,
+          damping: 20
+        }}
+      >
+        <div className="bg-white/90 backdrop-blur-lg border-b border-gray-100">
+          <nav className="flex items-center justify-between px-4 py-3">
+            {/* Mobile Logo */}
+            <motion.div
+              initial="initial"
+              animate="animate"
+              whileHover="hover"
+              variants={animations.logo}
+              transition={{ delay: 0.2, duration: 0.6 }}
+            >
+              <Link href="/" className="flex items-center">
+                <Image
+                  src={logo}
+                  alt="WhizBoard Logo"
+                  width={80}
+                  height={80}
+                  className="w-20 h-auto object-contain"
+                />
+              </Link>
+            </motion.div>
 
             {/* Mobile Menu Button */}
             <motion.button
@@ -895,9 +1033,11 @@ const Header = () => {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`lg:hidden p-1.5 sm:p-2 rounded-full transition-all duration-300 text-gray-600 hover:bg-gray-100/80 ${isMobileMenuOpen ? "bg-gray-100/80" : ""
-                }`}
+              className={`p-2 rounded-full transition-all duration-300 text-gray-600 hover:bg-gray-100 active:bg-gray-200 ${
+                isMobileMenuOpen ? "bg-gray-100" : ""
+              }`}
               aria-label="Toggle mobile menu"
+              aria-expanded={isMobileMenuOpen}
             >
               <AnimatePresence mode="wait">
                 {isMobileMenuOpen ? (
@@ -908,7 +1048,7 @@ const Header = () => {
                     exit={{ rotate: 90, opacity: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-6 h-6" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -918,24 +1058,23 @@ const Header = () => {
                     exit={{ rotate: -90, opacity: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Menu className="w-5 h-5" />
+                    <Menu className="w-6 h-6" />
                   </motion.div>
                 )}
               </AnimatePresence>
             </motion.button>
           </nav>
         </div>
-
-        {/* Mobile Menu */}
-        <MobileMenu
-          isOpen={isMobileMenuOpen}
-          status={status}
-          onClose={() => setIsMobileMenuOpen(false)}
-          onCreateBoard={handleCreateBoard}
-        />
       </motion.header>
 
-
+      {/* Mobile Menu */}
+      <MobileMenu
+        isOpen={isMobileMenuOpen}
+        status={status}
+        session={session}
+        onClose={() => setIsMobileMenuOpen(false)}
+        onCreateBoard={handleCreateBoard}
+      />
 
       {/* Modals */}
       {showCreateModal && (
