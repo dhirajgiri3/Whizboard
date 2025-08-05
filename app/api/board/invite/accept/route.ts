@@ -4,7 +4,7 @@ import { authOptions } from '../../../auth/[...nextauth]/route';
 import { connectToDatabase } from '@/lib/database/mongodb';
 import { EmailService } from '@/lib/email/sendgrid';
 import { pubSub } from '@/lib/graphql/schema';
-import logger from '@/lib/logger';
+import logger from '@/lib/logger/logger';
 
 interface BoardCollaborator {
   id: string;

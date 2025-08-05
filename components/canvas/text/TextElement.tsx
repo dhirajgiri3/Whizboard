@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { Group, Text, Rect, Transformer, Line } from 'react-konva';
 import { KonvaEventObject } from 'konva/lib/Node';
 import { TextElement as TextElementType } from '@/types';
-import type Konva from 'konva';
+import Konva from 'konva';
 
 interface TextElementProps {
   textElement: TextElementType;
@@ -125,6 +125,8 @@ const TextElement: React.FC<TextElementProps> = ({
         lineHeight = 1.2,
         letterSpacing = 0,
         textTransform = 'none',
+        highlight = false,
+        highlightColor = '#ffeb3b',
       } = {},
       style: {
         backgroundColor,
@@ -157,6 +159,8 @@ const TextElement: React.FC<TextElementProps> = ({
       border,
       shadow,
       opacity,
+      highlight,
+      highlightColor,
     };
   }, [textElement]);
 
@@ -226,6 +230,58 @@ const TextElement: React.FC<TextElementProps> = ({
 
     return { backgroundStyle, borderStyle, shadowStyle };
   }, [textProperties]);
+
+  // Handle highlight display and animation
+  useEffect(() => {
+    const textNode = textRef.current;
+    if (!textNode || !textNode.parent) return;
+
+    if (textProperties.highlight) {
+      // Create or update highlight rect
+      let highlightRect = textNode.parent.findOne('.highlight-rect') as Konva.Rect;
+      if (!highlightRect) {
+        highlightRect = new Konva.Rect({
+          name: 'highlight-rect',
+          fill: textProperties.highlightColor,
+          opacity: 0,
+          listening: false,
+        });
+        textNode.parent.add(highlightRect);
+        highlightRect.moveToBottom();
+        textNode.moveToTop();
+      }
+
+      highlightRect.setAttrs({
+        x: textNode.x(),
+        y: textNode.y(),
+        width: textNode.width(),
+        height: textNode.height(),
+        fill: textProperties.highlightColor,
+      });
+
+      // Animate highlight in
+      new Konva.Tween({
+        node: highlightRect,
+        opacity: 0.75,
+        duration: 0.2,
+        easing: Konva.Easings.EaseOut,
+      }).play();
+    } else {
+      // Animate highlight out
+      const highlightRect = textNode.parent.findOne('.highlight-rect') as Konva.Rect;
+      if (highlightRect) {
+        new Konva.Tween({
+          node: highlightRect,
+          opacity: 0,
+          duration: 0.2,
+          easing: Konva.Easings.EaseIn,
+          onFinish: () => {
+            highlightRect.destroy();
+          },
+        }).play();
+      }
+    }
+  }, [textProperties.highlight, textProperties.highlightColor, computedValues.displayText, localTransform.width, localTransform.height]);
 
   // Enhanced indicator style with better visual feedback
   const indicatorStyle = useMemo(() => {

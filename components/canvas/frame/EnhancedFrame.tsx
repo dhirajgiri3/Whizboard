@@ -4,6 +4,14 @@ import { KonvaEventObject } from "konva/lib/Node";
 import { FrameElement } from "@/types";
 import type Konva from "konva";
 
+interface BoundingBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+}
+
 interface EnhancedFrameProps {
   frame: FrameElement;
   isSelected: boolean;
@@ -91,7 +99,7 @@ const EnhancedFrame: React.FC<EnhancedFrameProps> = ({
     const maxSize = Math.min(5000 / scale, 5000);
 
     return {
-      boundBoxFunc: (oldBox: any, newBox: any) => {
+      boundBoxFunc: (oldBox: BoundingBox, newBox: BoundingBox) => {
         if (newBox.width < minSize || newBox.height < minSize) {
           return oldBox;
         }
@@ -329,6 +337,18 @@ const EnhancedFrame: React.FC<EnhancedFrameProps> = ({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isSelected || !document.hasFocus()) return;
 
+      // Check if user is currently editing text in any input/textarea
+      if (
+        document.activeElement &&
+        (document.activeElement.tagName === "INPUT" ||
+          document.activeElement.tagName === "TEXTAREA" ||
+          document.activeElement.getAttribute("contenteditable") === "true" ||
+          document.activeElement.hasAttribute("data-rename-input"))
+      ) {
+        // Don't interfere with text editing
+        return;
+      }
+
       // Prevent default only for our shortcuts
       const ourKeys = [
         "Delete",
@@ -345,13 +365,14 @@ const EnhancedFrame: React.FC<EnhancedFrameProps> = ({
 
       if (!isOurKey) return;
 
-      // Delete frame
+      // Delete frame - Don't directly delete here to avoid conflicts with toolbar confirmation
+      // Let the FloatingFrameToolbar handle deletion with confirmation
       if (
         e.key === "Delete" ||
         (e.key === "Backspace" && (e.metaKey || e.ctrlKey))
       ) {
         e.preventDefault();
-        onDeleteAction(id);
+        // Don't call onDeleteAction directly - let the toolbar handle it with confirmation
         return;
       }
 
@@ -452,7 +473,7 @@ const EnhancedFrame: React.FC<EnhancedFrameProps> = ({
     let frameStroke = stroke;
     let frameStrokeWidth = Math.max(strokeWidth / scale, 0.5);
     let frameOpacity = fillOpacity;
-    let frameFill = fill;
+    const frameFill = fill;
 
     if (isSelected) {
       frameStroke = "#0096FF";

@@ -150,7 +150,7 @@ export default function InvitePage() {
             onClick={() => router.push('/')}
             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Go to CyperBoard
+            Go to WhizBoard
           </button>
         </div>
       </div>
@@ -285,7 +285,7 @@ export default function InvitePage() {
 
           {/* Footer */}
           <div className="text-center text-gray-500 text-sm">
-            <p>&copy; 2025 CyperBoard. Real-time collaborative whiteboard for teams.</p>
+            <p>&copy; 2025 WhizBoard. Real-time collaborative whiteboard for teams.</p>
           </div>
         </div>
       </div>

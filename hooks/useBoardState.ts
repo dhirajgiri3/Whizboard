@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { ILine, StickyNoteElement, FrameElement, TextElement } from '@/types';
+import { ILine, StickyNoteElement, FrameElement, TextElement, ShapeElement } from '@/types';
 import { Tool } from '@/components/toolbar/MainToolbar';
 import { getRandomStickyNoteColor } from '@/components/canvas/stickynote/StickyNote';
 
@@ -29,6 +29,14 @@ export interface UseBoardStateReturn {
   setSelectedTextElement: (id: string | null) => void;
   editingTextElement: string | null;
   setEditingTextElement: (id: string | null) => void;
+  
+  // Shapes state
+  shapes: ShapeElement[];
+  setShapes: (shapes: ShapeElement[]) => void;
+  selectedShape: string | null;
+  setSelectedShape: (id: string | null) => void;
+  selectedShapes: string[];
+  setSelectedShapes: (ids: string[]) => void;
   
   // History state
   history: unknown[];
@@ -84,6 +92,8 @@ export interface UseBoardStateReturn {
   handleStickyNoteSelect: (stickyNoteId: string) => void;
   handleFrameSelect: (frameId: string) => void;
   handleTextElementSelect: (textElementId: string) => void;
+  handleShapeSelect: (shapeId: string) => void;
+  handleShapeMultiSelect: (shapeIds: string[]) => void;
   
   // Drag handlers
   handleStickyNoteDragStart: () => void;
@@ -92,6 +102,8 @@ export interface UseBoardStateReturn {
   handleFrameDragEnd: () => void;
   handleTextElementDragStart: () => void;
   handleTextElementDragEnd: () => void;
+  handleShapeDragStart: () => void;
+  handleShapeDragEnd: () => void;
   
   // Clear selection
   clearSelections: () => void;
@@ -114,6 +126,11 @@ export function useBoardState(): UseBoardStateReturn {
   const [textElements, setTextElements] = useState<TextElement[]>([]);
   const [selectedTextElement, setSelectedTextElement] = useState<string | null>(null);
   const [editingTextElement, setEditingTextElement] = useState<string | null>(null);
+  
+  // Shapes state
+  const [shapes, setShapes] = useState<ShapeElement[]>([]);
+  const [selectedShape, setSelectedShape] = useState<string | null>(null);
+  const [selectedShapes, setSelectedShapes] = useState<string[]>([]);
   
   // History state
   const [history, setHistory] = useState<unknown[]>([]);
@@ -166,6 +183,18 @@ export function useBoardState(): UseBoardStateReturn {
     setSelectedTextElement(textElementId);
   }, []);
   
+  const handleShapeSelect = useCallback((shapeId: string) => {
+    // Always select the clicked shape (no toggle behavior)
+    setSelectedShape(shapeId);
+    setSelectedShapes([shapeId]);
+  }, []);
+  
+  const handleShapeMultiSelect = useCallback((shapeIds: string[]) => {
+    // Set multiple selected shapes
+    setSelectedShapes(shapeIds);
+    setSelectedShape(shapeIds.length > 0 ? shapeIds[0] : null);
+  }, []);
+  
   // Drag handlers
   const handleStickyNoteDragStart = useCallback(() => {
     setIsDragInProgress(true);
@@ -209,12 +238,28 @@ export function useBoardState(): UseBoardStateReturn {
     }, 150); // 150ms delay to prevent immediate canvas clicks
   }, []);
   
+  const handleShapeDragStart = useCallback(() => {
+    setIsDragInProgress(true);
+  }, []);
+  
+  const handleShapeDragEnd = useCallback(() => {
+    setIsDragInProgress(false);
+    setRecentDragEnd(true);
+    
+    // Clear the recent drag flag after a short delay
+    setTimeout(() => {
+      setRecentDragEnd(false);
+    }, 150); // 150ms delay to prevent immediate canvas clicks
+  }, []);
+  
   // Clear all selections
   const clearSelections = useCallback(() => {
     setSelectedStickyNote(null);
     setSelectedFrame(null);
     setSelectedTextElement(null);
     setEditingTextElement(null);
+    setSelectedShape(null);
+    setSelectedShapes([]);
   }, []);
   
   return {
@@ -243,6 +288,14 @@ export function useBoardState(): UseBoardStateReturn {
     setSelectedTextElement,
     editingTextElement,
     setEditingTextElement,
+    
+    // Shapes state
+    shapes,
+    setShapes,
+    selectedShape,
+    setSelectedShape,
+    selectedShapes,
+    setSelectedShapes,
     
     // History state
     history,
@@ -298,6 +351,8 @@ export function useBoardState(): UseBoardStateReturn {
     handleStickyNoteSelect,
     handleFrameSelect,
     handleTextElementSelect,
+    handleShapeSelect,
+    handleShapeMultiSelect,
     
     // Drag handlers
     handleStickyNoteDragStart,
@@ -306,6 +361,8 @@ export function useBoardState(): UseBoardStateReturn {
     handleFrameDragEnd,
     handleTextElementDragStart,
     handleTextElementDragEnd,
+    handleShapeDragStart,
+    handleShapeDragEnd,
     
     // Clear selection
     clearSelections

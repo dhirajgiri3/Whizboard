@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { toast } from 'sonner';
-import { useBoardContext } from '@/components/context/BoardContext';
-import logger from '@/lib/logger';
-import { Cursor } from '@/components/canvas/LiveCursors';
+import { useBoardContext } from '@/lib/context/BoardContext';
+import logger from '@/lib/logger/logger';
+import { Cursor } from '@/components/reatime/LiveCursors';
+import { ShapeElement } from '@/types';
 
 interface DrawingLineData {
   id: string;
@@ -368,6 +369,82 @@ export function useRealTimeCollaboration({
             event.payload.userId !== userId &&
             typeof event.payload.textElementId === 'string') {
           logger.debug(`User ${event.payload.userName} finished editing text element ${event.payload.textElementId}`);
+        }
+        break;
+
+      // Shape-specific events
+      case 'shapeElementCreated':
+        if (typeof event.payload.userId === 'string' && 
+            event.payload.userId !== userId &&
+            event.payload.shapeElement) {
+          // Handle shape element creation from other users
+          if (onElementAdded) {
+            const shapeElement: BoardElement = {
+              id: event.payload.shapeElement.id,
+              type: 'shape',
+              data: event.payload.shapeElement as unknown as Record<string, unknown>,
+              userId: event.payload.userId,
+              timestamp: typeof event.payload.timestamp === 'number' ? event.payload.timestamp : Date.now(),
+            };
+            onElementAdded(shapeElement);
+          }
+          
+          toast.info(`${event.payload.userName || 'User'} added a ${event.payload.shapeElement?.shapeType || 'shape'}`, {
+            duration: 2000,
+          });
+        }
+        break;
+
+      case 'shapeElementUpdated':
+        if (typeof event.payload.userId === 'string' && 
+            event.payload.userId !== userId &&
+            event.payload.shapeElement) {
+          // Handle shape element updates from other users
+          if (onElementUpdated) {
+            const shapeElement: BoardElement = {
+              id: event.payload.shapeElement.id,
+              type: 'shape',
+              data: event.payload.shapeElement as unknown as Record<string, unknown>,
+              userId: event.payload.userId,
+              timestamp: typeof event.payload.timestamp === 'number' ? event.payload.timestamp : Date.now(),
+            };
+            onElementUpdated(shapeElement);
+          }
+        }
+        break;
+
+      case 'shapeElementDeleted':
+        if (typeof event.payload.userId === 'string' && 
+            event.payload.userId !== userId &&
+            typeof event.payload.shapeElementId === 'string') {
+          // Handle shape element deletion from other users
+          if (onElementDeleted) {
+            onElementDeleted(event.payload.shapeElementId);
+          }
+          
+          toast.info(`${event.payload.userName || 'User'} deleted a shape`, {
+            duration: 2000,
+          });
+        }
+        break;
+
+      case 'shapeElementTransformed':
+        if (typeof event.payload.userId === 'string' && 
+            event.payload.userId !== userId &&
+            event.payload.shapeElement) {
+          // Handle shape element transformation from other users
+          if (onElementUpdated) {
+            const shapeElement: BoardElement = {
+              id: event.payload.shapeElement.id,
+              type: 'shape',
+              data: event.payload.shapeElement as unknown as Record<string, unknown>,
+              userId: event.payload.userId,
+              timestamp: typeof event.payload.timestamp === 'number' ? event.payload.timestamp : Date.now(),
+            };
+            onElementUpdated(shapeElement);
+          }
+          
+          logger.debug(`User ${event.payload.userName} transformed shape element ${event.payload.shapeElement.id}`);
         }
         break;
 
@@ -826,6 +903,87 @@ export function useRealTimeCollaboration({
     });
   }, [isConnected, boardId, userId, userName]);
 
+  // Broadcast shape element events
+  const broadcastShapeElementCreate = useCallback((shapeElement: ShapeElement) => {
+    if (!isConnected || !userId || !userName) return;
+
+    fetch('/api/board/shape', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        boardId,
+        userId,
+        userName,
+        shapeElement,
+        action: 'create',
+      }),
+    }).catch(error => {
+      logger.error('Failed to broadcast shape element create:', error);
+    });
+  }, [isConnected, boardId, userId, userName]);
+
+  const broadcastShapeElementUpdate = useCallback((shapeElement: ShapeElement) => {
+    if (!isConnected || !userId || !userName) return;
+
+    fetch('/api/board/shape', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        boardId,
+        userId,
+        userName,
+        shapeElement,
+        action: 'update',
+      }),
+    }).catch(error => {
+      logger.error('Failed to broadcast shape element update:', error);
+    });
+  }, [isConnected, boardId, userId, userName]);
+
+  const broadcastShapeElementDelete = useCallback((shapeElementId: string) => {
+    if (!isConnected || !userId || !userName) return;
+
+    fetch('/api/board/shape', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        boardId,
+        userId,
+        userName,
+        shapeElement: { id: shapeElementId },
+        action: 'delete',
+      }),
+    }).catch(error => {
+      logger.error('Failed to broadcast shape element delete:', error);
+    });
+  }, [isConnected, boardId, userId, userName]);
+
+  const broadcastShapeElementTransform = useCallback((shapeElement: ShapeElement) => {
+    if (!isConnected || !userId || !userName) return;
+
+    fetch('/api/board/shape', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        boardId,
+        userId,
+        userName,
+        shapeElement,
+        action: 'transform',
+      }),
+    }).catch(error => {
+      logger.error('Failed to broadcast shape element transform:', error);
+    });
+  }, [isConnected, boardId, userId, userName]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -860,6 +1018,10 @@ export function useRealTimeCollaboration({
     broadcastTextElementDelete,
     broadcastTextElementEditStart,
     broadcastTextElementEditFinish,
+    broadcastShapeElementCreate,
+    broadcastShapeElementUpdate,
+    broadcastShapeElementDelete,
+    broadcastShapeElementTransform,
   };
 }
 

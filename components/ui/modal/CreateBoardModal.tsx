@@ -17,6 +17,8 @@ interface CreateBoardModalProps {
   isOpen: boolean;
   onCloseAction: () => void;
   onSuccessAction: (board: { id: string; name: string }) => void;
+  isMobile?: boolean;
+  isTablet?: boolean;
 }
 
 const boardTemplates = [
@@ -54,6 +56,8 @@ export default function CreateBoardModal({
   isOpen,
   onCloseAction,
   onSuccessAction,
+  isMobile,
+  isTablet,
 }: CreateBoardModalProps) {
   const [boardName, setBoardName] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState(boardTemplates[0]);
@@ -119,21 +123,25 @@ export default function CreateBoardModal({
   return (
     <div className="fixed inset-0 z-[10000] flex min-h-[100vh] items-center justify-center bg-black/60 backdrop-blur-sm">
       <div
-        className={`relative mx-4 flex w-full max-w-2xl flex-col rounded-3xl border border-white/20 bg-white/95 shadow-2xl backdrop-blur-xl transition-all duration-300 sm:mx-8 ${
-          isVisible ? "scale-100 opacity-100" : "scale-95 opacity-0"
-        }`}
+        className={`relative flex w-full flex-col rounded-3xl border border-white/20 bg-white/95 shadow-2xl backdrop-blur-xl transition-all duration-300 ${
+          isMobile 
+            ? "mx-2 max-w-sm h-[90vh] max-h-[600px]" 
+            : isTablet 
+              ? "mx-4 max-w-md h-[85vh] max-h-[700px]" 
+              : "mx-4 max-w-2xl sm:mx-8"
+        } ${isVisible ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-gray-100 p-6">
+        <div className={`flex items-center justify-between border-b border-gray-100 ${isMobile ? "p-4" : "p-6"}`}>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg">
-              <Plus className="h-5 w-5 text-white" />
+            <div className={`flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg ${isMobile ? "h-8 w-8" : "h-10 w-10"}`}>
+              <Plus className={`text-white ${isMobile ? "h-4 w-4" : "h-5 w-5"}`} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className={`font-bold text-gray-900 ${isMobile ? "text-lg" : "text-xl"}`}>
                 Create New Board
               </h2>
-              <p className="text-sm text-gray-600">
+              <p className={`text-gray-600 ${isMobile ? "text-xs" : "text-sm"}`}>
                 {step === "template"
                   ? "Choose a template to get started"
                   : "Customize your board"}
@@ -142,14 +150,14 @@ export default function CreateBoardModal({
           </div>
           <button
             onClick={onCloseAction}
-            className="rounded-xl p-2 transition-colors duration-200 hover:bg-gray-100"
+            className={`rounded-xl transition-colors duration-200 hover:bg-gray-100 ${isMobile ? "p-1.5 min-h-[44px] min-w-[44px]" : "p-2"}`}
             disabled={isCreating}
             aria-label="Close modal"
           >
-            <X className="h-5 w-5 text-gray-600" />
+            <X className={`text-gray-600 ${isMobile ? "h-4 w-4" : "h-5 w-5"}`} />
           </button>
         </div>
-        <div className="flex-1 space-y-6 p-6">
+        <div className={`flex-1 space-y-6 overflow-y-auto ${isMobile ? "p-4" : "p-6"}`}>
           {step === "template" ? (
             <div className="space-y-6">
               <div className="text-center">
@@ -161,27 +169,27 @@ export default function CreateBoardModal({
                   blank canvas
                 </p>
               </div>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className={`grid gap-4 ${isMobile ? "grid-cols-1" : isTablet ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}>
                 {boardTemplates.map((template) => {
                   const IconComponent = template.icon;
                   return (
                     <button
                       key={template.id}
                       onClick={() => handleTemplateSelect(template)}
-                      className="group rounded-2xl border border-gray-200 bg-white p-6 text-left transition-all duration-300 hover:border-gray-300 hover:shadow-lg"
+                      className={`group rounded-2xl border border-gray-200 bg-white text-left transition-all duration-300 hover:border-gray-300 hover:shadow-lg ${isMobile ? "p-4 min-h-[80px]" : "p-6"}`}
                     >
-                      <div className="flex items-start gap-4">
+                                              <div className={`flex items-start ${isMobile ? "gap-3" : "gap-4"}`}>
                         <div
-                          className="flex h-16 w-16 items-center justify-center rounded-xl shadow-sm transition-all duration-300 group-hover:shadow-md"
+                            className={`flex items-center justify-center rounded-xl shadow-sm transition-all duration-300 group-hover:shadow-md ${isMobile ? "h-12 w-12" : "h-16 w-16"}`}
                           style={{ background: template.gradient }}
                         >
-                          <IconComponent className="h-7 w-7 text-white" />
+                            <IconComponent className={`text-white ${isMobile ? "h-5 w-5" : "h-7 w-7"}`} />
                         </div>
                         <div className="flex-1">
-                          <h4 className="mb-1 font-semibold text-gray-900 transition-colors group-hover:text-blue-600">
+                            <h4 className={`mb-1 font-semibold text-gray-900 transition-colors group-hover:text-blue-600 ${isMobile ? "text-sm" : "text-base"}`}>
                             {template.name}
                           </h4>
-                          <p className="text-sm leading-relaxed text-gray-600">
+                            <p className={`leading-relaxed text-gray-600 ${isMobile ? "text-xs" : "text-sm"}`}>
                             {template.description}
                           </p>
                         </div>

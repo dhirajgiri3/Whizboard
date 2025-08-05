@@ -32,7 +32,7 @@ export function useFloatingToolbarDrag({
   onVisibilityChange,
   onPositionChange,
 }: UseFloatingToolbarDragOptions) {
-  const storageKeyFinal = storageKey || `cyperboard-${toolbarId}-toolbar`;
+  const storageKeyFinal = storageKey || `whizboard-${toolbarId}-toolbar`;
   
   // Load saved state from localStorage
   const loadSavedState = useCallback((): FloatingToolbarState => {

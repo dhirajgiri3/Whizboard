@@ -3,14 +3,15 @@ import { Layer, Line, Circle, Group, Text, Rect } from 'react-konva';
 import { KonvaEventObject } from 'konva/lib/Node';
 import Konva from 'konva';
 import { Tool } from '@/types';
-import { StickyNoteElement, FrameElement, ILine, TextElement } from '@/types';
-import LiveCursors, { Cursor } from './LiveCursors';
+import { StickyNoteElement, FrameElement, ILine, TextElement, ShapeElement } from '@/types';
+import LiveCursors, { Cursor } from '../reatime/LiveCursors';
 import StickyNote from './stickynote/StickyNote';
 import EnhancedFrame from './frame/EnhancedFrame';
 import FrameAlignmentHelper from './frame/FrameAlignmentHelper';
 import FrameSelectionManager from './frame/FrameSelectionManager';
 import TextElementComponent from './text/TextElement';
 import TextEditor from './text/TextEditor';
+import { ShapeElement as ShapeElementComponent } from './shape';
 
 interface GridProps {
   width: number;
@@ -109,10 +110,13 @@ interface CanvasLayersProps {
   stickyNotes: StickyNoteElement[];
   frames: FrameElement[];
   textElements: TextElement[];
+  shapes: ShapeElement[];
   selectedFrameIds: string[];
   selectedStickyNote?: string | null;
   selectedTextElement?: string | null;
   editingTextElement?: string | null;
+  selectedShape?: string | null;
+  selectedShapes?: string[];
   tool: Tool;
   strokeWidth: number;
   hoveredLineIndex: number | null;
@@ -142,6 +146,11 @@ interface CanvasLayersProps {
   onTextElementFinishEditAction?: () => void;
   handleTextElementDragStart: () => void;
   handleTextElementDragEnd: () => void;
+  onShapeSelectAction?: (shapeId: string, e?: KonvaEventObject<MouseEvent>, multiSelect?: boolean) => void;
+  onShapeUpdateAction?: (shape: ShapeElement) => void;
+  onShapeDeleteAction?: (shapeId: string) => void;
+  handleShapeDragStart: () => void;
+  handleShapeDragEnd: () => void;
   selectFrames: (frameIds: string[]) => void;
   stageRef: React.RefObject<Konva.Stage | null>;
 }
@@ -155,10 +164,13 @@ export function CanvasLayers({
   stickyNotes,
   frames,
   textElements,
+  shapes,
   selectedFrameIds,
   selectedStickyNote,
   selectedTextElement,
   editingTextElement,
+  selectedShape,
+  selectedShapes,
   tool,
   strokeWidth,
   hoveredLineIndex,
@@ -184,6 +196,11 @@ export function CanvasLayers({
   onTextElementFinishEditAction,
   handleTextElementDragStart,
   handleTextElementDragEnd,
+  onShapeSelectAction,
+  onShapeUpdateAction,
+  onShapeDeleteAction,
+  handleShapeDragStart,
+  handleShapeDragEnd,
   selectFrames,
   stageRef,
 }: CanvasLayersProps) {
@@ -567,6 +584,31 @@ export function CanvasLayers({
             onDragEndAction={handleTextElementDragEnd}
             scale={stageScale}
             stageRef={stageRef}
+          />
+        ))}
+      </Layer>
+      
+      {/* Shapes Layer */}
+      <Layer
+        hitGraphEnabled={true}
+        perfectDrawEnabled={false}
+        clearBeforeDraw={true}
+        imageSmoothingEnabled={false}
+      >
+        {shapes.map((shape, index) => (
+          <ShapeElementComponent
+            key={`shape-${shape.id}-v${shape.version || 0}-t${shape.updatedAt || 0}-idx${index}`}
+            shape={shape}
+            isSelected={selectedShape === shape.id || (selectedShapes && selectedShapes.includes(shape.id))}
+            isDraggable={tool === 'select' || tool === 'shapes'}
+            onSelectAction={onShapeSelectAction || (() => {})}
+            onUpdateAction={onShapeUpdateAction || (() => {})}
+            onDeleteAction={onShapeDeleteAction || (() => {})}
+            onDragStart={handleShapeDragStart}
+            onDragEnd={handleShapeDragEnd}
+            scale={stageScale}
+            stageRef={stageRef}
+            currentTool={tool}
           />
         ))}
       </Layer>

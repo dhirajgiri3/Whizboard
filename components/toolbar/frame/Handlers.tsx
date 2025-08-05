@@ -4,9 +4,11 @@ import { AlertCircle, Copy } from "lucide-react";
 
 export const handlePresetClick = (
   preset: FramePreset,
-  onFrameCreateAction: (preset: FramePreset) => void
+  onFrameCreateAction: (preset: FramePreset, x?: number, y?: number) => void,
+  x?: number,
+  y?: number
 ) => {
-  onFrameCreateAction(preset);
+  onFrameCreateAction(preset, x, y);
   sonnerToast.success(`Created ${preset.name} frame`);
 };
 

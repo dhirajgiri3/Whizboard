@@ -23,6 +23,8 @@ interface UseCanvasInteractionsProps {
   onFrameAddAction?: (frame: FrameElement) => void;
   addFrame: (frame: FrameElement) => void;
   moveCursorAction: (x: number, y: number) => void;
+  isFramePlacementMode?: boolean;
+  showGrid?: boolean;
 }
 
 // Add point simplification utility
@@ -74,12 +76,14 @@ export function useCanvasInteractions({
   onFrameAddAction,
   addFrame,
   moveCursorAction,
+  isFramePlacementMode = false,
+  showGrid: showGridProp = true,
 }: UseCanvasInteractionsProps) {
   
   // State
   const [stageScale, setStageScale] = useState(1);
   const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
-  const [showGrid, setShowGrid] = useState(true);
+  const [showGrid, setShowGrid] = useState(showGridProp);
   const [showControls, setShowControls] = useState(true);
   const [controlsCollapsed, setControlsCollapsed] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -106,6 +110,31 @@ export function useCanvasInteractions({
   const isSpacePressed = useRef(false);
   const isPanning = useRef(false);
 
+  // Enhanced touch gesture support
+  const touchGestureRef = useRef<{
+    isTouch: boolean;
+    touchStartTime: number;
+    touchStartPoint: { x: number; y: number } | null;
+    lastTouchPoint: { x: number; y: number } | null;
+    touchMoveDistance: number;
+    isTap: boolean;
+    isLongPress: boolean;
+    longPressTimer: NodeJS.Timeout | null;
+    pinchStart: { distance: number; scale: number } | null;
+    isPinching: boolean;
+  }>({
+    isTouch: false,
+    touchStartTime: 0,
+    touchStartPoint: null,
+    lastTouchPoint: null,
+    touchMoveDistance: 0,
+    isTap: false,
+    isLongPress: false,
+    longPressTimer: null,
+    pinchStart: null,
+    isPinching: false,
+  });
+
   // Enhanced line selection state
   const lineSelectionRef = useRef<{
     selectedLineIndex: number | null;
@@ -119,6 +148,9 @@ export function useCanvasInteractions({
 
   // Constants
   const MIN_UPDATE_DISTANCE = 5; // Minimum distance before sending real-time update
+  const TAP_THRESHOLD = 10; // Maximum movement for tap gesture
+  const LONG_PRESS_DURATION = 500; // Duration for long press
+  const PINCH_THRESHOLD = 10; // Minimum distance change for pinch
 
   // Helper functions
   const isPointInFrame = useCallback((point: { x: number; y: number }, frame: FrameElement): boolean => {
@@ -147,6 +179,98 @@ export function useCanvasInteractions({
     const clippedY = Math.max(frame.y, Math.min(frame.y + frame.height, point.y));
     return { x: clippedX, y: clippedY };
   }, []);
+
+  // Touch gesture utilities
+  const calculateDistance = useCallback((touch1: Touch, touch2: Touch): number => {
+    return Math.sqrt(
+      Math.pow(touch2.clientX - touch1.clientX, 2) + 
+      Math.pow(touch2.clientY - touch1.clientY, 2)
+    );
+  }, []);
+
+  const calculateCenter = useCallback((touch1: Touch, touch2: Touch): { x: number; y: number } => {
+    return {
+      x: (touch1.clientX + touch2.clientX) / 2,
+      y: (touch1.clientY + touch2.clientY) / 2
+    };
+  }, []);
+
+  const startLongPress = useCallback((point: { x: number; y: number }) => {
+    touchGestureRef.current.longPressTimer = setTimeout(() => {
+      touchGestureRef.current.isLongPress = true;
+      // Handle long press - could switch to selection tool or show context menu
+      console.log('Long press detected at:', point);
+      // Could trigger tool switch or context menu here
+    }, LONG_PRESS_DURATION);
+  }, []);
+
+  const cancelLongPress = useCallback(() => {
+    if (touchGestureRef.current.longPressTimer) {
+      clearTimeout(touchGestureRef.current.longPressTimer);
+      touchGestureRef.current.longPressTimer = null;
+    }
+    touchGestureRef.current.isLongPress = false;
+  }, []);
+
+  const handlePinchZoom = useCallback((touches: TouchList) => {
+    if (touches.length !== 2) return;
+
+    const touch1 = touches[0];
+    const touch2 = touches[1];
+    const distance = calculateDistance(touch1, touch2);
+    const center = calculateCenter(touch1, touch2);
+
+    if (!touchGestureRef.current.pinchStart) {
+      touchGestureRef.current.pinchStart = {
+        distance,
+        scale: stageScale
+      };
+      touchGestureRef.current.isPinching = true;
+      return;
+    }
+
+    const scale = (distance / touchGestureRef.current.pinchStart.distance) * touchGestureRef.current.pinchStart.scale;
+    const newScale = Math.max(0.1, Math.min(5, scale));
+
+    if (Math.abs(newScale - stageScale) > 0.01) {
+      const stage = stageRef.current;
+      if (stage) {
+        const stageBox = stage.container().getBoundingClientRect();
+        const pointer = {
+          x: center.x - stageBox.left,
+          y: center.y - stageBox.top
+        };
+
+        const mousePointTo = {
+          x: (pointer.x - stagePos.x) / stageScale,
+          y: (pointer.y - stagePos.y) / stageScale,
+        };
+
+        const newPos = {
+          x: pointer.x - mousePointTo.x * newScale,
+          y: pointer.y - mousePointTo.y * newScale,
+        };
+
+        setStageScale(newScale);
+        setStagePos(newPos);
+        stage.scale({ x: newScale, y: newScale });
+        stage.position(newPos);
+        stage.batchDraw();
+      }
+    }
+  }, [stageScale, stagePos, calculateDistance, calculateCenter]);
+
+  const resetTouchGesture = useCallback(() => {
+    cancelLongPress();
+    touchGestureRef.current.isTouch = false;
+    touchGestureRef.current.touchStartTime = 0;
+    touchGestureRef.current.touchStartPoint = null;
+    touchGestureRef.current.lastTouchPoint = null;
+    touchGestureRef.current.touchMoveDistance = 0;
+    touchGestureRef.current.isTap = false;
+    touchGestureRef.current.pinchStart = null;
+    touchGestureRef.current.isPinching = false;
+  }, [cancelLongPress]);
 
   // Enhanced line click handler with better reliability
   const handleLineClick = useCallback((lineIdx: number) => {
@@ -295,6 +419,11 @@ export function useCanvasInteractions({
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     
     lines.forEach(line => {
+      // Skip lines that don't have valid points
+      if (!line.points || !Array.isArray(line.points) || line.points.length === 0) {
+        return;
+      }
+      
       for (let i = 0; i < line.points.length; i += 2) {
         const x = line.points[i];
         const y = line.points[i + 1];
@@ -341,6 +470,40 @@ export function useCanvasInteractions({
     const stage = e.currentTarget.getStage();
     if (!stage) return;
 
+    // Enhanced touch gesture detection
+    const isTouch = e.evt.type === 'touchstart' || (e.evt as any).touches;
+    if (isTouch) {
+      const touches = (e.evt as any).touches || [(e.evt as any)];
+      touchGestureRef.current.isTouch = true;
+      touchGestureRef.current.touchStartTime = Date.now();
+      
+      if (touches.length === 1) {
+        const touch = touches[0];
+        const stageBox = stage.container().getBoundingClientRect();
+        const point = { 
+          x: touch.clientX - stageBox.left, 
+          y: touch.clientY - stageBox.top 
+        };
+        touchGestureRef.current.touchStartPoint = point;
+        touchGestureRef.current.lastTouchPoint = point;
+        touchGestureRef.current.touchMoveDistance = 0;
+        touchGestureRef.current.isTap = true;
+        
+        // Start long press detection for single touch
+        startLongPress(point);
+      } else if (touches.length === 2) {
+        // Two finger gesture - prepare for pinch zoom
+        touchGestureRef.current.isTap = false;
+        cancelLongPress();
+        handlePinchZoom(touches);
+        return; // Don't proceed with drawing for multi-touch
+      } else {
+        // More than 2 touches - cancel all gestures
+        resetTouchGesture();
+        return;
+      }
+    }
+
     if (isSpacePressed.current || tool === 'select') {
       isPanning.current = true;
       return;
@@ -364,6 +527,14 @@ export function useCanvasInteractions({
         onCanvasClickAction(e);
       }
       return;
+    }
+
+    if (tool === 'frame' && isFramePlacementMode) {
+      // Delegate frame placement to external handler (e.g., preset placement logic)
+      if (onCanvasClickAction) {
+        onCanvasClickAction(e);
+      }
+      return; // Skip internal frame-draw flow
     }
 
     if (tool === 'frame') {
@@ -455,6 +626,14 @@ export function useCanvasInteractions({
       }
       return;
     }
+
+    if (tool === 'shapes') {
+      // For shapes tool, pass the click to canvas click handler for shape creation
+      if (onCanvasClickAction) {
+        onCanvasClickAction(e);
+      }
+      return;
+    }
     
     if (tool !== 'pen' && tool !== 'eraser' && tool !== 'highlighter') return;
 
@@ -491,12 +670,53 @@ export function useCanvasInteractions({
     if (onRealTimeDrawingAction) {
       onRealTimeDrawingAction(newLine);
     }
-  }, [tool, strokeWidth, color, lines, findFrameAtPoint, handleDrawingInFrame, onRealTimeDrawingAction, frames.length, onCanvasClickAction]);
+
+    // If we are in preset frame placement mode, forward the event and exit early
+    if (isFramePlacementMode && onCanvasClickAction) {
+      onCanvasClickAction(e);
+      return;
+    }
+  }, [tool, strokeWidth, color, lines, findFrameAtPoint, handleDrawingInFrame, onRealTimeDrawingAction, frames.length, onCanvasClickAction, isFramePlacementMode]);
 
   const handleMouseMove = useCallback((e: KonvaEventObject<MouseEvent>) => {
     const stage = e.target.getStage();
     const point = stage?.getPointerPosition();
     if (!point) return;
+
+    // Enhanced touch gesture handling
+    const isTouch = e.evt.type === 'touchmove' || (e.evt as any).touches;
+    if (isTouch && touchGestureRef.current.isTouch) {
+      const touches = (e.evt as any).touches || [(e.evt as any)];
+      
+      if (touches.length === 2) {
+        // Handle pinch zoom
+        handlePinchZoom(touches);
+        return;
+      } else if (touches.length === 1 && touchGestureRef.current.touchStartPoint) {
+                 // Track movement distance for tap detection
+         const touch = touches[0];
+         const stageBox = stage?.container().getBoundingClientRect();
+         if (!stageBox) return;
+         const currentPoint = { 
+           x: touch.clientX - stageBox.left, 
+           y: touch.clientY - stageBox.top 
+         };
+        
+        const distance = Math.sqrt(
+          Math.pow(currentPoint.x - touchGestureRef.current.touchStartPoint.x, 2) +
+          Math.pow(currentPoint.y - touchGestureRef.current.touchStartPoint.y, 2)
+        );
+        
+        touchGestureRef.current.touchMoveDistance = distance;
+        touchGestureRef.current.lastTouchPoint = currentPoint;
+        
+        // Cancel tap if movement exceeds threshold
+        if (distance > TAP_THRESHOLD) {
+          touchGestureRef.current.isTap = false;
+          cancelLongPress();
+        }
+      }
+    }
 
     moveCursorAction(point.x, point.y);
 
@@ -540,12 +760,17 @@ export function useCanvasInteractions({
 
     if (isDrawingInFrame && activeFrameId) {
       const frame = frames.find(f => f.id === activeFrameId);
-      if (frame) {
+      if (frame && lines.length > 0) {
+        const lastLine = lines[lines.length - 1];
+        if (!lastLine.points || !Array.isArray(lastLine.points)) {
+          return; // Skip if the last line doesn't have valid points
+        }
+        
         const clippedPoint = handleDrawingInFrame(stagePoint, frame);
-        const newPoints = [...lines[lines.length - 1].points, clippedPoint.x, clippedPoint.y];
+        const newPoints = [...lastLine.points, clippedPoint.x, clippedPoint.y];
         
         const updatedLine = {
-          ...lines[lines.length - 1],
+          ...lastLine,
           points: newPoints,
         };
 
@@ -571,10 +796,19 @@ export function useCanvasInteractions({
         }
       }
     } else {
-      const newPoints = [...lines[lines.length - 1].points, stagePoint.x, stagePoint.y];
+      if (lines.length === 0) {
+        return; // Skip if there are no lines to update
+      }
+      
+      const lastLine = lines[lines.length - 1];
+      if (!lastLine.points || !Array.isArray(lastLine.points)) {
+        return; // Skip if the last line doesn't have valid points
+      }
+      
+      const newPoints = [...lastLine.points, stagePoint.x, stagePoint.y];
       
       const updatedLine = {
-        ...lines[lines.length - 1],
+        ...lastLine,
         points: newPoints,
       };
 
@@ -604,19 +838,53 @@ export function useCanvasInteractions({
   }, [isDrawing, lines, frames, activeFrameId, isDrawingInFrame, handleDrawingInFrame, onRealTimeLineUpdateAction, moveCursorAction]);
 
   const handleMouseUp = useCallback(() => {
+    // Enhanced touch gesture completion
+    if (touchGestureRef.current.isTouch) {
+      const touchDuration = Date.now() - touchGestureRef.current.touchStartTime;
+      
+      // Handle tap gesture
+      if (touchGestureRef.current.isTap && 
+          touchGestureRef.current.touchMoveDistance <= TAP_THRESHOLD &&
+          touchDuration < LONG_PRESS_DURATION) {
+        console.log('Tap gesture detected');
+        // Tap is handled by normal click logic
+      }
+      
+      // Handle long press completion
+      if (touchGestureRef.current.isLongPress) {
+        console.log('Long press completed');
+        // Could trigger context menu or tool switch
+      }
+      
+      // Reset touch gesture state
+      resetTouchGesture();
+    }
+
     if (frameCreationModeRef.current.isCreating && frameCreationModeRef.current.currentFrame) {
       const currentFrame = frameCreationModeRef.current.currentFrame;
       
-      if (currentFrame.width && currentFrame.height && 
-          currentFrame.width > 20 && currentFrame.height > 20) {
-        
+      // Determine final frame dimensions
+      let finalWidth = currentFrame.width || 0;
+      let finalHeight = currentFrame.height || 0;
+
+      // If the user only clicked (no drag), assign sensible default size
+      if (finalWidth === 0 && finalHeight === 0) {
+        finalWidth = 300; // default width
+        finalHeight = 200; // default height
+      }
+
+      // Enforce minimum dimensions
+      finalWidth = Math.max(finalWidth, 20);
+      finalHeight = Math.max(finalHeight, 20);
+
+      if (finalWidth >= 20 && finalHeight >= 20) {
         const newFrame: FrameElement = {
           id: currentFrame.id || `frame-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           type: 'frame',
           x: currentFrame.x || 0,
           y: currentFrame.y || 0,
-          width: currentFrame.width,
-          height: currentFrame.height,
+          width: finalWidth,
+          height: finalHeight,
           name: currentFrame.name || 'New Frame',
           frameType: currentFrame.frameType || 'basic',
           isCreating: false,
@@ -656,6 +924,7 @@ export function useCanvasInteractions({
         }
       }
       
+      // Reset creation mode state regardless of creation success
       frameCreationModeRef.current = {
         isCreating: false,
         startPoint: null,
@@ -777,6 +1046,10 @@ export function useCanvasInteractions({
       window.removeEventListener('keyup', handleKeyUp);
     };
   }, [resetZoom, zoomIn, zoomOut]);
+
+  useEffect(() => {
+    setShowGrid(showGridProp);
+  }, [showGridProp]);
 
   return {
     stageScale,

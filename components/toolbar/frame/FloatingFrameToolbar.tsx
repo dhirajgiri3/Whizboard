@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import {
   Frame,
   Settings,
@@ -12,23 +12,17 @@ import {
   Edit,
   Check,
   X,
-  ZoomIn,
-  ZoomOut,
   Maximize2,
   Minimize2,
-  ChevronUp,
   ChevronDown,
   EyeOff,
   Eye,
   Grip,
-  AlertCircle,
-  Move,
   Lock,
   Unlock,
   RotateCcw,
   Layers,
   Zap,
-  Sparkles,
   Smartphone,
   Tablet,
   Monitor,
@@ -38,37 +32,23 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  AlignJustify,
   AlignHorizontalDistributeCenter,
   AlignVerticalDistributeCenter,
   FlipHorizontal,
   FlipVertical,
-  MoreHorizontal,
-  Minus,
-  Plus,
   Square,
   Circle,
-  Pipette,
-  Brush,
-  Eraser,
   Droplet,
-  Paintbrush,
   Sliders,
   RefreshCw,
-  RotateCw,
-  MousePointer,
   Crosshair,
   Blend,
-  Contrast,
   Sun,
   Moon,
-  Hexagon,
-  Triangle,
-  Octagon,
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { useFloatingToolbarDrag } from "@/hooks/useFloatingToolbarDrag";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import type {
   FramePreset,
   FloatingFrameToolbarProps,
@@ -118,6 +98,8 @@ export default function FloatingFrameToolbar({
   onFrameDeselectAction,
   onFrameAlignAction,
   onFrameDistributeAction,
+  onFramePlacementStart,
+  onFramePlacementCancel,
   className = "",
   scale = 1,
 }: FloatingFrameToolbarProps) {
@@ -130,7 +112,10 @@ export default function FloatingFrameToolbar({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
-  const [showAdvancedStyles, setShowAdvancedStyles] = useState(false);
+  
+  // Frame placement state
+  const [selectedPreset, setSelectedPreset] = useState<FramePreset | null>(null);
+  const [isPlacementMode, setIsPlacementMode] = useState(false);
 
   // Style state
   const [fillColor, setFillColor] = useState("#ffffff");
@@ -144,9 +129,7 @@ export default function FloatingFrameToolbar({
   const [shadowOffsetY, setShadowOffsetY] = useState(4);
   const [shadowColor, setShadowColor] = useState("#000000");
   const [rotation, setRotation] = useState(0);
-  const [showColorPicker, setShowColorPicker] = useState(false);
   const [customColor, setCustomColor] = useState("#3b82f6");
-  const [blendMode, setBlendMode] = useState("normal");
   const [brightness, setBrightness] = useState(100);
   const [contrast, setContrast] = useState(100);
   const [saturation, setSaturation] = useState(100);
@@ -158,7 +141,6 @@ export default function FloatingFrameToolbar({
     isHidden,
     isCollapsed,
     isDragging,
-    position: toolbarPosition,
     toolbarStyles,
     eyeButtonStyles,
     handleMouseDown,
@@ -219,8 +201,51 @@ export default function FloatingFrameToolbar({
     []
   );
 
+  // Handle preset selection for placement mode
+  const handlePresetSelect = useCallback((preset: FramePreset) => {
+    setSelectedPreset(preset);
+    setIsPlacementMode(true);
+    sonnerToast.success(`Selected ${preset.name} - Click on canvas to place`);
+  }, []);
+
+  // Cancel placement mode
+  const handleCancelPlacement = useCallback(() => {
+    setSelectedPreset(null);
+    setIsPlacementMode(false);
+    
+    // Notify parent component about placement cancellation
+    if (onFramePlacementCancel) {
+      onFramePlacementCancel();
+    }
+  }, [onFramePlacementCancel]);
+
+  // Handle frame placement on canvas
+  const handleFramePlacement = useCallback((x: number, y: number) => {
+    if (!selectedPreset) return;
+    
+    handlePresetClick(selectedPreset, onFrameCreateAction, x, y);
+    setSelectedPreset(null);
+    setIsPlacementMode(false);
+    sonnerToast.success(`${selectedPreset.name} created!`);
+  }, [selectedPreset, onFrameCreateAction]);
+
+  // Create placement handler object
+  const placementHandler = useMemo(() => ({
+    handleFramePlacement,
+    isPlacementMode,
+    selectedPreset,
+    cancelPlacement: handleCancelPlacement,
+  }), [handleFramePlacement, isPlacementMode, selectedPreset, handleCancelPlacement]);
+
+  // Notify parent component when placement mode starts
+  useEffect(() => {
+    if (onFramePlacementStart && isPlacementMode && selectedPreset) {
+      onFramePlacementStart(selectedPreset, placementHandler);
+    }
+  }, [isPlacementMode, selectedPreset, onFramePlacementStart, placementHandler]);
+
   const handleStyleUpdate = useCallback(
-    (property: string, value: any) => {
+    (property: string, value: string | number | boolean | object | undefined) => {
       if (!primarySelectedFrame) return;
 
       const updatedFrame = {
@@ -310,7 +335,7 @@ export default function FloatingFrameToolbar({
   );
 
   const handleShadowUpdate = useCallback(
-    (property: string, value: any) => {
+    (property: string, value: string | number | boolean | undefined) => {
       if (!primarySelectedFrame) return;
 
       const currentShadow = primarySelectedFrame.style.shadow || {};
@@ -358,7 +383,6 @@ export default function FloatingFrameToolbar({
       setShadowOffsetY(primarySelectedFrame.style.shadow?.offsetY || 4);
       setShadowColor(primarySelectedFrame.style.shadow?.color || "#000000");
       setRotation(primarySelectedFrame.style.rotation || 0);
-      setBlendMode(primarySelectedFrame.style.blendMode || "normal");
       setBrightness(primarySelectedFrame.style.brightness || 100);
       setContrast(primarySelectedFrame.style.contrast || 100);
       setSaturation(primarySelectedFrame.style.saturation || 100);
@@ -369,9 +393,15 @@ export default function FloatingFrameToolbar({
     (e: KeyboardEvent) => {
       if (!isActive || !hasSelection) return;
 
+      // Check if user is currently renaming (typing in input field)
+      if (isRenaming) return;
+
+      // Check if any input/textarea is focused or if it's a rename input specifically
       if (
         document.activeElement &&
-        ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)
+        (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName) ||
+          document.activeElement.getAttribute("contenteditable") === "true" ||
+          document.activeElement.hasAttribute("data-rename-input"))
       ) {
         return;
       }
@@ -397,6 +427,7 @@ export default function FloatingFrameToolbar({
     [
       isActive,
       hasSelection,
+      isRenaming,
       selectedFrames,
       selectedFrameIds,
       onFrameDeselectAction,
@@ -605,6 +636,9 @@ export default function FloatingFrameToolbar({
                             value={renameValue}
                             onChange={(e) => setRenameValue(e.target.value)}
                             onKeyDown={(e) => {
+                              // Always stop propagation for rename input to prevent conflicts
+                              e.stopPropagation();
+                              
                               if (e.key === "Enter")
                                 handleFinishRename(
                                   selectedFrames,
@@ -740,7 +774,7 @@ export default function FloatingFrameToolbar({
                   <button
                     key={tab.id}
                     onClick={() =>
-                      !tab.disabled && handleTabChange(tab.id as any)
+                      !tab.disabled && handleTabChange(tab.id as "presets" | "style" | "layout" | "actions")
                     }
                     disabled={tab.disabled}
                     className={cn(
@@ -773,7 +807,7 @@ export default function FloatingFrameToolbar({
                       placeholder="Search frames..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 text-sm rounded-lg border border-slate-200 bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300"
+                      className="w-full pl-10 pr-4 py-2.5 placeholder:text-yellow-400 text-sm rounded-lg border border-slate-200 bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300"
                     />
                   </div>
 
@@ -806,6 +840,34 @@ export default function FloatingFrameToolbar({
                     ))}
                   </div>
 
+                  {/* Placement Mode Indicator */}
+                  {isPlacementMode && selectedPreset && (
+                    <div className="mt-4 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-indigo-500 rounded-lg text-white">
+                            <Crosshair size={16} />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-semibold text-indigo-800">
+                              {selectedPreset.name} Ready
+                            </h4>
+                            <p className="text-xs text-indigo-600">
+                              Click anywhere on the canvas to place this frame
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={handleCancelPlacement}
+                          className="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 rounded-lg transition-colors"
+                          title="Cancel placement"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {Object.entries(groupedPresets).map(([category, presets]) => (
                     <div key={category} className="space-y-3">
                       <div className="flex items-center gap-2">
@@ -833,23 +895,46 @@ export default function FloatingFrameToolbar({
                         {presets.map((preset) => (
                           <button
                             key={preset.id}
-                            onClick={() =>
-                              handlePresetClick(preset, onFrameCreateAction)
-                            }
-                            className="flex items-center gap-2.5 p-3 rounded-lg bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 transition-all duration-200 text-left group"
+                            onClick={() => handlePresetSelect(preset)}
+                            className={cn(
+                              "flex items-center gap-2.5 p-3 rounded-lg border transition-all duration-200 text-left group",
+                              selectedPreset?.id === preset.id
+                                ? "bg-indigo-100 border-indigo-500 ring-2 ring-indigo-500/30"
+                                : "bg-slate-50 hover:bg-indigo-50 border-slate-200 hover:border-indigo-300"
+                            )}
                           >
-                            <div className="p-2 bg-white rounded-lg shadow-sm border border-slate-100 group-hover:shadow-md transition-shadow">
+                            <div className={cn(
+                              "p-2 rounded-lg shadow-sm border transition-shadow",
+                              selectedPreset?.id === preset.id
+                                ? "bg-indigo-500 border-indigo-600 text-white"
+                                : "bg-white border-slate-100 group-hover:shadow-md"
+                            )}>
                               {iconMap[preset.icon as keyof typeof iconMap]}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="text-sm font-medium text-slate-800 truncate">
+                              <div className={cn(
+                                "text-sm font-medium truncate",
+                                selectedPreset?.id === preset.id
+                                  ? "text-indigo-800"
+                                  : "text-slate-800"
+                              )}>
                                 {preset.name}
                               </div>
-                              <div className="text-xs text-slate-500">
+                              <div className={cn(
+                                "text-xs",
+                                selectedPreset?.id === preset.id
+                                  ? "text-indigo-600"
+                                  : "text-slate-500"
+                              )}>
                                 {preset.dimensions.width} ×{" "}
                                 {preset.dimensions.height}
                               </div>
                             </div>
+                            {selectedPreset?.id === preset.id && (
+                              <div className="text-indigo-600">
+                                <Check size={16} />
+                              </div>
+                            )}
                           </button>
                         ))}
                       </div>
@@ -1342,7 +1427,7 @@ export default function FloatingFrameToolbar({
                           key={align.id}
                           onClick={() =>
                             handleAlignFrames(
-                              align.id as any,
+                              align.id as "left" | "center" | "right" | "top" | "middle" | "bottom",
                               onFrameAlignAction
                             )
                           }
