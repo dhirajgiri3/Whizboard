@@ -20,7 +20,7 @@ import RenameBoardModal from "@/components/ui/modal/RenameBoardModal";
 import InviteCollaboratorsModal from "@/components/ui/modal/InviteCollaboratorsModal";
 import SuccessModal from "@/components/ui/modal/SuccessModal";
 import { toast } from "sonner";
-import CanvasHeader from "@/components/layout/header/CanvasHeader";
+import CanvasHeader from "@/components/layout/header/utils/CanvasHeader";
 import {
   BoardProvider,
   useBoardContext,

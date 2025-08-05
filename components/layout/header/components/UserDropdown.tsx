@@ -1,0 +1,139 @@
+import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
+import Image from 'next/image';
+import { signOut } from 'next-auth/react';
+import { UserMenuItem } from '../types';
+import { headerAnimations, darkHeaderAnimations } from '../utils/animations';
+
+interface UserDropdownProps {
+  session: any;
+  isOpen: boolean;
+  onClose: () => void;
+  isLightMode: boolean;
+  userMenuItems: UserMenuItem[];
+}
+
+const UserDropdown = ({ session, isOpen, onClose, isLightMode, userMenuItems }: UserDropdownProps) => {
+  const animations = isLightMode ? headerAnimations : darkHeaderAnimations;
+  
+  const dropdownBg = isLightMode
+    ? 'bg-white/95 backdrop-blur-xl border-white/20'
+    : 'bg-[#111111]/95 backdrop-blur-xl border-white/10';
+  
+  const borderColor = isLightMode
+    ? 'border-gray-100/80'
+    : 'border-white/10';
+  
+  const textColor = isLightMode
+    ? 'text-gray-900'
+    : 'text-white';
+  
+  const subTextColor = isLightMode
+    ? 'text-gray-500'
+    : 'text-white/70';
+  
+  const hoverBg = isLightMode
+    ? 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-slate-50 hover:text-gray-900'
+    : 'hover:bg-gradient-to-r hover:from-white/5 hover:to-white/10 hover:text-white';
+  
+  const dangerHoverBg = isLightMode
+    ? 'hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 hover:text-red-700'
+    : 'hover:bg-gradient-to-r hover:from-red-500/10 hover:to-red-600/10 hover:text-red-400';
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          variants={animations.dropdown}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          className={`absolute right-0 mt-3 w-80 lg:w-96 ${dropdownBg} rounded-2xl shadow-2xl border py-4 z-[55] overflow-hidden`}
+          role="menu"
+          style={{ 
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)'
+          }}
+        >
+          {/* User Info */}
+          <div className={`px-6 py-4 border-b ${borderColor}`}>
+            <div className="flex items-center gap-4">
+              <motion.div whileHover={{ scale: 1.05 }} className="relative">
+                <Image
+                  src={session.user?.image || '/default-avatar.png'}
+                  alt="User Avatar"
+                  width={48}
+                  height={48}
+                  className={`w-12 h-12 rounded-full ring-3 ${isLightMode ? 'ring-blue-100' : 'ring-blue-500/30'}`}
+                />
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white" />
+              </motion.div>
+              <div className="flex-1 min-w-0">
+                <div className={`text-base font-bold ${textColor} truncate`}>
+                  {session.user?.name || 'User'}
+                </div>
+                <div className={`text-sm ${subTextColor} truncate`}>
+                  {session.user?.email}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Menu Items */}
+          <div className="py-2">
+            {userMenuItems.map((item, index) => (
+              <motion.div
+                key={item.label}
+                whileHover={{ x: 4 }}
+                whileTap={{ scale: 0.98 }}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.03, duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+              >
+                {item.href ? (
+                  <Link
+                    href={item.href}
+                    className={`flex items-center gap-4 px-6 py-3 text-sm font-medium transition-all duration-300 group ${hoverBg} ${
+                      isLightMode ? 'text-gray-700' : 'text-white/70'
+                    }`}
+                    onClick={onClose}
+                    role="menuitem"
+                  >
+                    <div className={`p-2 rounded-full ${item.color.bg} ${item.color.text} group-hover:${item.color.hover.bg} transition-colors`}>
+                      <item.icon className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-medium">{item.label}</div>
+                      <div className={`text-xs ${subTextColor}`}>{item.description}</div>
+                    </div>
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => {
+                      onClose();
+                      item.action?.();
+                    }}
+                    className={`flex items-center gap-4 px-6 py-3 text-sm font-medium transition-all duration-300 w-full text-left group ${dangerHoverBg} ${
+                      isLightMode ? 'text-red-600' : 'text-red-400'
+                    }`}
+                    role="menuitem"
+                  >
+                    <div className={`p-2 rounded-full ${item.color.bg} ${item.color.text} group-hover:${item.color.hover.bg} transition-colors`}>
+                      <item.icon className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-medium">{item.label}</div>
+                      <div className={`text-xs ${subTextColor}`}>{item.description}</div>
+                    </div>
+                  </button>
+                )}
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+export default UserDropdown; 

@@ -448,16 +448,16 @@ This invitation expires in 7 days. If you don't have a WhizBoard account, you'll
 --
 WhizBoard Team
 Real-time collaborative whiteboard for teams`,
-        // Add tracking and analytics
-        trackingSettings: {
-          clickTracking: { enable: true },
-          openTracking: { enable: true }
-        },
+            // Add basic tracking
+    trackingSettings: {
+      clickTracking: { enable: false },
+      openTracking: { enable: false }
+    },
         // Add custom headers for better deliverability
         headers: {
           'X-Entity-Ref-ID': `board-invite-${data.boardId}`,
         },
-        // Add categories for SendGrid analytics
+        // Add categories for email organization
         categories: ['board-invitation', 'collaboration']
       };
 
@@ -522,8 +522,8 @@ Get started: ${this.getBaseUrl()}
 WhizBoard Team
 Real-time collaborative whiteboard for teams`,
         trackingSettings: {
-          clickTracking: { enable: true },
-          openTracking: { enable: true }
+          clickTracking: { enable: false },
+          openTracking: { enable: false }
         },
         categories: ['welcome', 'onboarding']
       };
@@ -574,8 +574,8 @@ View board: ${this.getBaseUrl()}/board/${data.boardId}
 --
 WhizBoard Team`,
         trackingSettings: {
-          clickTracking: { enable: true },
-          openTracking: { enable: true }
+          clickTracking: { enable: false },
+          openTracking: { enable: false }
         },
         categories: ['collaboration', 'notification']
       };

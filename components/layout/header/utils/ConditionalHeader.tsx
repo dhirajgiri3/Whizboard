@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Header from "./Header";
+import Header from "../Header";
 
 const ConditionalHeader = () => {
   const pathname = usePathname();
@@ -10,7 +10,7 @@ const ConditionalHeader = () => {
   const pagesWithoutHeader = [
     '/my-boards',
     '/login',
-    '/signup',
+    '/login',
     '/invitation-declined'
   ];
   

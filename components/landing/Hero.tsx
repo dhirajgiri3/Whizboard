@@ -106,6 +106,7 @@ const Hero = () => {
   return (
     <div
       className="relative w-full overflow-hidden"
+      id="hero"
       style={{
         background:
           "linear-gradient(135deg, #ffffff 0%, #F0F7FF 3%, #E5F0FF 8%, #D1E5FF 15%, #B3D7FF 25%, #85C1FF 35%, #57A9FF 45%, #3b82f6 55%, #2563eb 65%, #1d4ed8 75%, #1e40af 85%, #1e3a8a 92%, #172554 96%, #0f172a 100%)",
@@ -412,12 +413,12 @@ const Hero = () => {
               className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 md:gap-6 justify-center w-full px-4 sm:px-0 mt-6 sm:mt-8"
             >
               <motion.a
-                href="/signup"
+                href="/login"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-6 py-4 sm:px-8 sm:py-4 rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/35 w-full sm:w-auto min-w-[200px] min-h-[44px] flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-black"
               >
-                <span>Start Free Trial</span>
+                <span>Get Started</span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </motion.a>
 

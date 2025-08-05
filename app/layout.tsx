@@ -6,7 +6,7 @@ import AuthSessionProvider from "@/lib/provider/AuthSessionProvider";
 import { Toaster } from "sonner";
 import Script from "next/script";
 import { Providers } from "./layout/providers";
-import ConditionalHeader from "@/components/layout/header/ConditionalHeader";
+import ConditionalHeader from "@/components/layout/header/utils/ConditionalHeader";
 
 const maisonNeue = localFont({
   src: [

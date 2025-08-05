@@ -1,6 +1,6 @@
 import React from "react";
 import { Metadata } from "next";
-import ConditionalHeader from "@/components/layout/header/ConditionalHeader";
+import ConditionalHeader from "@/components/layout/header/utils/ConditionalHeader";
 
 export const metadata: Metadata = {
   title: "Board Details",

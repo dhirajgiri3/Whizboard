@@ -112,7 +112,7 @@ const SocialProof = () => {
       role: "Marketing Director",
       company: "BrandForge",
       content:
-        "The analytics and reporting features give us insights we never had before. Our campaign planning is now data-driven and precise.",
+        "The collaboration features give us visibility we never had before. Our team planning is now seamless and efficient.",
       rating: 5,
       metrics: "Data-driven campaign planning",
       avatar: "/avatars/lisa.jpg",

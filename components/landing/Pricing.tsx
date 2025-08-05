@@ -49,7 +49,7 @@ const Pricing = () => {
         "Mobile-responsive design",
       ],
       cta: "Get Started",
-      href: "/signup",
+      href: "/login",
       popular: false,
       icon: Heart,
       iconColor: "text-blue-400",
@@ -67,7 +67,7 @@ const Pricing = () => {
         "Advanced drawing tools with pressure sensitivity",
         "All premium frame templates (mobile, desktop, social media)",
         "Enhanced exports (PNG, SVG, JSON, PDF)",
-        "Team analytics & collaboration insights",
+        "Team collaboration insights",
         "Up to 25 team members & roles",
         "Custom branding & themes",
         "Advanced integrations & API access",
@@ -76,8 +76,8 @@ const Pricing = () => {
         "Advanced security & compliance",
         "Presentation & whiteboarding mode",
       ],
-      cta: "Try Free for 14 Days",
-      href: "/signup",
+      cta: "Start Free Trial",
+      href: "/login",
       popular: true,
       icon: Crown,
       iconColor: "text-blue-400",
@@ -537,9 +537,9 @@ const Pricing = () => {
                     <span className="flex items-center justify-center gap-2">
                       <span>
                         {plan.name === "Free"
-                          ? "Start Building Free → No Credit Card"
+                          ? "Get Started → No Credit Card"
                           : plan.name === "Pro"
-                          ? "Start Free Trial (14 Days)"
+                          ? "Start Free Trial"
                           : "Contact Sales Team"}
                       </span>
                       <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />

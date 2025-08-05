@@ -223,7 +223,7 @@ const termsSections = [
       <h3>Data Usage</h3>
       <ul>
         <li>We use your data to provide and improve our services</li>
-        <li>We may use anonymized data for analytics</li>
+        <li>We may use anonymized data for research</li>
         <li>We will not share your data without your consent</li>
         <li>We comply with applicable data protection laws</li>
       </ul>

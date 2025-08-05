@@ -131,7 +131,7 @@ const privacySections = [
         <li>Enforce our terms of service</li>
       </ul>
       
-      <h3>Analytics and Research</h3>
+      <h3>Research and Development</h3>
       <ul>
         <li>Analyze usage patterns to improve our services</li>
         <li>Conduct research and development</li>
@@ -155,7 +155,7 @@ const privacySections = [
         <li>Hosting and infrastructure services</li>
         <li>Payment processing and billing</li>
         <li>Customer support and communication</li>
-        <li>Analytics and performance monitoring</li>
+        <li>Performance monitoring</li>
       </ul>
       
       <h3>Legal Requirements</h3>
@@ -227,10 +227,10 @@ const privacySections = [
         <li>Backup copies: Retained for up to 90 days for recovery</li>
       </ul>
       
-      <h3>Usage and Analytics Data</h3>
+              <h3>Usage Data</h3>
       <ul>
         <li>Performance data: Retained for 2 years</li>
-        <li>Analytics data: Anonymized after 1 year</li>
+        <li>Usage data: Anonymized after 1 year</li>
         <li>Error logs: Retained for 90 days</li>
       </ul>
       
@@ -276,7 +276,7 @@ const privacySections = [
       <h3>Cookies and Tracking</h3>
       <ul>
         <li>Manage cookie preferences</li>
-        <li>Opt-out of analytics tracking</li>
+        <li>Opt-out of usage tracking</li>
         <li>Control browser tracking settings</li>
       </ul>
     `
@@ -295,9 +295,9 @@ const privacySections = [
         <li>Basic functionality and preferences</li>
       </ul>
       
-      <h3>Analytics Cookies</h3>
-      <ul>
-        <li>Usage analytics and performance monitoring</li>
+              <h3>Performance Cookies</h3>
+        <ul>
+          <li>Usage monitoring and performance tracking</li>
         <li>Feature usage and user behavior</li>
         <li>Service improvement and optimization</li>
       </ul>

@@ -47,11 +47,8 @@ const Footer = () => {
       { name: "API", href: "/api" },
     ],
     company: [
-      { name: "About", href: "/about" },
-      { name: "Blog", href: "/blog" },
-      { name: "Careers", href: "/careers" },
-      { name: "Press", href: "/press" },
-      { name: "Contact", href: "/contact" },
+              { name: "About", href: "/about" },
+        { name: "Contact", href: "/contact" },
     ],
     resources: [
       { name: "Documentation", href: "/docs" },

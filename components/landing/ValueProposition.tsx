@@ -129,7 +129,7 @@ const ValueProposition = () => {
     { text: "Outdated user interface", icon: Monitor, description: "Clunky and slow", severity: "medium" },
     { text: "Limited integration options", icon: Link, description: "Isolated from other tools", severity: "medium" },
     { text: "Poor customer support", icon: HelpCircle, description: "Slow response times", severity: "high" },
-    { text: "No real-time analytics", icon: TrendingUp, description: "Missing insights", severity: "medium" },
+          { text: "No real-time insights", icon: TrendingUp, description: "Missing visibility", severity: "medium" },
     { text: "Security vulnerabilities", icon: Shield, description: "Outdated protocols", severity: "high" }
   ];
 
@@ -145,7 +145,7 @@ const ValueProposition = () => {
     { text: "Modern, fast interface", icon: Monitor, description: "Smooth performance", benefit: "high" },
     { text: "Rich integration ecosystem", icon: Link, description: "Connects with your tools", benefit: "medium" },
     { text: "24/7 customer support", icon: HelpCircle, description: "Always here to help", benefit: "high" },
-    { text: "Advanced analytics dashboard", icon: TrendingUp, description: "Deep insights", benefit: "medium" },
+          { text: "Advanced collaboration insights", icon: TrendingUp, description: "Deep visibility", benefit: "medium" },
     { text: "Enterprise-grade security", icon: Shield, description: "SOC 2 compliant", benefit: "high" }
   ];
 
@@ -272,11 +272,6 @@ const ValueProposition = () => {
               }}
               title="Transform Ideas Into Actionable Plans"
               description="Stop struggling with scattered thoughts and chaotic brainstorms. Our professional-grade collaborative whiteboard transforms creative chaos into organized, actionable outcomes."
-              stats={[
-                { icon: Users, text: "150k+ users worldwide", color: "text-blue-400" },
-                { icon: Star, text: "4.9/5 rating", color: "text-yellow-400" },
-                { icon: Shield, text: "Enterprise ready", color: "text-emerald-400" }
-              ]}
               useCases={[
                 "Streamline brainstorming sessions",
                 "Enhance remote team collaboration",
