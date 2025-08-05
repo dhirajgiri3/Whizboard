@@ -35,7 +35,7 @@ const WhiteboardToolbar: React.FC<WhiteboardToolbarProps> = ({
   isTablet = false,
 }) => {
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-50 bg-[#0F0F10]/95 backdrop-blur-xl border-t border-white/[0.08] rounded-b-lg">
+    <div className="absolute bottom-0 left-0 right-0 z-50 bg-[#0F0F10]/95 backdrop-blur-xl border-t border-white/[0.08] rounded-b-xl">
       <div className="flex items-center justify-center gap-2 px-4 py-3">
         {/* Main Tool Buttons */}
         <div className="flex items-center gap-1">
