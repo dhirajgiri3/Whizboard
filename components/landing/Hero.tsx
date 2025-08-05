@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Play, Users, Star, Zap, CheckCircle } from "lucide-react";
-import RealtimeDashboard from "@/components/reatime/whiteboard/RealtimeWhiteboard";
+import { ArrowRight, Play, Users, Star, Zap, CheckCircle, Sparkles, Hand, MousePointer, Wand2 } from "lucide-react";
+import RealtimeWhiteboard from "@/components/reatime/whiteboard/RealtimeWhiteboard";
 
 /**
  * Enhanced hero section with sophisticated responsive design and optimized performance
@@ -15,6 +15,8 @@ const Hero = () => {
 
   // Mobile optimization - reduce animation intensity on mobile
   const [isMobile, setIsMobile] = useState(false);
+  const [showInteractivePrompt, setShowInteractivePrompt] = useState(false);
+  const [interactionCount, setInteractionCount] = useState(0);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -24,6 +26,15 @@ const Hero = () => {
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Show interactive prompt after a delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowInteractivePrompt(true);
+    }, 3000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   // Track mouse movement with proper typing
@@ -70,6 +81,27 @@ const Hero = () => {
     "https://images.unsplash.com/photo-1525382455947-f319bc05fb35?q=80&w=1496&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     "https://images.unsplash.com/photo-1664575602554-2087b04935a5?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
   ];
+
+  const interactivePrompts = [
+    "Try drawing something!",
+    "Click the toolbar to explore tools",
+    "Watch others collaborate in real-time",
+    "Add sticky notes with your ideas",
+    "Pan and zoom around the canvas",
+    "Click on shapes to select them",
+    "Use keyboard shortcuts (P, C, R, T)",
+    "Change colors with the color picker",
+  ];
+
+  const handleInteraction = () => {
+    setInteractionCount(prev => prev + 1);
+    if (showInteractivePrompt) {
+      setShowInteractivePrompt(false);
+      setTimeout(() => {
+        setShowInteractivePrompt(true);
+      }, 2000);
+    }
+  };
 
   return (
     <div
@@ -427,16 +459,54 @@ const Hero = () => {
           </motion.div>
         </div>
 
-        {/* Realtime Dashboard Integration - Enhanced mobile responsiveness */}
+        {/* Interactive Whiteboard Section */}
         <div className="px-4 sm:px-6 lg:px-8 pb-8 sm:pb-12 md:pb-16 lg:pb-20">
+          {/* Interactive Prompt Overlay */}
+          {showInteractivePrompt && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="flex justify-center mb-4 relative z-20"
+            >
+              <motion.div
+                animate={{ 
+                  scale: [1, 1.02, 1],
+                  y: [0, -2, 0]
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="bg-white/90 backdrop-blur-md border border-gray-200 rounded-full px-6 py-3"
+              >
+                <div className="flex items-center gap-3">
+                  <Hand className="w-5 h-5 text-blue-600" />
+                  <span className="text-gray-700 font-medium text-sm">
+                    {interactivePrompts[interactionCount % interactivePrompts.length]}
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-blue-500" />
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+
+          {/* Enhanced Whiteboard Container */}
           <motion.div
-            className="w-full mx-auto"
+            className="w-full mx-auto relative z-10"
             style={{ y: parallaxY }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1.2 }}
+            onClick={handleInteraction}
           >
-            <RealtimeDashboard />
+            {/* Clean Whiteboard Container */}
+            <div className="relative rounded-2xl overflow-hidden">
+              <div className="relative">
+                <RealtimeWhiteboard />
+              </div>
+            </div>
           </motion.div>
         </div>
       </main>

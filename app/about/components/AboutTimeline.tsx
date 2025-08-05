@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
-import { Clock, Sparkles, Users, Target, Heart, Zap, Globe, Award, TrendingUp, Shield } from "lucide-react";
+import { motion } from "framer-motion";
+import { Clock, Users, Target, Heart, Zap, Globe, Award, TrendingUp, Shield, Code, Sparkles, Flame } from "lucide-react";
 
 interface TimelineEvent {
   id: string;
@@ -17,7 +16,7 @@ interface TimelineEvent {
 
 // Icon mapping for timeline events
 const iconMapping = {
-  "Sparkles": Sparkles,
+  "Code": Code,
   "Users": Users,
   "Target": Target,
   "Heart": Heart,
@@ -27,11 +26,11 @@ const iconMapping = {
   "TrendingUp": TrendingUp,
   "Clock": Clock,
   "Shield": Shield,
+  "Sparkles": Sparkles,
+  "Flame": Flame,
 };
 
 const AboutTimeline = () => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
 
   useEffect(() => {
@@ -46,36 +45,36 @@ const AboutTimeline = () => {
           setTimelineEvents([
             {
               id: "1",
-              year: "2020",
-              title: "The Beginning",
-              description: "Founded with a vision to revolutionize remote collaboration through intuitive whiteboarding tools.",
-              icon: "Sparkles",
+              year: "2023",
+              title: "The Idea",
+              description: "Started with a simple idea: make collaborative whiteboarding accessible to everyone. Built the first prototype in my spare time.",
+              icon: "Code",
               isVisible: true,
               order: 1
             },
             {
               id: "2",
-              year: "2021",
-              title: "First Product Launch",
-              description: "Released our first collaborative whiteboard with real-time drawing and basic collaboration features.",
+              year: "2024",
+              title: "First Launch",
+              description: "Released the first version with basic drawing tools and real-time collaboration. Gained first 100 users through word of mouth.",
               icon: "Users",
               isVisible: true,
               order: 2
             },
             {
               id: "3",
-              year: "2022",
-              title: "Enterprise Adoption",
-              description: "Reached 10,000+ users and launched enterprise features with advanced security and compliance.",
-              icon: "Shield",
+              year: "2024",
+              title: "Product Evolution",
+              description: "Added advanced features like frames, sticky notes, and enhanced collaboration tools. Reached 1,000+ active users.",
+              icon: "Target",
               isVisible: true,
               order: 3
             },
             {
               id: "4",
-              year: "2023",
-              title: "Global Expansion",
-              description: "Expanded to 45+ countries and introduced advanced AI-powered features for smarter collaboration.",
+              year: "2024",
+              title: "Community Growth",
+              description: "Built a passionate community of builders and creators. Launched integrations and API for developers.",
               icon: "Globe",
               isVisible: true,
               order: 4
@@ -83,8 +82,8 @@ const AboutTimeline = () => {
             {
               id: "5",
               year: "2024",
-              title: "Industry Recognition",
-              description: "Achieved 4.9/5 rating from 150,000+ users and received multiple industry awards for innovation.",
+              title: "Future Vision",
+              description: "Continuing to build the future of collaborative work. Focused on making remote collaboration seamless and enjoyable.",
               icon: "Award",
               isVisible: true,
               order: 5
@@ -97,36 +96,36 @@ const AboutTimeline = () => {
         setTimelineEvents([
           {
             id: "1",
-            year: "2020",
-            title: "The Beginning",
-            description: "Founded with a vision to revolutionize remote collaboration through intuitive whiteboarding tools.",
-            icon: "Sparkles",
+            year: "2023",
+            title: "The Idea",
+            description: "Started with a simple idea: make collaborative whiteboarding accessible to everyone. Built the first prototype in my spare time.",
+            icon: "Code",
             isVisible: true,
             order: 1
           },
           {
             id: "2",
-            year: "2021",
-            title: "First Product Launch",
-            description: "Released our first collaborative whiteboard with real-time drawing and basic collaboration features.",
+            year: "2024",
+            title: "First Launch",
+            description: "Released the first version with basic drawing tools and real-time collaboration. Gained first 100 users through word of mouth.",
             icon: "Users",
             isVisible: true,
             order: 2
           },
           {
             id: "3",
-            year: "2022",
-            title: "Enterprise Adoption",
-            description: "Reached 10,000+ users and launched enterprise features with advanced security and compliance.",
-            icon: "Shield",
+            year: "2024",
+            title: "Product Evolution",
+            description: "Added advanced features like frames, sticky notes, and enhanced collaboration tools. Reached 1,000+ active users.",
+            icon: "Target",
             isVisible: true,
             order: 3
           },
           {
             id: "4",
-            year: "2023",
-            title: "Global Expansion",
-            description: "Expanded to 45+ countries and introduced advanced AI-powered features for smarter collaboration.",
+            year: "2024",
+            title: "Community Growth",
+            description: "Built a passionate community of builders and creators. Launched integrations and API for developers.",
             icon: "Globe",
             isVisible: true,
             order: 4
@@ -134,8 +133,8 @@ const AboutTimeline = () => {
           {
             id: "5",
             year: "2024",
-            title: "Industry Recognition",
-            description: "Achieved 4.9/5 rating from 150,000+ users and received multiple industry awards for innovation.",
+            title: "Future Vision",
+            description: "Continuing to build the future of collaborative work. Focused on making remote collaboration seamless and enjoyable.",
             icon: "Award",
             isVisible: true,
             order: 5
@@ -149,197 +148,254 @@ const AboutTimeline = () => {
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.1
-      }
-    }
+    visible: { opacity: 1 }
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: [0.22, 1, 0.36, 1]
-      }
-    }
+    visible: { opacity: 1, y: 0 }
   };
 
-  const orbAnimation = {
-    scale: [1, 1.1, 1],
-    opacity: [0.4, 0.6, 0.4],
-    transition: {
-      duration: 8,
-      repeat: Infinity,
-      ease: "easeInOut"
-    }
+  const headerVariants = {
+    hidden: { opacity: 0, y: 60 },
+    visible: { opacity: 1, y: 0 }
   };
 
   return (
-    <section ref={ref} className="py-16 md:py-24 relative z-10">
-      {/* Background Elements */}
-      <div className="absolute inset-0 opacity-30">
+    <section className="relative py-24 overflow-hidden">
+      {/* Subtle Background */}
+      <motion.div 
+        className="absolute inset-0 bg-gradient-to-br from-blue-500/2 via-gray-500/1 to-gray-500/2"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, amount: 0.1 }}
+        transition={{ duration: 1, delay: 0.5 }}
+      />
+      
+      {/* Background Grid */}
+      <motion.div 
+        className="absolute inset-0 opacity-20"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 0.2 }}
+        viewport={{ once: true, amount: 0.1 }}
+        transition={{ duration: 1, delay: 0.7 }}
+      >
         <div className="absolute inset-0" style={{
           backgroundImage: `
-            linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
+            linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)
           `,
-          backgroundSize: '32px 32px'
+          backgroundSize: '24px 24px'
         }}></div>
-      </div>
+      </motion.div>
       
-      {/* Enhanced Gradient Orbs */}
+      {/* Minimal Gradient Orbs */}
       <motion.div 
-        className="absolute top-1/4 left-1/4 w-96 h-96"
+        className="absolute top-1/4 left-1/4 w-64 h-64 sm:w-80 sm:h-80 lg:w-96 lg:h-96"
         style={{
-          background: 'radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 70%)',
-          filter: 'blur(60px)'
-        }}
-        animate={orbAnimation}
-      />
-      <motion.div 
-        className="absolute bottom-1/4 right-1/4 w-80 h-80"
-        style={{
-          background: 'radial-gradient(circle, rgba(124, 58, 237, 0.3) 0%, rgba(124, 58, 237, 0.08) 50%, transparent 70%)',
-          filter: 'blur(80px)'
-        }}
-        animate={{...orbAnimation, transition: {...orbAnimation.transition, delay: 2}}}
-      />
-      
-      {/* Additional subtle orbs */}
-      <motion.div 
-        className="absolute top-3/4 left-1/3 w-64 h-64"
-        style={{
-          background: 'radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, rgba(37, 99, 235, 0.03) 50%, transparent 70%)',
           filter: 'blur(40px)'
         }}
-        animate={{...orbAnimation, transition: {...orbAnimation.transition, delay: 4}}}
+        initial={{ opacity: 0, scale: 0.8 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true, amount: 0.1 }}
+        transition={{ duration: 1.5, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      />
+      <motion.div 
+        className="absolute bottom-1/4 right-1/4 w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80"
+        style={{
+          background: 'radial-gradient(circle, rgba(115, 115, 115, 0.1) 0%, rgba(115, 115, 115, 0.02) 50%, transparent 70%)',
+          filter: 'blur(50px)'
+        }}
+        initial={{ opacity: 0, scale: 0.8 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true, amount: 0.1 }}
+        transition={{ duration: 1.5, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
       />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div 
-          className="flex flex-col items-center space-y-4 sm:space-y-6 pb-16"
-          initial="initial"
-          whileInView="animate"
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Clean Header Section */}
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
-          variants={fadeInUp}
+          variants={headerVariants}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="text-center mb-20"
         >
-          <div className="inline-flex items-center space-x-2 bg-white/[0.02] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm group/badge hover:scale-105 transition-transform duration-300">
-            <Clock className="h-4 w-4 text-indigo-400 group-hover/badge:animate-pulse" />
-            <span className="text-white/70 text-sm font-medium">Our History</span>
-          </div>
+          {/* Badge */}
+          <motion.div
+            variants={itemVariants}
+            transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            className="inline-flex items-center space-x-2 bg-white/[0.03] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm mb-6"
+          >
+            <Clock className="h-4 w-4 text-blue-400" />
+            <span className="text-white/70 text-sm font-medium">Our Journey</span>
+          </motion.div>
           
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight font-semibold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-500 text-center">
-            Our Journey
-          </h2>
+          {/* Main Title */}
+          <motion.h2 
+            variants={itemVariants}
+            transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6"
+          >
+            Building the <span className="text-blue-400">Future</span>
+          </motion.h2>
           
-          <p className="text-base text-white/80 max-w-2xl text-center leading-relaxed">
-            From a bold idea to a thriving platform, here's how we've grown.
-          </p>
+          {/* Description */}
+          <motion.p 
+            variants={itemVariants}
+            transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="text-base text-gray-300 max-w-3xl mx-auto leading-relaxed"
+          >
+            From a simple idea to a powerful platform. Here's how we're shaping the future of collaborative work.
+          </motion.p>
         </motion.div>
 
-        <div className="relative">
-          {/* Vertical Line - Glowing Effect */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-gradient-to-b from-indigo-500/80 via-blue-500/50 to-purple-500/80 z-0 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.45)] hidden md:block">
-            <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-indigo-500 to-transparent opacity-40 blur-sm"></div>
-            <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-t from-purple-500 to-transparent opacity-40 blur-sm"></div>
-          </div>
+        {/* Timeline */}
+        <motion.div 
+          className="relative"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={containerVariants}
+          transition={{ staggerChildren: 0.15, delayChildren: 0.1 }}
+        >
+          {/* Timeline Line - Desktop */}
+          <motion.div 
+            className="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-white/[0.1] hidden md:block"
+            initial={{ opacity: 0, scaleY: 0 }}
+            whileInView={{ opacity: 1, scaleY: 1 }}
+            viewport={{ once: true, amount: 0.1 }}
+            transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          />
           
-          <div className="space-y-12 md:space-y-24">
+          {/* Timeline Line - Mobile */}
+          <motion.div 
+            className="absolute left-8 top-0 bottom-0 w-0.5 bg-white/[0.1] md:hidden"
+            initial={{ opacity: 0, scaleY: 0 }}
+            whileInView={{ opacity: 1, scaleY: 1 }}
+            viewport={{ once: true, amount: 0.1 }}
+            transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          />
+          
+          <div className="space-y-12 md:space-y-16">
             {timelineEvents.map((event, index) => {
               const IconComponent = iconMapping[event.icon as keyof typeof iconMapping];
-              const isEven = index % 2 === 0;
-              const gradientColors = [
-                'from-blue-500/20 to-indigo-500/20',
-                'from-indigo-500/20 to-purple-500/20',
-                'from-purple-500/20 to-blue-500/20',
-                'from-blue-400/20 to-cyan-500/20',
-              ];
-              const gradientColor = gradientColors[index % gradientColors.length];
+              const isLeft = index % 2 === 0;
 
               return (
                 <motion.div 
                   key={event.id}
-                  className={`flex flex-col md:flex-row items-center w-full ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'}`}
-                  initial="initial"
-                  whileInView="animate"
-                  viewport={{ once: true, amount: 0.3 }}
-                  variants={fadeInUp}
+                  className="relative"
+                  variants={itemVariants}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <div className="md:w-5/12 text-right md:pr-10">
-                    {isEven && (
+                  {/* Desktop Layout */}
+                  <div className="hidden md:flex flex-row items-center w-full">
+                    {/* Left Side Card */}
+                    <div className="w-5/12 text-center md:text-left md:pr-8">
+                      {isLeft && (
+                        <motion.div 
+                          className="relative p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-sm group hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300"
+                          whileHover={{ y: -4 }}
+                          initial={{ opacity: 0, x: -50 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true, amount: 0.1 }}
+                          transition={{ duration: 0.6, delay: 0.2 + index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                        >
+                          <div className="relative z-10">
+                            <span className="inline-block px-3 py-1 rounded-full bg-white/[0.05] border border-white/[0.1] text-sm font-medium text-blue-400 mb-3">
+                              {event.year}
+                            </span>
+                            <h3 className="text-xl font-bold text-white mb-3">{event.title}</h3>
+                            <p className="text-gray-300 leading-relaxed">{event.description}</p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                    
+                    {/* Timeline Node - Desktop */}
+                    <div className="w-2/12 flex justify-center z-10">
                       <motion.div 
-                        variants={fadeInUp} 
-                        className="relative overflow-hidden bg-white/[0.02] border border-white/[0.05] p-6 rounded-2xl backdrop-blur-sm group hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300"
-                        whileHover={{ y: -5, transition: { duration: 0.3, ease: "easeOut" as const } }}
+                        className="p-4 rounded-full bg-blue-500 text-white shadow-lg border-2 border-white/[0.1] group"
+                        whileHover={{ scale: 1.05 }}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true, amount: 0.1 }}
+                        transition={{ duration: 0.6, delay: 0.3 + index * 0.1, ease: [0.22, 1, 0.36, 1] }}
                       >
-                        {/* Enhanced Gradient Orb Background */}
-                        <div className="absolute -top-10 -right-10 w-32 h-32" style={{
-                          background: 'radial-gradient(circle, rgba(79, 70, 229, 0.2) 0%, transparent 70%)',
-                          filter: 'blur(40px)'
-                        }}></div>
-                        
-                        <div className="relative z-10">
-                          <span className="inline-block px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-sm font-medium text-indigo-400 mb-3">{event.year}</span>
-                          <h3 className="text-xl font-bold text-white mb-2">{event.title}</h3>
-                          <p className="text-white/60">{event.description}</p>
-                          
-                          {/* Subtle gradient overlay on hover */}
-                          <div className={`absolute inset-0 bg-gradient-to-tr ${gradientColor} opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`}></div>
-                        </div>
+                        {IconComponent && <IconComponent className="h-6 w-6" />}
                       </motion.div>
-                    )}
-                  </div>
-                  <div className="md:w-1/12 flex justify-center z-10">
-                    <div className="p-4 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/20 border-2 border-white/10 transform scale-110 group">
-                      {IconComponent && <IconComponent className="h-8 w-8 group-hover:scale-110 transition-transform duration-300" />}
-                      <div className="absolute w-16 h-16 bg-indigo-500/20 rounded-full animate-ping opacity-0 group-hover:opacity-100"></div>
+                    </div>
+                    
+                    {/* Right Side Card */}
+                    <div className="w-5/12 text-center md:text-right md:pl-8">
+                      {!isLeft && (
+                        <motion.div 
+                          className="relative p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-sm group hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300"
+                          whileHover={{ y: -4 }}
+                          initial={{ opacity: 0, x: 50 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true, amount: 0.1 }}
+                          transition={{ duration: 0.6, delay: 0.2 + index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                        >
+                          <div className="relative z-10">
+                            <span className="inline-block px-3 py-1 rounded-full bg-white/[0.05] border border-white/[0.1] text-sm font-medium text-blue-400 mb-3">
+                              {event.year}
+                            </span>
+                            <h3 className="text-xl font-bold text-white mb-3">{event.title}</h3>
+                            <p className="text-gray-300 leading-relaxed">{event.description}</p>
+                          </div>
+                        </motion.div>
+                      )}
                     </div>
                   </div>
-                  <div className="md:w-5/12 text-left md:pl-10 mt-6 md:mt-0">
-                    {!isEven && (
+
+                  {/* Mobile Layout */}
+                  <div className="md:hidden flex items-start space-x-4">
+                    {/* Timeline Node - Mobile */}
+                    <div className="flex-shrink-0 mt-2">
                       <motion.div 
-                        variants={fadeInUp} 
-                        className="relative overflow-hidden bg-white/[0.02] border border-white/[0.05] p-6 rounded-2xl backdrop-blur-sm group hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300"
-                        whileHover={{ y: -5, transition: { duration: 0.3, ease: "easeOut" as const } }}
+                        className="p-3 rounded-full bg-blue-500 text-white shadow-lg border-2 border-white/[0.1] group"
+                        whileHover={{ scale: 1.05 }}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true, amount: 0.1 }}
+                        transition={{ duration: 0.6, delay: 0.3 + index * 0.1, ease: [0.22, 1, 0.36, 1] }}
                       >
-                        {/* Enhanced Gradient Orb Background */}
-                        <div className="absolute -top-10 -right-10 w-32 h-32" style={{
-                          background: 'radial-gradient(circle, rgba(124, 58, 237, 0.2) 0%, transparent 70%)',
-                          filter: 'blur(40px)'
-                        }}></div>
-                        
+                        {IconComponent && <IconComponent className="h-5 w-5" />}
+                      </motion.div>
+                    </div>
+                    
+                    {/* Card - Mobile */}
+                    <div className="flex-1">
+                      <motion.div 
+                        className="relative p-4 rounded-xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-sm group hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300"
+                        whileHover={{ y: -2 }}
+                        initial={{ opacity: 0, x: 20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true, amount: 0.1 }}
+                        transition={{ duration: 0.6, delay: 0.2 + index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                      >
                         <div className="relative z-10">
-                          <span className="inline-block px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-sm font-medium text-indigo-400 mb-3">{event.year}</span>
-                          <h3 className="text-xl font-bold text-white mb-2">{event.title}</h3>
-                          <p className="text-white/60">{event.description}</p>
-                          
-                          {/* Subtle gradient overlay on hover */}
-                          <div className={`absolute inset-0 bg-gradient-to-tr ${gradientColor} opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`}></div>
+                          <span className="inline-block px-2 py-1 rounded-full bg-white/[0.05] border border-white/[0.1] text-xs font-medium text-blue-400 mb-2">
+                            {event.year}
+                          </span>
+                          <h3 className="text-lg font-bold text-white mb-2">{event.title}</h3>
+                          <p className="text-gray-300 text-sm leading-relaxed">{event.description}</p>
                         </div>
                       </motion.div>
-                    )}
+                    </div>
                   </div>
                 </motion.div>
               );
             })}
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
-};
-
-// Animation variants
-const fadeInUp = {
-  initial: { opacity: 0, y: 60 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, ease: [0.6, -0.05, 0.01, 0.99] }
 };
 
 export default AboutTimeline; 

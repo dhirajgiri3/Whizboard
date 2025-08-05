@@ -26,9 +26,9 @@ let teamMembers: TeamMember[] = [
     avatar: "https://res.cloudinary.com/dgak25skk/image/upload/v1754345951/dhiraj-st3-mini_eq3fmn.png",
     social: {
       linkedin: "https://linkedin.com/in/dhirajgiri",
-      twitter: "https://twitter.com/dhirajgiri",
-      github: "https://github.com/dhirajgiri",
-      email: "dhiraj@whizboard.com"
+      twitter: "https://twitter.com/Dhirajgiri003",
+      github: "https://github.com/dhirajgiri3",
+      email: "hello@cyperstudio.in"
     },
     isActive: true,
     order: 1

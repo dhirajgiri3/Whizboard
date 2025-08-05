@@ -22,6 +22,26 @@ const AboutHero = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0 }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 40, scale: 0.95 },
+    visible: { opacity: 1, y: 0, scale: 1 }
+  };
+
+  const particleVariants = {
+    hidden: { opacity: 0, scale: 0 },
+    visible: { opacity: 1, scale: 1 }
+  };
+
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-32">
       {/* Background Elements */}
@@ -30,7 +50,13 @@ const AboutHero = () => {
         <div className="absolute inset-0 bg-gray-950" />
         
         {/* Grid Pattern - Enhanced visibility */}
-        <div className="absolute inset-0 opacity-40">
+        <motion.div 
+          className="absolute inset-0 opacity-40"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 0.4 }}
+          viewport={{ once: true, amount: 0.1 }}
+          transition={{ duration: 1, delay: 0.5 }}
+        >
           <div
             className="w-full h-full"
             style={{
@@ -41,10 +67,16 @@ const AboutHero = () => {
               backgroundSize: "24px 24px",
             }}
           />
-        </div>
+        </motion.div>
 
         {/* Optimized Gradient Orbs - Reduced blur for performance */}
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 sm:w-80 sm:h-80 lg:w-96 lg:h-96">
+        <motion.div 
+          className="absolute top-1/4 left-1/4 w-64 h-64 sm:w-80 sm:h-80 lg:w-96 lg:h-96"
+          initial={{ opacity: 0, scale: 0.8 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, amount: 0.1 }}
+          transition={{ duration: 1.5, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        >
           <div
             className="w-full h-full rounded-full"
             style={{
@@ -53,9 +85,15 @@ const AboutHero = () => {
               willChange: 'transform'
             }}
           />
-        </div>
+        </motion.div>
         
-        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80">
+        <motion.div 
+          className="absolute bottom-1/4 right-1/4 w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80"
+          initial={{ opacity: 0, scale: 0.8 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, amount: 0.1 }}
+          transition={{ duration: 1.5, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        >
           <div
             className="w-full h-full rounded-full"
             style={{
@@ -64,11 +102,18 @@ const AboutHero = () => {
               willChange: 'transform'
             }}
           />
-        </div>
+        </motion.div>
       </div>
 
       {/* Colorful Background Particles - Minimal and Premium */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <motion.div 
+        className="absolute inset-0 overflow-hidden pointer-events-none"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={containerVariants}
+        transition={{ staggerChildren: 0.1, delayChildren: 0.2 }}
+      >
         {[...Array(isMobile ? 15 : 25)].map((_, i) => (
           <motion.div
             key={`particle-${i}`}
@@ -79,18 +124,19 @@ const AboutHero = () => {
               width: i % 8 === 0 ? (isMobile ? "3px" : "4px") : i % 4 === 0 ? (isMobile ? "2px" : "3px") : (isMobile ? "1px" : "2px"),
               height: i % 8 === 0 ? (isMobile ? "3px" : "4px") : i % 4 === 0 ? (isMobile ? "2px" : "3px") : (isMobile ? "1px" : "2px"),
             }}
-            animate={{
-              y: [-20, 30, -20],
-              x: [0, i % 2 === 0 ? (isMobile ? 10 : 20) : (isMobile ? -10 : -20), 0],
-              opacity: [0.2, 0.8, 0.2],
-              scale: [0.5, 1.5, 0.5],
-            }}
-            transition={{
-              duration: isMobile ? 20 + i * 0.8 : 15 + i * 0.6,
-              repeat: Infinity,
-              delay: i * 0.3,
-              ease: "easeInOut",
-            }}
+                          variants={particleVariants}
+              animate={{
+                y: [-20, 30, -20],
+                x: [0, i % 2 === 0 ? (isMobile ? 10 : 20) : (isMobile ? -10 : -20), 0],
+                opacity: [0.2, 0.8, 0.2],
+                scale: [0.5, 1.5, 0.5],
+              }}
+              transition={{
+                duration: isMobile ? 20 + i * 0.8 : 15 + i * 0.6,
+                repeat: Infinity,
+                delay: i * 0.3,
+                ease: "easeInOut",
+              }}
           >
             <div className={`w-full h-full rounded-full shadow-sm ${
               i % 6 === 0 ? "bg-blue-400/60" : 
@@ -102,7 +148,7 @@ const AboutHero = () => {
             }`} />
           </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Main Content - Centered Layout */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-screen">
@@ -111,12 +157,16 @@ const AboutHero = () => {
         <motion.div
           className="text-center max-w-4xl mx-auto mb-12 lg:mb-16"
           style={{ y: parallaxY }}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={containerVariants}
+          transition={{ staggerChildren: 0.1, delayChildren: 0.2 }}
         >
           {/* Badge */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            variants={itemVariants}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="inline-flex items-center space-x-2 bg-white/[0.03] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm mb-6"
           >
             <Target className="h-4 w-4 text-blue-400" />
@@ -125,9 +175,8 @@ const AboutHero = () => {
 
           {/* Main Heading - Fixed spacing */}
           <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+            variants={itemVariants}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl  font-bold leading-[1.1] tracking-tight text-white mb-4"
           >
             About{" "}
@@ -153,9 +202,8 @@ const AboutHero = () => {
 
           {/* Description - Fixed spacing */}
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+            variants={itemVariants}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="text-base text-white/70 leading-relaxed font-light mb-8 max-w-lg mx-auto"
           >
             We're building the future of collaborative whiteboarding. Learn about our journey, 
@@ -164,13 +212,12 @@ const AboutHero = () => {
 
           {/* CTA Buttons */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+            variants={itemVariants}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="flex flex-col sm:flex-row items-center gap-4 justify-center mb-10"
           >
             <Link
-              href="/contact"
+                href="#footer"
               className="group relative overflow-hidden bg-blue-600 hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 min-h-[44px] flex items-center justify-center gap-2"
             >
               <span className="relative z-10">Contact Us</span>
@@ -188,9 +235,8 @@ const AboutHero = () => {
 
           {/* Trust Indicators */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
+            variants={itemVariants}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="flex flex-wrap items-center gap-6 text-white/60 text-sm justify-center"
           >
             <div className="flex items-center gap-2">
@@ -210,16 +256,20 @@ const AboutHero = () => {
 
         {/* Bottom Section - Enhanced Bento Grid with 5 Blocks */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 1, ease: "easeOut" }}
           className="w-full max-w-6xl mx-auto"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={containerVariants}
+          transition={{ staggerChildren: 0.1, delayChildren: 0.2 }}
         >
           {/* Bento Grid Container - 5 Blocks Layout with Proper Spacing */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             
             {/* Large Feature Card - Mission (Spans 2 columns and 2 rows) */}
             <motion.div
+              variants={cardVariants}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               whileHover={{ scale: 1.02, y: -4 }}
               className="group p-6 sm:p-8 rounded-3xl bg-white/[0.03] border border-white/[0.08] overflow-hidden hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 backdrop-blur-sm md:col-span-2 lg:col-span-2 lg:row-span-2"
             >
@@ -279,6 +329,8 @@ const AboutHero = () => {
 
             {/* Innovation Card - Now spans only 1 row */}
             <motion.div
+              variants={cardVariants}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               whileHover={{ scale: 1.02, y: -4 }}
               className="group p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 backdrop-blur-sm"
             >
@@ -291,6 +343,8 @@ const AboutHero = () => {
 
             {/* Enterprise Security Card - Fills the empty space */}
             <motion.div
+              variants={cardVariants}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               whileHover={{ scale: 1.02, y: -4 }}
               className="group p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 backdrop-blur-sm"
             >
@@ -303,6 +357,8 @@ const AboutHero = () => {
 
             {/* Performance Card */}
             <motion.div
+              variants={cardVariants}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               whileHover={{ scale: 1.02, y: -4 }}
               className="group p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 backdrop-blur-sm"
             >
@@ -315,6 +371,8 @@ const AboutHero = () => {
 
             {/* Community Card */}
             <motion.div
+              variants={cardVariants}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               whileHover={{ scale: 1.02, y: -4 }}
               className="group p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 backdrop-blur-sm"
             >
@@ -327,6 +385,8 @@ const AboutHero = () => {
 
             {/* Global Reach Card */}
             <motion.div
+              variants={cardVariants}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               whileHover={{ scale: 1.02, y: -4 }}
               className="group p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 backdrop-blur-sm"
             >

@@ -17,7 +17,7 @@ let timelineEvents: TimelineEvent[] = [
     year: "2021",
     title: "The Spark",
     description: "Founded during a frustrating remote meeting when our whiteboard tool crashed in front of a major client.",
-    icon: "Sparkles",
+    icon: "Flame",
     isVisible: true,
     order: 1
   },
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
       year: newEvent.year,
       title: newEvent.title,
       description: newEvent.description,
-      icon: newEvent.icon || "Sparkles",
+      icon: newEvent.icon || "Flame",
       isVisible: newEvent.isVisible ?? true,
       order: newEvent.order || timelineEvents.length + 1
     };

@@ -837,7 +837,7 @@ const SocialProof = () => {
             </div>
 
             {/* Enhanced Companies Showcase */}
-            <div className="text-center flex flex-col gap-16 lg:gap-20">
+            {/* <div className="text-center flex flex-col gap-16 lg:gap-20">
               <motion.div
                 initial={{ opacity: 0, y: 40 }}
                 animate={
@@ -846,7 +846,6 @@ const SocialProof = () => {
                 transition={{ delay: 0.8, duration: 0.8, ease: "easeOut" }}
                 className="flex flex-col items-center gap-8"
               >
-                {/* Redesigned Header - Powering Innovation at Leading Companies */}
                 <SectionHeader
                   badge={{
                     icon: Globe,
@@ -863,9 +862,7 @@ const SocialProof = () => {
                 />
               </motion.div>
 
-              {/* Premium Company Grid */}
               <div className="relative">
-                {/* Animated Background Orb */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
                   <motion.div
                     className="absolute top-1/2 left-1/2 w-96 h-96 gradient-orb-blue transform -translate-x-1/2 -translate-y-1/2"
@@ -901,7 +898,6 @@ const SocialProof = () => {
                       }}
                     >
                       <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.05] rounded-2xl p-6 hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300 overflow-hidden">
-                        {/* Subtle Glow Effect */}
                         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
 
                         <div className="relative z-10 flex flex-col items-center gap-3">
@@ -943,14 +939,13 @@ const SocialProof = () => {
                           </div>
                         </div>
 
-                        {/* Minimal Status Indicator */}
                         <div className="absolute top-3 right-3 w-1.5 h-1.5 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-70 transition-opacity duration-300" />
                       </div>
                     </motion.div>
                   ))}
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Enhanced Revolutionary CTA Section */}
             <motion.div

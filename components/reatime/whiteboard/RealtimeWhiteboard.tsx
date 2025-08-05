@@ -9,6 +9,7 @@ import React, {
     useRef,
     useMemo,
 } from "react";
+import { motion } from "framer-motion";
 import WhiteboardCanvas from "./WhiteboardCanvas";
 import WhiteboardHeader from "./WhiteboardHeader";
 import WhiteboardToolbar from "./WhiteboardToolbar";
@@ -17,7 +18,7 @@ import ToolInstructionDialog from "./ToolInstructionDialog";
 import { Cursor, CanvasElement, DrawingPath } from "./types";
 import { useWhiteboardTools } from "./hooks/useWhiteboardTools";
 import { useCanvasInteraction } from "./hooks/useCanvasInteraction";
-import { MousePointer } from "lucide-react"; 
+import { MousePointer, Hand, Lightbulb, ArrowRight } from "lucide-react"; 
 
 const RealtimeWhiteboard: React.FC = () => {
     const [activeTool, setActiveTool] = useState(0);
@@ -45,6 +46,16 @@ const RealtimeWhiteboard: React.FC = () => {
     const [canvasHeight, setCanvasHeight] = useState(500);
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
+
+    // Interactive hints state
+    const [showInteractiveHints, setShowInteractiveHints] = useState(false);
+    const [hintIndex, setHintIndex] = useState(0);
+
+    const interactiveHints = [
+        { icon: Hand, text: "Try drawing here!", position: { x: 120, y: 180 } },
+        { icon: ArrowRight, text: "Click tools to explore", position: { x: 280, y: 120 } },
+        { icon: Lightbulb, text: "Add your ideas!", position: { x: 180, y: 280 } },
+    ];
 
     // Update canvas dimensions and device detection based on screen size
     useEffect(() => {
@@ -82,6 +93,26 @@ const RealtimeWhiteboard: React.FC = () => {
         window.addEventListener('resize', updateCanvasDimensions);
         return () => window.removeEventListener('resize', updateCanvasDimensions);
     }, []);
+
+    // Show interactive hints after a delay
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setShowInteractiveHints(true);
+        }, 3000);
+
+        return () => clearTimeout(timer);
+    }, []);
+
+    // Rotate through hints
+    useEffect(() => {
+        if (showInteractiveHints) {
+            const interval = setInterval(() => {
+                setHintIndex((prev) => (prev + 1) % interactiveHints.length);
+            }, 5000);
+
+            return () => clearInterval(interval);
+        }
+    }, [showInteractiveHints]);
 
     const { toolbarItems, colorPalettes } = useWhiteboardTools(activeTool);
 
@@ -273,7 +304,7 @@ const RealtimeWhiteboard: React.FC = () => {
                  height: isMobile ? '85vh' : isTablet ? '88vh' : '92vh',
                  minHeight: isMobile ? '500px' : isTablet ? '600px' : '700px'
              }}>
-            <div className="relative bg-white rounded-lg sm:rounded-xl lg:rounded-2xl shadow-lg sm:shadow-xl border border-gray-200 overflow-hidden h-full flex flex-col">
+            <div className="relative overflow-hidden h-full flex flex-col rounded-xl">
                 <WhiteboardHeader
                     zoomLevel={zoomLevel}
                     setZoomLevel={setZoomLevel}
@@ -313,6 +344,42 @@ const RealtimeWhiteboard: React.FC = () => {
                         isMobile={isMobile}
                         isTablet={isTablet}
                     />
+
+                    {/* Interactive Floating Hints */}
+                    {showInteractiveHints && (
+                        <div className="absolute inset-0 pointer-events-none z-20">
+                            {interactiveHints.map((hint, index) => (
+                                <motion.div
+                                    key={index}
+                                    className="absolute"
+                                    style={{
+                                        left: `${hint.position.x}px`,
+                                        top: `${hint.position.y}px`,
+                                        transform: 'translate(-50%, -50%)',
+                                    }}
+                                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                                    animate={{ 
+                                        opacity: index === hintIndex ? 1 : 0,
+                                        scale: index === hintIndex ? 1 : 0.8,
+                                        y: index === hintIndex ? 0 : 20
+                                    }}
+                                    transition={{
+                                        duration: 0.8,
+                                        ease: [0.22, 1, 0.36, 1]
+                                    }}
+                                >
+                                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl px-3 py-2">
+                                        <div className="flex items-center gap-2">
+                                            <hint.icon className="w-4 h-4 text-blue-600" />
+                                            <span className="text-sm font-medium text-gray-700">
+                                                {hint.text}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 <ColorPickerDialog
