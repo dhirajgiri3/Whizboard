@@ -94,25 +94,19 @@ const RealtimeWhiteboard: React.FC = () => {
         return () => window.removeEventListener('resize', updateCanvasDimensions);
     }, []);
 
-    // Show interactive hints after a delay
+    // Show interactive hints immediately and keep them visible
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setShowInteractiveHints(true);
-        }, 3000);
-
-        return () => clearTimeout(timer);
+        setShowInteractiveHints(true);
     }, []);
 
-    // Rotate through hints
+    // Rotate through hints continuously
     useEffect(() => {
-        if (showInteractiveHints) {
-            const interval = setInterval(() => {
-                setHintIndex((prev) => (prev + 1) % interactiveHints.length);
-            }, 5000);
+        const interval = setInterval(() => {
+            setHintIndex((prev) => (prev + 1) % interactiveHints.length);
+        }, 5000);
 
-            return () => clearInterval(interval);
-        }
-    }, [showInteractiveHints]);
+        return () => clearInterval(interval);
+    }, [interactiveHints.length]);
 
     const { toolbarItems, colorPalettes } = useWhiteboardTools(activeTool);
 
@@ -256,6 +250,10 @@ const RealtimeWhiteboard: React.FC = () => {
     const handleToolSelect = useCallback((index: number) => {
         setActiveTool(index);
         setSelectedElement(null);
+        
+        // Cycle hint when user interacts with tools
+        setHintIndex((prev) => (prev + 1) % interactiveHints.length);
+        
         const selectedTool = toolbarItems[index];
         if (selectedTool) {
             if (index === 9) {
@@ -275,14 +273,17 @@ const RealtimeWhiteboard: React.FC = () => {
                 }, isMobile ? 5000 : 7000);
             }
         }
-    }, [toolbarItems, isMobile]);
+    }, [toolbarItems, isMobile, interactiveHints.length]);
 
     const handleElementSelect = useCallback(
         (elementId: string) => {
             setSelectedElement(selectedElement === elementId ? null : elementId);
             setEditingTextElementId(null);
+            
+            // Cycle hint when user selects elements
+            setHintIndex((prev) => (prev + 1) % interactiveHints.length);
         },
-        [selectedElement]
+        [selectedElement, interactiveHints.length]
     );
 
     useEffect(() => {
@@ -345,41 +346,39 @@ const RealtimeWhiteboard: React.FC = () => {
                         isTablet={isTablet}
                     />
 
-                    {/* Interactive Floating Hints */}
-                    {showInteractiveHints && (
-                        <div className="absolute inset-0 pointer-events-none z-20">
-                            {interactiveHints.map((hint, index) => (
-                                <motion.div
-                                    key={index}
-                                    className="absolute"
-                                    style={{
-                                        left: `${hint.position.x}px`,
-                                        top: `${hint.position.y}px`,
-                                        transform: 'translate(-50%, -50%)',
-                                    }}
-                                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                                    animate={{ 
-                                        opacity: index === hintIndex ? 1 : 0,
-                                        scale: index === hintIndex ? 1 : 0.8,
-                                        y: index === hintIndex ? 0 : 20
-                                    }}
-                                    transition={{
-                                        duration: 0.8,
-                                        ease: [0.22, 1, 0.36, 1]
-                                    }}
-                                >
-                                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl px-3 py-2">
-                                        <div className="flex items-center gap-2">
-                                            <hint.icon className="w-4 h-4 text-blue-600" />
-                                            <span className="text-sm font-medium text-gray-700">
-                                                {hint.text}
-                                            </span>
-                                        </div>
+                    {/* Interactive Floating Hints - Always Visible */}
+                    <div className="absolute inset-0 pointer-events-none z-20">
+                        {interactiveHints.map((hint, index) => (
+                            <motion.div
+                                key={index}
+                                className="absolute"
+                                style={{
+                                    left: `${hint.position.x}px`,
+                                    top: `${hint.position.y}px`,
+                                    transform: 'translate(-50%, -50%)',
+                                }}
+                                initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                                animate={{ 
+                                    opacity: index === hintIndex ? 1 : 0,
+                                    scale: index === hintIndex ? 1 : 0.8,
+                                    y: index === hintIndex ? 0 : 20
+                                }}
+                                transition={{
+                                    duration: 0.8,
+                                    ease: [0.22, 1, 0.36, 1]
+                                }}
+                            >
+                                <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl px-3 py-2">
+                                    <div className="flex items-center gap-2">
+                                        <hint.icon className="w-4 h-4 text-blue-600" />
+                                        <span className="text-sm font-medium text-gray-700">
+                                            {hint.text}
+                                        </span>
                                     </div>
-                                </motion.div>
-                            ))}
-                        </div>
-                    )}
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
                 </div>
 
                 <ColorPickerDialog
