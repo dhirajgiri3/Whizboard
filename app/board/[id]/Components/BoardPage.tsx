@@ -164,19 +164,15 @@ const DrawingCanvas = dynamic(
   }
 );
 
-import Phase1Integration from '@/components/Phase1Integration';
-
 export default function BoardPage() {
   const params = useParams();
   const boardId = params.id as string;
   const { data: session } = useSession();
 
   return (
-    <Phase1Integration boardId={boardId} userId={session?.user?.id}>
-      <BoardProvider>
-        <BoardPageContent />
-      </BoardProvider>
-    </Phase1Integration>
+    <BoardProvider>
+      <BoardPageContent />
+    </BoardProvider>
   );
 }
 function BoardPageContent() {
