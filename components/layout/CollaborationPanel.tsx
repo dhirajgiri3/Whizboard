@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar/avatar";
 import { User } from '@/types';
 import { UserPlus2, Copy, Crown, Clock, Users2, Dot } from 'lucide-react';
 import { toast } from 'sonner';

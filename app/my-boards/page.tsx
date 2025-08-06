@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import InviteCollaboratorsModal from "@/components/ui/modal/InviteCollaboratorsModal";
 import { toast } from "sonner";
-import { LoadingOverlay } from "@/components/ui/Loading";
+import { LoadingOverlay } from "@/components/ui/loading/Loading";
 import CreateBoardModal from "@/components/ui/modal/CreateBoardModal";
 
 const GET_MY_BOARDS = gql`

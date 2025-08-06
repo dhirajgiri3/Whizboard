@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Palette, X } from "lucide-react";
-import { getStickyNoteColorPalette } from "../canvas/stickynote/StickyNote";
+import { getStickyNoteColorPalette } from "../../canvas/stickynote/StickyNote";
 
 interface StickyNoteColorPickerProps {
   selectedColor: string;

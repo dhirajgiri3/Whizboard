@@ -22,6 +22,8 @@ import {
   Zap,
   Heart,
   Star,
+  ChevronDown,
+  HelpCircle,
 } from "lucide-react";
 
 // Types

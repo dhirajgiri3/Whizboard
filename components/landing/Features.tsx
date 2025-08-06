@@ -26,7 +26,7 @@ import {
   Clock,
   Award
 } from "lucide-react";
-import SectionHeader from "@/components/ui/SectionHeader";
+import SectionHeader from "@/components/ui/header/SectionHeader";
 
 const Features = () => {
   const ref = useRef(null);

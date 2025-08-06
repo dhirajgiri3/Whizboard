@@ -14,7 +14,7 @@ import { useParams } from "next/navigation";
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import logger from "@/lib/logger/logger";
-import { LoadingOverlay } from "@/components/ui/Loading";
+import { LoadingOverlay } from "@/components/ui/loading/Loading";
 import { X, AlertCircle, ChevronUp, ChevronDown } from "lucide-react";
 import RenameBoardModal from "@/components/ui/modal/RenameBoardModal";
 import InviteCollaboratorsModal from "@/components/ui/modal/InviteCollaboratorsModal";
@@ -39,7 +39,7 @@ import { Cursor } from "@/components/reatime/LiveCursors";
 import { getRandomStickyNoteColor } from "@/components/canvas/stickynote/StickyNote";
 import StickyNoteColorPicker, {
   useStickyNoteColorPicker,
-} from "@/components/ui/StickyNoteColorPicker";
+} from "@/components/ui/modal/StickyNoteColorPicker";
 import { createDefaultTextElement } from "@/lib/utils/utils";
 
 // Import hooks and components

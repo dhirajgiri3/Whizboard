@@ -21,7 +21,7 @@ import {
   Star,
   ArrowLeft,
 } from "lucide-react";
-import SectionHeader from "@/components/ui/SectionHeader";
+import SectionHeader from "@/components/ui/header/SectionHeader";
 
 const Pricing = () => {
   const ref = useRef(null);

@@ -27,7 +27,7 @@ import {
   RefreshCw,
   ChevronDown,
 } from "lucide-react";
-import QuickActionButton from "@/components/ui/QuickActionButton";
+import QuickActionButton from "@/components/ui/button/QuickActionButton";
 import {
   useBoardContext,
   formatRelativeTime,
@@ -37,7 +37,7 @@ import {
   DropdownTrigger,
   DropdownContent,
   DropdownItem,
-} from "@/components/ui/Dropdown";
+} from "@/components/ui/header/Dropdown";
 import logo from "@/public/images/logo/whizboard_logo.png";
 
 interface User {

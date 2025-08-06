@@ -151,6 +151,7 @@ export function useBoardState(): UseBoardStateReturn {
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [renamedBoard, setRenamedBoard] = useState<{ id: string; name: string } | null>(null);
   
   // Ownership state

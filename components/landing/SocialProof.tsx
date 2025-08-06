@@ -26,7 +26,7 @@ import {
   Layers,
   Crown,
 } from "lucide-react";
-import SectionHeader from "@/components/ui/SectionHeader";
+import SectionHeader from "@/components/ui/header/SectionHeader";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);

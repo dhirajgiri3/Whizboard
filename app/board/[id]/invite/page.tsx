@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
 import { CheckCircle, XCircle, Mail, Users, Clock, ArrowRight } from 'lucide-react';
-import Loading from '@/components/ui/Loading';
+import Loading from '@/components/ui/loading/Loading';
 import { toast } from 'sonner';
 
 interface InvitationData {

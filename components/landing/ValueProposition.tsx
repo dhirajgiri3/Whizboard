@@ -37,7 +37,7 @@ import {
   Star,
   Lock
 } from "lucide-react";
-import SectionHeader from "@/components/ui/SectionHeader";
+import SectionHeader from "@/components/ui/header/SectionHeader";
 
 // Enhanced scrollbar styles with performant CSS animation and smoother fades
 const enhancedScrollbarStyles = `
