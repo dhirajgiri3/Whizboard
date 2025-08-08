@@ -22,26 +22,12 @@ function createApolloClientForRequest(request: NextRequest) {
   });
 }
 
-const GET_BOARD_ELEMENTS = gql`
-  query GetBoardElements($boardId: String!) {
-    getBoardElements(boardId: $boardId) {
-      id
-      type
-      data
-      style
-      position
-      dimensions
-      createdAt
-      updatedAt
-    }
-  }
-`;
-
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     const client = createApolloClientForRequest(request);
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
@@ -53,10 +39,14 @@ export async function GET(
     const resolution = searchParams.get('resolution') || '1x';
     const background = searchParams.get('background') || 'transparent';
     const area = searchParams.get('area') || 'all';
-    const customBackground = searchParams.get('customBackground');
-    const bounds = searchParams.get('bounds');
+    const customBackground = searchParams.get('customBackground') || undefined;
+    const bounds = searchParams.get('bounds') || undefined;
+    const viewport = searchParams.get('viewport') || undefined;
+    const quality = searchParams.get('quality') || 'high';
+    const includeMetadata = searchParams.get('includeMetadata') === 'true';
+    const compression = searchParams.get('compression') !== 'false';
 
-    // Check board access
+    // Get board with elements
     const { data: boardData } = await client.query({
       query: gql`
         query GetBoard($id: String!) {
@@ -69,10 +59,19 @@ export async function GET(
               id
               email
             }
+            elements {
+              id
+              type
+              data
+              style
+              createdBy
+              createdAt
+              updatedAt
+            }
           }
         }
       `,
-      variables: { id: params.id },
+      variables: { id: resolvedParams.id },
       fetchPolicy: 'no-cache',
     });
 
@@ -91,23 +90,16 @@ export async function GET(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // Get board elements
-    const { data: elementsData } = await client.query({
-      query: GET_BOARD_ELEMENTS,
-      variables: { boardId: params.id },
-      fetchPolicy: 'no-cache',
-    });
-
-    const elements = elementsData?.getBoardElements || [];
+    const elements = board.elements || [];
 
     switch (format.toLowerCase()) {
       case 'png':
-        return await handlePNGExport(board, elements, resolution, background, area, customBackground, bounds);
+        return await handlePNGExport(board, elements, resolution, background, area, customBackground, bounds, viewport, quality, compression);
       case 'svg':
-        return await handleSVGExport(board, elements, resolution, background, area, customBackground, bounds);
+        return await handleSVGExport(board, elements, resolution, background, area, customBackground, bounds, viewport, quality);
       case 'json':
       default:
-        return await handleJSONExport(board, elements);
+        return await handleJSONExport(board, elements, includeMetadata);
     }
   } catch (error) {
     console.error('Export error:', error);
@@ -118,19 +110,216 @@ export async function GET(
   }
 }
 
-async function handlePNGExport(board: any, elements: any[], resolution: string, background: string, area: string, customBackground?: string, bounds?: string) {
-  // Calculate board bounds
-  const boardBounds = calculateBoardBounds(elements);
+import { createCanvas } from 'canvas';
+
+/**
+ * Enhanced bounding box calculation that considers all element types
+ * and provides comprehensive coverage of the canvas content
+ */
+function calculateComprehensiveBoardBounds(elements: any[]) {
+  if (elements.length === 0) {
+    return { x: 0, y: 0, width: 1200, height: 800 };
+  }
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let hasValidElements = false;
+
+  elements.forEach(element => {
+    try {
+      const data = typeof element.data === 'string' ? JSON.parse(element.data) : element.data;
+      const style = typeof element.style === 'string' ? JSON.parse(element.style) : element.style || {};
+      
+      // Handle different element structures
+      let elementData = data;
+      let elementStyle = style;
+      
+      // If the element itself is a line (no type field), treat it as a drawing line
+      if (data && data.points && Array.isArray(data.points) && !data.type) {
+        // This is a direct line object (ILine format)
+        elementData = data;
+        elementStyle = {};
+      } else if (element.type) {
+        // This is a typed element (DrawingElement format)
+        elementData = data;
+        elementStyle = style;
+      }
+      
+      // Check if this is a drawing line (either by type or by structure)
+      if (element.type === 'path' || element.type === 'line' || 
+          (elementData && elementData.points && Array.isArray(elementData.points))) {
+        
+        if (elementData.points && Array.isArray(elementData.points)) {
+          const points = elementData.points;
+          const strokeWidth = elementData.strokeWidth || elementStyle.strokeWidth || 2;
+          const strokePadding = strokeWidth / 2;
+          
+          for (let i = 0; i < points.length; i += 2) {
+            const x = points[i];
+            const y = points[i + 1];
+            if (typeof x === 'number' && typeof y === 'number' && !isNaN(x) && !isNaN(y)) {
+              minX = Math.min(minX, x - strokePadding);
+              minY = Math.min(minY, y - strokePadding);
+              maxX = Math.max(maxX, x + strokePadding);
+              maxY = Math.max(maxY, y + strokePadding);
+              hasValidElements = true;
+            }
+          }
+        }
+      } else if (element.type === 'text') {
+          
+        const textX = elementData.x || 0;
+        const textY = elementData.y || 0;
+        const textWidth = elementData.width || 200;
+        const textHeight = elementData.height || 50;
+        const fontSize = elementData.fontSize || elementStyle.fontSize || 16;
+        
+        minX = Math.min(minX, textX);
+        minY = Math.min(minY, textY - fontSize); // Account for text baseline
+        maxX = Math.max(maxX, textX + textWidth);
+        maxY = Math.max(maxY, textY + textHeight);
+        hasValidElements = true;
+      } else if (element.type === 'shape' || element.type === 'rectangle' || element.type === 'circle') {
+        const shapeX = elementData.x || elementData.position?.x || 0;
+        const shapeY = elementData.y || elementData.position?.y || 0;
+        const shapeWidth = elementData.width || elementData.dimensions?.width || 100;
+        const shapeHeight = elementData.height || elementData.dimensions?.height || 100;
+        
+        minX = Math.min(minX, shapeX);
+        minY = Math.min(minY, shapeY);
+        maxX = Math.max(maxX, shapeX + shapeWidth);
+        maxY = Math.max(maxY, shapeY + shapeHeight);
+        hasValidElements = true;
+      } else if (element.type === 'sticky-note') {
+        const noteX = elementData.x || 0;
+        const noteY = elementData.y || 0;
+        const noteWidth = elementData.width || 200;
+        const noteHeight = elementData.height || 150;
+        
+        minX = Math.min(minX, noteX);
+        minY = Math.min(minY, noteY);
+        maxX = Math.max(maxX, noteX + noteWidth);
+        maxY = Math.max(maxY, noteY + noteHeight);
+        hasValidElements = true;
+      } else if (element.type === 'frame') {
+        const frameX = elementData.x || 0;
+        const frameY = elementData.y || 0;
+        const frameWidth = elementData.width || 400;
+        const frameHeight = elementData.height || 300;
+        
+        minX = Math.min(minX, frameX);
+        minY = Math.min(minY, frameY);
+        maxX = Math.max(maxX, frameX + frameWidth);
+        maxY = Math.max(maxY, frameY + frameHeight);
+        hasValidElements = true;
+      }
+    } catch (error) {
+      console.error('Error parsing element data for bounds calculation:', error);
+    }
+  });
+
+  // If no valid elements found, return default bounds
+  if (!hasValidElements) {
+    return { x: 0, y: 0, width: 1200, height: 800 };
+  }
+
+  // Add padding to ensure all content is captured
+  const padding = 50;
+  const bounds = {
+    x: Math.floor(minX - padding),
+    y: Math.floor(minY - padding),
+    width: Math.ceil(maxX - minX + padding * 2),
+    height: Math.ceil(maxY - minY + padding * 2),
+  };
+
+  // Ensure minimum dimensions
+  bounds.width = Math.max(bounds.width, 800);
+  bounds.height = Math.max(bounds.height, 600);
+
+  return bounds;
+}
+
+/**
+ * Get resolution multiplier for high-quality exports
+ */
+function getResolutionMultiplier(resolution: string): number {
+  switch (resolution) {
+    case '2x': return 2;
+    case '4x': return 4;
+    case '8x': return 8;
+    default: return 1;
+  }
+}
+
+/**
+ * Enhanced PNG export with comprehensive element rendering
+ */
+async function handlePNGExport(board: any, elements: any[], resolution: string, background: string, area: string, customBackground?: string, bounds?: string, viewport?: string, quality: string = 'high', compression: boolean = true) {
+  console.log('Exporting board:', board.name, 'with', elements.length, 'elements');
+  console.log('Export settings:', { resolution, background, area, quality, compression });
   
-  // Create canvas for rendering
-  const canvas = new OffscreenCanvas(
-    boardBounds.width * getResolutionMultiplier(resolution),
-    boardBounds.height * getResolutionMultiplier(resolution)
-  );
-  const ctx = canvas.getContext('2d');
+  // Parse viewport information if provided
+  let viewportData = null;
+  if (viewport) {
+    try {
+      viewportData = JSON.parse(viewport);
+      console.log('Viewport data:', viewportData);
+    } catch (error) {
+      console.error('Error parsing viewport data:', error);
+    }
+  }
   
-  if (!ctx) {
-    throw new Error('Failed to get canvas context');
+  // Calculate bounds based on area type
+  let boardBounds;
+  if (area === 'viewport' && viewportData) {
+    // Use viewport bounds for viewport export
+    boardBounds = {
+      x: viewportData.position?.x || 0,
+      y: viewportData.position?.y || 0,
+      width: viewportData.bounds?.width || 1200,
+      height: viewportData.bounds?.height || 800,
+    };
+  } else {
+    // Use comprehensive bounds for full export
+    boardBounds = calculateComprehensiveBoardBounds(elements);
+  }
+  
+  console.log('Export bounds:', boardBounds);
+  
+  // Adjust scale based on quality setting
+  let scale = getResolutionMultiplier(resolution);
+  if (quality === 'ultra') {
+    scale *= 1.5;
+  } else if (quality === 'standard') {
+    scale *= 0.75;
+  }
+  
+  // Create high-resolution canvas
+  const canvasWidth = boardBounds.width * scale;
+  const canvasHeight = boardBounds.height * scale;
+  
+  let canvas;
+  let ctx;
+  
+  try {
+    canvas = createCanvas(canvasWidth, canvasHeight);
+    ctx = canvas.getContext('2d');
+    
+    if (!ctx) {
+      throw new Error('Failed to get canvas context');
+    }
+  } catch (error) {
+    console.error('Canvas creation error:', error);
+    // Fallback to SVG
+    const fallbackSvg = `<svg width="${boardBounds.width}" height="${boardBounds.height}" viewBox="0 0 ${boardBounds.width} ${boardBounds.height}" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100%" height="100%" fill="#f0f0f0"/>
+      <text x="50%" y="50%" font-family="Arial" font-size="24" fill="#666666" text-anchor="middle" dominant-baseline="middle">Canvas Export Failed - Using SVG Fallback</text>
+    </svg>`;
+    return new NextResponse(fallbackSvg, {
+      headers: {
+        'Content-Type': 'image/svg+xml',
+        'Content-Disposition': `attachment; filename="${board.name}-export.svg"`,
+      },
+    });
   }
 
   // Set background
@@ -142,13 +331,35 @@ async function handlePNGExport(board: any, elements: any[], resolution: string, 
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  // Render elements to canvas
-  await renderBoardToCanvas(ctx as OffscreenCanvasRenderingContext2D, elements, boardBounds, getResolutionMultiplier(resolution));
+  // Scale and translate context for high-resolution rendering
+  ctx.save();
+  ctx.scale(scale, scale);
+  ctx.translate(-boardBounds.x, -boardBounds.y);
 
-  // Convert to blob
-  const blob = await canvas.convertToBlob({ type: 'image/png' });
+  // Render all elements with enhanced quality
+  for (const element of elements) {
+    console.log('Rendering element:', element.type, element.data);
+    await renderElementToCanvasEnhanced(ctx, element, scale);
+  }
   
-  return new NextResponse(blob, {
+  // If no elements were rendered, add a placeholder
+  if (elements.length === 0) {
+    console.log('No elements found, adding placeholder');
+    ctx.fillStyle = '#f0f0f0';
+    ctx.fillRect(0, 0, canvas.width / scale, canvas.height / scale);
+    ctx.fillStyle = '#666666';
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Empty Canvas', (canvas.width / scale) / 2, (canvas.height / scale) / 2);
+  }
+
+  ctx.restore();
+
+  // Convert to PNG buffer with quality settings
+  const compressionLevel = compression ? 6 : 0; // 0 = no compression, 6 = max compression
+  const buffer = canvas.toBuffer('image/png', { compressionLevel });
+  
+  return new NextResponse(buffer, {
     headers: {
       'Content-Type': 'image/png',
       'Content-Disposition': `attachment; filename="${board.name}-export.png"`,
@@ -156,12 +367,33 @@ async function handlePNGExport(board: any, elements: any[], resolution: string, 
   });
 }
 
-async function handleSVGExport(board: any, elements: any[], resolution: string, background: string, area: string, customBackground?: string, bounds?: string) {
-  // Calculate board bounds
-  const boardBounds = calculateBoardBounds(elements);
+/**
+ * Enhanced SVG export with comprehensive element support
+ */
+async function handleSVGExport(board: any, elements: any[], resolution: string, background: string, area: string, customBackground?: string, bounds?: string, viewport?: string, quality: string = 'high') {
+  console.log('Exporting SVG for board:', board.name, 'with', elements.length, 'elements');
   
-  // Generate SVG content
-  const svgContent = generateSVGContent(board, elements, boardBounds, background, customBackground);
+  // Calculate comprehensive board bounds
+  const boardBounds = calculateComprehensiveBoardBounds(elements);
+  console.log('SVG board bounds:', boardBounds);
+  
+  // Generate enhanced SVG content
+  const svgContent = generateEnhancedSVGContent(board, elements, boardBounds, background, customBackground);
+  
+  // If no elements were found, add a placeholder
+  if (elements.length === 0) {
+    console.log('No elements found for SVG, adding placeholder');
+    const placeholderSvg = `<svg width="${boardBounds.width}" height="${boardBounds.height}" viewBox="0 0 ${boardBounds.width} ${boardBounds.height}" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100%" height="100%" fill="#f0f0f0"/>
+      <text x="50%" y="50%" font-family="Arial" font-size="24" fill="#666666" text-anchor="middle" dominant-baseline="middle">Empty Canvas</text>
+    </svg>`;
+    return new NextResponse(placeholderSvg, {
+      headers: {
+        'Content-Type': 'image/svg+xml',
+        'Content-Disposition': `attachment; filename="${board.name}-export.svg"`,
+      },
+    });
+  }
   
   return new NextResponse(svgContent, {
     headers: {
@@ -171,17 +403,43 @@ async function handleSVGExport(board: any, elements: any[], resolution: string, 
   });
 }
 
-async function handleJSONExport(board: any, elements: any[]) {
+/**
+ * Enhanced JSON export with comprehensive metadata
+ */
+async function handleJSONExport(board: any, elements: any[], includeMetadata: boolean = true) {
   const exportData = {
     version: '1.0.0',
     board: {
       id: board.id,
       name: board.name,
-      elements: elements,
-      metadata: {
+      isPublic: board.isPublic,
+      createdAt: board.createdAt,
+      updatedAt: board.updatedAt,
+      createdBy: board.createdBy,
+      elements: elements.map(element => ({
+        id: element.id,
+        type: element.type,
+        data: typeof element.data === 'string' ? JSON.parse(element.data) : element.data,
+        style: typeof element.style === 'string' ? JSON.parse(element.style) : element.style,
+        createdBy: element.createdBy,
+        createdAt: element.createdAt,
+        updatedAt: element.updatedAt,
+      })),
+      metadata: includeMetadata ? {
         exportedAt: new Date().toISOString(),
         totalElements: elements.length,
-      },
+        exportFormat: 'json',
+        bounds: calculateComprehensiveBoardBounds(elements),
+        elementTypes: elements.reduce((acc: any, el) => {
+          acc[el.type] = (acc[el.type] || 0) + 1;
+          return acc;
+        }, {}),
+        exportSettings: {
+          includeMetadata,
+          quality: 'high',
+          compression: false,
+        },
+      } : undefined,
     },
   };
 
@@ -192,103 +450,152 @@ async function handleJSONExport(board: any, elements: any[]) {
   });
 }
 
-function calculateBoardBounds(elements: any[]) {
-  if (elements.length === 0) {
-    return { x: 0, y: 0, width: 800, height: 600 };
-  }
+/**
+ * Enhanced element rendering with high-quality output
+ */
+async function renderElementToCanvasEnhanced(ctx: any, element: any, scale: number = 1) {
+  try {
+    const data = typeof element.data === 'string' ? JSON.parse(element.data) : element.data;
+    const style = typeof element.style === 'string' ? JSON.parse(element.style) : element.style || {};
 
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-
-  elements.forEach(element => {
-    const pos = element.position || { x: 0, y: 0 };
-    const dims = element.dimensions || { width: 100, height: 100 };
+    // Handle different element structures
+    let elementData = data;
+    let elementStyle = style;
     
-    minX = Math.min(minX, pos.x);
-    minY = Math.min(minY, pos.y);
-    maxX = Math.max(maxX, pos.x + dims.width);
-    maxY = Math.max(maxY, pos.y + dims.height);
-  });
+    // If the element itself is a line (no type field), treat it as a drawing line
+    if (data && data.points && Array.isArray(data.points) && !data.type) {
+      // This is a direct line object (ILine format)
+      elementData = data;
+      elementStyle = {};
+    } else if (element.type) {
+      // This is a typed element (DrawingElement format)
+      elementData = data;
+      elementStyle = style;
+    }
 
-  return {
-    x: minX,
-    y: minY,
-    width: maxX - minX,
-    height: maxY - minY,
-  };
-}
-
-function getResolutionMultiplier(resolution: string): number {
-  switch (resolution) {
-    case '2x': return 2;
-    case '4x': return 4;
-    default: return 1;
-  }
-}
-
-async function renderBoardToCanvas(ctx: OffscreenCanvasRenderingContext2D, elements: any[], bounds: any, scale: number) {
-  ctx.save();
-  ctx.scale(scale, scale);
-  ctx.translate(-bounds.x, -bounds.y);
-
-  for (const element of elements) {
-    await renderElementToCanvas(ctx, element);
-  }
-
-  ctx.restore();
-}
-
-async function renderElementToCanvas(ctx: OffscreenCanvasRenderingContext2D, element: any) {
-  const pos = element.position || { x: 0, y: 0 };
-  const dims = element.dimensions || { width: 100, height: 100 };
-  const style = element.style || {};
-
-  ctx.save();
-  ctx.translate(pos.x, pos.y);
-
-  switch (element.type) {
-    case 'text':
-      ctx.font = `${style.fontSize || 16}px ${style.fontFamily || 'Arial'}`;
-      ctx.fillStyle = style.color || '#000000';
-      ctx.fillText(element.data?.text || '', 0, 0);
-      break;
+    // Check if this is a drawing line (either by type or by structure)
+    if (element.type === 'path' || element.type === 'line' || 
+        (elementData && elementData.points && Array.isArray(elementData.points))) {
       
-    case 'shape':
-      ctx.fillStyle = style.fillColor || '#ffffff';
-      ctx.strokeStyle = style.strokeColor || '#000000';
-      ctx.lineWidth = style.strokeWidth || 1;
-      
-      if (element.data?.shape === 'rectangle') {
-        ctx.fillRect(0, 0, dims.width, dims.height);
-        ctx.strokeRect(0, 0, dims.width, dims.height);
-      } else if (element.data?.shape === 'circle') {
-        const radius = Math.min(dims.width, dims.height) / 2;
-        ctx.beginPath();
-        ctx.arc(radius, radius, radius, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.stroke();
+      if (elementData.points && Array.isArray(elementData.points)) {
+        const points = elementData.points;
+        if (points.length >= 4) {
+          const strokeColor = elementData.color || elementStyle.stroke || elementStyle.color || '#000000';
+          const strokeWidth = (elementData.strokeWidth || elementStyle.strokeWidth || 2) * scale;
+          
+          ctx.strokeStyle = strokeColor;
+          ctx.lineWidth = strokeWidth;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.beginPath();
+          ctx.moveTo(points[0], points[1]);
+          for (let i = 2; i < points.length; i += 2) {
+            ctx.lineTo(points[i], points[i + 1]);
+          }
+          ctx.stroke();
+        }
       }
-      break;
+    } else if (element.type === 'text') {
+      const textX = elementData.x || 0;
+      const textY = elementData.y || 0;
+      const textContent = elementData.text || '';
+      const fontSize = (elementData.fontSize || elementStyle.fontSize || 16) * scale;
+      const fontFamily = elementData.fontFamily || elementStyle.fontFamily || 'Arial';
+      const textColor = elementData.color || elementStyle.color || '#000000';
       
-    case 'image':
-      // Placeholder rendering for images
-      ctx.fillStyle = '#cccccc';
-      ctx.fillRect(0, 0, dims.width, dims.height);
-      break;
+      ctx.font = `${fontSize}px ${fontFamily}`;
+      ctx.fillStyle = textColor;
+      ctx.textBaseline = 'top';
+      ctx.fillText(textContent, textX, textY);
+    } else if (element.type === 'shape' || element.type === 'rectangle') {
+        
+            const rectX = elementData.x || elementData.position?.x || 0;
+      const rectY = elementData.y || elementData.position?.y || 0;
+      const rectWidth = elementData.width || elementData.dimensions?.width || 100;
+      const rectHeight = elementData.height || elementData.dimensions?.height || 100;
       
-    case 'line':
-      ctx.strokeStyle = style.strokeColor || '#000000';
-      ctx.lineWidth = style.strokeWidth || 2;
+      const fillColor = elementData.fill || elementStyle.fill || '#ffffff';
+      const strokeColor = elementData.stroke || elementStyle.stroke || '#000000';
+      const strokeWidth = (elementData.strokeWidth || elementStyle.strokeWidth || 1) * scale;
+      
+      ctx.fillStyle = fillColor;
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = strokeWidth;
+      
+      ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
+      ctx.strokeRect(rectX, rectY, rectWidth, rectHeight);
+    } else if (element.type === 'circle') {
+      const circleX = elementData.x || elementData.position?.x || 0;
+      const circleY = elementData.y || elementData.position?.y || 0;
+      const circleWidth = elementData.width || elementData.dimensions?.width || 100;
+      const circleHeight = elementData.height || elementData.dimensions?.height || 100;
+      const radius = Math.min(circleWidth, circleHeight) / 2;
+      
+      const circleFillColor = elementData.fill || elementStyle.fill || '#ffffff';
+      const circleStrokeColor = elementData.stroke || elementStyle.stroke || '#000000';
+      const circleStrokeWidth = (elementData.strokeWidth || elementStyle.strokeWidth || 1) * scale;
+      
+      ctx.fillStyle = circleFillColor;
+      ctx.strokeStyle = circleStrokeColor;
+      ctx.lineWidth = circleStrokeWidth;
+      
       ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(dims.width, dims.height);
+      ctx.arc(circleX + radius, circleY + radius, radius, 0, 2 * Math.PI);
+      ctx.fill();
       ctx.stroke();
-      break;
+    } else if (element.type === 'sticky-note') {
+      const noteX = elementData.x || 0;
+      const noteY = elementData.y || 0;
+      const noteWidth = elementData.width || 200;
+      const noteHeight = elementData.height || 150;
+      const noteColor = elementData.color || '#ffff00';
+      const noteText = elementData.text || '';
+      
+      // Draw sticky note background with shadow
+      ctx.fillStyle = noteColor;
+      ctx.fillRect(noteX, noteY, noteWidth, noteHeight);
+      
+      // Draw border
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 1 * scale;
+      ctx.strokeRect(noteX, noteY, noteWidth, noteHeight);
+      
+      // Draw text with proper positioning
+      ctx.fillStyle = '#000000';
+      ctx.font = `${14 * scale}px Arial`;
+      ctx.textBaseline = 'top';
+      ctx.fillText(noteText, noteX + 10, noteY + 10);
+    } else if (element.type === 'frame') {
+              const frameX = elementData.x || 0;
+      const frameY = elementData.y || 0;
+      const frameWidth = elementData.width || 400;
+      const frameHeight = elementData.height || 300;
+      const frameName = elementData.name || 'Frame';
+      
+      // Draw frame background
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.fillRect(frameX, frameY, frameWidth, frameHeight);
+      
+      // Draw frame border
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 2 * scale;
+      ctx.strokeRect(frameX, frameY, frameWidth, frameHeight);
+      
+      // Draw frame title
+      ctx.fillStyle = '#000000';
+      ctx.font = `bold ${16 * scale}px Arial`;
+      ctx.textBaseline = 'top';
+      ctx.fillText(frameName, frameX + 10, frameY + 10);
+    }
+  } catch (error) {
+    console.error('Error rendering element to canvas:', error);
   }
-
-  ctx.restore();
 }
 
-function generateSVGContent(board: any, elements: any[], bounds: any, background: string, customBackground?: string) {
+/**
+ * Generate enhanced SVG content with comprehensive element support
+ */
+function generateEnhancedSVGContent(board: any, elements: any[], bounds: any, background: string, customBackground?: string) {
   const bgColor = background === 'custom' ? customBackground : background === 'white' ? '#ffffff' : background === 'black' ? '#000000' : 'none';
   
   let svg = `<svg width="${bounds.width}" height="${bounds.height}" viewBox="${bounds.x} ${bounds.y} ${bounds.width} ${bounds.height}" xmlns="http://www.w3.org/2000/svg">`;
@@ -297,29 +604,96 @@ function generateSVGContent(board: any, elements: any[], bounds: any, background
     svg += `<rect width="100%" height="100%" fill="${bgColor}"/>`;
   }
 
-  // Add elements as SVG
+  // Add elements as SVG with enhanced quality
   elements.forEach(element => {
-    const pos = element.position || { x: 0, y: 0 };
-    const dims = element.dimensions || { width: 100, height: 100 };
-    const style = element.style || {};
+    try {
+      const data = typeof element.data === 'string' ? JSON.parse(element.data) : element.data;
+      const style = typeof element.style === 'string' ? JSON.parse(element.style) : element.style || {};
 
-    switch (element.type) {
-      case 'text':
-        svg += `<text x="${pos.x}" y="${pos.y}" font-family="${style.fontFamily || 'Arial'}" font-size="${style.fontSize || 16}" fill="${style.color || '#000000'}">${element.data?.text || ''}</text>`;
-        break;
+      // Handle different element structures
+      let elementData = data;
+      let elementStyle = style;
+      
+      // If the element itself is a line (no type field), treat it as a drawing line
+      if (data && data.points && Array.isArray(data.points) && !data.type) {
+        // This is a direct line object (ILine format)
+        elementData = data;
+        elementStyle = {};
+      } else if (element.type) {
+        // This is a typed element (DrawingElement format)
+        elementData = data;
+        elementStyle = style;
+      }
+
+      // Check if this is a drawing line (either by type or by structure)
+      if (element.type === 'path' || element.type === 'line' || 
+          (elementData && elementData.points && Array.isArray(elementData.points))) {
         
-      case 'shape':
-        if (element.data?.shape === 'rectangle') {
-          svg += `<rect x="${pos.x}" y="${pos.y}" width="${dims.width}" height="${dims.height}" fill="${style.fillColor || '#ffffff'}" stroke="${style.strokeColor || '#000000'}" stroke-width="${style.strokeWidth || 1}"/>`;
-        } else if (element.data?.shape === 'circle') {
-          const radius = Math.min(dims.width, dims.height) / 2;
-          svg += `<circle cx="${pos.x + radius}" cy="${pos.y + radius}" r="${radius}" fill="${style.fillColor || '#ffffff'}" stroke="${style.strokeColor || '#000000'}" stroke-width="${style.strokeWidth || 1}"/>`;
+        if (elementData.points && Array.isArray(elementData.points)) {
+          const points = elementData.points;
+          if (points.length >= 4) {
+            let pathData = `M ${points[0]} ${points[1]}`;
+            for (let i = 2; i < points.length; i += 2) {
+              pathData += ` L ${points[i]} ${points[i + 1]}`;
+            }
+            const strokeColor = elementData.color || elementStyle.stroke || elementStyle.color || '#000000';
+            const strokeWidth = elementData.strokeWidth || elementStyle.strokeWidth || 2;
+            svg += `<path d="${pathData}" stroke="${strokeColor}" stroke-width="${strokeWidth}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+          }
         }
-        break;
+      } else if (element.type === 'text') {
+        const textX = elementData.x || 0;
+        const textY = elementData.y || 0;
+        const textContent = elementData.text || '';
+        const fontSize = elementData.fontSize || elementStyle.fontSize || 16;
+        const fontFamily = elementData.fontFamily || elementStyle.fontFamily || 'Arial';
+        const textColor = elementData.color || elementStyle.color || '#000000';
         
-      case 'line':
-        svg += `<line x1="${pos.x}" y1="${pos.y}" x2="${pos.x + dims.width}" y2="${pos.y + dims.height}" stroke="${style.strokeColor || '#000000'}" stroke-width="${style.strokeWidth || 2}"/>`;
-        break;
+        svg += `<text x="${textX}" y="${textY + fontSize}" font-family="${fontFamily}" font-size="${fontSize}" fill="${textColor}">${textContent}</text>`;
+      } else if (element.type === 'shape' || element.type === 'rectangle') {
+          
+        const rectX = elementData.x || elementData.position?.x || 0;
+        const rectY = elementData.y || elementData.position?.y || 0;
+        const rectWidth = elementData.width || elementData.dimensions?.width || 100;
+        const rectHeight = elementData.height || elementData.dimensions?.height || 100;
+        const rectFill = elementData.fill || elementStyle.fill || '#ffffff';
+        const rectStroke = elementData.stroke || elementStyle.stroke || '#000000';
+        const rectStrokeWidth = elementData.strokeWidth || elementStyle.strokeWidth || 1;
+        
+        svg += `<rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" fill="${rectFill}" stroke="${rectStroke}" stroke-width="${rectStrokeWidth}"/>`;
+      } else if (element.type === 'circle') {
+        const circleX = elementData.x || elementData.position?.x || 0;
+        const circleY = elementData.y || elementData.position?.y || 0;
+        const circleWidth = elementData.width || elementData.dimensions?.width || 100;
+        const circleHeight = elementData.height || elementData.dimensions?.height || 100;
+        const radius = Math.min(circleWidth, circleHeight) / 2;
+        const circleFill = elementData.fill || elementStyle.fill || '#ffffff';
+        const circleStroke = elementData.stroke || elementStyle.stroke || '#000000';
+        const circleStrokeWidth = elementData.strokeWidth || elementStyle.strokeWidth || 1;
+        
+        svg += `<circle cx="${circleX + radius}" cy="${circleY + radius}" r="${radius}" fill="${circleFill}" stroke="${circleStroke}" stroke-width="${circleStrokeWidth}"/>`;
+      } else if (element.type === 'sticky-note') {
+        const noteX = elementData.x || 0;
+        const noteY = elementData.y || 0;
+        const noteWidth = elementData.width || 200;
+        const noteHeight = elementData.height || 150;
+        const noteColor = elementData.color || '#ffff00';
+        const noteText = elementData.text || '';
+        
+        svg += `<rect x="${noteX}" y="${noteY}" width="${noteWidth}" height="${noteHeight}" fill="${noteColor}" stroke="#000000" stroke-width="1"/>`;
+        svg += `<text x="${noteX + 10}" y="${noteY + 20}" font-family="Arial" font-size="14" fill="#000000">${noteText}</text>`;
+      } else if (element.type === 'frame') {
+        const frameX = elementData.x || 0;
+        const frameY = elementData.y || 0;
+        const frameWidth = elementData.width || 400;
+        const frameHeight = elementData.height || 300;
+        const frameName = elementData.name || 'Frame';
+        
+        svg += `<rect x="${frameX}" y="${frameY}" width="${frameWidth}" height="${frameHeight}" fill="rgba(255,255,255,0.1)" stroke="#000000" stroke-width="2"/>`;
+        svg += `<text x="${frameX + 10}" y="${frameY + 25}" font-family="Arial" font-size="16" font-weight="bold" fill="#000000">${frameName}</text>`;
+      }
+    } catch (error) {
+      console.error('Error rendering element to SVG:', error);
     }
   });
 

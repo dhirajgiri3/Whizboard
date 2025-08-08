@@ -4015,7 +4015,15 @@ function BoardPageContent() {
       <ExportModal 
         isOpen={showExportModal} 
         onClose={() => setShowExportModal(false)} 
-        boardName={initialData?.getBoard?.name || "Untitled Board"} 
+        boardName={initialData?.getBoard?.name || "Untitled Board"}
+        currentZoom={currentZoom}
+        stagePosition={stageRef.current?.position() || { x: 0, y: 0 }}
+        canvasBounds={stageRef.current ? {
+          x: stageRef.current.x(),
+          y: stageRef.current.y(),
+          width: stageRef.current.width(),
+          height: stageRef.current.height()
+        } : undefined}
       />
       
       <ImportModal 

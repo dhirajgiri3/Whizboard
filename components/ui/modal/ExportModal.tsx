@@ -13,7 +13,10 @@ import {
   Crop,
   Zap,
   Info,
-  Upload
+  Upload,
+  Maximize,
+  Monitor,
+  Smartphone
 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { toast } from 'sonner';
@@ -22,29 +25,44 @@ interface ExportModalProps {
   isOpen: boolean;
   onClose: () => void;
   boardName: string;
+  // Add canvas state props for better export
+  currentZoom?: number;
+  stagePosition?: { x: number; y: number };
+  canvasBounds?: { x: number; y: number; width: number; height: number };
 }
 
 interface ExportOptions {
   format: 'png' | 'svg' | 'json';
-  resolution: '1x' | '2x' | '4x';
+  resolution: '1x' | '2x' | '4x' | '8x';
   background: 'transparent' | 'white' | 'black' | 'custom';
   customBackground?: string;
-  area: 'all' | 'selection' | 'custom';
+  area: 'all' | 'selection' | 'custom' | 'viewport';
   customBounds?: { x: number; y: number; width: number; height: number };
   includeMetadata: boolean;
   compression: boolean;
+  includeViewportInfo: boolean;
+  quality: 'standard' | 'high' | 'ultra';
 }
 
-export default function ExportModal({ isOpen, onClose, boardName }: ExportModalProps) {
+export default function ExportModal({ 
+  isOpen, 
+  onClose, 
+  boardName,
+  currentZoom = 100,
+  stagePosition = { x: 0, y: 0 },
+  canvasBounds
+}: ExportModalProps) {
   const params = useParams();
   const [isExporting, setIsExporting] = useState(false);
   const [exportOptions, setExportOptions] = useState<ExportOptions>({
     format: 'png',
-    resolution: '1x',
+    resolution: '2x',
     background: 'transparent',
     area: 'all',
     includeMetadata: true,
     compression: true,
+    includeViewportInfo: true,
+    quality: 'high',
   });
 
   const handleExport = async () => {
@@ -65,11 +83,27 @@ export default function ExportModal({ isOpen, onClose, boardName }: ExportModalP
       if (exportOptions.customBounds) {
         url.searchParams.set('bounds', JSON.stringify(exportOptions.customBounds));
       }
+      
+      // Add viewport information for better export
+      if (exportOptions.includeViewportInfo) {
+        url.searchParams.set('viewport', JSON.stringify({
+          zoom: currentZoom,
+          position: stagePosition,
+          bounds: canvasBounds
+        }));
+      }
+      
+      // Add quality settings
+      url.searchParams.set('quality', exportOptions.quality);
+      url.searchParams.set('includeMetadata', exportOptions.includeMetadata.toString());
+      url.searchParams.set('compression', exportOptions.compression.toString());
 
       const response = await fetch(url.toString());
       
       if (!response.ok) {
-        throw new Error('Export failed');
+        const errorText = await response.text();
+        console.error('Export failed:', response.status, errorText);
+        throw new Error(`Export failed: ${response.status} ${response.statusText}`);
       }
 
       // Create download link
@@ -77,17 +111,35 @@ export default function ExportModal({ isOpen, onClose, boardName }: ExportModalP
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = downloadUrl;
-      link.download = `${boardName}-export.${exportOptions.format}`;
+      
+      // Determine file extension based on format and content type
+      let fileExtension = exportOptions.format;
+      const contentType = response.headers.get('content-type');
+      if (contentType?.includes('svg')) {
+        fileExtension = 'svg';
+      } else if (contentType?.includes('json')) {
+        fileExtension = 'json';
+      }
+      
+      // Create descriptive filename
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const qualitySuffix = exportOptions.quality !== 'standard' ? `-${exportOptions.quality}` : '';
+      const resolutionSuffix = exportOptions.resolution !== '1x' ? `-${exportOptions.resolution}` : '';
+      link.download = `${boardName}-export${qualitySuffix}${resolutionSuffix}-${timestamp}.${fileExtension}`;
+      
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(downloadUrl);
 
-      toast.success('Export completed successfully!');
+      toast.success('Export completed successfully!', {
+        description: `File saved as ${link.download}`,
+        duration: 5000,
+      });
       onClose();
     } catch (error) {
       console.error('Export error:', error);
-      toast.error('Export failed. Please try again.');
+      toast.error(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsExporting(false);
     }
@@ -127,6 +179,13 @@ export default function ExportModal({ isOpen, onClose, boardName }: ExportModalP
     { value: '1x', label: 'Standard (1x)', description: 'Normal resolution' },
     { value: '2x', label: 'High (2x)', description: 'Double resolution for crisp display' },
     { value: '4x', label: 'Ultra (4x)', description: 'Maximum quality for printing' },
+    { value: '8x', label: 'Extreme (8x)', description: 'Ultra-high quality for large prints' },
+  ];
+
+  const qualityOptions = [
+    { value: 'standard', label: 'Standard', description: 'Good quality, smaller file size' },
+    { value: 'high', label: 'High', description: 'Better quality, balanced file size' },
+    { value: 'ultra', label: 'Ultra', description: 'Maximum quality, larger file size' },
   ];
 
   const backgroundOptions = [
@@ -134,6 +193,13 @@ export default function ExportModal({ isOpen, onClose, boardName }: ExportModalP
     { value: 'white', label: 'White', description: 'Clean white background' },
     { value: 'black', label: 'Black', description: 'Dark background' },
     { value: 'custom', label: 'Custom', description: 'Choose your own color' },
+  ];
+
+  const areaOptions = [
+    { id: 'all', label: 'Entire Canvas', description: 'Export all content' },
+    { id: 'viewport', label: 'Current View', description: 'Export visible area only' },
+    { id: 'selection', label: 'Selected Area', description: 'Export selected elements' },
+    { id: 'custom', label: 'Custom Area', description: 'Define custom bounds' },
   ];
 
   return (
@@ -155,7 +221,7 @@ export default function ExportModal({ isOpen, onClose, boardName }: ExportModalP
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-2xl bg-white border border-gray-200 rounded-2xl shadow-xl md:max-w-2xl md:rounded-2xl sm:max-w-lg sm:rounded-2xl max-sm:rounded-none max-sm:max-w-none max-sm:h-[100dvh] max-sm:w-full max-sm:pt-safe max-sm:pb-safe"
+              className="relative w-full max-w-3xl bg-white border border-gray-200 rounded-2xl shadow-xl md:max-w-3xl md:rounded-2xl sm:max-w-lg sm:rounded-2xl max-sm:rounded-none max-sm:max-w-none max-sm:h-[100dvh] max-sm:w-full max-sm:pt-safe max-sm:pb-safe"
             >
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -177,7 +243,7 @@ export default function ExportModal({ isOpen, onClose, boardName }: ExportModalP
               </div>
               
               {/* Content */}
-              <div className="p-6 space-y-6">
+              <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
                 {/* Format Selection */}
                 <div>
                   <h4 className="text-sm font-semibold text-gray-900 mb-3">Export Format</h4>
@@ -217,37 +283,100 @@ export default function ExportModal({ isOpen, onClose, boardName }: ExportModalP
                   </div>
                 </div>
 
-                {/* Resolution Selection (for image formats) */}
-                {(exportOptions.format === 'png' || exportOptions.format === 'svg') && (
-                  <div>
-                    <h4 className="text-sm font-semibold text-gray-900 mb-3">Resolution Quality</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      {resolutionOptions.map((option) => {
-                        const isSelected = exportOptions.resolution === option.value;
-                        return (
-                          <button
-                            key={option.value}
-                            onClick={() => setExportOptions(prev => ({ ...prev, resolution: option.value as any }))}
-                            className={`p-3 rounded-lg border-2 transition-all duration-200 text-left ${
-                              isSelected
-                                ? 'border-blue-500 bg-blue-50'
-                                : 'border-gray-200 bg-white hover:border-gray-300'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <div className="font-medium text-gray-900 text-sm">{option.label}</div>
-                              {isSelected && (
-                                <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                                  <Check className="h-2 w-2 text-white" />
-                                </div>
-                              )}
-                            </div>
-                            <div className="text-xs text-gray-600">{option.description}</div>
-                          </button>
-                        );
-                      })}
-                    </div>
+                {/* Export Area */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Export Area</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {areaOptions.map((option) => {
+                      const isSelected = exportOptions.area === option.id;
+                      return (
+                        <button
+                          key={option.id}
+                          onClick={() => setExportOptions(prev => ({ ...prev, area: option.id as any }))}
+                          className={`p-3 rounded-lg border-2 transition-all duration-200 text-left ${
+                            isSelected
+                              ? 'border-blue-500 bg-blue-50'
+                              : 'border-gray-200 bg-white hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="font-medium text-gray-900 text-sm">{option.label}</div>
+                            {isSelected && (
+                              <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                                <Check className="h-2 w-2 text-white" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-600">{option.description}</div>
+                        </button>
+                      );
+                    })}
                   </div>
+                </div>
+
+                {/* Resolution and Quality (for image formats) */}
+                {(exportOptions.format === 'png' || exportOptions.format === 'svg') && (
+                  <>
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-900 mb-3">Resolution Quality</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        {resolutionOptions.map((option) => {
+                          const isSelected = exportOptions.resolution === option.value;
+                          return (
+                            <button
+                              key={option.value}
+                              onClick={() => setExportOptions(prev => ({ ...prev, resolution: option.value as any }))}
+                              className={`p-3 rounded-lg border-2 transition-all duration-200 text-left ${
+                                isSelected
+                                  ? 'border-blue-500 bg-blue-50'
+                                  : 'border-gray-200 bg-white hover:border-gray-300'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <div className="font-medium text-gray-900 text-sm">{option.label}</div>
+                                {isSelected && (
+                                  <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <Check className="h-2 w-2 text-white" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-xs text-gray-600">{option.description}</div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-900 mb-3">Quality Settings</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {qualityOptions.map((option) => {
+                          const isSelected = exportOptions.quality === option.value;
+                          return (
+                            <button
+                              key={option.value}
+                              onClick={() => setExportOptions(prev => ({ ...prev, quality: option.value as any }))}
+                              className={`p-3 rounded-lg border-2 transition-all duration-200 text-left ${
+                                isSelected
+                                  ? 'border-blue-500 bg-blue-50'
+                                  : 'border-gray-200 bg-white hover:border-gray-300'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <div className="font-medium text-gray-900 text-sm">{option.label}</div>
+                                {isSelected && (
+                                  <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <Check className="h-2 w-2 text-white" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-xs text-gray-600">{option.description}</div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
                 )}
 
                 {/* Background Selection (for image formats) */}
@@ -315,40 +444,84 @@ export default function ExportModal({ isOpen, onClose, boardName }: ExportModalP
                   </div>
                 )}
 
-                {/* Export Area */}
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Export Area</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {[
-                      { id: 'all', label: 'Entire Board', description: 'Export all content' },
-                      { id: 'selection', label: 'Selected Area', description: 'Export selected elements' },
-                      { id: 'custom', label: 'Custom Area', description: 'Define custom bounds' },
-                    ].map((option) => {
-                      const isSelected = exportOptions.area === option.id;
-                      return (
-                        <button
-                          key={option.id}
-                          onClick={() => setExportOptions(prev => ({ ...prev, area: option.id as any }))}
-                          className={`p-3 rounded-lg border-2 transition-all duration-200 text-left ${
-                            isSelected
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-200 bg-white hover:border-gray-300'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <div className="font-medium text-gray-900 text-sm">{option.label}</div>
-                            {isSelected && (
-                              <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                                <Check className="h-2 w-2 text-white" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-600">{option.description}</div>
-                        </button>
-                      );
-                    })}
+                {/* Custom bounds input */}
+                {exportOptions.area === 'custom' && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900 mb-3">Custom Export Bounds</h4>
+                    <div className="p-3 rounded-lg border-2 border-blue-200 bg-blue-50">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">X</label>
+                          <input
+                            type="number"
+                            value={exportOptions.customBounds?.x || 0}
+                            onChange={(e) => setExportOptions(prev => ({ 
+                              ...prev, 
+                              customBounds: { 
+                                x: parseInt(e.target.value) || 0,
+                                y: prev.customBounds?.y || 0,
+                                width: prev.customBounds?.width || 800,
+                                height: prev.customBounds?.height || 600
+                              }
+                            }))}
+                            className="w-full px-2 py-1 rounded border border-gray-300 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">Y</label>
+                          <input
+                            type="number"
+                            value={exportOptions.customBounds?.y || 0}
+                            onChange={(e) => setExportOptions(prev => ({ 
+                              ...prev, 
+                              customBounds: { 
+                                x: prev.customBounds?.x || 0,
+                                y: parseInt(e.target.value) || 0,
+                                width: prev.customBounds?.width || 800,
+                                height: prev.customBounds?.height || 600
+                              }
+                            }))}
+                            className="w-full px-2 py-1 rounded border border-gray-300 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">Width</label>
+                          <input
+                            type="number"
+                            value={exportOptions.customBounds?.width || 800}
+                            onChange={(e) => setExportOptions(prev => ({ 
+                              ...prev, 
+                              customBounds: { 
+                                x: prev.customBounds?.x || 0,
+                                y: prev.customBounds?.y || 0,
+                                width: parseInt(e.target.value) || 800,
+                                height: prev.customBounds?.height || 600
+                              }
+                            }))}
+                            className="w-full px-2 py-1 rounded border border-gray-300 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">Height</label>
+                          <input
+                            type="number"
+                            value={exportOptions.customBounds?.height || 600}
+                            onChange={(e) => setExportOptions(prev => ({ 
+                              ...prev, 
+                              customBounds: { 
+                                x: prev.customBounds?.x || 0,
+                                y: prev.customBounds?.y || 0,
+                                width: prev.customBounds?.width || 800,
+                                height: parseInt(e.target.value) || 600
+                              }
+                            }))}
+                            className="w-full px-2 py-1 rounded border border-gray-300 text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Advanced Options */}
                 <div>
@@ -384,6 +557,21 @@ export default function ExportModal({ isOpen, onClose, boardName }: ExportModalP
                         <div className="text-xs text-gray-600">Reduce file size for faster downloads</div>
                       </div>
                     </label>
+                    <label className="flex items-center p-3 rounded-lg border-2 border-gray-200 hover:border-blue-300 transition-all duration-200 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={exportOptions.includeViewportInfo}
+                        onChange={(e) => setExportOptions(prev => ({ 
+                          ...prev, 
+                          includeViewportInfo: e.target.checked 
+                        }))}
+                        className="w-4 h-4 text-blue-500 bg-gray-50 border-gray-300 rounded focus:ring-blue-500 mr-3"
+                      />
+                      <div>
+                        <div className="font-medium text-gray-900 text-sm">Include Viewport Info</div>
+                        <div className="text-xs text-gray-600">Include current zoom and position data</div>
+                      </div>
+                    </label>
                   </div>
                 </div>
 
@@ -406,6 +594,10 @@ export default function ExportModal({ isOpen, onClose, boardName }: ExportModalP
                             <span className="font-medium text-gray-900">{resolutionOptions.find(r => r.value === exportOptions.resolution)?.label}</span>
                           </div>
                           <div className="flex justify-between">
+                            <span className="text-gray-600">Quality:</span>
+                            <span className="font-medium text-gray-900">{qualityOptions.find(q => q.value === exportOptions.quality)?.label}</span>
+                          </div>
+                          <div className="flex justify-between">
                             <span className="text-gray-600">Background:</span>
                             <span className="font-medium text-gray-900">{backgroundOptions.find(b => b.value === exportOptions.background)?.label}</span>
                           </div>
@@ -416,7 +608,7 @@ export default function ExportModal({ isOpen, onClose, boardName }: ExportModalP
                       <div className="flex justify-between">
                         <span className="text-gray-600">Area:</span>
                         <span className="font-medium text-gray-900">
-                          {exportOptions.area === 'all' ? 'Entire Board' : exportOptions.area === 'selection' ? 'Selected Area' : 'Custom Area'}
+                          {areaOptions.find(a => a.id === exportOptions.area)?.label}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -427,6 +619,10 @@ export default function ExportModal({ isOpen, onClose, boardName }: ExportModalP
                         <span className="text-gray-600">Compression:</span>
                         <span className="font-medium text-gray-900">{exportOptions.compression ? 'Enabled' : 'Disabled'}</span>
                       </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Viewport Info:</span>
+                        <span className="font-medium text-gray-900">{exportOptions.includeViewportInfo ? 'Included' : 'Excluded'}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -436,6 +632,11 @@ export default function ExportModal({ isOpen, onClose, boardName }: ExportModalP
               <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
                 <div className="text-sm text-gray-600">
                   <span className="font-medium">Board:</span> {boardName}
+                  {currentZoom && (
+                    <span className="ml-2">
+                      • Zoom: {Math.round(currentZoom)}%
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center space-x-3">
                   <button
