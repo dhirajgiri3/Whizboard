@@ -199,7 +199,10 @@ const CanvasHeader: React.FC<CanvasHeaderProps> = ({
             <div className="w-px h-6 bg-slate-200 mx-1"></div>
             <QuickActionButton
               icon={Expand}
-              onClick={onFitToScreen}
+              onClick={() => {
+                console.log('CanvasHeader fitToScreen button clicked');
+                onFitToScreen();
+              }}
               label="Fit to Screen"
             />
             {onToggleGrid && (
@@ -211,7 +214,10 @@ const CanvasHeader: React.FC<CanvasHeaderProps> = ({
             )}
             <QuickActionButton
               icon={isPresentationMode ? MonitorSpeaker : Monitor}
-              onClick={onTogglePresentation}
+              onClick={() => {
+                console.log('CanvasHeader presentation mode button clicked');
+                onTogglePresentation();
+              }}
               label={
                 isPresentationMode ? "Exit Presentation" : "Presentation Mode"
               }
@@ -270,7 +276,10 @@ const CanvasHeader: React.FC<CanvasHeaderProps> = ({
                 <DropdownItem onClick={onResetZoom}>
                   <RefreshCw className="w-4 h-4 mr-2" /> Reset Zoom
                 </DropdownItem>
-                <DropdownItem onClick={onFitToScreen}>
+                <DropdownItem onClick={() => {
+                  console.log('CanvasHeader dropdown fitToScreen clicked');
+                  onFitToScreen();
+                }}>
                   <Expand className="w-4 h-4 mr-2" /> Fit to Screen
                 </DropdownItem>
                 <div className="my-1 h-px bg-slate-100"></div>
@@ -280,7 +289,10 @@ const CanvasHeader: React.FC<CanvasHeaderProps> = ({
                     {showGrid ? "Hide Grid" : "Show Grid"}
                   </DropdownItem>
                 )}
-                <DropdownItem onClick={onTogglePresentation}>
+                <DropdownItem onClick={() => {
+                  console.log('CanvasHeader dropdown presentation clicked');
+                  onTogglePresentation();
+                }}>
                   <Monitor className="w-4 h-4 mr-2" /> Presentation
                 </DropdownItem>
               </DropdownContent>

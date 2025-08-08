@@ -98,8 +98,9 @@ export const pubSub = createPubSub<{
   drawingCompleted: [boardId: string, payload: DrawingEventPayload];
   elementAdded: [boardId: string, payload: { id: string; type: string; data: Record<string, unknown>; userId: string; timestamp: number }];
   elementUpdated: [boardId: string, payload: { id: string; type: string; data: Record<string, unknown>; userId: string; timestamp: number }];
-  elementDeleted: [boardId: string, payload: { elementId: string; userId: string; timestamp: number }];
-  textElementCreated: [boardId: string, payload: TextEventPayload];
+  userPresenceUpdate: [boardId: string, payload: { userId: string; presence: UserPresenceData }];
+  elementDeleted: [boardId: string, payload: { id: string; userId: string; timestamp: number; type: string }];
+  textElementAdded: [boardId: string, payload: TextEventPayload];
   textElementUpdated: [boardId: string, payload: TextEventPayload];
   textElementDeleted: [boardId: string, payload: { boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }];
   textElementEditingStarted: [boardId: string, payload: { boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }];

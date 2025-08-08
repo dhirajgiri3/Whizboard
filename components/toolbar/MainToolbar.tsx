@@ -19,13 +19,16 @@ import {
   Sparkles,
   Shapes,
   Clock,
+  Minus,
+  Upload,
+  Folder,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 const cn = (...classes: (string | undefined | null | boolean)[]) =>
   classes.filter(Boolean).join(" ");
 
-export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame" | "highlighter" | "text" | "shapes" | "ai";
+export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame" | "highlighter" | "text" | "shapes" | "ai" | "line";
 
 interface MainToolbarProps {
   tool: Tool;
@@ -35,6 +38,8 @@ interface MainToolbarProps {
   canUndo?: boolean;
   canRedo?: boolean;
   onExportAction?: () => void;
+  onImportAction?: () => void;
+  onFileManagerAction?: () => void;
   onClearCanvasAction?: () => void;
   onAIAction?: () => void;
   vertical?: boolean;
@@ -50,6 +55,8 @@ export default function MainToolbar({
   canUndo = true,
   canRedo = false,
   onExportAction,
+  onImportAction,
+  onFileManagerAction,
   onClearCanvasAction,
   onAIAction,
   vertical = false,
@@ -107,6 +114,9 @@ export default function MainToolbar({
           if (e.shiftKey) {
             setToolAction('shapes');
           }
+          break;
+        case 'l':
+          setToolAction('line');
           break;
         case 'a':
           setToolAction('ai');
@@ -327,7 +337,7 @@ export default function MainToolbar({
           ? "flex flex-col" 
           : "flex flex-row items-center",
         // Responsive padding
-        isMobile ? "p-3" : "p-4"
+        isMobile ? "p-3 pb-safe" : "p-4"
       )}
       style={{ 
         zIndex: 40,
@@ -427,9 +437,23 @@ export default function MainToolbar({
             />
             {onExportAction && (
               <ToolButton
-                icon={Download}
+                icon={Upload}
                 onClick={onExportAction}
                 label="Export (Ctrl+S)"
+              />
+            )}
+            {onImportAction && (
+              <ToolButton
+                icon={Download}
+                onClick={onImportAction}
+                label="Import (Ctrl+I)"
+              />
+            )}
+            {onFileManagerAction && (
+              <ToolButton
+                icon={Folder}
+                onClick={onFileManagerAction}
+                label="Files (Ctrl+F)"
               />
             )}
             {onClearCanvasAction && (
@@ -535,9 +559,23 @@ export default function MainToolbar({
             />
             {onExportAction && (
               <ToolButton
-                icon={Download}
+                icon={Upload}
                 onClick={onExportAction}
                 label="Export (Ctrl+S)"
+              />
+            )}
+            {onImportAction && (
+              <ToolButton
+                icon={Download}
+                onClick={onImportAction}
+                label="Import (Ctrl+I)"
+              />
+            )}
+            {onFileManagerAction && (
+              <ToolButton
+                icon={Folder}
+                onClick={onFileManagerAction}
+                label="Files (Ctrl+F)"
               />
             )}
             {onClearCanvasAction && !isMobile && (

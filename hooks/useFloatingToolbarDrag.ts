@@ -284,7 +284,8 @@ export function useFloatingToolbarDrag({
     position: 'fixed' as const,
     left: state.position.x,
     top: state.position.y,
-    zIndex: 50,
+    // Keep below app modals (z-50/z-60) but above canvas
+    zIndex: 30,
     transform: state.isDragging ? 'scale(1.02)' : 'scale(1)',
     transition: state.isDragging ? 'none' : 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
     opacity: state.isVisible && !state.isHidden ? 1 : 0,
@@ -297,7 +298,8 @@ export function useFloatingToolbarDrag({
     position: 'fixed' as const,
     left: state.position.x + (state.isHidden ? 8 : 16),
     top: state.position.y + (state.isHidden ? 8 : 16),
-    zIndex: 60,
+    // Slightly above the toolbar itself so the eye is clickable
+    zIndex: 35,
     opacity: state.isHidden ? 1 : 0,
     visibility: state.isHidden ? 'visible' as const : 'hidden' as const,
     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',

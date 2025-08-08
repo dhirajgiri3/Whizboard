@@ -91,7 +91,7 @@ const Header = () => {
   // Determine header visibility based on scroll direction
   const shouldShowHeader = scrollDirection === 'up' || scrollY < 100;
 
-  // Theme-based styling
+  // Theme-based styling with smooth transitions
   const animations = isLightMode ? headerAnimations : darkHeaderAnimations;
   
   const headerBg = isLightMode
@@ -125,7 +125,22 @@ const Header = () => {
           damping: 20
         }}
       >
-        <div className={`${headerBg} rounded-full border`} style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+        <motion.div 
+          className={`${headerBg} rounded-full border`} 
+          style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}
+          animate={{
+            backgroundColor: isLightMode 
+              ? 'rgba(255, 255, 255, 0.8)' 
+              : 'rgba(10, 10, 11, 0.8)',
+            borderColor: isLightMode 
+              ? 'rgba(229, 231, 235, 0.6)' 
+              : 'rgba(255, 255, 255, 0.1)'
+          }}
+          transition={{
+            duration: 0.4,
+            ease: [0.4, 0, 0.2, 1]
+          }}
+        >
           <nav className="flex w-full items-center justify-between py-2 px-6">
             {/* Logo */}
             <Logo isLightMode={isLightMode} />
@@ -248,7 +263,7 @@ const Header = () => {
               </motion.div>
             )}
           </nav>
-        </div>
+        </motion.div>
       </motion.header>
 
       {/* Mobile Header */}
@@ -264,7 +279,22 @@ const Header = () => {
           damping: 20
         }}
       >
-        <div className={`${mobileHeaderBg} border-b`} style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+        <motion.div 
+          className={`${mobileHeaderBg} border-b`} 
+          style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}
+          animate={{
+            backgroundColor: isLightMode 
+              ? 'rgba(255, 255, 255, 0.9)' 
+              : 'rgba(10, 10, 11, 0.9)',
+            borderColor: isLightMode 
+              ? 'rgba(243, 244, 246, 1)' 
+              : 'rgba(255, 255, 255, 0.1)'
+          }}
+          transition={{
+            duration: 0.4,
+            ease: [0.4, 0, 0.2, 1]
+          }}
+        >
           <nav className="flex items-center justify-between px-4 py-3">
             {/* Mobile Logo */}
             <Logo isLightMode={isLightMode} className="flex items-center" />
@@ -308,7 +338,7 @@ const Header = () => {
               </AnimatePresence>
             </motion.button>
           </nav>
-        </div>
+        </motion.div>
       </motion.header>
 
       {/* Mobile Menu */}

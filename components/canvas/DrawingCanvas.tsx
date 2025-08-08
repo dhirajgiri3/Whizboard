@@ -468,8 +468,8 @@ export default function DrawingCanvas({
         x={stagePos.x}
         y={stagePos.y}
         onMouseDown={handleMouseDown}
-        onMousemove={handleMouseMove}
-        onMouseup={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
         onWheel={handleWheel}
         style={{ 
           cursor: getCursor(),
@@ -621,8 +621,8 @@ export default function DrawingCanvas({
 
       {/* Mobile-specific zoom indicator */}
       {isSmallScreen && (
-        <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm font-medium backdrop-blur-sm">
-          {Math.round(getZoomLevel())}%
+        <div className={`absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm font-medium backdrop-blur-sm ${getZoomLevel()}`}>
+          {Math.round(stageScale * 100)}%
         </div>
       )}
 

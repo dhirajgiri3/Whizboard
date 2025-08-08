@@ -229,20 +229,7 @@ This document outlines the complete implementation roadmap for WhizBoard, breaki
   - Create review and approval workflow
   - Add threaded discussions
 
-### 6.2 Communication Tools
-- **In-app Chat**
-  - Implement real-time chat functionality
-  - Add chat rooms and channels
-  - Create message threading and replies
-  - Add file sharing in chat
-
-- **Voice & Video**
-  - Add voice call integration
-  - Implement screen sharing
-  - Create video conferencing features
-  - Add recording and playback
-
-### 6.3 Permission & Access Control
+### 6.2 Permission & Access Control
 - **Role-based Permissions**
   - Implement user roles and permissions
   - Add board access control

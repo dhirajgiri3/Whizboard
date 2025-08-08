@@ -1,9 +1,12 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useRef, useEffect, useCallback, useState } from "react";
+import { useRef, useEffect, useCallback, useState, useMemo } from "react";
 import { gql, useMutation, useSubscription, useQuery } from "@apollo/client";
 import { useSession } from "next-auth/react";
+import ExportModal from "@/components/ui/modal/ExportModal";
+import ImportModal from "@/components/ui/modal/ImportModal";
+import FileManagerModal from "@/components/ui/modal/FileManagerModal";
 import MainToolbar from "@/components/toolbar/MainToolbar";
 import FloatingStickyNoteToolbar from "@/components/toolbar/stickynote/FloatingStickyNoteToolbar";
 import FloatingFrameToolbar from "@/components/toolbar/frame/FloatingFrameToolbar";
@@ -25,7 +28,7 @@ import {
   BoardProvider,
   useBoardContext,
 } from "@/lib/context/BoardContext";
-import useRealTimeCollaboration from "@/hooks/useRealTimeCollaboration";
+import { useRealTimeCollaboration } from "@/hooks/useRealTimeCollaboration";
 import {
   StickyNoteElement,
   FrameElement,
@@ -35,7 +38,7 @@ import {
   ShapeElement,
 } from "@/types";
 import { FramePreset } from "@/components/toolbar/frame/types";
-import { Cursor } from "@/components/reatime/LiveCursors";
+import { EnhancedCursor } from "@/types";
 import { getRandomStickyNoteColor } from "@/components/canvas/stickynote/StickyNote";
 import StickyNoteColorPicker, {
   useStickyNoteColorPicker,
@@ -46,6 +49,12 @@ import { createDefaultTextElement } from "@/lib/utils/utils";
 import KeyboardShortcuts from "@/components/boardshortcuts/KeyboardShortcuts";
 import DrawingToolbar from "@/components/toolbar/pen/DrawingToolbar";
 import TextEditor from "@/components/canvas/text/TextEditor";
+
+// Phase 2: Advanced Selection and Performance Components
+import AdvancedSelectionManager from "@/components/canvas/selection/AdvancedSelectionManager";
+import DragDropEnhancement from "@/components/canvas/drag/DragDropEnhancement";
+import CanvasPerformanceOptimizer from "@/components/canvas/performance/CanvasPerformanceOptimizer";
+import LineToolbar from "@/components/toolbar/line/LineToolbar";
 
 const GET_BOARD = gql`
   query GetBoard($id: String!) {
@@ -225,6 +234,14 @@ function BoardPageContent() {
   const [currentStickyNoteColor, setCurrentStickyNoteColor] = useState(
     getRandomStickyNoteColor()
   );
+  
+  // User presence state
+  const [userPresenceData, setUserPresenceData] = useState<Record<string, any>>({});
+  
+  // Phase 3 Modal States
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [showFileManagerModal, setShowFileManagerModal] = useState(false);
 
   // Mobile and tablet responsive states
   const [isMobile, setIsMobile] = useState(false);
@@ -241,6 +258,18 @@ function BoardPageContent() {
   // Pending frame creation state for improved UX
   const [pendingFramePreset, setPendingFramePreset] = useState<FramePreset | null>(null);
   const [isFramePlacementMode, setIsFramePlacementMode] = useState(false);
+  
+  // Phase 2: Advanced Selection and Performance State
+  const [selectionMode, setSelectionMode] = useState<'lasso' | 'marquee' | 'none'>('none');
+  const [visibleElements, setVisibleElements] = useState<string[]>([]);
+
+  const [lineStyle, setLineStyle] = useState({
+    strokeDasharray: undefined as number[] | undefined,
+    strokeLineCap: 'round' as 'butt' | 'round' | 'square',
+    strokeLineJoin: 'round' as 'bevel' | 'round' | 'miter',
+    tension: 0 as number,
+  });
+  const [arrowStyle, setArrowStyle] = useState<'none' | 'start' | 'end' | 'both'>('none');
 
   // Derived responsive state
   const isSmallScreen = isMobile || isTablet;
@@ -429,7 +458,11 @@ function BoardPageContent() {
   }, []);
 
   const fitToScreen = useCallback(() => {
-    if (!stageRef.current) return;
+    console.log('BoardPage fitToScreen called');
+    if (!stageRef.current) {
+      console.log('No stage ref available');
+      return;
+    }
 
     // Calculate bounding box of all content
     let minX = Infinity;
@@ -437,6 +470,7 @@ function BoardPageContent() {
     let maxX = -Infinity;
     let maxY = -Infinity;
 
+    // Check lines
     lines.forEach((line) => {
       if (line.points && Array.isArray(line.points)) {
         for (let i = 0; i < line.points.length; i += 2) {
@@ -450,21 +484,78 @@ function BoardPageContent() {
       }
     });
 
+    // Check shapes
     shapes.forEach((shape) => {
       if (shape) {
-        // ... existing code ...
+        const shapeX = shape.x || 0;
+        const shapeY = shape.y || 0;
+        const shapeWidth = shape.width || 0;
+        const shapeHeight = shape.height || 0;
+        
+        minX = Math.min(minX, shapeX);
+        minY = Math.min(minY, shapeY);
+        maxX = Math.max(maxX, shapeX + shapeWidth);
+        maxY = Math.max(maxY, shapeY + shapeHeight);
       }
     });
 
+    // Check sticky notes
+    stickyNotes.forEach((note) => {
+      if (note) {
+        const noteX = note.x || 0;
+        const noteY = note.y || 0;
+        const noteWidth = note.width || 200;
+        const noteHeight = note.height || 150;
+        
+        minX = Math.min(minX, noteX);
+        minY = Math.min(minY, noteY);
+        maxX = Math.max(maxX, noteX + noteWidth);
+        maxY = Math.max(maxY, noteY + noteHeight);
+      }
+    });
+
+    // Check frames
+    frames.forEach((frame) => {
+      if (frame) {
+        const frameX = frame.x || 0;
+        const frameY = frame.y || 0;
+        const frameWidth = frame.width || 0;
+        const frameHeight = frame.height || 0;
+        
+        minX = Math.min(minX, frameX);
+        minY = Math.min(minY, frameY);
+        maxX = Math.max(maxX, frameX + frameWidth);
+        maxY = Math.max(maxY, frameY + frameHeight);
+      }
+    });
+
+    // Check text elements
+    textElements.forEach((textElement) => {
+      if (textElement) {
+        const textX = textElement.x || 0;
+        const textY = textElement.y || 0;
+        const textWidth = textElement.width || 0;
+        const textHeight = textElement.height || 0;
+        
+        minX = Math.min(minX, textX);
+        minY = Math.min(minY, textY);
+        maxX = Math.max(maxX, textX + textWidth);
+        maxY = Math.max(maxY, textY + textHeight);
+      }
+    });
+
+    // If no content found, set default bounds
     if (
       minX === Infinity ||
       minY === Infinity ||
       maxX === -Infinity ||
       maxY === -Infinity
     ) {
-      // No content on the board, so we can't fit to screen.
-      // Maybe zoom to a default level or do nothing.
-      return;
+      // No content on the board, set default bounds
+      minX = 0;
+      minY = 0;
+      maxX = 1000;
+      maxY = 1000;
     }
 
     const contentWidth = maxX - minX;
@@ -473,7 +564,12 @@ function BoardPageContent() {
     const stageHeight = stageRef.current.height();
 
     if (contentWidth <= 0 || contentHeight <= 0) {
-      // Avoid division by zero if content has no area
+      // Set default scale if content has no area
+      const defaultScale = 0.8;
+      stageRef.current.scale({ x: defaultScale, y: defaultScale });
+      stageRef.current.position({ x: 0, y: 0 });
+      setCurrentZoom(Math.round(defaultScale * 100));
+      stageRef.current.batchDraw();
       return;
     }
 
@@ -489,7 +585,8 @@ function BoardPageContent() {
 
     setCurrentZoom(Math.round(scale * 100));
     stageRef.current.batchDraw();
-  }, [lines, shapes, stageRef, setCurrentZoom]);
+    console.log('BoardPage fitToScreen completed successfully');
+  }, [lines, shapes, stickyNotes, frames, textElements, stageRef, setCurrentZoom]);
 
   // Sticky Note Color Picker State
   const colorPicker = useStickyNoteColorPicker();
@@ -503,6 +600,7 @@ function BoardPageContent() {
     data: initialData,
     loading,
     error,
+    refetch,
   } = useQuery(GET_BOARD, {
     variables: { id: boardId },
     skip: !boardId,
@@ -525,10 +623,10 @@ function BoardPageContent() {
 
   // Check if current user is the board owner
   useEffect(() => {
-    if (initialData?.getBoard && session?.user?.id) {
+    if (initialData?.getBoard && session?.user?.email) {
       setIsOwner(initialData.getBoard.createdBy === session.user.id);
     }
-  }, [initialData?.getBoard, session?.user?.id, setIsOwner]);
+      }, [initialData?.getBoard, session?.user?.email, setIsOwner]);
 
   // Setup real-time collaboration
   const {
@@ -546,9 +644,10 @@ function BoardPageContent() {
     broadcastShapeElementCreate,
     broadcastShapeElementUpdate,
     broadcastShapeElementDelete,
+    updateAndBroadcastPresence,
   } = useRealTimeCollaboration({
     boardId,
-    userId: session?.user?.id,
+    userId: session?.user?.id || "unknown",
     userName: session?.user?.name || "Unknown User",
     isOwner,
     onBoardUpdate: (elements) => {
@@ -638,9 +737,12 @@ function BoardPageContent() {
       setTextElements((prev) => prev.filter((text) => text.id !== elementId));
       setShapes((prev) => prev.filter((shape) => shape.id !== elementId));
     },
+    onUserPresenceUpdate: (presenceData) => {
+      setUserPresenceData(prev => ({ ...prev, [presenceData.userId]: presenceData }));
+    }
   });
 
-  const [cursors, setCursors] = useState<Record<string, Cursor>>({});
+  const [cursors, setCursors] = useState<Record<string, EnhancedCursor>>({});
   const localUserId = useRef(
     "user-" + Math.random().toString(36).substr(2, 9)
   ).current;
@@ -1508,7 +1610,7 @@ function BoardPageContent() {
   // Helper function to create a frame from a preset at a specific position
   const createFrameFromPreset = useCallback(
     (x: number, y: number, preset: FramePreset) => {
-      if (!boardId || !session?.user?.id || !preset) return null;
+      if (!boardId || !session?.user?.email || !preset) return null;
 
       const newFrame: FrameElement = {
         id: `frame-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -1554,7 +1656,7 @@ function BoardPageContent() {
     },
     [
       boardId,
-      session?.user?.id,
+      session?.user?.email,
       handleFrameAdd,
       setSelectedFrame,
       frames.length,
@@ -2145,7 +2247,7 @@ function BoardPageContent() {
     },
     [
       boardId,
-      session?.user?.id,
+      session?.user?.email,
       handleShapeAdd,
       setSelectedShape,
       setSelectedShapes,
@@ -2390,7 +2492,7 @@ function BoardPageContent() {
     },
     [
       boardId,
-      session?.user?.id,
+      session?.user?.email,
       shapes,
       handleShapeAdd,
       setSelectedShape,
@@ -2618,21 +2720,18 @@ function BoardPageContent() {
 
   const handleExport = useCallback(() => {
     logger.info("Export action triggered");
-    if (stageRef.current) {
-      const uri = stageRef.current.toDataURL({
-        pixelRatio: 2,
-        quality: 1,
-      });
-      const link = document.createElement("a");
-      link.download = `whizboard-${boardId}-${
-        new Date().toISOString().split("T")[0]
-      }.png`;
-      link.href = uri;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  }, [boardId]);
+    setShowExportModal(true);
+  }, [setShowExportModal]);
+
+  const handleImport = useCallback(() => {
+    logger.info("Import action triggered");
+    setShowImportModal(true);
+  }, [setShowImportModal]);
+
+  const handleFileManager = useCallback(() => {
+    logger.info("File manager action triggered");
+    setShowFileManagerModal(true);
+  }, [setShowFileManagerModal]);
 
   const onlineUsers = Object.values(cursors).map((cursor) => ({
     id: cursor.userId,
@@ -2683,21 +2782,112 @@ function BoardPageContent() {
     [updateBoardName, setRenamedBoard, setShowSuccessModal]
   );
 
+  const isExecutingRef = useRef(false);
+  
   const handleTogglePresentation = useCallback(() => {
+    console.log('handleTogglePresentation called');
+    
+    // Prevent rapid successive calls to avoid duplicate toast messages
+    if (isExecutingRef.current) {
+      console.log('handleTogglePresentation already executing, skipping');
+      return;
+    }
+    
+    isExecutingRef.current = true;
+    
+    // Reset flag after a short delay to allow future calls
+    setTimeout(() => {
+      isExecutingRef.current = false;
+    }, 1000);
+    
     setIsPresentationMode((prev) => {
       const newMode = !prev;
+      console.log('Setting presentation mode to:', newMode);
+      
       if (newMode) {
-        document.documentElement.requestFullscreen?.();
+        // Enter presentation mode first
         setIsSidebarOpen(false);
         setIsCollaborationOpen(false);
         setShowKeyboardShortcuts(false);
-        toast.success("Entered presentation mode");
+        
+        // Try to enter fullscreen mode with proper error handling
+        const enterFullscreen = async () => {
+          let toastShown = false;
+          
+          const showToast = (message: string, type: 'success' | 'info' = 'success') => {
+            if (!toastShown) {
+              if (type === 'success') {
+                toast.success(message);
+              } else {
+                toast.info(message);
+              }
+              toastShown = true;
+            }
+          };
+          
+          // Check if fullscreen is supported
+          if (!document.documentElement.requestFullscreen) {
+            console.log('Fullscreen not supported by browser');
+            showToast("Entered presentation mode (fullscreen not supported)");
+            return;
+          }
+          
+          // Check if already in fullscreen
+          if (document.fullscreenElement) {
+            console.log('Already in fullscreen mode');
+            showToast("Entered presentation mode");
+            return;
+          }
+          
+          // Check if we're in a secure context (required for fullscreen)
+          if (!window.isSecureContext) {
+            console.log('Not in secure context - fullscreen not available');
+            showToast("Entered presentation mode (fullscreen requires HTTPS)");
+            return;
+          }
+          
+          try {
+            // Request fullscreen
+            await document.documentElement.requestFullscreen();
+            console.log('Successfully entered fullscreen');
+            showToast("Entered presentation mode");
+          } catch (error) {
+            console.warn('Fullscreen request failed:', error);
+            
+            // Check specific error types and provide better user feedback
+            if (error instanceof TypeError) {
+              console.log('Fullscreen not supported or blocked');
+              showToast("Entered presentation mode");
+            } else if (error && typeof error === 'object' && 'name' in error && error.name === 'NotAllowedError') {
+              console.log('Fullscreen blocked by user or browser policy');
+              // Provide helpful message for user
+              showToast("Presentation mode active (fullscreen blocked - try clicking the button again)", 'info');
+            } else {
+              console.log('Fullscreen failed for other reason:', error);
+              showToast("Entered presentation mode");
+            }
+          }
+        };
+        
+        // Execute fullscreen request
+        enterFullscreen();
       } else {
-        if (document.fullscreenElement) {
-          document.exitFullscreen?.();
+        // Exit presentation mode
+        console.log('Exiting presentation mode');
+        try {
+          if (document.fullscreenElement && document.exitFullscreen) {
+            document.exitFullscreen().catch((error) => {
+              console.warn('Exit fullscreen failed:', error);
+            });
+          }
+        } catch (error) {
+          console.warn('Exit fullscreen failed:', error);
         }
+        
         toast.success("Exited presentation mode");
       }
+      
+      console.log('Presentation mode toggled successfully');
       return newMode;
     });
   }, [
@@ -2727,6 +2917,14 @@ function BoardPageContent() {
           case "s":
             e.preventDefault();
             handleExport();
+            break;
+          case "i":
+            e.preventDefault();
+            handleImport();
+            break;
+          case "f":
+            e.preventDefault();
+            handleFileManager();
             break;
           case "/":
             e.preventDefault();
@@ -3067,7 +3265,7 @@ function BoardPageContent() {
       handleStickyNoteAdd,
       setSelectedStickyNote,
       setTool,
-      session?.user?.id,
+      session?.user?.email,
       handleTextElementAdd,
       handleTextElementStartEdit,
     ]
@@ -3131,11 +3329,17 @@ function BoardPageContent() {
         onRename={handleRenameBoard}
         onExport={handleExport}
         onClearCanvas={handleClearCanvas}
-        onFitToScreen={() => fitToScreen()}
+        onFitToScreen={() => {
+          console.log('Fit to screen button clicked');
+          fitToScreen();
+        }}
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
         onResetZoom={resetZoom}
-        onTogglePresentation={handleTogglePresentation}
+        onTogglePresentation={() => {
+          console.log('Presentation mode button clicked');
+          handleTogglePresentation();
+        }}
         onToggleGrid={() => setShowGrid(!showGrid)}
         isPresentationMode={isPresentationMode}
         showGrid={showGrid}
@@ -3164,6 +3368,8 @@ function BoardPageContent() {
               canUndo={canUndo}
               canRedo={canRedo}
               onExportAction={handleExport}
+              onImportAction={handleImport}
+              onFileManagerAction={handleFileManager}
               onClearCanvasAction={handleClearCanvas}
               onAIAction={handleAIAction}
               vertical
@@ -3234,6 +3440,8 @@ function BoardPageContent() {
                   canUndo={canUndo}
                   canRedo={canRedo}
                   onExportAction={handleExport}
+                  onImportAction={handleImport}
+                  onFileManagerAction={handleFileManager}
                   onClearCanvasAction={handleClearCanvas}
                   onAIAction={handleAIAction}
                   vertical={false}
@@ -3384,7 +3592,7 @@ function BoardPageContent() {
                     id: frame.id,
                     type: "frame" as const,
                     data: frame as unknown as Record<string, unknown>,
-                    userId: session?.user?.id || "unknown",
+                    userId: session?.user?.email || "unknown",
                     timestamp: Date.now(),
                   });
                 }
@@ -3424,7 +3632,7 @@ function BoardPageContent() {
             onColorPickerOpenAction={(position) => {
               colorPicker.openPicker(currentStickyNoteColor, position);
             }}
-            isVisible={tool === "sticky-note" || selectedStickyNote !== null}
+            isVisible={tool === "sticky-note"}
             isMobile={isMobile}
             isTablet={isTablet}
             isCollapsed={isFloatingToolbarCollapsed}
@@ -3432,7 +3640,7 @@ function BoardPageContent() {
 
           {/* Responsive Floating Frame Toolbar */}
           <FloatingFrameToolbar
-            isActive={tool === "frame" || selectedFrame !== null}
+            isActive={tool === "frame"}
             selectedFrames={
               selectedFrame ? frames.filter((f) => f.id === selectedFrame) : []
             }
@@ -3468,9 +3676,7 @@ function BoardPageContent() {
           />
 
           {/* Responsive Floating Text Toolbar */}
-          {(selectedTextElement !== null ||
-            editingTextElement !== null ||
-            tool === "text") && (
+          {tool === "text" && (
             <div
               className={`${
                 isMobile || isTablet ? "max-w-[90vw]" : "max-xl:hidden"
@@ -3497,11 +3703,7 @@ function BoardPageContent() {
 
           {/* Responsive Floating Shapes Toolbar */}
           <FloatingShapesToolbar
-            isActive={
-              tool === "shapes" ||
-              selectedShape !== null ||
-              selectedShapes.length > 0
-            }
+            isActive={tool === "shapes"}
             selectedShapes={
               selectedShapes.length > 0
                 ? shapes.filter((s) => selectedShapes.includes(s.id))
@@ -3519,6 +3721,140 @@ function BoardPageContent() {
             onShapeAlignAction={handleShapeAlign}
             onShapeDistributeAction={handleShapeDistribute}
             onShapeDuplicateAction={handleShapeDuplicate}
+            className={`
+              ${
+                isMobile || isTablet
+                  ? "max-w-[90vw] max-h-[60vh]"
+                  : "max-xl:hidden"
+              }
+            `}
+            isMobile={isMobile}
+            isTablet={isTablet}
+            isCollapsed={isFloatingToolbarCollapsed}
+          />
+
+          {/* Phase 2: Advanced Selection Manager */}
+          <AdvancedSelectionManager
+            stageRef={stageRef}
+            isActive={selectionMode !== 'none'}
+            selectionMode={selectionMode}
+            onSelectionChange={(selectedIds) => {
+              // Handle multi-selection for different element types
+              const shapeIds = selectedIds.filter(id => 
+                shapes.some(shape => shape.id === id)
+              );
+              const frameIds = selectedIds.filter(id => 
+                frames.some(frame => frame.id === id)
+              );
+              const textIds = selectedIds.filter(id => 
+                textElements.some(text => text.id === id)
+              );
+              
+              if (shapeIds.length > 0) {
+                setSelectedShapes(shapeIds);
+              }
+              if (frameIds.length > 0) {
+                setSelectedFrame(frameIds[0]);
+              }
+              if (textIds.length > 0) {
+                setSelectedTextElement(textIds[0]);
+              }
+            }}
+            onSelectionStart={() => {
+              // Clear existing selections when starting new selection
+              setSelectedShape(null);
+              setSelectedShapes([]);
+              setSelectedFrame(null);
+              setSelectedTextElement(null);
+            }}
+            onSelectionEnd={() => {
+              // Optional: Add any cleanup logic
+            }}
+            selectableElements={[
+              ...shapes.map(shape => ({
+                id: shape.id,
+                x: shape.x,
+                y: shape.y,
+                width: shape.width || 100,
+                height: shape.height || 100,
+                type: 'shape',
+              })),
+              ...frames.map(frame => ({
+                id: frame.id,
+                x: frame.x,
+                y: frame.y,
+                width: frame.width,
+                height: frame.height,
+                type: 'frame',
+              })),
+              ...textElements.map(text => ({
+                id: text.id,
+                x: text.x,
+                y: text.y,
+                width: text.width,
+                height: text.height,
+                type: 'text',
+              })),
+            ]}
+          />
+
+          {/* Phase 2: Drag & Drop Enhancement */}
+          <DragDropEnhancement
+            stageRef={stageRef}
+            isActive={tool === 'select'}
+            onDragStart={(elementId, position) => {
+              console.log('Drag started:', elementId, position);
+            }}
+            onDragMove={(elementId, position) => {
+              console.log('Drag move:', elementId, position);
+            }}
+            onDragEnd={(elementId, position) => {
+              console.log('Drag ended:', elementId, position);
+            }}
+            onDropZoneEnter={(zoneId) => {
+              console.log('Entered drop zone:', zoneId);
+            }}
+            onDropZoneLeave={(zoneId) => {
+              console.log('Left drop zone:', zoneId);
+            }}
+            onDropZoneDrop={(zoneId, elementId) => {
+              console.log('Dropped on zone:', zoneId, elementId);
+              // Handle different drop zone actions
+              switch (zoneId) {
+                case 'frame':
+                  // Add element to frame
+                  break;
+                case 'canvas':
+                  // Move element to canvas
+                  break;
+                case 'group':
+                  // Group elements
+                  break;
+              }
+            }}
+          />
+
+          {/* Phase 2: Canvas Performance Optimizer */}
+          <CanvasPerformanceOptimizer isEnabled={true}>
+            <div />
+          </CanvasPerformanceOptimizer>
+
+          {/* Phase 2: Line Toolbar */}
+          <LineToolbar
+            isActive={tool === 'line'}
+            onLineStyleChange={(style) => {
+              setLineStyle({
+                strokeDasharray: style.strokeDasharray,
+                strokeLineCap: style.strokeLineCap || 'round',
+                strokeLineJoin: style.strokeLineJoin || 'round',
+                tension: style.tension || 0,
+              });
+            }}
+            onColorChange={setColor}
+            onStrokeWidthChange={setStrokeWidth}
+            onArrowStyleChange={setArrowStyle}
+            initialColor={color}
+            initialStrokeWidth={strokeWidth}
             className={`
               ${
                 isMobile || isTablet
@@ -3548,9 +3884,11 @@ function BoardPageContent() {
             redoAction={handleRedo}
             canUndo={canUndo}
             canRedo={canRedo}
-            onExportAction={handleExport}
-            onClearCanvasAction={handleClearCanvas}
-            onAIAction={handleAIAction}
+                            onExportAction={handleExport}
+                onImportAction={handleImport}
+                onFileManagerAction={handleFileManager}
+                onClearCanvasAction={handleClearCanvas}
+                onAIAction={handleAIAction}
             vertical={false}
             isMobile={isMobile}
             isTablet={isTablet}
@@ -3566,7 +3904,7 @@ function BoardPageContent() {
           }
           className={`
             fixed z-50 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 backdrop-blur-xl shadow-xl transition-all duration-300 hover:scale-110
-            ${isMobile ? "bottom-20 right-4" : "bottom-4 right-4"}
+            ${isMobile ? "bottom-[calc(env(safe-area-inset-bottom)+80px)] right-4" : "bottom-4 right-4"}
           `}
           title={
             isFloatingToolbarCollapsed ? "Expand toolbars" : "Collapse toolbars"
@@ -3596,7 +3934,7 @@ function BoardPageContent() {
             fixed z-45 bg-slate-900/80 hover:bg-slate-800/90 h-12 w-12 flex items-center justify-center text-white rounded-full p-3 backdrop-blur-xl border border-slate-700/50 shadow-xl transition-all duration-300 hover:scale-110
             ${
               isMobile
-                ? "bottom-32 right-4"
+                ? "bottom-[calc(env(safe-area-inset-bottom)+112px)] right-4"
                 : isTablet
                 ? "bottom-20 right-4"
                 : "bottom-4 right-4 xl:bottom-4 xl:right-4"
@@ -3672,6 +4010,27 @@ function BoardPageContent() {
           />
         </div>
       )}
+
+      {/* Phase 3 Modals */}
+      <ExportModal 
+        isOpen={showExportModal} 
+        onClose={() => setShowExportModal(false)} 
+        boardName={initialData?.getBoard?.name || "Untitled Board"} 
+      />
+      
+      <ImportModal 
+        isOpen={showImportModal} 
+        onClose={() => setShowImportModal(false)} 
+        onImportComplete={() => { 
+          refetch(); 
+          toast.success("Import completed successfully!"); 
+        }} 
+      />
+      
+      <FileManagerModal 
+        isOpen={showFileManagerModal} 
+        onClose={() => setShowFileManagerModal(false)} 
+      />
     </div>
   );
 }

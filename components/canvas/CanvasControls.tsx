@@ -162,10 +162,13 @@ export function CanvasControls({
                       />
                     </button>
                     <button
-                      onClick={fitToScreen}
-                      className="flex-1 p-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 active:bg-purple-200 transition-all duration-200 text-purple-600 hover:text-purple-700 group"
+                      onClick={() => {
+                        console.log('CanvasControls fitToScreen button clicked');
+                        fitToScreen();
+                      }}
+                      className="flex-1 p-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 active:bg-purple-200 transition-all duration-200 text-purple-600 hover:text-purple-700 group disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Fit to Screen"
-                      disabled={!hasLines}
+                      disabled={false}
                     >
                       <Maximize2
                         size={16}

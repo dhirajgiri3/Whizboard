@@ -8,10 +8,9 @@ const ConditionalHeader = () => {
   
   // Don't show header on pages that have their own headers or special layouts
   const pagesWithoutHeader = [
-    '/my-boards',
     '/login',
-    '/login',
-    '/invitation-declined'
+    '/invitation-declined',
+    '/board'
   ];
   
   const shouldShowHeader = !pagesWithoutHeader.some(page => 

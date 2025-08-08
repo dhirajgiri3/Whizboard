@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar/avatar";
 import { User } from '@/types';
-import { UserPlus2, Copy, Crown, Clock, Users2, Dot } from 'lucide-react';
+import { UserPlus2, Copy, Crown, Clock, Users2, Dot, MessageSquare, Edit3, Eye, Activity, Wifi, WifiOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 
@@ -49,6 +49,51 @@ export default function CollaborationPanel({
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
     return `${Math.floor(diffInSeconds / 86400)}d ago`;
+  };
+
+  const getStatusColor = (user: User) => {
+    if (!user.presence) return 'bg-green-500';
+    
+    switch (user.presence.status) {
+      case 'online': return 'bg-green-500';
+      case 'away': return 'bg-yellow-500';
+      case 'busy': return 'bg-red-500';
+      case 'offline': return 'bg-gray-400';
+      default: return 'bg-green-500';
+    }
+  };
+
+  const getActivityIcon = (user: User) => {
+    if (!user.presence) return null;
+    
+    if (user.presence.isDrawing) return <Edit3 className="w-3 h-3 text-blue-500" />;
+    if (user.presence.isTyping) return <MessageSquare className="w-3 h-3 text-purple-500" />;
+    if (user.presence.isSelecting) return <Eye className="w-3 h-3 text-green-500" />;
+    return <Activity className="w-3 h-3 text-gray-400" />;
+  };
+
+  const getConnectionQualityIcon = (user: User) => {
+    if (!user.presence?.connectionQuality) return null;
+    
+    switch (user.presence.connectionQuality) {
+      case 'excellent':
+        return <Wifi className="w-3 h-3 text-green-500" />;
+      case 'good':
+        return <Wifi className="w-3 h-3 text-yellow-500" />;
+      case 'poor':
+        return <Wifi className="w-3 h-3 text-red-500" />;
+      case 'disconnected':
+        return <WifiOff className="w-3 h-3 text-gray-400" />;
+      default:
+        return null;
+    }
+  };
+
+  const formatDuration = (minutes: number) => {
+    if (minutes < 60) return `${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
   };
 
   return (
@@ -108,7 +153,17 @@ export default function CollaborationPanel({
                     {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${getStatusColor(user)}`}></div>
+                {getActivityIcon(user) && (
+                  <div className="absolute -top-1 -left-1 p-0.5 bg-white rounded-full shadow-sm">
+                    {getActivityIcon(user)}
+                  </div>
+                )}
+                {getConnectionQualityIcon(user) && (
+                  <div className="absolute -bottom-1 -left-1 p-0.5 bg-white rounded-full shadow-sm">
+                    {getConnectionQualityIcon(user)}
+                  </div>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -125,6 +180,12 @@ export default function CollaborationPanel({
                   )}
                 </div>
                 <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                {user.presence?.currentActivity && (
+                  <p className="text-xs text-slate-600 italic">{user.presence.currentActivity}</p>
+                )}
+                {user.presence?.sessionDuration && (
+                  <p className="text-xs text-slate-500">{formatDuration(user.presence.sessionDuration)}</p>
+                )}
               </div>
               <div className="text-xs text-green-600 font-medium">Active</div>
             </div>

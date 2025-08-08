@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   User,
   Shield,
@@ -19,11 +19,15 @@ import {
   Edit,
   Save,
   Trash2,
-  LogOut
+  LogOut,
+  Camera,
+  Upload,
+  X
 } from "lucide-react";
 import { useSettings } from "@/lib/context/SettingsContext";
 import { useAppContext } from "@/lib/context/AppContext";
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from "sonner";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
@@ -55,6 +59,13 @@ export default function SettingsPage() {
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [deleteAccountPassword, setDeleteAccountPassword] = useState('');
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  
+  // Profile image edit states
+  const [isEditingImage, setIsEditingImage] = useState(false);
+  const [imageDescription, setImageDescription] = useState('');
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handlePasswordChange = async () => {
     if (newPassword !== confirmNewPassword) {
@@ -80,6 +91,70 @@ export default function SettingsPage() {
       } else {
         alert(`Failed to delete account: ${error}`);
       }
+    }
+  };
+
+  // Profile image edit functions
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error('Image size must be less than 5MB');
+        return;
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select a valid image file');
+        return;
+      }
+      
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+      setIsEditingImage(true);
+    }
+  };
+
+  const handleImageUpload = async () => {
+    if (!selectedImage) return;
+    
+    try {
+      const formData = new FormData();
+      formData.append('image', selectedImage);
+      formData.append('description', imageDescription);
+      
+      const response = await fetch('/api/settings/account', {
+        method: 'PUT',
+        body: formData,
+      });
+      
+      if (response.ok) {
+        toast.success('Profile image updated successfully!');
+        setIsEditingImage(false);
+        setSelectedImage(null);
+        setImagePreview('');
+        setImageDescription('');
+        // Refresh user data
+        window.location.reload();
+      } else {
+        const error = await response.json();
+        toast.error(error.message || 'Failed to update profile image');
+      }
+    } catch (error) {
+      toast.error('Failed to update profile image');
+    }
+  };
+
+  const handleCancelImageEdit = () => {
+    setIsEditingImage(false);
+    setSelectedImage(null);
+    setImagePreview('');
+    setImageDescription('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -110,6 +185,92 @@ export default function SettingsPage() {
           >
             <h3 className="text-2xl font-bold text-slate-800 mb-6">Profile Settings</h3>
             <div className="space-y-6">
+              {/* Profile Image Section */}
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Profile Image</label>
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <img
+                      src={user?.avatar || user?.image || '/default-avatar.png'}
+                      alt="Profile"
+                      className="w-20 h-20 rounded-full object-cover border-2 border-slate-200"
+                    />
+                    {!isEditingImage && (
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="absolute -bottom-1 -right-1 p-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                        title="Edit profile image"
+                      >
+                        <Camera className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {!isEditingImage && (
+                    <div className="flex-1">
+                      <p className="text-sm text-slate-600 mb-2">Click the camera icon to update your profile image</p>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        className="hidden"
+                      />
+                    </div>
+                  )}
+                </div>
+                
+                {/* Image Edit Interface */}
+                {isEditingImage && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-4 p-4 bg-slate-50 rounded-lg border border-slate-200"
+                  >
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-16 h-16 rounded-full object-cover border border-slate-300"
+                      />
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                          Image Description
+                        </label>
+                        <textarea
+                          value={imageDescription}
+                          onChange={(e) => setImageDescription(e.target.value)}
+                          placeholder="Describe your profile image (optional)"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                          rows={2}
+                        />
+                        <p className="mt-1 text-xs text-slate-500">
+                          Add a description to help identify your profile image
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleImageUpload}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                      >
+                        <Save className="w-4 h-4" />
+                        Save Image
+                      </button>
+                      <button
+                        onClick={handleCancelImageEdit}
+                        className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors font-medium flex items-center gap-2"
+                      >
+                        <X className="w-4 h-4" />
+                        Cancel
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+              
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
                 <input
@@ -131,9 +292,6 @@ export default function SettingsPage() {
                 />
                 <p className="mt-2 text-sm text-slate-500">Email cannot be changed.</p>
               </div>
-              {/* <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2">
-                <Save className="w-5 h-5" /> Save Changes
-              </button> */}
             </div>
           </motion.div>
         );
