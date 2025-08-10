@@ -84,9 +84,10 @@ export async function POST(request: NextRequest) {
           }
           
           pubSub.publish('elementDeleted', boardId, {
-            elementId,
+            id: elementId,
             userId,
             timestamp: Date.now(),
+            type: 'deleted'
           });
           logger.debug(`Element deleted by user ${userId} on board ${boardId}`);
           break;

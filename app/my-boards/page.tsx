@@ -29,6 +29,7 @@ import InviteCollaboratorsModal from "@/components/ui/modal/InviteCollaboratorsM
 import { toast } from "sonner";
 import { LoadingOverlay } from "@/components/ui/loading/Loading";
 import CreateBoardModal from "@/components/ui/modal/CreateBoardModal";
+import SuccessModal from "@/components/ui/modal/SuccessModal";
 
 const GET_MY_BOARDS = gql`
   query GetMyBoards {
@@ -95,6 +96,8 @@ const MyBoardsPage = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortBy, setSortBy] = useState<SortBy>("updated");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [createdBoard, setCreatedBoard] = useState<{ id: string; name: string } | null>(null);
   const [showStats, setShowStats] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -228,7 +231,9 @@ const MyBoardsPage = () => {
 
   const handleBoardCreated = useCallback(
     (board: { id: string; name: string }) => {
-      toast.success(`Board "${board.name}" created successfully!`);
+      setCreatedBoard({ id: board.id, name: board.name });
+      setShowCreateModal(false);
+      setShowSuccessModal(true);
       refetch();
     },
     [refetch]
@@ -741,7 +746,22 @@ const MyBoardsPage = () => {
         )}
 
         {/* Modals */}
-        <CreateBoardModal isOpen={showCreateModal} onCloseAction={() => setShowCreateModal(false)} onSuccessAction={handleBoardCreated} />
+        <CreateBoardModal
+          isOpen={showCreateModal}
+          onCloseAction={() => setShowCreateModal(false)}
+          onSuccessAction={handleBoardCreated}
+        />
+        <SuccessModal
+          isOpen={showSuccessModal}
+          onCloseAction={() => {
+            setShowSuccessModal(false);
+            setCreatedBoard(null);
+          }}
+          title="Board Created"
+          message="Your board has been created successfully. You can start working on it now."
+          boardId={createdBoard?.id}
+          boardName={createdBoard?.name}
+        />
         {selectedBoard && (
           <InviteCollaboratorsModal
             isOpen={showInviteModal}

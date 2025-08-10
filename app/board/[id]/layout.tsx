@@ -2,9 +2,9 @@
 import React from "react";
 import { Metadata } from "next";
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   // In a real app, you'd fetch board data here
-  const boardId = params.id;
+  const { id: boardId } = await params;
   
   return {
     title: `Board ${boardId} | Whizboard - Collaborative Whiteboard`,

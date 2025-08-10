@@ -209,7 +209,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Start a database session for transaction
-    const dbSession = db.client.startSession();
+    const dbSession = (db as any).client.startSession();
     
     try {
       await dbSession.withTransaction(async () => {
