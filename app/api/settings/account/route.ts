@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/options';
 import { connectToDatabase } from '@/lib/database/mongodb';
+import cloudinary from '@/lib/utils/cloudinary';
 
 export async function PUT(request: NextRequest) {
   try {
@@ -10,43 +11,13 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const contentType = request.headers.get('content-type');
-    
-    if (contentType?.includes('application/json')) {
-      // Handle description-only update
-      const body = await request.json();
-      const { description } = body;
+    // Handle image upload only (no description)
+    const formData = await request.formData();
+    const image = formData.get('image') as File | null;
 
-      const db = await connectToDatabase();
-      
-      const result = await db.collection('users').updateOne(
-        { email: session.user.email },
-        {
-          $set: {
-            imageDescription: description || '',
-            updatedAt: new Date(),
-          }
-        }
-      );
-
-      if (result.matchedCount === 0) {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: 'Image description updated successfully',
-        description: description || ''
-      });
-    } else {
-      // Handle image upload with description
-      const formData = await request.formData();
-      const image = formData.get('image') as File;
-      const description = formData.get('description') as string;
-
-      if (!image) {
-        return NextResponse.json({ error: 'No image provided' }, { status: 400 });
-      }
+    if (!image) {
+      return NextResponse.json({ error: 'No image provided' }, { status: 400 });
+    }
 
     // Validate file size (5MB limit)
     const maxSize = 5 * 1024 * 1024; // 5MB
@@ -59,23 +30,42 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid file type. Please upload an image.' }, { status: 400 });
     }
 
-    // Convert image to base64
+    // Upload to Cloudinary
     const arrayBuffer = await image.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-    const imageData = `data:${image.type};base64,${base64}`;
+    const buffer = Buffer.from(arrayBuffer);
+    const uploadResult = await cloudinary.uploader.upload_stream({
+      folder: 'whizboard/profile',
+      resource_type: 'image',
+      overwrite: true,
+      invalidate: true,
+    }, async (error, result) => {
+      // This callback form requires wrapping in a Promise; we handle below
+    });
+    // Wrap upload_stream in a Promise
+    const cloudinaryUpload = () => new Promise<any>((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: 'whizboard/profile', resource_type: 'image', overwrite: true, invalidate: true },
+        (err, res) => (err ? reject(err) : resolve(res))
+      );
+      stream.end(buffer);
+    });
+    const resultUpload = await cloudinaryUpload();
+
+    const imageUrl = resultUpload.secure_url as string;
+    const publicId = resultUpload.public_id as string;
 
     // Connect to database
     const db = await connectToDatabase();
-    
-    // Update user profile with new image and description
+
+    // Update user profile with new image URL and store public_id for deletes
     const result = await db.collection('users').updateOne(
       { email: session.user.email },
       {
         $set: {
-          image: imageData,
-          imageDescription: description || '',
+          image: imageUrl,
+          imagePublicId: publicId,
           updatedAt: new Date(),
-        }
+        },
       }
     );
 
@@ -86,10 +76,8 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Profile image updated successfully',
-      image: imageData,
-      description: description || ''
+      image: imageUrl,
     });
-    }
   } catch (error: any) {
     console.error('Profile image update error:', error);
     return NextResponse.json(
@@ -108,11 +96,11 @@ export async function GET(request: NextRequest) {
 
     // Connect to database
     const db = await connectToDatabase();
-    
+
     // Get user profile data
     const user = await db.collection('users').findOne(
       { email: session.user.email },
-      { projection: { image: 1, imageDescription: 1, name: 1, email: 1 } }
+      { projection: { image: 1, name: 1, email: 1 } }
     );
 
     if (!user) {
@@ -122,17 +110,162 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       user: {
-        image: user.image,
-        imageDescription: user.imageDescription || '',
-        name: user.name,
-        email: user.email
-      }
+        image: (user as any).image || null,
+        name: (user as any).name,
+        email: (user as any).email,
+      },
     });
 
   } catch (error: any) {
     console.error('Profile data fetch error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch profile data' },
+      { status: 500 }
+    );
+  }
+} 
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const contentType = request.headers.get('content-type') || '';
+    let body: any = {};
+    if (contentType.includes('application/json')) {
+      try {
+        body = await request.json();
+      } catch {}
+    }
+
+    // If request is for deleting only profile image
+    if (body?.type === 'image' || body?.action === 'delete-image') {
+      const db = await connectToDatabase();
+      const user = await db.collection('users').findOne(
+        { email: session.user.email },
+        { projection: { imagePublicId: 1 } }
+      );
+      const publicId = (user as any)?.imagePublicId;
+      if (publicId) {
+        try {
+          await cloudinary.uploader.destroy(publicId, { resource_type: 'image', invalidate: true });
+        } catch (e) {
+          console.warn('Failed to delete Cloudinary image:', e);
+        }
+      }
+      const result = await db.collection('users').updateOne(
+        { email: session.user.email },
+        { $unset: { image: '', imagePublicId: '' }, $set: { updatedAt: new Date() } }
+      );
+      if (result.matchedCount === 0) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+      return NextResponse.json({ success: true, message: 'Profile image deleted' });
+    }
+
+    // Otherwise, delete entire account with all associated data (no password required for Google auth)
+    const db = await connectToDatabase();
+    
+    // Get user for audit log context
+    const user = await db.collection('users').findOne(
+      { email: session.user.email },
+      { projection: { email: 1, name: 1 } }
+    );
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Start a database session for transaction
+    const dbSession = db.client.startSession();
+    
+    try {
+      await dbSession.withTransaction(async () => {
+        // Delete user's boards
+        await db.collection('boards').deleteMany({ 
+          $or: [
+            { ownerEmail: session.user.email },
+            { collaborators: { $elemMatch: { email: session.user.email } } }
+          ]
+        });
+
+        // Delete user's board elements
+        await db.collection('boardElements').deleteMany({ 
+          $or: [
+            { createdBy: session.user.email },
+            { lastModifiedBy: session.user.email }
+          ]
+        });
+
+        // Delete user's invitations
+        await db.collection('invitations').deleteMany({
+          $or: [
+            { fromEmail: session.user.email },
+            { toEmail: session.user.email }
+          ]
+        });
+
+        // Delete user's presence data
+        await db.collection('userPresence').deleteMany({ 
+          userEmail: session.user.email 
+        });
+
+        // Delete user's collaboration sessions
+        await db.collection('collaborationSessions').deleteMany({ 
+          userEmail: session.user.email 
+        });
+
+        // Delete user's settings
+        await db.collection('userSettings').deleteMany({ 
+          userEmail: session.user.email 
+        });
+
+        // Delete user's integration tokens
+        await db.collection('integrationTokens').deleteMany({ 
+          userEmail: session.user.email 
+        });
+
+        // Finally, delete the user account
+        const deleteResult = await db.collection('users').deleteOne({ 
+          email: session.user.email 
+        });
+
+        if (deleteResult.deletedCount === 0) {
+          throw new Error('Failed to delete user account');
+        }
+
+        // Log the account deletion for security audit
+        await db.collection('securityLogs').insertOne({
+          action: 'ACCOUNT_DELETED',
+          userEmail: session.user.email,
+          userName: (user as any).name,
+          timestamp: new Date(),
+          ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+          userAgent: request.headers.get('user-agent') || 'unknown'
+        });
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: 'Account and all associated data deleted successfully'
+      });
+
+    } catch (transactionError) {
+      console.error('Transaction error during account deletion:', transactionError);
+      return NextResponse.json(
+        { error: 'Failed to delete account. Please try again.' },
+        { status: 500 }
+      );
+    } finally {
+      await dbSession.endSession();
+    }
+
+  } catch (error: any) {
+    console.error('Account deletion error:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete account' },
       { status: 500 }
     );
   }

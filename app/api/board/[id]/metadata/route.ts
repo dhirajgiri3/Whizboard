@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/database/mongodb';
 import { ObjectId } from 'mongodb';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { withAuth, AuthenticatedUser } from '@/lib/middleware/apiAuth';
 
-export async function GET(
+async function getBoardMetadata(
   request: NextRequest,
+  user: AuthenticatedUser,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -15,15 +15,6 @@ export async function GET(
       return NextResponse.json(
         { error: 'Board ID is required' },
         { status: 400 }
-      );
-    }
-
-    // Get session for authentication
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
       );
     }
 
@@ -53,7 +44,7 @@ export async function GET(
     }
 
     // Check if user has access to this board
-    const isOwner = board.createdBy.toString() === session.user.id;
+    const isOwner = board.createdBy.toString() === user.id;
     const isPublic = board.isPublic;
     
     if (!isOwner && !isPublic) {
@@ -82,12 +73,12 @@ export async function GET(
     } catch (err) {
       console.error('Error fetching user data:', err);
       // Users collection might not exist yet, try to get from session if it's the same user
-      if (board.createdBy.toString() === session.user.id) {
+      if (board.createdBy.toString() === user.id) {
         owner = {
-          id: session.user.id,
-          name: session.user.name || 'User',
-          email: session.user.email || '',
-          avatar: session.user.image || null
+          id: user.id,
+          name: user.name || 'User',
+          email: user.email || '',
+          avatar: null
         };
       }
     }
@@ -112,3 +103,6 @@ export async function GET(
     );
   }
 }
+
+// Export the protected handler
+export const GET = withAuth(getBoardMetadata);

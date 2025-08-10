@@ -1,8 +1,8 @@
 "use client";
-import { signIn, useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useState } from "react";
 import { motion } from "framer-motion";
+import { RequireUnauth } from "@/components/auth/ProtectedRoute";
 import { 
   Shield, 
   Users, 
@@ -11,21 +11,13 @@ import {
   Lock
 } from "lucide-react";
 
-export default function LoginPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+function LoginPageContent() {
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      router.replace("/");
-    }
-  }, [status, router]);
-
-  const handleGoogleSignIn = async () => {
+    const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      await signIn("google", { callbackUrl: "/" });
+      await signIn("google", { callbackUrl: "/my-boards" });
     } catch (error) {
       console.error("Sign in error:", error);
     } finally {
@@ -377,5 +369,13 @@ export default function LoginPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <RequireUnauth redirectTo="/my-boards">
+      <LoginPageContent />
+    </RequireUnauth>
   );
 }

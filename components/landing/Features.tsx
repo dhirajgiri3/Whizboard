@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion, useInView } from "framer-motion";
-import { useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { 
   PenTool, 
   Users, 
@@ -29,9 +28,8 @@ import {
 import SectionHeader from "@/components/ui/header/SectionHeader";
 
 const Features = () => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const [activeFeature, setActiveFeature] = useState(0);
+  // Unified reveal-on-scroll animation (first time only)
+  const viewportOnce = { once: true, amount: 0.2 } as const;
 
   const features = [
     {
@@ -141,21 +139,18 @@ const Features = () => {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.05,
-        delayChildren: 0.1
-      }
+      transition: { staggerChildren: 0.06, delayChildren: 0.04 }
     }
-  };
+  } as const;
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
+    hidden: { opacity: 0, y: 16 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.3, ease: "easeOut" as const }
+      transition: { duration: 0.45, ease: "easeOut" as const }
     }
-  };
+  } as const;
 
   const orbAnimation = {
     scale: [1, 1.1, 1],
@@ -167,20 +162,10 @@ const Features = () => {
     }
   };
 
-  const hoverScale = {
-    scale: 1.02,
-    transition: { duration: 0.2, ease: "easeOut" as const }
-  };
-
-  const cardHoverVariants = {
-    hover: {
-      y: -8,
-      transition: { duration: 0.3, ease: "easeOut" as const }
-    }
-  };
+  const hoverLift = { y: -8, transition: { duration: 0.25, ease: "easeOut" as const } } as const;
 
   return (
-    <section ref={ref} className="relative py-12 sm:py-16 lg:py-20 bg-[#0A0A0B] overflow-hidden">
+    <section className="relative py-12 sm:py-16 lg:py-20 bg-[#0A0A0B] overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute inset-0" style={{
@@ -241,14 +226,15 @@ const Features = () => {
         <motion.div
           variants={containerVariants}
           initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
+          whileInView="visible"
+          viewport={viewportOnce}
           className="flex-shrink-0"
         >
           <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-4 sm:gap-6 auto-rows-[240px]">
             {/* Large Feature Card - Drawing & Design */}
             <motion.div
               variants={itemVariants}
-              whileHover="hover"
+              whileHover={hoverLift}
               className="group col-span-1 md:col-span-3 lg:col-span-5 row-span-2 relative p-6 sm:p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] overflow-hidden hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300 backdrop-blur-sm"
             >
               {/* Enhanced Gradient Orb Background */}
@@ -273,20 +259,17 @@ const Features = () => {
                     </p>
                   </div>
                   
-                  <div className="flex flex-col space-y-3">
+                  <motion.div
+                    variants={containerVariants}
+                    className="flex flex-col space-y-3"
+                  >
                     {features[0].details.slice(0, 3).map((detail, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="flex items-start space-x-3"
-                      >
+                      <motion.div key={index} variants={itemVariants} className="flex items-start space-x-3">
                         <CheckCircle className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
                         <span className="text-white/60 text-sm leading-[1.5]">{detail}</span>
                       </motion.div>
                     ))}
-                  </div>
+                  </motion.div>
                   
                   {/* Enhanced stats */}
                   <div className="flex items-center gap-4 text-xs text-white/50">
@@ -320,7 +303,7 @@ const Features = () => {
             {/* Medium Card - Collaboration */}
             <motion.div
               variants={itemVariants}
-              whileHover="hover"
+              whileHover={hoverLift}
               className="group col-span-1 md:col-span-3 lg:col-span-4 row-span-1 relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] overflow-hidden hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300 backdrop-blur-sm"
             >
               <div className="absolute -top-10 -right-10 w-20 h-20" style={{
@@ -361,7 +344,7 @@ const Features = () => {
             {/* Small Card - Canvas */}
             <motion.div
               variants={itemVariants}
-              whileHover="hover"
+              whileHover={hoverLift}
               className="group col-span-1 md:col-span-3 lg:col-span-3 row-span-1 relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] overflow-hidden hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300 backdrop-blur-sm"
             >
               <div className="absolute -top-8 -right-8 w-16 h-16" style={{
@@ -390,7 +373,7 @@ const Features = () => {
             {/* Medium Card - Cross Platform */}
             <motion.div
               variants={itemVariants}
-              whileHover="hover"
+              whileHover={hoverLift}
               className="group col-span-1 md:col-span-3 lg:col-span-4 row-span-1 relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] overflow-hidden hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300 backdrop-blur-sm"
             >
               <div className="absolute -top-10 -right-10 w-20 h-20" style={{
@@ -431,7 +414,7 @@ const Features = () => {
             {/* Small Card - Security */}
             <motion.div
               variants={itemVariants}
-              whileHover="hover"
+              whileHover={hoverLift}
               className="group col-span-1 md:col-span-3 lg:col-span-3 row-span-1 relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] overflow-hidden hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300 backdrop-blur-sm"
             >
               <div className="absolute -top-8 -right-8 w-16 h-16" style={{
@@ -463,7 +446,8 @@ const Features = () => {
         <motion.div
           variants={containerVariants}
           initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
+          whileInView="visible"
+          viewport={viewportOnce}
           className="flex flex-col gap-6 sm:gap-8"
         >
           {/* Redesigned Header - Professional Drawing Tools */}
@@ -531,12 +515,13 @@ const Features = () => {
         <motion.div
           variants={containerVariants}
           initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
+          whileInView="visible"
+          viewport={viewportOnce}
           className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8"
         >
           <motion.div
             variants={itemVariants}
-            whileHover="hover"
+            whileHover={hoverLift}
             className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] backdrop-blur-sm hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300 flex flex-col space-y-3"
           >
             <div className="text-2xl font-semibold text-white">5.2k</div>
@@ -549,7 +534,7 @@ const Features = () => {
 
           <motion.div
             variants={itemVariants}
-            whileHover="hover"
+            whileHover={hoverLift}
             className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] backdrop-blur-sm hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300 flex flex-col space-y-3"
           >
             <div className="text-2xl font-semibold text-white">99.9%</div>
@@ -562,7 +547,7 @@ const Features = () => {
 
           <motion.div
             variants={itemVariants}
-            whileHover="hover"
+            whileHover={hoverLift}
             className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] backdrop-blur-sm hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300 flex flex-col space-y-3"
           >
             <div className="text-2xl font-semibold text-white">24/7</div>

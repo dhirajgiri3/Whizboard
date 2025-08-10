@@ -1,14 +1,13 @@
 import { NextRequest } from 'next/server';
 import { createYoga } from 'graphql-yoga';
 import { createPubSub } from 'graphql-yoga';
-import { createSchema } from '../../../../lib/graphql/schema';
+import { schema } from '@/lib/graphql/schema';
 import logger from '@/lib/logger/logger';
 
 // Create pubsub instance for real-time subscriptions
 const pubsub = createPubSub();
 
-// Create GraphQL schema with subscriptions
-const schema = createSchema(pubsub);
+// Use pre-built GraphQL schema
 
 // Create Yoga instance with WebSocket support
 const yoga = createYoga({

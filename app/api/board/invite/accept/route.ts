@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/options';
 import { connectToDatabase } from '@/lib/database/mongodb';
 import { EmailService } from '@/lib/email/sendgrid';
 import { pubSub } from '@/lib/graphql/schema';
@@ -135,14 +135,25 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    // Send welcome email to the new collaborator
+    // Send welcome email to the new collaborator (owner's preference for activity updates)
     try {
-      const emailSent = await EmailService.sendWelcomeEmail({
-        userEmail: session.user.email!,
-        userName: session.user.name || 'New User',
-        inviterName: inviterName,
-        boardName: board.name
-      });
+      let shouldSendWelcome = true;
+      try {
+        const prefsDoc = await db.collection('userSettings').findOne(
+          { userEmail: session.user.email },
+          { projection: { 'notifications.email.activityUpdates': 1 } }
+        );
+        shouldSendWelcome = prefsDoc?.notifications?.email?.activityUpdates !== false;
+      } catch {}
+
+      const emailSent = shouldSendWelcome
+        ? await EmailService.sendWelcomeEmail({
+            userEmail: session.user.email!,
+            userName: session.user.name || 'New User',
+            inviterName: inviterName,
+            boardName: board.name
+          })
+        : true;
       
       if (!emailSent) {
         logger.warn(`Failed to send welcome email to ${session.user.email}`);
@@ -151,18 +162,29 @@ export async function POST(request: NextRequest) {
       logger.error('Error sending welcome email:', error);
     }
 
-    // Send notification email to board owner
+    // Send notification email to board owner (respect owner's activity updates)
     try {
       const ownerUser = await db.collection('users').findOne({ _id: board.createdBy });
       if (ownerUser?.email) {
-        await EmailService.sendCollaboratorJoinedNotification({
-          boardId: invitation.boardId.toString(),
-          boardName: board.name,
-          collaboratorName: session.user.name || 'New Collaborator',
-          collaboratorEmail: session.user.email!,
-          ownerEmail: ownerUser.email,
-          ownerName: ownerUser.name || 'Board Owner'
-        });
+        let shouldNotifyOwner = true;
+        try {
+          const prefsDoc = await db.collection('userSettings').findOne(
+            { userEmail: ownerUser.email },
+            { projection: { 'notifications.email.activityUpdates': 1 } }
+          );
+          shouldNotifyOwner = prefsDoc?.notifications?.email?.activityUpdates !== false;
+        } catch {}
+
+        if (shouldNotifyOwner) {
+          await EmailService.sendCollaboratorJoinedNotification({
+            boardId: invitation.boardId.toString(),
+            boardName: board.name,
+            collaboratorName: session.user.name || 'New Collaborator',
+            collaboratorEmail: session.user.email!,
+            ownerEmail: ownerUser.email,
+            ownerName: ownerUser.name || 'Board Owner'
+          });
+        }
       }
     } catch (error) {
       logger.error('Error sending owner notification:', error);

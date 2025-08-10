@@ -1,9 +1,7 @@
 "use client";
 
 import { motion, useInView } from "framer-motion";
-import { useRef, useEffect } from "react";
-import { gsap, Power3, Power2 } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useRef } from "react";
 import {
   Star,
   Quote,
@@ -27,10 +25,6 @@ import {
   Crown,
 } from "lucide-react";
 import SectionHeader from "@/components/ui/header/SectionHeader";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 // CSS animations for testimonials
 const testimonialStyles = `
@@ -58,13 +52,7 @@ const testimonialStyles = `
 
 const SocialProof = () => {
   const ref = useRef<HTMLElement>(null);
-  const metricsRef = useRef<HTMLDivElement>(null);
-  const trustRef = useRef<HTMLDivElement>(null);
-  const ctaRef = useRef<HTMLDivElement>(null);
-  const floatingCardsRef = useRef<HTMLDivElement>(null);
-  const testimonialContainerRef = useRef<HTMLDivElement>(null);
-
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const isInView = useInView(ref, { once: true, margin: "-10% 0px" });
 
   const testimonials = [
     {
@@ -208,82 +196,19 @@ const SocialProof = () => {
     },
   ];
 
-  useEffect(() => {
-    if (!isInView) return;
-
-    const ctx = gsap.context(() => {
-      // Enhanced floating cards animation
-      if (floatingCardsRef.current) {
-        gsap.to(floatingCardsRef.current.children, {
-          y: "random(-8, 8)",
-          x: "random(-3, 3)",
-          rotation: "random(-0.5, 0.5)",
-          duration: "random(6, 8)",
-          repeat: -1,
-          yoyo: true,
-          ease: "sine.inOut",
-          stagger: 0.4,
-        });
-      }
-
-      // Enhanced metrics counter animation
-      if (metricsRef.current) {
-        const counters = metricsRef.current.querySelectorAll(".counter");
-        counters.forEach((counter) => {
-          const target = parseFloat(counter.textContent || "0");
-          gsap.fromTo(
-            counter,
-            { textContent: 0 },
-            {
-              textContent: target,
-              duration: 2.5,
-              ease: "power3.out",
-              snap: { textContent: 1 },
-              scrollTrigger: {
-                trigger: counter,
-                start: "top 85%",
-                toggleActions: "play none none reverse",
-              },
-            }
-          );
-        });
-      }
-
-      // Simple trust badges parallax
-      if (trustRef.current) {
-        gsap.to(trustRef.current.children, {
-          y: (i) => (i % 2 === 0 ? -10 : 10),
-          scrollTrigger: {
-            trigger: trustRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: 1.2,
-          },
-        });
-      }
-
-      // Enhanced Infinite Testimonial Scroll with CSS animation
-      if (testimonialContainerRef.current) {
-        // The animation is now handled by CSS for smoother performance
-        // and better hover pause functionality
-      }
-    });
-
-    return () => {
-      ctx.revert();
-    };
-  }, [isInView]);
-
+  // Unified reveal variants (first-time only)
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.1,
-      },
+      transition: { staggerChildren: 0.08, delayChildren: 0.08, ease: "easeOut" },
     },
-  };
+  } as const;
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 24, filter: "blur(4px)" },
+    visible: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.6, ease: "easeOut" } },
+  } as const;
 
   return (
     <>
@@ -368,27 +293,14 @@ const SocialProof = () => {
               />
 
               <motion.div
-                ref={floatingCardsRef}
+                variants={itemVariants}
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative"
-                initial={{ opacity: 0 }}
-                animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-                transition={{ delay: 0.8, duration: 0.6 }}
               >
                 {metrics.map((metric, index) => (
                   <motion.div
                     key={index}
                     className="group relative"
-                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                    animate={
-                      isInView
-                        ? { opacity: 1, y: 0, scale: 1 }
-                        : { opacity: 0, y: 30, scale: 0.95 }
-                    }
-                    transition={{
-                      delay: 1.0 + index * 0.1,
-                      duration: 0.6,
-                      ease: "easeOut",
-                    }}
+                    variants={itemVariants}
                     whileHover={{
                       y: -4,
                       scale: 1.02,
@@ -448,30 +360,11 @@ const SocialProof = () => {
 
             {/* Enhanced Infinite Scrolling Testimonials with Edge Fading */}
             <div className="relative overflow-hidden flex flex-col gap-12">
-              <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                animate={
-                  isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }
-                }
-                transition={{ delay: 0.6, duration: 0.9 }}
-                className="text-center"
-              >
+              <motion.div variants={itemVariants} className="text-center">
                 {/* Redesigned Header - What Our Users Say */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6 }}
-                  viewport={{ once: true }}
-                  className="flex flex-col items-center gap-4 sm:gap-6"
-                >
+                <motion.div variants={itemVariants} className="flex flex-col items-center gap-4 sm:gap-6">
                   {/* Badge */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.1 }}
-                    viewport={{ once: true }}
-                    className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
-                  >
+                  <motion.div variants={itemVariants} className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200">
                     <Quote className="h-3.5 w-3.5 text-blue-400/80 group-hover:text-blue-400 transition-colors duration-200" />
                     <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
                       User Feedback
@@ -479,24 +372,12 @@ const SocialProof = () => {
                   </motion.div>
 
                   {/* Title */}
-                  <motion.h3
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                    viewport={{ once: true }}
-                    className="text-3xl md:text-4xl font-bold text-white leading-[1.1] tracking-tight text-center"
-                  >
+                  <motion.h3 variants={itemVariants} className="text-3xl md:text-4xl font-bold text-white leading-[1.1] tracking-tight text-center">
                     What Our Users Say
                   </motion.h3>
 
                   {/* Description */}
-                  <motion.p
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.3 }}
-                    viewport={{ once: true }}
-                    className="text-white/60 text-lg max-w-2xl mx-auto leading-relaxed text-center"
-                  >
+                  <motion.p variants={itemVariants} className="text-white/60 text-lg max-w-2xl mx-auto leading-relaxed text-center">
                     Real feedback from real users who&apos;ve transformed their
                     workflow with Whizboard.
                   </motion.p>
@@ -514,7 +395,6 @@ const SocialProof = () => {
                 {/* Enhanced Testimonial Cards Container with Infinite Scroll */}
                 <div className="relative h-80 overflow-hidden">
                   <div
-                    ref={testimonialContainerRef}
                     className="testimonial-container flex gap-6 absolute"
                     style={{
                       width: `${
@@ -601,30 +481,11 @@ const SocialProof = () => {
 
             {/* Enhanced Trust & Security Section */}
             <div className="text-center flex flex-col gap-16 lg:gap-20">
-              <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                animate={
-                  isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }
-                }
-                transition={{ delay: 0.7, duration: 0.9 }}
-                className="flex flex-col items-center gap-8"
-              >
+              <motion.div variants={itemVariants} className="flex flex-col items-center gap-8">
                 {/* Redesigned Header - Built for Trust & Security */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6 }}
-                  viewport={{ once: true }}
-                  className="flex flex-col items-center gap-4 sm:gap-6"
-                >
+                <motion.div variants={itemVariants} className="flex flex-col items-center gap-4 sm:gap-6">
                   {/* Badge */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.1 }}
-                    viewport={{ once: true }}
-                    className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
-                  >
+                  <motion.div variants={itemVariants} className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200">
                     <Shield className="h-3.5 w-3.5 text-blue-400/80 group-hover:text-blue-400 transition-colors duration-200" />
                     <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
                       Enterprise Security
@@ -633,13 +494,7 @@ const SocialProof = () => {
 
                   <div className="flex flex-col gap-1 sm:gap-1.5 items-center">
                     {/* Title */}
-                    <motion.h3
-                      initial={{ opacity: 0, y: 30 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.6, delay: 0.2 }}
-                      viewport={{ once: true }}
-                      className="text-3xl md:text-4xl font-bold text-white leading-tight tracking-tight text-center"
-                    >
+                    <motion.h3 variants={itemVariants} className="text-3xl md:text-4xl font-bold text-white leading-tight tracking-tight text-center">
                       Built for
                       <span className="block bg-gradient-to-r from-emerald-400 via-blue-400 to-blue-500 bg-clip-text text-transparent">
                         Trust & Security
@@ -647,13 +502,7 @@ const SocialProof = () => {
                     </motion.h3>
 
                     {/* Description */}
-                    <motion.p
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.6, delay: 0.3 }}
-                      viewport={{ once: true }}
-                      className="text-white/60 text-base max-w-lg text-center leading-relaxed"
-                    >
+                    <motion.p variants={itemVariants} className="text-white/60 text-base max-w-lg text-center leading-relaxed">
                       Your data security is our top priority. We maintain the
                       highest standards of protection and compliance.
                     </motion.p>
@@ -662,10 +511,7 @@ const SocialProof = () => {
               </motion.div>
 
               {/* Enhanced Trust & Security Cards */}
-              <div
-                ref={trustRef}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
-              >
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
                 {/* Background gradient effect */}
                 <div className="absolute inset-0 pointer-events-none">
                   <motion.div
@@ -689,24 +535,14 @@ const SocialProof = () => {
                 {trustBadges.map((badge, index) => (
                   <motion.div
                     key={index}
-                    initial={{ opacity: 0, scale: 0.9, y: 50, rotateX: 15 }}
-                    animate={
-                      isInView
-                        ? { opacity: 1, scale: 1, y: 0, rotateX: 0 }
-                        : { opacity: 0, scale: 0.9, y: 50, rotateX: 15 }
-                    }
-                    transition={{
-                      delay: 0.8 + index * 0.12,
-                      duration: 0.8,
-                      ease: Power3.easeOut,
-                    }}
+                    variants={itemVariants}
                     className="group relative"
                     whileHover={{
                       y: -10,
                       scale: 1.05,
                       rotateY: index % 2 === 0 ? 5 : -5,
                       rotateX: 2,
-                      transition: { duration: 0.4, ease: Power2.easeOut },
+                      transition: { duration: 0.4, ease: "easeOut" },
                     }}
                     style={{ perspective: "1200px" }}
                   >
@@ -949,14 +785,7 @@ const SocialProof = () => {
 
             {/* Enhanced Revolutionary CTA Section */}
             <motion.div
-              ref={ctaRef}
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={
-                isInView
-                  ? { opacity: 1, scale: 1 }
-                  : { opacity: 0, scale: 0.98 }
-              }
-              transition={{ delay: 1.2, duration: 0.8, ease: Power3.easeOut }}
+              variants={itemVariants}
               className="relative overflow-hidden h-[80vh] flex items-center justify-center"
             >
               {/* Enhanced Dynamic Background */}
@@ -995,29 +824,11 @@ const SocialProof = () => {
 
               <div className="relative z-10 text-center px-8 lg:px-16 flex flex-col gap-12 lg:gap-16">
                 {/* Minimal Header */}
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={
-                    isInView ? { opacity: 1, y: 0 } : { y: 20, opacity: 0 }
-                  }
-                  transition={{ delay: 1.4, duration: 0.6 }}
-                >
+                <motion.div variants={itemVariants}>
                   {/* Redesigned Header - Ready to get started? */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    viewport={{ once: true }}
-                    className="flex flex-col items-center gap-4 sm:gap-6"
-                  >
+                  <motion.div variants={itemVariants} className="flex flex-col items-center gap-4 sm:gap-6">
                     {/* Badge */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.6, delay: 0.1 }}
-                      viewport={{ once: true }}
-                      className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
-                    >
+                    <motion.div variants={itemVariants} className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200">
                       <Rocket className="h-3.5 w-3.5 text-blue-400/80 group-hover:text-blue-400 transition-colors duration-200" />
                       <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
                         Get Started
@@ -1026,13 +837,7 @@ const SocialProof = () => {
 
                     <div className="flex flex-col items-center gap-2">
                       {/* Title */}
-                      <motion.h3
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                        viewport={{ once: true }}
-                        className="flex flex-wrap justify-center items-center gap-3 text-4xl md:text-5xl lg:text-6xl font-light text-white leading-tight tracking-tight text-center"
-                      >
+                      <motion.h3 variants={itemVariants} className="flex flex-wrap justify-center items-center gap-3 text-4xl md:text-5xl lg:text-6xl font-light text-white leading-tight tracking-tight text-center">
                         <span>Ready to get</span>
                         <span className="bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent">
                           started?
@@ -1040,13 +845,7 @@ const SocialProof = () => {
                       </motion.h3>
 
                       {/* Description */}
-                      <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.3 }}
-                        viewport={{ once: true }}
-                        className="text-white/60 text-base max-w-xl mx-auto font-light leading-relaxed text-center"
-                      >
+                      <motion.p variants={itemVariants} className="text-white/60 text-base max-w-xl mx-auto font-light leading-relaxed text-center">
                         Join thousands of teams worldwide who are transforming
                         their collaboration with Whizboard. Start your journey
                         to better brainstorming, seamless teamwork, and
@@ -1057,14 +856,7 @@ const SocialProof = () => {
                 </motion.div>
 
                 {/* Minimal CTA Buttons */}
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={
-                    isInView ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }
-                  }
-                  transition={{ delay: 1.6, duration: 0.6 }}
-                  className="flex flex-col sm:flex-row gap-6 justify-center items-center"
-                >
+                <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-6 justify-center items-center">
                   <motion.button
                     className="bg-white text-black font-medium px-10 py-4 rounded-full transition-all duration-300 hover:bg-white/90"
                     whileHover={{ scale: 1.02 }}
@@ -1089,12 +881,7 @@ const SocialProof = () => {
                 </motion.div>
 
                 {/* Minimal Trust Indicators */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-                  transition={{ delay: 1.8, duration: 0.6 }}
-                  className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16 text-white/50 text-sm"
-                >
+                <motion.div variants={itemVariants} className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16 text-white/50 text-sm">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4" />
                     <span>No credit card required</span>

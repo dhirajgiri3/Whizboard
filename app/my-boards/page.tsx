@@ -3,6 +3,7 @@
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { RequireAuth } from "@/components/auth/ProtectedRoute";
 import {
   UserPlus2,
   ExternalLink,
@@ -733,4 +734,10 @@ const MyBoardsPage = () => {
   );
 };
 
-export default MyBoardsPage;
+export default function MyBoardsPageWrapper() {
+  return (
+    <RequireAuth>
+      <MyBoardsPage />
+    </RequireAuth>
+  );
+}

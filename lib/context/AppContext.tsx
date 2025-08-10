@@ -42,6 +42,7 @@ interface AppContextType {
   user: User | null;
   setUser: (user: User | null) => void;
   isAuthenticated: boolean;
+  refreshUserProfilePicture: () => Promise<void>;
   
   // Theme and preferences
   theme: AppTheme;
@@ -183,10 +184,34 @@ export function AppProvider({ children }: AppProviderProps) {
           updatedAt: new Date().toISOString(), // Always update updatedAt on session change
         };
       });
+      // After base session sync, try to load DB profile image if present
+      (async () => {
+        try {
+          const res = await fetch('/api/settings/account', { cache: 'no-store' });
+          if (res.ok) {
+            const data = await res.json();
+            const dbImage = data?.user?.image || null;
+            if (dbImage) {
+              setUser(prev => prev ? { ...prev, avatar: dbImage } : prev);
+            }
+          }
+        } catch {}
+      })();
     } else if (status === "unauthenticated") {
       setUser(null);
     }
   }, [session, status]);
+
+  const refreshUserProfilePicture = useCallback(async () => {
+    try {
+      const res = await fetch('/api/settings/account', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        const dbImage = data?.user?.image || null;
+        setUser(prev => prev ? { ...prev, avatar: dbImage || undefined } : prev);
+      }
+    } catch {}
+  }, []);
 
   const logout = useCallback(async () => {
     setIsLoading(true);
@@ -258,6 +283,7 @@ export function AppProvider({ children }: AppProviderProps) {
     user,
     setUser,
     isAuthenticated,
+    refreshUserProfilePicture,
     
     // Theme and preferences
     theme,

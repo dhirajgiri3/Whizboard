@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useAppContext } from '@/lib/context/AppContext';
 import { signOut } from 'next-auth/react';
 import { UserMenuItem } from '../types';
 import { headerAnimations, darkHeaderAnimations } from '../utils/animations';
@@ -40,6 +41,18 @@ const UserDropdown = ({ session, isOpen, onClose, isLightMode, userMenuItems }: 
     ? 'hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 hover:text-red-700'
     : 'hover:bg-gradient-to-r hover:from-red-500/10 hover:to-red-600/10 hover:text-red-400';
 
+  const { user: appUser } = useAppContext();
+  const avatarUrl = appUser?.avatar || session.user?.image || '';
+  const displayName = appUser?.name || session.user?.name || appUser?.email || session.user?.email || 'U';
+  const initial = (displayName || 'U').trim().charAt(0).toUpperCase();
+  const bgColor = (() => {
+    const key = (appUser?.email || session?.user?.email || 'user').toLowerCase();
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) hash = key.charCodeAt(i) + ((hash << 5) - hash);
+    const hue = Math.abs(hash) % 360;
+    return `hsl(${hue} 70% 45%)`;
+  })();
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -59,13 +72,23 @@ const UserDropdown = ({ session, isOpen, onClose, isLightMode, userMenuItems }: 
           <div className={`px-6 py-4 border-b ${borderColor}`}>
             <div className="flex items-center gap-4">
               <motion.div whileHover={{ scale: 1.05 }} className="relative">
-                <Image
-                  src={session.user?.image || '/default-avatar.png'}
-                  alt="User Avatar"
-                  width={48}
-                  height={48}
-                  className={`w-12 h-12 rounded-full ring-3 ${isLightMode ? 'ring-blue-100' : 'ring-blue-500/30'}`}
-                />
+                {avatarUrl ? (
+                  <Image
+                    src={avatarUrl}
+                    alt="User Avatar"
+                    width={48}
+                    height={48}
+                    className={`w-12 h-12 rounded-full ring-3 ${isLightMode ? 'ring-blue-100' : 'ring-blue-500/30'}`}
+                  />
+                ) : (
+                  <div
+                    aria-label="User Avatar Fallback"
+                    className={`w-12 h-12 rounded-full ring-3 flex items-center justify-center text-white ${isLightMode ? 'ring-blue-100' : 'ring-blue-500/30'}`}
+                    style={{ backgroundColor: bgColor }}
+                  >
+                    <span className="text-base font-semibold">{initial}</span>
+                  </div>
+                )}
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white" />
               </motion.div>
               <div className="flex-1 min-w-0">

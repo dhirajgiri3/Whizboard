@@ -1,10 +1,10 @@
 "use client";
 
-import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { User, Camera, Edit, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { RequireAuth } from '@/components/auth/ProtectedRoute';
 
 interface ProfileData {
   image?: string;
@@ -14,17 +14,14 @@ interface ProfileData {
 }
 
 const ProfilePage = () => {
-    const { data: session, status } = useSession();
     const [profileData, setProfileData] = useState<ProfileData>({});
     const [isEditingDescription, setIsEditingDescription] = useState(false);
     const [description, setDescription] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        if (session?.user) {
-            fetchProfileData();
-        }
-    }, [session]);
+        fetchProfileData();
+    }, []);
 
     const fetchProfileData = async () => {
         try {
@@ -67,21 +64,7 @@ const ProfilePage = () => {
         }
     };
 
-    if (status === "loading") {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <p className="text-xl text-slate-700">Loading profile...</p>
-            </div>
-        );
-    }
 
-    if (status === "unauthenticated") {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <p className="text-xl text-red-600">Access Denied</p>
-            </div>
-        );
-    }
 
     return (
         <div className="min-h-screen bg-slate-50 py-8">
@@ -103,7 +86,7 @@ const ProfilePage = () => {
                             <div className="flex items-start gap-4">
                                 <div className="relative">
                                     <img
-                                        src={profileData.image || session?.user?.image || '/default-avatar.png'}
+                                        src={profileData.image || '/default-avatar.png'}
                                         alt="Profile"
                                         className="w-24 h-24 rounded-full object-cover border-4 border-slate-200 shadow-lg"
                                     />
@@ -181,11 +164,11 @@ const ProfilePage = () => {
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
-                                    <p className="text-slate-900 font-medium">{session?.user?.name || 'Not provided'}</p>
+                                    <p className="text-slate-900 font-medium">{profileData.name || 'Not provided'}</p>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
-                                    <p className="text-slate-900 font-medium">{session?.user?.email}</p>
+                                    <p className="text-slate-900 font-medium">{profileData.email || 'Not provided'}</p>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Account Type</label>
@@ -200,4 +183,10 @@ const ProfilePage = () => {
     );
 };
 
-export default ProfilePage;
+export default function ProfilePageWrapper() {
+  return (
+    <RequireAuth>
+      <ProfilePage />
+    </RequireAuth>
+  );
+}

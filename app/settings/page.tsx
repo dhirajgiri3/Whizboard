@@ -1,95 +1,249 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import Image from "next/image";
+// Using Lucide icons only to align with design preference; remove react-icons dependency
+// import { SiGoogledrive, SiSlack, SiFigma } from 'react-icons/si';
 import {
   User,
-  Shield,
   Bell,
-  Palette,
   Share2,
   AlertTriangle,
-  ChevronRight,
-  Sun,
-  Moon,
-  ToggleRight,
-  ToggleLeft,
-  Key,
-  Mail,
-  Edit,
-  Save,
-  Trash2,
-  LogOut,
   Camera,
-  Upload,
-  X
+  Save,
+  X,
+  Settings,
+  ExternalLink,
 } from "lucide-react";
 import { useSettings } from "@/lib/context/SettingsContext";
 import { useAppContext } from "@/lib/context/AppContext";
-import { formatDistanceToNow } from 'date-fns';
+ 
 import { toast } from "sonner";
 
-export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState("profile");
-  const { user } = useAppContext();
-  const {
-    securitySettings,
-    updateSecuritySettings,
-    enableTwoFactor,
-    disableTwoFactor,
-    revokeAllSessions,
-    revokeSession,
-    changePassword,
-    notificationSettings,
-    updateEmailNotifications,
-    updateInAppNotifications,
-    displaySettings,
-    updateDisplaySettings,
-    integrations,
-    toggleIntegration,
-    deleteAccount,
-    exportUserData,
-    isLoading,
-    error,
-    lastUpdated,
-  } = useSettings();
+// Hoisted stateless UI building blocks to keep component identity stable between renders
+const SectionCard = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 16 }}
+    animate={{ opacity: 1, y: 0 }}
+    className={`relative p-6 sm:p-8 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-colors backdrop-blur-sm ${className}`}
+  >
+    <div className="relative z-10">{children}</div>
+  </motion.div>
+);
 
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
-  const [deleteAccountPassword, setDeleteAccountPassword] = useState('');
-  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
-  
-  // Profile image edit states
-  const [isEditingImage, setIsEditingImage] = useState(false);
-  const [imageDescription, setImageDescription] = useState('');
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
+const Label = ({ children }: { children: React.ReactNode }) => (
+  <label className="block text-sm font-medium text-white/90 mb-2">{children}</label>
+);
 
-  const handlePasswordChange = async () => {
-    if (newPassword !== confirmNewPassword) {
-      alert("New passwords do not match.");
-      return;
-    }
-    if (await changePassword(currentPassword, newPassword)) {
-      alert("Password changed successfully!");
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmNewPassword('');
-      setShowChangePasswordModal(false);
-    } else {
-      alert(`Failed to change password: ${error}`);
+const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
+  <input
+    {...props}
+    className={`block w-full rounded-xl border-0 bg-white/[0.05] px-4 py-3 text-white placeholder-white/40 ring-1 ring-white/10 focus:ring-2 focus:ring-blue-500 hover:bg-white/[0.08] transition-all duration-200 ${props.className || ""}`}
+  />
+);
+
+const TextArea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
+  <textarea
+    {...props}
+    className={`block w-full rounded-xl border-0 bg-white/[0.05] px-4 py-3 text-white placeholder-white/40 ring-1 ring-white/10 focus:ring-2 focus:ring-blue-500 hover:bg-white/[0.08] transition-all duration-200 ${props.className || ""}`}
+  />
+);
+
+const PrimaryButton = ({ children, className = "", ...rest }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode }) => (
+  <button
+    {...rest}
+    className={`group relative overflow-hidden bg-blue-600 hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 text-white font-semibold px-5 py-3 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 min-h-[44px] ${className}`}
+  >
+    <span className="relative z-10 flex items-center justify-center gap-2">{children}</span>
+    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+  </button>
+);
+
+
+
+// Slack Channel Picker Component
+const SlackChannelPicker = () => {
+  const [channels, setChannels] = useState<Array<{ id: string; name: string }>>([]);
+  const [selectedChannel, setSelectedChannel] = useState<string>('');
+  const [savedChannel, setSavedChannel] = useState<{ id: string; name?: string } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const fetchChannels = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch('/api/integrations/slack/channels');
+        if (response.ok) {
+          const data = await response.json();
+          setChannels(data.channels || []);
+        }
+      } catch {
+        toast.error('Failed to fetch Slack channels');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const fetchSavedChannel = async () => {
+      try {
+        const response = await fetch('/api/settings/integrations/slack-default-channel');
+        if (response.ok) {
+          const data = await response.json();
+          setSavedChannel(data.defaultChannel);
+          if (data.defaultChannel?.id) {
+            setSelectedChannel(data.defaultChannel.id);
+          }
+        }
+      } catch {
+        toast.error('Failed to fetch saved channel');
+      }
+    };
+
+    fetchChannels();
+    fetchSavedChannel();
+  }, []);
+
+  const handleSaveChannel = async () => {
+    if (!selectedChannel) return;
+    
+    setIsSaving(true);
+    try {
+      const channel = channels.find(c => c.id === selectedChannel);
+      const response = await fetch('/api/settings/integrations/slack-default-channel', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channelId: selectedChannel,
+          channelName: channel?.name
+        })
+      });
+      
+      if (response.ok) {
+        setSavedChannel({ id: selectedChannel, name: channel?.name });
+        toast.success('Default Slack channel updated successfully');
+      } else {
+        toast.error('Failed to update default channel');
+      }
+    } catch {
+      toast.error('Failed to update default channel');
+    } finally {
+      setIsSaving(false);
     }
   };
 
+  return (
+    <div className="space-y-4">
+      <h4 className="font-medium text-white mb-1">Default Slack Channel</h4>
+      <p className="text-sm text-white/60">
+        Choose the default channel where Slack notifications will be sent.
+      </p>
+
+      {savedChannel && (
+        <div className="p-3 bg-white/[0.02] border border-white/[0.05] rounded-lg">
+          <p className="text-sm text-white/70">
+            Current default: <strong>#{savedChannel.name || 'Unknown'}</strong>
+          </p>
+        </div>
+      )}
+
+      <div className="flex gap-3 items-center">
+        <select
+          value={selectedChannel}
+          onChange={(e) => setSelectedChannel(e.target.value)}
+          className="flex-1 rounded-xl border-0 bg-white/[0.05] px-4 py-3 text-white ring-1 ring-white/10 focus:ring-2 focus:ring-blue-500 hover:bg-white/[0.08] transition-all duration-200"
+          disabled={isLoading}
+        >
+          <option value="">Select a channel...</option>
+          {channels.map(channel => (
+            <option key={channel.id} value={channel.id}>
+              #{channel.name}
+            </option>
+          ))}
+        </select>
+
+        <button
+          onClick={handleSaveChannel}
+          disabled={isSaving || !selectedChannel}
+          className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors"
+        >
+          {isSaving ? 'Saving...' : 'Save as Default'}
+        </button>
+
+        {isLoading && (
+          <p className="text-sm text-white/50">Loading channels...</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default function SettingsPage() {
+  const [activeTab, setActiveTab] = useState("profile");
+  const { user, refreshUserProfilePicture } = useAppContext();
+  const {
+    integrations,
+    toggleIntegration,
+    notificationPrefs,
+    setNotificationPrefs,
+    saveNotificationPrefs,
+    deleteAccount,
+    isBootstrapping,
+    error,
+  } = useSettings();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isDeletingImage, setIsDeletingImage] = useState(false);
+
+  // Profile image edit states
+  const [isEditingImage, setIsEditingImage] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/settings/account', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          setProfileImageUrl(data?.user?.image || null);
+        }
+      } catch {}
+    })();
+  }, []);
+
+  // Show integration connect result notifications from OAuth callbacks
+  useEffect(() => {
+    const svc = searchParams.get('integrations');
+    const status = searchParams.get('status');
+    if (!svc || !status) return;
+    const name = svc === 'googleDrive' ? 'Google Drive' : svc === 'slack' ? 'Slack' : svc === 'figma' ? 'Figma' : svc;
+    if (status === 'connected') {
+      toast.success(`${name} connected`);
+    } else if (status === 'error') {
+      toast.error(`Failed to connect ${name}`);
+    }
+    // Clean URL without query params
+    router.replace('/settings');
+  }, [searchParams, router]);
+
   const handleDeleteAccount = async () => {
-    if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
-      if (await deleteAccount(deleteAccountPassword)) {
-        alert("Account deleted successfully!");
-        // Redirect to logout or home page
+    if (
+      confirm(
+        "Are you sure you want to delete your account? This action cannot be undone."
+      )
+    ) {
+      if (await deleteAccount()) {
+        toast.success("Account deleted successfully!");
+        // Redirect handled elsewhere
       } else {
-        alert(`Failed to delete account: ${error}`);
+        toast.error(`Failed to delete account: ${error}`);
       }
     }
   };
@@ -98,16 +252,16 @@ export default function SettingsPage() {
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast.error('Image size must be less than 5MB');
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image size must be less than 5MB");
         return;
       }
-      
-      if (!file.type.startsWith('image/')) {
-        toast.error('Please select a valid image file');
+
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please select a valid image file");
         return;
       }
-      
+
       setSelectedImage(file);
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -120,462 +274,473 @@ export default function SettingsPage() {
 
   const handleImageUpload = async () => {
     if (!selectedImage) return;
-    
+
     try {
+      setIsUploadingImage(true);
+      const toastId = 'profile-image-upload';
+      toast.loading('Uploading image…', { id: toastId });
       const formData = new FormData();
-      formData.append('image', selectedImage);
-      formData.append('description', imageDescription);
-      
-      const response = await fetch('/api/settings/account', {
-        method: 'PUT',
+      formData.append("image", selectedImage);
+
+      const response = await fetch("/api/settings/account", {
+        method: "PUT",
         body: formData,
       });
-      
+
       if (response.ok) {
-        toast.success('Profile image updated successfully!');
+        toast.success("Profile image updated successfully", { id: toastId });
         setIsEditingImage(false);
         setSelectedImage(null);
-        setImagePreview('');
-        setImageDescription('');
-        // Refresh user data
-        window.location.reload();
+        setImagePreview("");
+        setProfileImageUrl(imagePreview);
+        // Force refresh globally (header avatar, menus)
+        await refreshUserProfilePicture();
       } else {
         const error = await response.json();
-        toast.error(error.message || 'Failed to update profile image');
+        toast.error(error.message || "Failed to update profile image", { id: toastId });
       }
-    } catch (error) {
-      toast.error('Failed to update profile image');
+    } catch {
+      toast.error("Failed to update profile image", { id: 'profile-image-upload' });
+    }
+    finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleDeleteProfileImage = async () => {
+    try {
+      setIsDeletingImage(true);
+      const toastId = 'profile-image-delete';
+      toast.loading('Removing image…', { id: toastId });
+      const res = await fetch('/api/settings/account', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete-image' }),
+      });
+      if (res.ok) {
+        setProfileImageUrl(null);
+        toast.success('Profile image removed', { id: toastId });
+        await refreshUserProfilePicture();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || 'Failed to remove image', { id: toastId });
+      }
+    } catch {
+      toast.error('Failed to remove image', { id: 'profile-image-delete' });
+    }
+    finally {
+      setIsDeletingImage(false);
     }
   };
 
   const handleCancelImageEdit = () => {
     setIsEditingImage(false);
     setSelectedImage(null);
-    setImagePreview('');
-    setImageDescription('');
+    setImagePreview("");
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
-  if (isLoading) {
+  // — hoisted UI components are defined at module scope above —
+
+  // Prevent full-page flicker only during initial bootstrapping fetch
+  if (isBootstrapping) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-xl text-slate-700">Loading settings...</p>
+      <div className="min-h-screen bg-[var(--deep-canvas)] flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <div className="w-6 h-6 border-2 border-white/20 border-t-blue-500 rounded-full animate-spin" />
+          <span className="text-white/80 text-sm">Loading settings...</span>
+        </div>
       </div>
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-red-600">
-        <p className="text-xl">Error loading settings: {error}</p>
-      </div>
-    );
-  }
+  // Show non-blocking error banner if mutations fail; only block during bootstrapping handled above
 
   const renderContent = () => {
     switch (activeTab) {
       case "profile":
         return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white p-8 rounded-xl shadow-sm border border-slate-200"
-          >
-            <h3 className="text-2xl font-bold text-slate-800 mb-6">Profile Settings</h3>
+          <SectionCard>
+            <h3 className="text-xl font-semibold mb-6 text-white flex items-center gap-2">
+              <User className="w-5 h-5 text-blue-400" /> Profile Settings
+            </h3>
+            
             <div className="space-y-6">
-              {/* Profile Image Section */}
-              <div className="space-y-4">
-                <label className="block text-sm font-medium text-slate-700 mb-1">Profile Image</label>
+              {/* Profile Image */}
+              <div>
+                <Label>Profile Picture</Label>
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <img
-                      src={user?.avatar || user?.image || '/default-avatar.png'}
-                      alt="Profile"
-                      className="w-20 h-20 rounded-full object-cover border-2 border-slate-200"
-                    />
-                    {!isEditingImage && (
+                    <div className="w-20 h-20 rounded-full bg-white/[0.05] border-2 border-white/[0.1] overflow-hidden">
+                      {imagePreview ? (
+                        <Image
+                          src={imagePreview}
+                          alt="Profile preview"
+                          width={80}
+                          height={80}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : profileImageUrl ? (
+                        <Image
+                          src={profileImageUrl}
+                          alt="Profile"
+                          width={80}
+                          height={80}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Camera className="w-8 h-8 text-white/40" />
+                        </div>
+                      )}
+                    </div>
+                    {isEditingImage && (
                       <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="absolute -bottom-1 -right-1 p-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
-                        title="Edit profile image"
+                        onClick={handleCancelImageEdit}
+                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-colors"
                       >
-                        <Camera className="w-4 h-4" />
+                        <X className="w-3 h-3" />
                       </button>
                     )}
                   </div>
                   
-                  {!isEditingImage && (
-                    <div className="flex-1">
-                      <p className="text-sm text-slate-600 mb-2">Click the camera icon to update your profile image</p>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageSelect}
-                        className="hidden"
-                      />
-                    </div>
-                  )}
-                </div>
-                
-                {/* Image Edit Interface */}
-                {isEditingImage && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="space-y-4 p-4 bg-slate-50 rounded-lg border border-slate-200"
-                  >
-                    <div className="flex items-center gap-4">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-16 h-16 rounded-full object-cover border border-slate-300"
-                      />
-                      <div className="flex-1">
-                        <label className="block text-sm font-medium text-slate-700 mb-1">
-                          Image Description
-                        </label>
-                        <textarea
-                          value={imageDescription}
-                          onChange={(e) => setImageDescription(e.target.value)}
-                          placeholder="Describe your profile image (optional)"
-                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                          rows={2}
-                        />
-                        <p className="mt-1 text-xs text-slate-500">
-                          Add a description to help identify your profile image
-                        </p>
-                      </div>
-                    </div>
+                  <div className="flex-1">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                      className="hidden"
+                      id="profile-image"
+                    />
+                    <label
+                      htmlFor="profile-image"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.1] text-white cursor-pointer transition-colors"
+                    >
+                      <Camera className="w-4 h-4" />
+                      {isEditingImage ? 'Change Image' : 'Upload Image'}
+                    </label>
                     
-                    <div className="flex gap-2">
-                      <button
-                        onClick={handleImageUpload}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
-                      >
-                        <Save className="w-4 h-4" />
-                        Save Image
-                      </button>
-                      <button
-                        onClick={handleCancelImageEdit}
-                        className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors font-medium flex items-center gap-2"
-                      >
-                        <X className="w-4 h-4" />
-                        Cancel
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </div>
-              
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
-                <input
-                  type="text"
-                  id="name"
-                  defaultValue={user?.name || ""}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  disabled // Assuming name changes are handled elsewhere or not allowed here
-                />
-              </div>
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
-                <input
-                  type="email"
-                  id="email"
-                  defaultValue={user?.email || ""}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  disabled
-                />
-                <p className="mt-2 text-sm text-slate-500">Email cannot be changed.</p>
-              </div>
-            </div>
-          </motion.div>
-        );
-      case "security":
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white p-8 rounded-xl shadow-sm border border-slate-200"
-          >
-            <h3 className="text-2xl font-bold text-slate-800 mb-6">Account Security</h3>
-            <div className="space-y-6">
-              <div>
-                <h4 className="font-semibold text-slate-700 mb-2">Password</h4>
-                <p className="text-slate-600 mb-4">Set a unique password to protect your account.</p>
-                <button 
-                  onClick={() => setShowChangePasswordModal(true)}
-                  className="px-4 py-2 border border-slate-300 rounded-lg text-blue-600 hover:bg-slate-50 transition-colors flex items-center gap-2"
-                >
-                  <Key className="w-4 h-4" /> Change Password
-                </button>
-
-                {showChangePasswordModal && (
-                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-                      <h3 className="text-xl font-bold mb-4">Change Password</h3>
-                      <div className="space-y-4">
-                        <input
-                          type="password"
-                          placeholder="Current Password"
-                          className="w-full px-4 py-2 border rounded-lg"
-                          value={currentPassword}
-                          onChange={(e) => setCurrentPassword(e.target.value)}
-                        />
-                        <input
-                          type="password"
-                          placeholder="New Password"
-                          className="w-full px-4 py-2 border rounded-lg"
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                        />
-                        <input
-                          type="password"
-                          placeholder="Confirm New Password"
-                          className="w-full px-4 py-2 border rounded-lg"
-                          value={confirmNewPassword}
-                          onChange={(e) => setConfirmNewPassword(e.target.value)}
-                        />
-                      </div>
-                      <div className="mt-6 flex justify-end space-x-4">
-                        <button onClick={() => setShowChangePasswordModal(false)} className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
-                        <button onClick={handlePasswordChange} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Change</button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div>
-                <h4 className="font-semibold text-slate-700 mb-2">Two-Factor Authentication (2FA)</h4>
-                <p className="text-slate-600 mb-4">Add an extra layer of security to your account.</p>
-                <button 
-                  onClick={securitySettings.twoFactorEnabled ? disableTwoFactor : enableTwoFactor}
-                  className="px-4 py-2 border border-slate-300 rounded-lg text-blue-600 hover:bg-slate-50 transition-colors flex items-center gap-2"
-                >
-                  {securitySettings.twoFactorEnabled ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
-                  {securitySettings.twoFactorEnabled ? " Disable 2FA" : " Enable 2FA"}
-                </button>
-              </div>
-              <div>
-                <h4 className="font-semibold text-slate-700 mb-2">Active Sessions</h4>
-                <p className="text-slate-600 mb-4">Manage devices logged into your account.</p>
-                <ul className="space-y-3 mb-4">
-                  {securitySettings.activeSessions.map(session => (
-                    <li key={session.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-200">
-                      <div>
-                        <p className="font-medium text-slate-700">{session.device} {session.current && "(Current)"}</p>
-                        <p className="text-sm text-slate-500">{session.location} &bull; Last active {formatDistanceToNow(new Date(session.lastActive), { addSuffix: true })}</p>
-                      </div>
-                      {!session.current && (
-                        <button 
-                          onClick={() => revokeSession(session.id)}
-                          className="text-red-500 hover:text-red-700 text-sm font-medium"
+                    {isEditingImage && (
+                      <div className="mt-2 flex gap-2">
+                        <button
+                          onClick={handleImageUpload}
+                          disabled={isUploadingImage}
+                          className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-sm transition-colors"
                         >
-                          Revoke
+                          {isUploadingImage ? 'Uploading...' : 'Save Image'}
                         </button>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-                <button 
-                  onClick={revokeAllSessions}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center gap-2"
-                >
-                  <LogOut className="w-5 h-5" /> Revoke All Sessions
-                </button>
+                        <button
+                          onClick={handleDeleteProfileImage}
+                          disabled={isDeletingImage}
+                          className="px-3 py-1.5 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-300 text-sm border border-red-500/30 transition-colors"
+                        >
+                          {isDeletingImage ? 'Removing...' : 'Remove'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Profile Information */}
+              <div>
+                <Label>Display Name</Label>
+                <Input
+                  type="text"
+                  placeholder="Enter your display name"
+                  defaultValue={user?.name || ""}
+                />
+              </div>
+
+              <div>
+                <Label>Email Address</Label>
+                <Input
+                  type="email"
+                  value={user?.email || ""}
+                  disabled
+                  className="bg-white/[0.02] text-white/60 cursor-not-allowed"
+                />
+                <p className="mt-2 text-sm text-white/50">Email cannot be changed.</p>
+              </div>
+
+              <div>
+                <Label>Bio</Label>
+                <TextArea
+                  placeholder="Tell us about yourself..."
+                  rows={3}
+                  defaultValue=""
+                />
+              </div>
+
+              <div className="pt-4">
+                <PrimaryButton className="w-full sm:w-auto">
+                  <Save className="w-4 h-4" />
+                  Save Changes
+                </PrimaryButton>
               </div>
             </div>
-          </motion.div>
+          </SectionCard>
         );
       case "notifications":
         return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white p-8 rounded-xl shadow-sm border border-slate-200"
-          >
-            <h3 className="text-2xl font-bold text-slate-800 mb-6">Notification Preferences</h3>
+          <SectionCard>
+            <h3 className="text-xl font-semibold mb-6 text-white flex items-center gap-2">
+              <Bell className="w-5 h-5 text-blue-400" /> Notification Preferences
+            </h3>
+            
             <div className="space-y-6">
-              {/* Email Notifications */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-slate-700">Email Notifications</h4>
-                {Object.entries(notificationSettings.email).map(([key, value]) => (
-                  <div key={key} className="flex items-center justify-between">
+              <div>
+                <Label>Email Notifications</Label>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
                     <div>
-                      <p className="font-medium text-slate-700">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</p>
-                      <p className="text-sm text-slate-600">Receive updates and announcements via email.</p>
+                      <h5 className="text-white font-medium">Board Invitations</h5>
+                      <p className="text-white/60 text-sm">Get notified when someone invites you to collaborate</p>
                     </div>
-                    <button onClick={() => updateEmailNotifications({ [key]: !value })} className="text-blue-600">
-                      {value ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
+                    <button
+                      onClick={() => setNotificationPrefs({ email: { boardInvitations: !notificationPrefs.email.boardInvitations } })}
+                      aria-pressed={notificationPrefs.email.boardInvitations}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notificationPrefs.email.boardInvitations ? 'bg-blue-600' : 'bg-white/[0.1]'} hover:bg-white/[0.15]`}
+                    >
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notificationPrefs.email.boardInvitations ? 'translate-x-6' : 'translate-x-1'}`} />
                     </button>
                   </div>
-                ))}
-              </div>
-
-              {/* In-app Notifications */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-slate-700">In-app Notifications</h4>
-                {Object.entries(notificationSettings.inApp).map(([key, value]) => (
-                  <div key={key} className="flex items-center justify-between">
+                  
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
                     <div>
-                      <p className="font-medium text-slate-700">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</p>
-                      <p className="text-sm text-slate-600">Get alerts for real-time activities within the app.</p>
+                      <h5 className="text-white font-medium">Activity Updates</h5>
+                      <p className="text-white/60 text-sm">Receive updates about board activity and changes</p>
                     </div>
-                    <button onClick={() => updateInAppNotifications({ [key]: !value })} className="text-blue-600">
-                      {value ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
+                    <button
+                      onClick={() => setNotificationPrefs({ email: { activityUpdates: !notificationPrefs.email.activityUpdates } })}
+                      aria-pressed={notificationPrefs.email.activityUpdates}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notificationPrefs.email.activityUpdates ? 'bg-blue-600' : 'bg-white/[0.1]'} hover:bg-white/[0.15]`}
+                    >
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notificationPrefs.email.activityUpdates ? 'translate-x-6' : 'translate-x-1'}`} />
                     </button>
                   </div>
-                ))}
+                  
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
+                    <div>
+                      <h5 className="text-white font-medium">Weekly Digest</h5>
+                      <p className="text-white/60 text-sm">Get a summary of your weekly activity</p>
+                    </div>
+                    <button
+                      onClick={() => setNotificationPrefs({ email: { weeklyDigest: !notificationPrefs.email.weeklyDigest } })}
+                      aria-pressed={notificationPrefs.email.weeklyDigest}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notificationPrefs.email.weeklyDigest ? 'bg-blue-600' : 'bg-white/[0.1]'} hover:bg-white/[0.15]`}
+                    >
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notificationPrefs.email.weeklyDigest ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label>Slack Notifications</Label>
+                <div className="space-y-3">
+                  <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.05] flex items-center justify-between">
+                    <p className="text-white/60 text-sm mr-4">
+                      {integrations.slack 
+                        ? "Slack notifications are enabled for board creation and updates."
+                        : "Connect your Slack workspace to receive real-time notifications."
+                      }
+                    </p>
+                    <button
+                      disabled={!integrations.slack}
+                      onClick={() => setNotificationPrefs({ slack: { boardEvents: !notificationPrefs.slack.boardEvents } })}
+                      aria-pressed={notificationPrefs.slack.boardEvents}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notificationPrefs.slack.boardEvents ? 'bg-blue-600' : 'bg-white/[0.1]'} hover:bg-white/[0.15] disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notificationPrefs.slack.boardEvents ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <PrimaryButton
+                  onClick={async () => {
+                    const ok = await saveNotificationPrefs();
+                    if (ok) toast.success('Notification preferences saved');
+                    else toast.error('Failed to save notification preferences');
+                  }}
+                  className="w-full sm:w-auto"
+                >
+                  <Save className="w-4 h-4" />
+                  Save Preferences
+                </PrimaryButton>
               </div>
             </div>
-          </motion.div>
-        );
-      case "display":
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white p-8 rounded-xl shadow-sm border border-slate-200"
-          >
-            <h3 className="text-2xl font-bold text-slate-800 mb-6">Display Settings</h3>
-            <div className="space-y-6">
-              {/* Theme */}
-              <div>
-                <h4 className="font-semibold text-slate-700 mb-2">Theme</h4>
-                <div className="flex space-x-4">
-                  {(['light', 'dark', 'system'] as const).map(themeOption => (
-                    <button
-                      key={themeOption}
-                      onClick={() => updateDisplaySettings({ theme: themeOption })}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium capitalize ${displaySettings.theme === themeOption ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}
-                    >
-                      {themeOption}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Color Mode */}
-              <div>
-                <h4 className="font-semibold text-slate-700 mb-2">Color Mode</h4>
-                <div className="flex space-x-4">
-                  {(['default', 'colorblind', 'high-contrast'] as const).map(colorModeOption => (
-                    <button
-                      key={colorModeOption}
-                      onClick={() => updateDisplaySettings({ colorMode: colorModeOption })}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium capitalize ${displaySettings.colorMode === colorModeOption ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}
-                    >
-                      {colorModeOption.replace('-', ' ')}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Font Size */}
-              <div>
-                <h4 className="font-semibold text-slate-700 mb-2">Font Size</h4>
-                <div className="flex space-x-4">
-                  {(['small', 'medium', 'large'] as const).map(fontSizeOption => (
-                    <button
-                      key={fontSizeOption}
-                      onClick={() => updateDisplaySettings({ fontSize: fontSizeOption })}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium capitalize ${displaySettings.fontSize === fontSizeOption ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}
-                    >
-                      {fontSizeOption}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Reduced Motion */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-semibold text-slate-700">Reduced Motion</h4>
-                  <p className="text-sm text-slate-600">Minimize animations and transitions.</p>
-                </div>
-                <button onClick={() => updateDisplaySettings({ reducedMotion: !displaySettings.reducedMotion })} className="text-blue-600">
-                  {displaySettings.reducedMotion ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
-                </button>
-              </div>
-            </div>
-          </motion.div>
+          </SectionCard>
         );
       case "integrations":
         return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white p-8 rounded-xl shadow-sm border border-slate-200"
-          >
-            <h3 className="text-2xl font-bold text-slate-800 mb-6">Integrations</h3>
-            <p className="text-slate-600 mb-4">Connect your WhizBoard account with other services.</p>
-            <div className="space-y-4">
+          <SectionCard>
+            <h3 className="text-xl font-semibold mb-6 text-white flex items-center gap-2">
+              <Share2 className="w-5 h-5 text-blue-400" /> Integrations
+            </h3>
+            <p className="text-white/60 mb-6">Connect your WhizBoard account with other services.</p>
+            
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-white font-medium mb-1">Available Integrations</h4>
+                  <p className="text-white/70 text-sm">
+                    Connect your favorite tools and services to enhance your workflow.
+                  </p>
+                </div>
+              </div>
+              
               {Object.entries(integrations).map(([key, value]) => (
-                <div key={key} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
-                  <div>
-                    <h4 className="font-semibold text-slate-700">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</h4>
-                    <p className="text-sm text-slate-500">{key === 'googleDrive' && 'Sync your files and documents.'}
-                                          {key === 'slack' && 'Get real-time updates in your Slack channels.'}
-                                          {key === 'microsoft' && 'Integrate with Microsoft services.'}
-                                          {key === 'github' && 'Connect to your GitHub repositories.'}
-                                          {key === 'figma' && 'Import designs from Figma.'}
-                    </p>
+                <div key={key} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-white/[0.05] flex items-center justify-center">
+                      {key === 'slack' && <Share2 className="w-5 h-5 text-blue-400" />}
+                      {key === 'googleDrive' && <ExternalLink className="w-5 h-5 text-green-400" />}
+                      {key === 'figma' && <Settings className="w-5 h-5 text-blue-400" />}
+                    </div>
+                    <div>
+                      <h5 className="text-white font-medium capitalize">
+                        {key === 'googleDrive' ? 'Google Drive' : key === 'slack' ? 'Slack' : key === 'figma' ? 'Figma' : key}
+                      </h5>
+                      <p className="text-white/60 text-sm">
+                        {value ? 'Connected' : 'Not connected'}
+                      </p>
+                    </div>
                   </div>
-                  <button 
-                    onClick={() => toggleIntegration(key as keyof typeof integrations, !value)}
-                    className={`px-3 py-1 ${value ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'} rounded-full text-sm transition-colors`}
+                  
+                  <button
+                    onClick={async () => {
+                      const enable = !value;
+                      if (enable) {
+                        toast.message('Redirecting to connect…');
+                      }
+                      await toggleIntegration(key as keyof typeof integrations, enable);
+                      if (!enable) {
+                        const name = key === 'googleDrive' ? 'Google Drive' : key === 'slack' ? 'Slack' : key === 'figma' ? 'Figma' : key;
+                        toast.success(`${name} disconnected`);
+                      }
+                    }}
+                    className={`px-4 py-2 rounded-lg text-sm border transition-colors ${
+                      value
+                        ? "bg-red-500/20 text-red-300 border-red-500/30 hover:bg-red-500/30"
+                        : "bg-blue-600/20 text-blue-200 border-blue-500/30 hover:bg-blue-600/30"
+                    }`}
                   >
-                    {value ? 'Disconnect' : 'Connect'}
+                    {value ? "Disconnect" : "Connect"}
                   </button>
                 </div>
               ))}
+
+              {/* Slack Default Channel Setting */}
+              {integrations.slack && (
+                <div>
+                  <SlackChannelPicker />
+                  
+                  {/* Simple Integration Info */}
+                  <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                    <p className="text-sm text-blue-300">
+                      <strong>Slack Integration Active</strong>
+                      <br />
+                      Board creation notifications will be sent to your default channel. 
+                      The bot can automatically join channels as needed.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
-          </motion.div>
+          </SectionCard>
+        );
+      case "security":
+        return (
+          <SectionCard>
+            <h3 className="text-xl font-semibold mb-6 text-white flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-blue-400" /> Security Settings
+            </h3>
+            
+            <div className="space-y-6">
+              <div>
+                <Label>Account Security</Label>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
+                    <div>
+                      <h5 className="text-white font-medium">Two-Factor Authentication</h5>
+                      <p className="text-white/60 text-sm">Add an extra layer of security to your account</p>
+                    </div>
+                    <button className="px-4 py-2 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 text-sm border border-blue-500/30 transition-colors">
+                      Enable
+                    </button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
+                    <div>
+                      <h5 className="text-white font-medium">Active Sessions</h5>
+                      <p className="text-white/60 text-sm">Manage your active login sessions</p>
+                    </div>
+                    <button className="px-4 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] text-white text-sm border border-white/[0.1] transition-colors">
+                      View
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label>Data & Privacy</Label>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
+                    <div>
+                      <h5 className="text-white font-medium">Export Data</h5>
+                      <p className="text-white/60 text-sm">Download a copy of your data</p>
+                    </div>
+                    <button className="px-4 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] text-white text-sm border border-white/[0.1] transition-colors">
+                      Export
+                    </button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
+                    <div>
+                      <h5 className="text-white font-medium">Delete Account</h5>
+                      <p className="text-white/60 text-sm">Permanently remove your account and all data</p>
+                    </div>
+                    <button 
+                      onClick={handleDeleteAccount}
+                      className="px-4 py-2 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-300 text-sm border border-red-500/30 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </SectionCard>
         );
       case "danger-zone":
         return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 p-8 rounded-xl shadow-sm border border-red-200 text-red-800"
-          >
-            <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <AlertTriangle className="w-6 h-6" /> Danger Zone
+          <SectionCard className="border-red-500/20">
+            <h3 className="text-xl font-semibold mb-6 text-red-300 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-400" /> Danger Zone
             </h3>
+            
             <div className="space-y-6">
-              <div>
-                <h4 className="font-semibold mb-2">Delete Account</h4>
-                <p className="mb-4">Permanently delete your WhizBoard account and all associated data. This action cannot be undone.</p>
-                <input
-                  type="password"
-                  placeholder="Enter password to confirm"
-                  className="w-full px-4 py-2 border rounded-lg mb-4 text-slate-800"
-                  value={deleteAccountPassword}
-                  onChange={(e) => setDeleteAccountPassword(e.target.value)}
-                />
+              <div className="p-4 rounded-lg bg-red-500/5 border border-red-500/20">
+                <h4 className="text-red-300 font-medium mb-2">Delete Account</h4>
+                <p className="text-red-300/80 text-sm mb-4">
+                  This action will permanently delete your account and all associated data. 
+                  This action cannot be undone.
+                </p>
                 <button 
                   onClick={handleDeleteAccount}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center gap-2"
+                  className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors"
                 >
-                  <Trash2 className="w-5 h-5" /> Delete Account
-                </button>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Sign Out from All Devices</h4>
-                <p className="mb-4">Sign out of your WhizBoard account on all devices you are currently logged into.</p>
-                <button 
-                  onClick={revokeAllSessions}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium flex items-center gap-2"
-                >
-                  <LogOut className="w-5 h-5" /> Sign Out
+                  Delete My Account
                 </button>
               </div>
             </div>
-          </motion.div>
+          </SectionCard>
         );
       default:
         return null;
@@ -583,117 +748,62 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-20">
-      {/* Hero Section */}
-      <section className="relative pt-20 pb-32 overflow-hidden">
-        <div className="container mx-auto px-4 max-w-6xl relative z-10">
+    <div className="min-h-screen py-12">
+      {/* Header */}
+      <section className="pt-16 sm:pt-20 pb-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial={{ opacity: 0, y: 60 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.6, -0.05, 0.01, 0.99] }}
-            className="text-center mb-16"
+            transition={{ duration: 0.35 }}
+            className="text-center space-y-4"
           >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-6"
-            >
-              <User className="w-4 h-4" />
-              Settings
-            </motion.div>
-            
-            <h1 className="text-5xl lg:text-6xl font-bold text-slate-800 mb-6 leading-tight">
-              Manage Your{" "}
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Account
-              </span>
-            </h1>
-            
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto mb-12 leading-relaxed">
-              Personalize your WhizBoard experience, manage security, and set your preferences.
-            </p>
+            <div className="inline-flex items-center gap-2 bg-white/[0.03] border border-white/[0.08] rounded-full px-3 py-1.5 backdrop-blur-sm mx-auto">
+              <User className="h-4 w-4 text-blue-400" />
+              <span className="text-white/70 text-sm font-medium">Account Settings</span>
+            </div>
+            <h1 className="headline-lg text-white">Manage your experience</h1>
+            <p className="body-base text-white/70 max-w-2xl mx-auto">Personalize WhizBoard and set your preferences.</p>
           </motion.div>
         </div>
       </section>
 
       {/* Main Content */}
-      <section className="py-12">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid lg:grid-cols-4 gap-8">
+      <section>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8">
             {/* Sidebar Navigation */}
-            <motion.div
-              initial={{ opacity: 0, x: -60 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, ease: [0.6, -0.05, 0.01, 0.99] }}
-              className="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-slate-200 h-fit"
-            >
-              <nav className="space-y-2">
-                <button
-                  onClick={() => setActiveTab("profile")}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg text-lg font-medium transition-colors ${
-                    activeTab === "profile"
-                      ? "bg-blue-500 text-white shadow-md"
-                      : "text-slate-700 hover:bg-slate-100"
-                  }`}
-                >
-                  <User className="w-5 h-5" /> Profile
-                </button>
-                <button
-                  onClick={() => setActiveTab("security")}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg text-lg font-medium transition-colors ${
-                    activeTab === "security"
-                      ? "bg-blue-500 text-white shadow-md"
-                      : "text-slate-700 hover:bg-slate-100"
-                  }`}
-                >
-                  <Shield className="w-5 h-5" /> Security
-                </button>
-                <button
-                  onClick={() => setActiveTab("notifications")}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg text-lg font-medium transition-colors ${
-                    activeTab === "notifications"
-                      ? "bg-blue-500 text-white shadow-md"
-                      : "text-slate-700 hover:bg-slate-100"
-                  }`}
-                >
-                  <Bell className="w-5 h-5" /> Notifications
-                </button>
-                <button
-                  onClick={() => setActiveTab("display")}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg text-lg font-medium transition-colors ${
-                    activeTab === "display"
-                      ? "bg-blue-500 text-white shadow-md"
-                      : "text-slate-700 hover:bg-slate-100"
-                  }`}
-                >
-                  <Palette className="w-5 h-5" /> Display
-                </button>
-                <button
-                  onClick={() => setActiveTab("integrations")}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg text-lg font-medium transition-colors ${
-                    activeTab === "integrations"
-                      ? "bg-blue-500 text-white shadow-md"
-                      : "text-slate-700 hover:bg-slate-100"
-                  }`}
-                >
-                  <Share2 className="w-5 h-5" /> Integrations
-                </button>
-                <button
-                  onClick={() => setActiveTab("danger-zone")}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg text-lg font-medium transition-colors ${
-                    activeTab === "danger-zone"
-                      ? "bg-red-500 text-white shadow-md"
-                      : "text-red-700 hover:bg-red-50"
-                  }`}
-                >
-                  <AlertTriangle className="w-5 h-5" /> Danger Zone
-                </button>
-              </nav>
-            </motion.div>
+            <aside className="md:col-span-3">
+              <div className="sticky top-24">
+                <nav className="flex md:flex-col gap-2">
+                  {[
+                    { id: "profile", label: "Profile", icon: User },
+                    { id: "notifications", label: "Notifications", icon: Bell },
+                    { id: "integrations", label: "Integrations", icon: Share2 },
+                    { id: "security", label: "Security", icon: AlertTriangle },
+                    { id: "danger-zone", label: "Danger Zone", icon: AlertTriangle },
+                  ].map(({ id, label, icon: Icon }) => (
+                    <button
+                      key={id}
+                      onClick={() => setActiveTab(id)}
+                      className={`flex items-center justify-between md:justify-start gap-3 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                        activeTab === id
+                          ? "bg-blue-600 text-white"
+                          : "text-white/70 hover:text-white hover:bg-white/[0.05]"
+                      }`}
+                    >
+                      <span className="flex items-center gap-3">
+                        <Icon className="w-4 h-4" />
+                        {label}
+                      </span>
+                    </button>
+                  ))}
+                </nav>
+              </div>
+            </aside>
 
-            {/* Content Area */}
-            <div className="lg:col-span-3">
+            {/* Main Panel */}
+            <div className="md:col-span-9">
               {renderContent()}
             </div>
           </div>

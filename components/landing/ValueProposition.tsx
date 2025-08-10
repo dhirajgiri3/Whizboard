@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion, useInView, Variants } from "framer-motion";
-import { useRef } from "react";
+import { motion, Variants } from "framer-motion";
 import {
   Zap,
   Users,
@@ -113,9 +112,8 @@ const enhancedScrollbarStyles = `
 `;
 
 const ValueProposition = () => {
-  const ref = useRef(null);
-  const ctaRef = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  // Unified viewport options for first-time-only reveal on scroll
+  const viewportOptions = { once: true, amount: 0.2 } as const;
 
   // Enhanced traditional approach items with professional icons
   const traditionalItems = [
@@ -226,10 +224,7 @@ const ValueProposition = () => {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: enhancedScrollbarStyles }} />
-      <section
-        ref={ref}
-        className="relative py-12 sm:py-16 lg:py-20 overflow-hidden bg-[#0A0A0B]"
-      >
+      <section className="relative py-12 sm:py-16 lg:py-20 overflow-hidden bg-[#0A0A0B]">
         {/* Background Elements */}
         <div className="absolute inset-0">
           <div
@@ -262,7 +257,8 @@ const ValueProposition = () => {
           <motion.div
             variants={containerVariants}
             initial="hidden"
-            animate={isInView ? "visible" : "hidden"}
+            whileInView="visible"
+            viewport={viewportOptions}
             className="flex flex-col items-center gap-3 sm:gap-4"
           >
             <SectionHeader
@@ -285,7 +281,8 @@ const ValueProposition = () => {
           <motion.div
             variants={containerVariants}
             initial="hidden"
-            animate={isInView ? "visible" : "hidden"}
+            whileInView="visible"
+            viewport={viewportOptions}
             className="grid md:grid-cols-3 gap-6 lg:gap-8"
           >
             {benefits.map((benefit, index) => (
@@ -561,7 +558,8 @@ const ValueProposition = () => {
           <motion.div
             variants={containerVariants}
             initial="hidden"
-            animate={isInView ? "visible" : "visible"}
+            whileInView="visible"
+            viewport={viewportOptions}
             className="text-center flex flex-col gap-12 sm:gap-16"
           >
             {/* Redesigned Header - Everything You Need to Succeed */}
@@ -620,10 +618,10 @@ const ValueProposition = () => {
 
           {/* Minimalistic CTA Section - Clean & Neat Design */}
           <motion.div
-            ref={ctaRef}
             initial={{ opacity: 0, scale: 0.98 }}
-            animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.98 }}
-            transition={{ delay: 1.2, duration: 0.8, ease: "easeOut" }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={viewportOptions}
+            transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
             className="relative overflow-hidden h-[80vh] flex items-center justify-center"
           >
             {/* Enhanced Dynamic Background with Emerald Gradients */}
@@ -665,8 +663,9 @@ const ValueProposition = () => {
               {/* Minimal Header */}
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
-                animate={isInView ? { opacity: 1, y: 0 } : { y: 20, opacity: 0 }}
-                transition={{ delay: 1.4, duration: 0.6 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={viewportOptions}
+                transition={{ delay: 0.3, duration: 0.6 }}
               >
                 {/* Redesigned Header */}
                 <motion.div
@@ -722,12 +721,13 @@ const ValueProposition = () => {
               </motion.div>
 
               {/* Minimal CTA with Whiteboard Comparison */}
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={isInView ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
-                transition={{ delay: 1.6, duration: 0.6 }}
-                className="flex flex-col sm:flex-row gap-6 justify-center items-center"
-              >
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  whileInView={{ y: 0, opacity: 1 }}
+                  viewport={viewportOptions}
+                  transition={{ delay: 0.4, duration: 0.6 }}
+                  className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+                >
                 <motion.button
                   className="bg-white text-black font-medium px-10 py-4 rounded-full transition-all duration-300 hover:bg-white/90"
                   whileHover={{ scale: 1.02 }}
@@ -756,8 +756,9 @@ const ValueProposition = () => {
               {/* Alternative CTA */}
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
-                animate={isInView ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
-                transition={{ delay: 1.7, duration: 0.6 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                viewport={viewportOptions}
+                transition={{ delay: 0.5, duration: 0.6 }}
                 className="flex justify-center"
               >
                 <motion.button
@@ -775,8 +776,9 @@ const ValueProposition = () => {
               {/* Minimal Trust Indicators */}
               <motion.div
                 initial={{ opacity: 0 }}
-                animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-                transition={{ delay: 1.8, duration: 0.6 }}
+                whileInView={{ opacity: 1 }}
+                viewport={viewportOptions}
+                transition={{ delay: 0.6, duration: 0.6 }}
                 className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16 text-white/50 text-sm"
               >
                 <div className="flex items-center gap-2">

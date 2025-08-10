@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/options';
 import { gql } from '@apollo/client';
 import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 
@@ -54,7 +54,7 @@ const ADD_BOARD_ACTION = gql`
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: any
 ) {
   try {
     const client = createApolloClientForRequest(request);
@@ -294,7 +294,7 @@ function transformElementsForImport(elements: any[], fromVersion: string, toVers
 // Template library endpoint
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: any
 ) {
   try {
     const session = await getServerSession(authOptions);

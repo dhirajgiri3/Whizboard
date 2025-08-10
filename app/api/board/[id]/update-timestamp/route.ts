@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/database/mongodb';
 import { ObjectId } from 'mongodb';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/options';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: any
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
     
     if (!id) {
       return NextResponse.json(

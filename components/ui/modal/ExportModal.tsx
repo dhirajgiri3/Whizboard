@@ -16,10 +16,17 @@ import {
   Upload,
   Maximize,
   Monitor,
-  Smartphone
+  Smartphone,
+  Cloud,
+  Folder,
+  ExternalLink,
+  BarChart3
 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { toast } from 'sonner';
+import { useGoogleDrive } from '@/hooks/useGoogleDrive';
+import { GoogleDriveManager } from '@/components/ui/GoogleDriveManager';
+import { GoogleDriveDashboard } from '@/components/ui/GoogleDriveDashboard';
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -54,6 +61,10 @@ export default function ExportModal({
 }: ExportModalProps) {
   const params = useParams();
   const [isExporting, setIsExporting] = useState(false);
+  const [showGoogleDriveManager, setShowGoogleDriveManager] = useState(false);
+  const [showGoogleDriveDashboard, setShowGoogleDriveDashboard] = useState(false);
+  const [selectedFolderId, setSelectedFolderId] = useState<string | undefined>();
+  const { exportBoardToGoogleDrive } = useGoogleDrive();
   const [exportOptions, setExportOptions] = useState<ExportOptions>({
     format: 'png',
     resolution: '2x',
@@ -65,78 +76,115 @@ export default function ExportModal({
     quality: 'high',
   });
 
-  const handleExport = async () => {
+  const handleExport = async (saveToGoogleDrive = false) => {
     if (isExporting) return;
 
     setIsExporting(true);
     try {
-      const url = new URL(`/api/board/${params.id}/export`, window.location.origin);
-      
-      // Add query parameters
-      url.searchParams.set('format', exportOptions.format);
-      url.searchParams.set('resolution', exportOptions.resolution);
-      url.searchParams.set('background', exportOptions.background);
-      if (exportOptions.customBackground) {
-        url.searchParams.set('customBackground', exportOptions.customBackground);
-      }
-      url.searchParams.set('area', exportOptions.area);
-      if (exportOptions.customBounds) {
-        url.searchParams.set('bounds', JSON.stringify(exportOptions.customBounds));
-      }
-      
-      // Add viewport information for better export
-      if (exportOptions.includeViewportInfo) {
-        url.searchParams.set('viewport', JSON.stringify({
-          zoom: currentZoom,
-          position: stagePosition,
-          bounds: canvasBounds
-        }));
-      }
-      
-      // Add quality settings
-      url.searchParams.set('quality', exportOptions.quality);
-      url.searchParams.set('includeMetadata', exportOptions.includeMetadata.toString());
-      url.searchParams.set('compression', exportOptions.compression.toString());
+      if (saveToGoogleDrive) {
+        // Export to Google Drive
+        const result = await exportBoardToGoogleDrive(
+          params.id as string,
+          exportOptions.format,
+          {
+            resolution: exportOptions.resolution,
+            background: exportOptions.background,
+            area: exportOptions.area,
+            quality: exportOptions.quality,
+            includeMetadata: exportOptions.includeMetadata,
+            compression: exportOptions.compression,
+            folderId: selectedFolderId,
+          }
+        );
 
-      const response = await fetch(url.toString());
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Export failed:', response.status, errorText);
-        throw new Error(`Export failed: ${response.status} ${response.statusText}`);
-      }
+        if (result.success) {
+          toast.success('Board exported successfully to Google Drive!', {
+            description: result.googleDriveUrl ? (
+              <a 
+                href={result.googleDriveUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                View in Google Drive
+              </a>
+            ) : undefined,
+            duration: 5000,
+          });
+          onClose();
+        } else {
+          throw new Error(result.error || 'Failed to export to Google Drive');
+        }
+      } else {
+        // Regular download export
+        const url = new URL(`/api/board/${params.id}/export`, window.location.origin);
+        
+        // Add query parameters
+        url.searchParams.set('format', exportOptions.format);
+        url.searchParams.set('resolution', exportOptions.resolution);
+        url.searchParams.set('background', exportOptions.background);
+        if (exportOptions.customBackground) {
+          url.searchParams.set('customBackground', exportOptions.customBackground);
+        }
+        url.searchParams.set('area', exportOptions.area);
+        if (exportOptions.customBounds) {
+          url.searchParams.set('bounds', JSON.stringify(exportOptions.customBounds));
+        }
+        
+        // Add viewport information for better export
+        if (exportOptions.includeViewportInfo) {
+          url.searchParams.set('viewport', JSON.stringify({
+            zoom: currentZoom,
+            position: stagePosition,
+            bounds: canvasBounds
+          }));
+        }
+        
+        // Add quality settings
+        url.searchParams.set('quality', exportOptions.quality);
+        url.searchParams.set('includeMetadata', exportOptions.includeMetadata.toString());
+        url.searchParams.set('compression', exportOptions.compression.toString());
 
-      // Create download link
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      
-      // Determine file extension based on format and content type
-      let fileExtension = exportOptions.format;
-      const contentType = response.headers.get('content-type');
-      if (contentType?.includes('svg')) {
-        fileExtension = 'svg';
-      } else if (contentType?.includes('json')) {
-        fileExtension = 'json';
-      }
-      
-      // Create descriptive filename
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-      const qualitySuffix = exportOptions.quality !== 'standard' ? `-${exportOptions.quality}` : '';
-      const resolutionSuffix = exportOptions.resolution !== '1x' ? `-${exportOptions.resolution}` : '';
-      link.download = `${boardName}-export${qualitySuffix}${resolutionSuffix}-${timestamp}.${fileExtension}`;
-      
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
+        const response = await fetch(url.toString());
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Export failed:', response.status, errorText);
+          throw new Error(`Export failed: ${response.status} ${response.statusText}`);
+        }
 
-      toast.success('Export completed successfully!', {
-        description: `File saved as ${link.download}`,
-        duration: 5000,
-      });
-      onClose();
+        // Create download link
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        
+        // Determine file extension based on format and content type
+        let fileExtension = exportOptions.format;
+        const contentType = response.headers.get('content-type');
+        if (contentType?.includes('svg')) {
+          fileExtension = 'svg';
+        } else if (contentType?.includes('json')) {
+          fileExtension = 'json';
+        }
+        
+        // Create descriptive filename
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+        const qualitySuffix = exportOptions.quality !== 'standard' ? `-${exportOptions.quality}` : '';
+        const resolutionSuffix = exportOptions.resolution !== '1x' ? `-${exportOptions.resolution}` : '';
+        link.download = `${boardName}-export${qualitySuffix}${resolutionSuffix}-${timestamp}.${fileExtension}`;
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+
+        toast.success('Export completed successfully!', {
+          description: `File saved as ${link.download}`,
+          duration: 5000,
+        });
+        onClose();
+      }
     } catch (error) {
       console.error('Export error:', error);
       toast.error(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -575,6 +623,58 @@ export default function ExportModal({
                   </div>
                 </div>
 
+                {/* Google Drive Integration */}
+                <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <Cloud className="h-4 w-4 text-blue-600" />
+                      <div className="text-sm font-medium text-gray-900">Google Drive Export</div>
+                    </div>
+                    <button
+                      onClick={() => setShowGoogleDriveDashboard(true)}
+                      className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                    >
+                      <BarChart3 className="w-3 h-3" />
+                      Dashboard
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    <p className="text-xs text-gray-600">
+                      Export directly to your Google Drive for easy sharing and collaboration. Files will be saved to your "Whizboard" folder by default.
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setShowGoogleDriveManager(true)}
+                        className="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50"
+                      >
+                        <Folder className="w-4 h-4" />
+                        {selectedFolderId ? 'Change Folder' : 'Select Folder'}
+                      </button>
+                      {selectedFolderId && (
+                        <button
+                          onClick={() => setSelectedFolderId(undefined)}
+                          className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    {selectedFolderId && (
+                      <div className="text-xs text-gray-600">
+                        <span className="font-medium">Selected folder:</span> {selectedFolderId}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-xs text-blue-700">
+                      <ExternalLink className="w-3 h-3" />
+                      <span>Access your Google Drive dashboard for file management and statistics</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-green-700 bg-green-50 px-2 py-1 rounded">
+                      <Folder className="w-3 h-3" />
+                      <span>Files will be automatically saved to your "Whizboard" folder</span>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Export Summary */}
                 <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
                   <div className="flex items-center space-x-2 mb-3">
@@ -646,7 +746,24 @@ export default function ExportModal({
                     Cancel
                   </button>
                   <button
-                    onClick={handleExport}
+                    onClick={() => handleExport(false)}
+                    disabled={isExporting}
+                    className="px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors flex items-center space-x-2"
+                  >
+                    {isExporting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                        <span>Exporting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4" />
+                        <span>Download</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleExport(true)}
                     disabled={isExporting}
                     className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-colors flex items-center space-x-2"
                   >
@@ -657,8 +774,8 @@ export default function ExportModal({
                       </>
                     ) : (
                       <>
-                        <Upload className="h-4 w-4" />
-                        <span>Export Board</span>
+                        <Cloud className="h-4 w-4" />
+                        <span>Export to Drive</span>
                       </>
                     )}
                   </button>
@@ -668,6 +785,28 @@ export default function ExportModal({
           </div>
         </div>
       )}
+
+      {/* Google Drive Manager */}
+      <GoogleDriveManager
+        isOpen={showGoogleDriveManager}
+        onClose={() => setShowGoogleDriveManager(false)}
+        onFolderSelect={(folder) => {
+          setSelectedFolderId(folder.id);
+          setShowGoogleDriveManager(false);
+        }}
+        allowUpload={false}
+        allowDownload={false}
+        allowDelete={false}
+        allowCreateFolder={true}
+        showSearch={true}
+        title="Select Google Drive Folder"
+      />
+
+      {/* Google Drive Dashboard */}
+      <GoogleDriveDashboard
+        isOpen={showGoogleDriveDashboard}
+        onClose={() => setShowGoogleDriveDashboard(false)}
+      />
     </AnimatePresence>
   );
 } 

@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { ChevronDown } from 'lucide-react';
+import { useAppContext } from '@/lib/context/AppContext';
 
 interface UserAvatarProps {
   session: any;
@@ -10,6 +11,7 @@ interface UserAvatarProps {
 }
 
 const UserAvatar = ({ session, isDropdownOpen, onClick, isLightMode }: UserAvatarProps) => {
+  const { user } = useAppContext();
   const buttonClasses = isLightMode
     ? 'hover:bg-gray-100/80'
     : 'hover:bg-white/5';
@@ -21,6 +23,18 @@ const UserAvatar = ({ session, isDropdownOpen, onClick, isLightMode }: UserAvata
   const ringColor = isLightMode
     ? 'ring-gray-200 group-hover:ring-blue-300'
     : 'ring-white/20 group-hover:ring-blue-400/50';
+
+  const avatarUrl = user?.avatar || session?.user?.image || '';
+  const displayName = user?.name || session?.user?.name || user?.email || session?.user?.email || 'U';
+  const initial = (displayName || 'U').trim().charAt(0).toUpperCase();
+  const fg = isLightMode ? 'text-white' : 'text-white';
+  const bgColor = (() => {
+    const key = (user?.email || session?.user?.email || 'user').toLowerCase();
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) hash = key.charCodeAt(i) + ((hash << 5) - hash);
+    const hue = Math.abs(hash) % 360;
+    return `hsl(${hue} 70% 45%)`;
+  })();
 
   return (
     <motion.button
@@ -35,13 +49,23 @@ const UserAvatar = ({ session, isDropdownOpen, onClick, isLightMode }: UserAvata
       aria-label="User menu"
     >
       <motion.div whileHover={{ scale: 1.05 }} className="relative">
-        <Image
-          src={session.user?.image || '/default-avatar.png'}
-          alt="User Avatar"
-          width={32}
-          height={32}
-          className={`w-8 h-8 rounded-full ring-2 transition-all duration-300 ${ringColor}`}
-        />
+        {avatarUrl ? (
+          <Image
+            src={avatarUrl}
+            alt="User Avatar"
+            width={32}
+            height={32}
+            className={`w-8 h-8 rounded-full ring-2 transition-all duration-300 ${ringColor}`}
+          />
+        ) : (
+          <div
+            aria-label="User Avatar Fallback"
+            className={`w-8 h-8 rounded-full ring-2 flex items-center justify-center ${fg} transition-all duration-300 ${ringColor}`}
+            style={{ backgroundColor: bgColor }}
+          >
+            <span className="text-xs font-semibold">{initial}</span>
+          </div>
+        )}
       </motion.div>
 
       <motion.div

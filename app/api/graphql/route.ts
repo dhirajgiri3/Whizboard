@@ -1,7 +1,7 @@
 import { createYoga } from 'graphql-yoga';
 import { schema, pubSub } from '@/lib/graphql/schema';
 import { decode } from 'next-auth/jwt';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/options';
 
 const yoga = createYoga({
   schema,
@@ -26,34 +26,59 @@ const yoga = createYoga({
           
           console.log('Parsed cookies:', Object.keys(cookies));
           
-          const sessionToken = cookies['next-auth.session-token'] || cookies['__Secure-next-auth.session-token'];
+          // Try multiple possible session token cookie names
+          const sessionToken = cookies['next-auth.session-token'] || 
+                             cookies['__Secure-next-auth.session-token'] ||
+                             cookies['next-auth.csrf-token'];
           console.log('Session token found:', !!sessionToken);
           
           if (sessionToken) {
-            const token = await decode({
-              token: sessionToken,
-              secret: authOptions.secret!,
-            });
-            
-            console.log('Decoded token:', !!token, token?.sub);
-            
-            if (token) {
-              session = {
-                user: {
-                  id: token.sub,
-                  name: token.name,
-                  email: token.email,
-                  image: token.picture,
-                },
-                expires: new Date((token.exp as number) * 1000).toISOString(),
-              };
-              console.log('Session created:', !!session, session?.user?.id);
+            try {
+              const token = await decode({
+                token: sessionToken,
+                secret: authOptions.secret!,
+              });
+              
+              console.log('Decoded token:', !!token, token?.sub);
+              
+              if (token && token.sub) {
+                session = {
+                  user: {
+                    id: token.sub,
+                    name: token.name,
+                    email: token.email,
+                    image: token.picture,
+                  },
+                  expires: new Date((token.exp as number) * 1000).toISOString(),
+                };
+                console.log('Session created:', !!session, session?.user?.id);
+              }
+            } catch (decodeError) {
+              console.error('Error decoding token:', decodeError);
+              // If token decoding fails, try to get session from the session endpoint
+              try {
+                const sessionResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/auth/session`, {
+                  headers: {
+                    cookie: cookieHeader,
+                  },
+                });
+                
+                if (sessionResponse.ok) {
+                  const sessionData = await sessionResponse.json();
+                  if (sessionData.user?.id) {
+                    session = sessionData;
+                    console.log('Session retrieved from session endpoint:', !!session, session?.user?.id);
+                  }
+                }
+              } catch (sessionError) {
+                console.error('Error fetching session:', sessionError);
+              }
             }
           }
         }
       }
     } catch (error) {
-      console.error('Error decoding session:', error);
+      console.error('Error in GraphQL context:', error);
     }
 
     return {
@@ -72,4 +97,14 @@ const yoga = createYoga({
   graphiql: process.env.NODE_ENV !== 'production',
 });
 
-export { yoga as GET, yoga as POST, yoga as OPTIONS };
+export async function GET(request: Request) {
+  return yoga.fetch(request);
+}
+
+export async function POST(request: Request) {
+  return yoga.fetch(request);
+}
+
+export async function OPTIONS(request: Request) {
+  return yoga.fetch(request);
+}

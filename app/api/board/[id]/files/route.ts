@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/options';
 import { gql } from '@apollo/client';
 import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 import { connectToDatabase } from '@/lib/database/mongodb';
@@ -31,11 +31,11 @@ function createApolloClientForRequest(request: NextRequest) {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: any
 ) {
   try {
     const client = createApolloClientForRequest(request);
-    const { id } = await params;
+    const { id } = params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -297,11 +297,11 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: any
 ) {
   try {
     const client = createApolloClientForRequest(request);
-    const { id } = await params;
+    const { id } = params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -399,11 +399,11 @@ export async function POST(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: any
 ) {
   try {
     const client = createApolloClientForRequest(request);
-    const { id } = await params;
+    const { id } = params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -484,11 +484,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: any
 ) {
   try {
     const client = createApolloClientForRequest(request);
-    const { id } = await params;
+    const { id } = params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -573,11 +573,11 @@ async function processFile(file: File): Promise<string> {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: any
 ) {
   try {
     const client = createApolloClientForRequest(request);
-    const { id } = await params;
+    const { id } = params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

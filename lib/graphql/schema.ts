@@ -1,8 +1,9 @@
 import SchemaBuilder from '@pothos/core';
 import RelayPlugin from '@pothos/plugin-relay';
 import { createPubSub, YogaInitialContext } from 'graphql-yoga';
-import { User, Board, DrawingElement, BoardInvitation, ShapeElement } from '@/types';
+import { User, Board, DrawingElement, BoardInvitation, ShapeElement, UserPresenceData } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
+import { postSlackForUser } from '@/lib/integrations/slackService';
 import { connectToDatabase } from '../database/mongodb';
 import { ObjectId } from 'mongodb';
 import logger from '../logger/logger';
@@ -227,6 +228,52 @@ builder.mutationType({
         };
         const result = await db.collection<BoardDocument>('boards').insertOne(newBoardDocument as any);
         logger.info({ boardId: result.insertedId }, 'New board created');
+        // Slack notification (best-effort) honoring preferences
+        try {
+          // Check Slack preference
+          let slackEnabled = true;
+          try {
+            const db2 = await connectToDatabase();
+            const prefsDoc = await db2.collection('userSettings').findOne(
+              { userEmail: session.user.email },
+              { projection: { 'notifications.slack.boardEvents': 1 } }
+            );
+            slackEnabled = prefsDoc?.notifications?.slack?.boardEvents !== false;
+          } catch {}
+
+          if (slackEnabled) {
+            logger.info({ 
+              userEmail: session.user.email, 
+              boardName: name, 
+              boardId: result.insertedId.toString() 
+            }, 'Attempting to send Slack notification for board creation');
+            
+            const slackResult = await postSlackForUser(session.user.email!, `Created a new board "${name}".`);
+            
+            if (slackResult) {
+              logger.info({ 
+                userEmail: session.user.email, 
+                boardName: name, 
+                boardId: result.insertedId.toString() 
+              }, 'Slack notification sent successfully for board creation');
+            } else {
+              logger.warn({ 
+                userEmail: session.user.email, 
+                boardName: name, 
+                boardId: result.insertedId.toString() 
+              }, 'Failed to send Slack notification for board creation');
+            }
+          } else {
+            logger.info({ userEmail: session.user.email }, 'Slack boardEvents notifications disabled; skipping');
+          }
+        } catch (error) {
+          logger.error({ 
+            userEmail: session.user.email, 
+            boardName: name, 
+            boardId: result.insertedId.toString(), 
+            error 
+          }, 'Exception occurred while sending Slack notification for board creation');
+        }
         // Convert to Board for GraphQL response
         return { 
           ...newBoardDocument, 
@@ -1015,12 +1062,12 @@ builder.subscriptionType({
       subscribe: (_, { boardId }) => pubSub.subscribe('drawingCompleted', boardId),
       resolve: (payload: DrawingEventPayload) => payload,
     }),
-    textElementCreated: t.field({
+    textElementAdded: t.field({
       type: TextEventPayloadRef,
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('textElementCreated', boardId),
+      subscribe: (_, { boardId }) => pubSub.subscribe('textElementAdded', boardId),
       resolve: (payload: TextEventPayload) => payload,
     }),
     textElementUpdated: t.field({

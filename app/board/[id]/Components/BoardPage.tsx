@@ -52,7 +52,7 @@ import TextEditor from "@/components/canvas/text/TextEditor";
 
 // Phase 2: Advanced Selection and Performance Components
 import AdvancedSelectionManager from "@/components/canvas/selection/AdvancedSelectionManager";
-import DragDropEnhancement from "@/components/canvas/drag/DragDropEnhancement";
+
 import CanvasPerformanceOptimizer from "@/components/canvas/performance/CanvasPerformanceOptimizer";
 import LineToolbar from "@/components/toolbar/line/LineToolbar";
 
@@ -3798,41 +3798,7 @@ function BoardPageContent() {
             ]}
           />
 
-          {/* Phase 2: Drag & Drop Enhancement */}
-          <DragDropEnhancement
-            stageRef={stageRef}
-            isActive={tool === 'select'}
-            onDragStart={(elementId, position) => {
-              console.log('Drag started:', elementId, position);
-            }}
-            onDragMove={(elementId, position) => {
-              console.log('Drag move:', elementId, position);
-            }}
-            onDragEnd={(elementId, position) => {
-              console.log('Drag ended:', elementId, position);
-            }}
-            onDropZoneEnter={(zoneId) => {
-              console.log('Entered drop zone:', zoneId);
-            }}
-            onDropZoneLeave={(zoneId) => {
-              console.log('Left drop zone:', zoneId);
-            }}
-            onDropZoneDrop={(zoneId, elementId) => {
-              console.log('Dropped on zone:', zoneId, elementId);
-              // Handle different drop zone actions
-              switch (zoneId) {
-                case 'frame':
-                  // Add element to frame
-                  break;
-                case 'canvas':
-                  // Move element to canvas
-                  break;
-                case 'group':
-                  // Group elements
-                  break;
-              }
-            }}
-          />
+
 
           {/* Phase 2: Canvas Performance Optimizer */}
           <CanvasPerformanceOptimizer isEnabled={true}>

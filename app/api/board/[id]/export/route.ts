@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/options';
 import { gql } from '@apollo/client';
 import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
+import { googleDriveService } from '@/lib/integrations/googleDriveService';
+import { getToken } from '@/lib/integrations/tokenStore';
 
 function createApolloClientForRequest(request: NextRequest) {
   const origin = new URL(request.url).origin;
@@ -24,10 +26,10 @@ function createApolloClientForRequest(request: NextRequest) {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: any
 ) {
   try {
-    const resolvedParams = await params;
+    const resolvedParams = params;
     const client = createApolloClientForRequest(request);
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
@@ -45,6 +47,8 @@ export async function GET(
     const quality = searchParams.get('quality') || 'high';
     const includeMetadata = searchParams.get('includeMetadata') === 'true';
     const compression = searchParams.get('compression') !== 'false';
+    const saveToGoogleDrive = searchParams.get('saveToGoogleDrive') === 'true';
+    const googleDriveFolderId = searchParams.get('googleDriveFolderId') || undefined;
 
     // Get board with elements
     const { data: boardData } = await client.query({
@@ -91,6 +95,17 @@ export async function GET(
     }
 
     const elements = board.elements || [];
+
+    // Check if user wants to save to Google Drive
+    if (saveToGoogleDrive) {
+      // Check if user has Google Drive connected
+      const token = await getToken(userEmail, 'googleDrive');
+      if (!token) {
+        return NextResponse.json({ error: 'Google Drive not connected. Please connect your Google Drive account in settings.' }, { status: 403 });
+      }
+
+             return await handleGoogleDriveExport(board, elements, format, resolution, background, area, userEmail, quality, includeMetadata, compression, customBackground, bounds, viewport, googleDriveFolderId);
+    }
 
     switch (format.toLowerCase()) {
       case 'png':
@@ -699,4 +714,216 @@ function generateEnhancedSVGContent(board: any, elements: any[], bounds: any, ba
 
   svg += '</svg>';
   return svg;
+} 
+
+/**
+ * Handle Google Drive export
+ */
+async function handleGoogleDriveExport(
+  board: any, 
+  elements: any[], 
+  format: string, 
+  resolution: string, 
+  background: string, 
+  area: string, 
+  userEmail: string,
+  quality: string = 'high', 
+  includeMetadata: boolean = true, 
+  compression: boolean = true,
+  customBackground?: string, 
+  bounds?: string, 
+  viewport?: string, 
+  folderId?: string
+) {
+  try {
+    let fileData: string | Buffer;
+    let fileName: string;
+    let mimeType: string;
+
+    // Generate the export data based on format
+    switch (format.toLowerCase()) {
+      case 'png':
+        const pngBuffer = await generatePNGBuffer(board, elements, resolution, background, area, customBackground, bounds, viewport, quality, compression);
+        fileData = pngBuffer;
+        fileName = `${board.name}-export.png`;
+        mimeType = 'image/png';
+        break;
+      case 'svg':
+        const svgContent = generateSVGContent(board, elements, resolution, background, area, customBackground, bounds, viewport, quality);
+        fileData = svgContent;
+        fileName = `${board.name}-export.svg`;
+        mimeType = 'image/svg+xml';
+        break;
+      case 'json':
+      default:
+        const jsonContent = generateJSONContent(board, elements, includeMetadata);
+        fileData = JSON.stringify(jsonContent, null, 2);
+        fileName = `${board.name}-export.json`;
+        mimeType = 'application/json';
+        break;
+    }
+
+    // Get or create Whizboard folder if no specific folder is provided
+    let targetFolderId = folderId;
+    if (!targetFolderId) {
+      const whizboardFolder = await googleDriveService.getOrCreateWhizboardFolder(userEmail);
+      if (whizboardFolder) {
+        targetFolderId = whizboardFolder.id;
+        console.log(`Using Whizboard folder: ${whizboardFolder.id}`);
+      }
+    }
+
+    // Upload to Google Drive
+    const result = await googleDriveService.uploadFile(
+      userEmail,
+      fileName,
+      fileData,
+      mimeType,
+      targetFolderId || undefined
+    );
+
+    if (!result.success) {
+      return NextResponse.json({ error: result.error || 'Failed to upload to Google Drive' }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Board exported successfully to Google Drive',
+      fileId: result.fileId,
+      fileName: fileName,
+      file: result.file,
+      googleDriveUrl: result.file?.webViewLink
+    });
+
+  } catch (error) {
+    console.error('Google Drive export error:', error);
+    return NextResponse.json({ error: 'Failed to export to Google Drive' }, { status: 500 });
+  }
+}
+
+/**
+ * Generate PNG buffer for Google Drive upload
+ */
+async function generatePNGBuffer(board: any, elements: any[], resolution: string, background: string, area: string, customBackground?: string, bounds?: string, viewport?: string, quality: string = 'high', compression: boolean = true) {
+  // Parse viewport information if provided
+  let viewportData = null;
+  if (viewport) {
+    try {
+      viewportData = JSON.parse(viewport);
+    } catch (error) {
+      console.error('Error parsing viewport data:', error);
+    }
+  }
+  
+  // Calculate bounds based on area type
+  let boardBounds;
+  if (area === 'viewport' && viewportData) {
+    boardBounds = {
+      x: viewportData.position?.x || 0,
+      y: viewportData.position?.y || 0,
+      width: viewportData.bounds?.width || 1200,
+      height: viewportData.bounds?.height || 800,
+    };
+  } else {
+    boardBounds = calculateComprehensiveBoardBounds(elements);
+  }
+  
+  // Adjust scale based on quality setting
+  let scale = getResolutionMultiplier(resolution);
+  if (quality === 'ultra') {
+    scale *= 1.5;
+  } else if (quality === 'standard') {
+    scale *= 0.75;
+  }
+  
+  // Create high-resolution canvas
+  const canvasWidth = boardBounds.width * scale;
+  const canvasHeight = boardBounds.height * scale;
+  
+  const canvas = createCanvas(canvasWidth, canvasHeight);
+  const ctx = canvas.getContext('2d');
+
+  // Set background
+  if (background === 'transparent') {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  } else {
+    const bgColor = background === 'custom' ? customBackground : background === 'white' ? '#ffffff' : '#000000';
+    ctx.fillStyle = bgColor || '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // Scale and translate context for high-resolution rendering
+  ctx.save();
+  ctx.scale(scale, scale);
+  ctx.translate(-boardBounds.x, -boardBounds.y);
+
+  // Render all elements
+  for (const element of elements) {
+    await renderElementToCanvasEnhanced(ctx, element, scale);
+  }
+  
+  // If no elements were rendered, add a placeholder
+  if (elements.length === 0) {
+    ctx.fillStyle = '#f0f0f0';
+    ctx.fillRect(0, 0, canvas.width / scale, canvas.height / scale);
+    ctx.fillStyle = '#666666';
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Empty Canvas', (canvas.width / scale) / 2, (canvas.height / scale) / 2);
+  }
+
+  ctx.restore();
+
+  // Convert to PNG buffer
+  const compressionLevel = compression ? 6 : 0;
+  return canvas.toBuffer('image/png', { compressionLevel });
+}
+
+/**
+ * Generate SVG content for Google Drive upload
+ */
+function generateSVGContent(board: any, elements: any[], resolution: string, background: string, area: string, customBackground?: string, bounds?: string, viewport?: string, quality: string = 'high') {
+  const boardBounds = calculateComprehensiveBoardBounds(elements);
+  return generateEnhancedSVGContent(board, elements, boardBounds, background, customBackground);
+}
+
+/**
+ * Generate JSON content for Google Drive upload
+ */
+function generateJSONContent(board: any, elements: any[], includeMetadata: boolean = true) {
+  return {
+    version: '1.0.0',
+    board: {
+      id: board.id,
+      name: board.name,
+      isPublic: board.isPublic,
+      createdAt: board.createdAt,
+      updatedAt: board.updatedAt,
+      createdBy: board.createdBy,
+      elements: elements.map(element => ({
+        id: element.id,
+        type: element.type,
+        data: typeof element.data === 'string' ? JSON.parse(element.data) : element.data,
+        style: typeof element.style === 'string' ? JSON.parse(element.style) : element.style,
+        createdBy: element.createdBy,
+        createdAt: element.createdAt,
+        updatedAt: element.updatedAt,
+      })),
+      metadata: includeMetadata ? {
+        exportedAt: new Date().toISOString(),
+        totalElements: elements.length,
+        exportFormat: 'json',
+        bounds: calculateComprehensiveBoardBounds(elements),
+        elementTypes: elements.reduce((acc: any, el) => {
+          acc[el.type] = (acc[el.type] || 0) + 1;
+          return acc;
+        }, {}),
+        exportSettings: {
+          includeMetadata,
+          quality: 'high',
+          compression: false,
+        },
+      } : undefined,
+    },
+  };
 } 

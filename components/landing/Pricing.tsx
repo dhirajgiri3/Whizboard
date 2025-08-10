@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useRef, useState } from "react";
 import {
   Zap,
@@ -26,6 +26,7 @@ import SectionHeader from "@/components/ui/header/SectionHeader";
 const Pricing = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const prefersReducedMotion = useReducedMotion();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
     "yearly"
   );
@@ -150,28 +151,30 @@ const Pricing = () => {
     },
   ];
 
+  const revealEase = [0.4, 0, 0.2, 1] as [number, number, number, number];
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.1,
+        staggerChildren: 0.08,
+        delayChildren: 0.02,
       },
     },
-  };
+  } as const;
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
+    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 18 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.6,
-        ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
+        duration: prefersReducedMotion ? 0 : 0.5,
+        ease: revealEase,
       },
     },
-  };
+  } as const;
 
   const cardHoverVariants = {
     hover: {
@@ -252,12 +255,15 @@ const Pricing = () => {
       </div>
 
       {/* Main Content Container */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <motion.div
+        className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate={isInView ? "visible" : "hidden"}
+      >
         {/* Header Section */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 0.6 }}
+          variants={itemVariants}
           className="text-center mb-16"
         >
           <SectionHeader
@@ -282,9 +288,8 @@ const Pricing = () => {
 
         {/* Billing Toggle Section */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
+          variants={itemVariants}
+          transition={{ delay: 0.12, duration: prefersReducedMotion ? 0 : 0.5 }}
           className="flex flex-col items-center gap-6 mb-16"
         >
           {/* Savings Banner */}
@@ -365,8 +370,6 @@ const Pricing = () => {
         {/* Pricing Cards Section */}
         <motion.div
           variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
           className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-20"
         >
           {plans.map((plan, index) => (
@@ -551,17 +554,11 @@ const Pricing = () => {
                     <h4 className="text-white font-semibold mb-4 text-sm">
                       Everything in {plan.name}:
                     </h4>
-                    <div className="space-y-3">
+                    <motion.div className="space-y-3" variants={containerVariants}>
                       {plan.features.map((feature, featureIndex) => (
                         <motion.div
                           key={featureIndex}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={
-                            isInView
-                              ? { opacity: 1, x: 0 }
-                              : { opacity: 0, x: -10 }
-                          }
-                          transition={{ delay: 0.2 + featureIndex * 0.05 }}
+                          variants={itemVariants}
                           className="flex items-start gap-3 group/feature"
                         >
                           <div className="flex-shrink-0 mt-0.5">
@@ -572,7 +569,7 @@ const Pricing = () => {
                           </span>
                         </motion.div>
                       ))}
-                    </div>
+                    </motion.div>
                   </div>
                 </div>
               </motion.div>
@@ -582,9 +579,8 @@ const Pricing = () => {
 
         {/* Enterprise Section */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
+          variants={itemVariants}
+          transition={{ delay: 0.24, duration: prefersReducedMotion ? 0 : 0.5 }}
           className="relative"
         >
           {/* Background Elements */}
@@ -610,9 +606,8 @@ const Pricing = () => {
           <div className="relative z-10 text-center">
             {/* Enterprise Header */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{ delay: 1.0, duration: 0.6 }}
+              variants={itemVariants}
+              transition={{ delay: 0.32, duration: prefersReducedMotion ? 0 : 0.5 }}
               className="mb-12"
             >
               <SectionHeader
@@ -628,19 +623,15 @@ const Pricing = () => {
 
             {/* Enterprise Features Grid */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{ delay: 1.2, duration: 0.6 }}
+              variants={itemVariants}
+              transition={{ delay: 0.4, duration: prefersReducedMotion ? 0 : 0.5 }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16"
             >
               {enterpriseFeatures.map((feature, index) => (
                 <motion.div
                   key={feature.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={
-                    isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
-                  }
-                  transition={{ duration: 0.5, delay: 1.4 + index * 0.1 }}
+                  variants={itemVariants}
+                  transition={{ duration: prefersReducedMotion ? 0 : 0.45, delay: 0.5 + index * 0.08 }}
                   className="group relative"
                 >
                   {/* Gradient Orb Background */}
@@ -677,9 +668,8 @@ const Pricing = () => {
 
             {/* Final CTA Section */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{ delay: 1.6, duration: 0.6 }}
+              variants={itemVariants}
+              transition={{ delay: 0.56, duration: prefersReducedMotion ? 0 : 0.5 }}
               className="relative"
             >
               {/* Background Elements */}
@@ -705,11 +695,8 @@ const Pricing = () => {
               <div className="relative z-10 text-center px-6 lg:px-12 py-12">
                 {/* CTA Header */}
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={
-                    isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
-                  }
-                  transition={{ delay: 1.8, duration: 0.6 }}
+                  variants={itemVariants}
+                  transition={{ delay: 0.64, duration: prefersReducedMotion ? 0 : 0.5 }}
                   className="mb-8"
                 >
                   <SectionHeader
@@ -725,11 +712,8 @@ const Pricing = () => {
 
                 {/* CTA Buttons */}
                 <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={
-                    isInView ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }
-                  }
-                  transition={{ delay: 2.0, duration: 0.5 }}
+                  variants={itemVariants}
+                  transition={{ delay: 0.72, duration: prefersReducedMotion ? 0 : 0.45 }}
                   className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8"
                 >
                   <motion.button
@@ -757,9 +741,10 @@ const Pricing = () => {
 
                 {/* Trust Indicators */}
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-                  transition={{ delay: 2.2, duration: 0.5 }}
+                  initial="hidden"
+                  variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: prefersReducedMotion ? 0 : 0.4 } } }}
+                  animate={isInView ? "visible" : "hidden"}
+                  transition={{ delay: 0.8 }}
                   className="flex flex-wrap items-center justify-center gap-6 text-white/60 text-sm"
                 >
                   <div className="flex items-center gap-1.5 group hover:text-white/80 transition-colors duration-200">
@@ -779,7 +764,7 @@ const Pricing = () => {
             </motion.div>
           </div>
         </motion.div>
-      </div>
+      </motion.div>
     </section>
   );
 };

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/options';
 import { connectToDatabase } from '@/lib/database/mongodb';
 import { ObjectId } from 'mongodb';
 import { EmailService } from '@/lib/email/sendgrid';
@@ -8,6 +8,8 @@ import { v4 as uuidv4 } from 'uuid';
 import logger from '@/lib/logger/logger';
 import { User } from '@/types';
 import { pubSub } from '@/lib/graphql/schema';
+import { postSlackForUser } from '@/lib/integrations/slackService';
+import { connectToDatabase as _connect } from '@/lib/database/mongodb';
 
 interface BoardCollaborator {
   id: string;
@@ -114,16 +116,29 @@ export async function POST(request: NextRequest) {
       throw new Error('Failed to create invitation record');
     }
 
-    // Send invitation email
-    const emailSent = await EmailService.sendInvitationEmail({
-      boardId,
-      boardName: board.name,
-      inviterName: session.user.name || 'WhizBoard User',
-      inviterEmail: session.user.email || '',
-      inviteeEmail,
-      invitationToken,
-      message,
-    });
+    // Load inviter's email notification preferences
+    let sendInvitationEmail = true;
+    try {
+      const prefsDb = await _connect();
+      const prefsDoc = await prefsDb.collection('userSettings').findOne(
+        { userEmail: session.user.email },
+        { projection: { 'notifications.email.boardInvitations': 1 } }
+      );
+      sendInvitationEmail = prefsDoc?.notifications?.email?.boardInvitations !== false;
+    } catch {}
+
+    // Send invitation email if enabled
+    const emailSent = sendInvitationEmail
+      ? await EmailService.sendInvitationEmail({
+          boardId,
+          boardName: board.name,
+          inviterName: session.user.name || 'WhizBoard User',
+          inviterEmail: session.user.email || '',
+          inviteeEmail,
+          invitationToken,
+          message,
+        })
+      : true; // treat as success if disabled
 
     if (!emailSent) {
       // If email fails, we should clean up the invitation record
@@ -146,6 +161,53 @@ export async function POST(request: NextRequest) {
       });
     } catch (error) {
       logger.error('Failed to publish collaborator invited event:', error);
+    }
+
+    // Post Slack notification to inviter's default channel if connected and enabled
+    try {
+      // Check Slack preference
+      let slackEnabled = true;
+      try {
+        const prefsDb = await _connect();
+        const prefsDoc = await prefsDb.collection('userSettings').findOne(
+          { userEmail: session.user.email },
+          { projection: { 'notifications.slack.boardEvents': 1 } }
+        );
+        slackEnabled = prefsDoc?.notifications?.slack?.boardEvents !== false;
+      } catch {}
+
+      if (!slackEnabled) {
+        logger.info({ userEmail: session.user.email }, 'Slack boardEvents notifications disabled; skipping');
+      } else {
+      logger.info({ 
+        userEmail: session.user.email, 
+        boardName: board.name, 
+        inviteeEmail 
+      }, 'Attempting to send Slack notification for board invitation');
+      
+      const slackResult = await postSlackForUser(session.user.email!, `Invited ${inviteeEmail} to board "${board.name}".`);
+      
+      if (slackResult) {
+        logger.info({ 
+          userEmail: session.user.email, 
+          boardName: board.name, 
+          inviteeEmail 
+        }, 'Slack notification sent successfully for board invitation');
+      } else {
+        logger.warn({ 
+          userEmail: session.user.email, 
+          boardName: board.name, 
+          inviteeEmail 
+        }, 'Failed to send Slack notification for board invitation');
+      }
+      }
+    } catch (error) {
+      logger.error({ 
+        userEmail: session.user.email, 
+        boardName: board.name, 
+        inviteeEmail, 
+        error 
+      }, 'Exception occurred while sending Slack notification for board invitation');
     }
 
     return NextResponse.json({

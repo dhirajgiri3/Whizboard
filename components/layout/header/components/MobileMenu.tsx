@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useAppContext } from '@/lib/context/AppContext';
 import { X, ChevronRight, LogOut } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { MenuItem, UserMenuItem } from '../types';
@@ -52,6 +53,18 @@ const MobileMenu = ({
   const backdropBg = isLightMode
     ? 'bg-black/20'
     : 'bg-black/40';
+
+  const { user: appUser } = useAppContext();
+  const avatarUrl = appUser?.avatar || session?.user?.image || '';
+  const displayName = appUser?.name || session?.user?.name || appUser?.email || session?.user?.email || 'U';
+  const initial = (displayName || 'U').trim().charAt(0).toUpperCase();
+  const bgColor = (() => {
+    const key = (appUser?.email || session?.user?.email || 'user').toLowerCase();
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) hash = key.charCodeAt(i) + ((hash << 5) - hash);
+    const hue = Math.abs(hash) % 360;
+    return `hsl(${hue} 70% 45%)`;
+  })();
 
   return (
     <AnimatePresence>
@@ -119,15 +132,27 @@ const MobileMenu = ({
                           : 'bg-gradient-to-r from-blue-500/10 to-indigo-500/10'
                       }`}>
                         <div className="relative">
-                          <Image
-                            src={session?.user?.image || '/default-avatar.png'}
-                            alt="User Avatar"
-                            width={48}
-                            height={48}
-                            className={`w-12 h-12 rounded-full ring-3 ${
-                              isLightMode ? 'ring-blue-200' : 'ring-blue-500/30'
-                            }`}
-                          />
+                          {avatarUrl ? (
+                            <Image
+                              src={avatarUrl}
+                              alt="User Avatar"
+                              width={48}
+                              height={48}
+                              className={`w-12 h-12 rounded-full ring-3 ${
+                                isLightMode ? 'ring-blue-200' : 'ring-blue-500/30'
+                              }`}
+                            />
+                          ) : (
+                            <div
+                              aria-label="User Avatar Fallback"
+                              className={`w-12 h-12 rounded-full ring-3 flex items-center justify-center text-white ${
+                                isLightMode ? 'ring-blue-200' : 'ring-blue-500/30'
+                              }`}
+                              style={{ backgroundColor: bgColor }}
+                            >
+                              <span className="text-base font-semibold">{initial}</span>
+                            </div>
+                          )}
                           <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -313,7 +338,7 @@ const MobileMenuSection = ({
   isLightMode: boolean;
 }) => (
   <motion.div
-    variants={animations.mobileMenuItem}
+    variants={(isLightMode ? headerAnimations : darkHeaderAnimations).mobileMenuItem}
     className="space-y-2"
   >
     <div className={`px-6 py-2 text-xs font-semibold uppercase tracking-wider ${
@@ -385,7 +410,7 @@ const MobileMenuLink = ({
 
   if (href) {
     return (
-      <motion.div variants={animations.mobileMenuItem}>
+      <motion.div variants={(isLightMode ? headerAnimations : darkHeaderAnimations).mobileMenuItem}>
         <Link
           href={href}
           className={`${baseClasses} ${variantClasses}`}
@@ -398,7 +423,7 @@ const MobileMenuLink = ({
   }
 
   return (
-    <motion.div variants={animations.mobileMenuItem}>
+    <motion.div variants={(isLightMode ? headerAnimations : darkHeaderAnimations).mobileMenuItem}>
       <button
         onClick={onClick}
         className={`${baseClasses} ${variantClasses} w-full text-left`}

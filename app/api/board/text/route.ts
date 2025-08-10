@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/options';
 import { pubSub } from '@/lib/graphql/schema';
 import logger from '@/lib/logger/logger';
 
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
             timestamp,
           };
 
-          pubSub.publish('textElementCreated', boardId, createEvent);
+          pubSub.publish('textElementAdded', boardId, createEvent);
           logger.debug(`Text element created by user ${userId} on board ${boardId}`);
           break;
 
