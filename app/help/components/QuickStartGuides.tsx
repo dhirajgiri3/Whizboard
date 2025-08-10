@@ -52,7 +52,7 @@ const QuickStartGuides = () => {
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white px-2">
               Quick Start Guides
             </h2>
-            <p className="text-base sm:text-lg md:text-xl text-white/70 max-w-2xl mx-auto px-4 sm:px-6">
+            <p className="text-base sm:text-lg text-white/70 max-w-2xl mx-auto px-4 sm:px-6">
               Get up to speed quickly with these essential guides and tutorials
             </p>
           </div>

@@ -35,8 +35,8 @@ const MobileMenu = ({
   const animations = isLightMode ? headerAnimations : darkHeaderAnimations;
   
   const menuBg = isLightMode
-    ? 'bg-white/95 backdrop-blur-xl'
-    : 'bg-[#111111]/95 backdrop-blur-xl';
+    ? 'bg-white/90 backdrop-blur-xl'
+    : 'bg-[#111111]/90 backdrop-blur-xl';
   
   const borderColor = isLightMode
     ? 'border-gray-100'
@@ -85,10 +85,13 @@ const MobileMenu = ({
             initial="initial"
             animate="animate"
             exit="exit"
-            className={`fixed top-0 left-0 right-0 ${menuBg} z-50 lg:hidden shadow-2xl`}
+            className={`fixed top-0 left-0 right-0 ${menuBg} backdrop-blur-enhanced z-50 lg:hidden shadow-2xl ${!isLightMode ? 'dark' : ''}`}
             style={{ 
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)'
+              backdropFilter: 'blur(24px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+              backgroundColor: isLightMode 
+                ? 'rgba(255, 255, 255, 0.85)' 
+                : 'rgba(17, 17, 17, 0.85)'
             }}
           >
             {/* Mobile Header */}

@@ -16,6 +16,7 @@ export const authOptions: AuthOptions = {
           response_type: 'code',
         },
       },
+      allowDangerousEmailAccountLinking: true, // Allow linking accounts with same email
     } as any),
   ],
   adapter: MongoDBAdapter(clientPromise),
@@ -38,10 +39,33 @@ export const authOptions: AuthOptions = {
   },
 
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account, profile, email }) {
       if (account?.provider === 'google') {
         if (!(profile as any)?.email_verified) return false;
         (user as any).emailVerified = new Date();
+        
+        // Allow linking accounts by email
+        if (email?.verificationRequest) {
+          return true;
+        }
+        
+        // Check if user already exists in database
+        try {
+          const client = await clientPromise;
+          const db = client.db();
+          const existingUser = await db.collection('users').findOne({ email: user.email });
+          
+          if (existingUser) {
+            // User exists, allow sign in
+            console.log(`[AUTH] User ${user.email} already exists, allowing sign in`);
+            return true;
+          }
+        } catch (error) {
+          console.error('[AUTH] Error checking existing user:', error);
+          // On error, allow sign in
+          return true;
+        }
+        
         if (process.env.ALLOWED_DOMAINS && user.email) {
           const allowedDomains = process.env.ALLOWED_DOMAINS.split(',');
           const userDomain = user.email.split('@')[1];
@@ -57,6 +81,8 @@ export const authOptions: AuthOptions = {
         (token as any).provider = account.provider;
         (token as any).iat = Math.floor(Date.now() / 1000);
         (token as any).jti = crypto.randomUUID();
+        // Initialize tokenVersion used for session invalidation
+        (token as any).tokenVersion = (user as any).tokenVersion ?? 0;
       }
       if (trigger === 'update' && session) {
         token = { ...token, ...(session as any).user } as any;
@@ -65,14 +91,57 @@ export const authOptions: AuthOptions = {
     },
     async session({ session, token }) {
       if (session?.user && (token as any).sub) {
-        (session.user as any).id = (token as any).sub;
-        (session.user as any).emailVerified = (token as any).emailVerified;
-        (session.user as any).provider = (token as any).provider;
-        (session as any).security = {
-          issuedAt: (token as any).iat,
-          jwtId: (token as any).jti,
-          lastUpdated: new Date().toISOString(),
-        };
+        // Validate user still exists in database
+        try {
+          const client = await clientPromise;
+          const db = client.db();
+          const user = await db.collection('users').findOne({
+            _id: new (await import('mongodb')).ObjectId((token as any).sub)
+          });
+          
+          // If user doesn't exist in database, invalidate session
+          if (!user) {
+            console.log(`[SECURITY] User ${session.user.email} not found in database, invalidating session`);
+            return null; // This will force logout
+          }
+          
+          // Check if user is active/not banned
+          if (user.status === 'banned' || user.status === 'suspended') {
+            console.log(`[SECURITY] User ${session.user.email} is ${user.status}, invalidating session`);
+            return null; // This will force logout
+          }
+
+          // Invalidate session if tokenVersion has changed
+          const tokenVersionFromDb = (user as any).tokenVersion ?? 0;
+          if (typeof (token as any).tokenVersion === 'number' && (token as any).tokenVersion < tokenVersionFromDb) {
+            console.log(`[SECURITY] Token version outdated for ${session.user.email}, invalidating session`);
+            return null;
+          }
+          
+          (session.user as any).id = (token as any).sub;
+          (session.user as any).emailVerified = (token as any).emailVerified;
+          (session.user as any).provider = (token as any).provider;
+          (session.user as any).status = user.status || 'active';
+          (session.user as any).tokenVersion = (token as any).tokenVersion ?? 0;
+          (session as any).security = {
+            issuedAt: (token as any).iat,
+            jwtId: (token as any).jti,
+            lastUpdated: new Date().toISOString(),
+            userExists: true,
+          };
+        } catch (error) {
+          console.error('[SECURITY] Error validating user in session callback:', error);
+          // On database error, allow session but log the issue
+          (session.user as any).id = (token as any).sub;
+          (session.user as any).emailVerified = (token as any).emailVerified;
+          (session.user as any).provider = (token as any).provider;
+          (session as any).security = {
+            issuedAt: (token as any).iat,
+            jwtId: (token as any).jti,
+            lastUpdated: new Date().toISOString(),
+            userExists: 'unknown',
+          };
+        }
       }
       return session;
     },
@@ -119,12 +188,79 @@ export const authOptions: AuthOptions = {
   events: {
     async signIn({ user, account }) {
       console.log(`[SECURITY] User signed in: ${user.email} via ${account?.provider}`);
+      
+      // Update lastLoginAt timestamp
+      if (user.email) {
+        try {
+          const client = await clientPromise;
+          const db = client.db();
+          await db.collection('users').updateOne(
+            { email: user.email },
+            { 
+              $set: { 
+                lastLoginAt: new Date(),
+                updatedAt: new Date()
+              } 
+            }
+          );
+        } catch (error) {
+          console.error('Failed to update lastLoginAt:', error);
+        }
+      }
+    },
+    async linkAccount({ user, account }) {
+      console.log(`[SECURITY] Account linked: ${user.email} to ${account?.provider}`);
+    },
+    async createUser({ user }) {
+      console.log(`[SECURITY] New user created: ${user.email}`);
+      
+      // Set createdAt timestamp for new users
+      if (user.email) {
+        try {
+          const client = await clientPromise;
+          const db = client.db();
+          await db.collection('users').updateOne(
+            { email: user.email },
+            { 
+              $set: { 
+                createdAt: new Date(),
+                lastLoginAt: new Date(),
+                updatedAt: new Date(),
+                status: 'active',
+                tokenVersion: 0
+              } 
+            }
+          );
+        } catch (error) {
+          console.error('Failed to set createdAt:', error);
+        }
+      }
     },
     async signOut({ session }) {
       console.log(`[SECURITY] User signed out: ${session?.user?.email}`);
     },
     async createUser({ user }) {
       console.log(`[SECURITY] New user created: ${user.email}`);
+      
+      // Set createdAt timestamp for new users
+      if (user.email) {
+        try {
+          const client = await clientPromise;
+          const db = client.db();
+          await db.collection('users').updateOne(
+            { email: user.email },
+            { 
+              $set: { 
+                createdAt: new Date(),
+                lastLoginAt: new Date(),
+                updatedAt: new Date()
+              } 
+            }
+          );
+        } catch (error) {
+          console.error('Failed to set createdAt:', error);
+        }
+      }
     },
     async linkAccount({ user, account }) {
       console.log(`[SECURITY] Account linked: ${user.email} to ${account?.provider}`);

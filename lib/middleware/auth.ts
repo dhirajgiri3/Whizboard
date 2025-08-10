@@ -61,7 +61,10 @@ export async function authMiddleware(request: NextRequest) {
       secret: process.env.NEXTAUTH_SECRET 
     });
     
+    // Middleware runs on the Edge runtime. Avoid any Node-only libraries here.
+    // Determine authentication strictly from the presence of a valid JWT.
     const isAuthenticated = !!token;
+    
     const currentRoute = getRouteAccessLevel(pathname);
     
     // Handle route access based on authentication status

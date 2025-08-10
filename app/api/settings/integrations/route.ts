@@ -26,7 +26,6 @@ export async function GET() {
     const payload = {
       googleDrive: has('googleDrive'),
       slack: has('slack'),
-      figma: has('figma'),
     };
     logger.info({ userEmail, ...payload }, 'Integrations status fetched');
     return NextResponse.json(payload);
@@ -46,7 +45,7 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json();
     const entries = Object.entries(body) as Array<[
-      'googleDrive' | 'slack' | 'figma',
+      'googleDrive' | 'slack',
       boolean
     ]>;
     if (entries.length !== 1) {
@@ -58,7 +57,6 @@ export async function PUT(request: NextRequest) {
     const providerToStartPath: Record<typeof service, string> = {
       slack: '/api/integrations/slack/auth/start',
       googleDrive: '/api/integrations/google-drive/auth/start',
-      figma: '/api/integrations/figma/auth/start',
     } as const;
 
     if (enable) {

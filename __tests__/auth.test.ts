@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { NextRequest } from 'next/server';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import authOptions from '@/lib/auth/options';
 import { AuthMiddleware } from '@/lib/middleware/auth';
 import { getSecurityConfig, validateSecurityConfig } from '@/lib/config/security';
 import { getToken } from 'next-auth/jwt';

@@ -126,8 +126,8 @@ const Header = () => {
         }}
       >
         <motion.div 
-          className={`${headerBg} rounded-full border`} 
-          style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}
+          className={`${headerBg} backdrop-blur-enhanced rounded-full border ${!isLightMode ? 'dark' : ''}`} 
+          style={{ backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)' }}
           animate={{
             backgroundColor: isLightMode 
               ? 'rgba(255, 255, 255, 0.8)' 
@@ -280,8 +280,8 @@ const Header = () => {
         }}
       >
         <motion.div 
-          className={`${mobileHeaderBg} border-b`} 
-          style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}
+          className={`${mobileHeaderBg} backdrop-blur-enhanced border-b ${!isLightMode ? 'dark' : ''}`} 
+          style={{ backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)' }}
           animate={{
             backgroundColor: isLightMode 
               ? 'rgba(255, 255, 255, 0.9)' 

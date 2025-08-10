@@ -116,7 +116,6 @@ const ContactSupport = () => {
           className="mt-12 sm:mt-16 text-center"
         >
           <div className="inline-flex items-center space-x-2 sm:space-x-3 bg-white/[0.03] border border-white/[0.08] rounded-full px-4 sm:px-6 py-2 sm:py-3 backdrop-blur-sm">
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-400 rounded-full animate-pulse"></div>
             <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-400" />
             <span className="text-white/70 text-xs sm:text-sm font-medium">Average response time: 2 hours</span>
           </div>

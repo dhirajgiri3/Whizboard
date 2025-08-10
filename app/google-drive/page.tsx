@@ -256,7 +256,7 @@ export default function GoogleDrivePage() {
 
   return (
     <div className="min-h-screen py-12">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
         <BackButton 
           variant="dark" 
           position="relative"

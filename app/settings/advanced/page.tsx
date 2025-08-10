@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-// Theme customization removed
-import { IntegrationsManager } from '@/components/ui/IntegrationsManager';
 import { useOffline } from '@/hooks/useOffline';
 import { useSession } from 'next-auth/react';
 import {
@@ -16,7 +14,6 @@ import {
   Database,
   Cloud,
   RefreshCw,
-  Share2,
   HardDrive,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -35,7 +32,6 @@ interface StorageInfo {
 interface DataExportOptions {
   includeBoards: boolean;
   includeSettings: boolean;
-  includeIntegrations: boolean;
   includeHistory: boolean;
   format: 'json' | 'zip';
 }
@@ -49,8 +45,6 @@ export default function AdvancedSettingsPage() {
     syncPendingChanges,
     clearOfflineData,
   } = useOffline();
-  // Theme customization removed
-  const [isIntegrationsOpen, setIsIntegrationsOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   // Data management states
@@ -65,7 +59,6 @@ export default function AdvancedSettingsPage() {
   const [exportOptions, setExportOptions] = useState<DataExportOptions>({
     includeBoards: true,
     includeSettings: true,
-    includeIntegrations: true,
     includeHistory: false,
     format: 'json',
   });
@@ -150,7 +143,7 @@ export default function AdvancedSettingsPage() {
     setIsImporting(true);
     try {
       console.log('Starting import, session status:', status, 'session:', !!session);
-      
+
       if (!file.name.endsWith('.json')) {
         throw new Error('Please select a JSON (.json) export file');
       }
@@ -164,7 +157,7 @@ export default function AdvancedSettingsPage() {
       console.log('Import successful, reloading storage info');
       await loadStorageInfo();
       setShowImportModal(false);
-      toast.success(`Imported: ${result.importedBoards} boards, ${result.importedSettings} settings, ${result.importedIntegrations} integrations${result.importedHistory ? ", history included" : ''}.`);
+      toast.success(`Imported: ${result.importedBoards} boards, ${result.importedSettings} settings${result.importedHistory ? ", history included" : ''}.`);
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Import failed';
       console.error('Import error:', e);
@@ -238,9 +231,9 @@ export default function AdvancedSettingsPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-[var(--deep-canvas)] pb-16">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <BackButton 
-          variant="dark" 
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-28">
+        <BackButton
+          variant="dark"
           position="relative"
           size="md"
           label="Back to Settings"
@@ -252,7 +245,7 @@ export default function AdvancedSettingsPage() {
       <div className="absolute bottom-1/3 right-1/4 w-60 h-60 gradient-orb-blue" />
 
       {/* Header */}
-      <section className="relative z-10 pt-20 sm:pt-24 pb-10">
+      <section className="relative z-10 pb-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="space-y-4">
             <div className="inline-flex items-center space-x-2 bg-white/[0.03] border border-white/[0.08] rounded-full px-4 py-2 backdrop-blur-sm">
@@ -261,7 +254,7 @@ export default function AdvancedSettingsPage() {
             </div>
             <h1 className="headline-lg text-white">Power tools, simplified</h1>
             <p className="body-base text-white/70 max-w-2xl mx-auto">
-              Configure offline, theme, integrations, and data—without the clutter.
+              Configure offline support and data management—without the clutter.
             </p>
           </motion.div>
         </div>
@@ -337,27 +330,7 @@ export default function AdvancedSettingsPage() {
               </div>
             </SectionCard>
 
-            {/* Theme & Appearance removed */}
 
-            {/* Integrations */}
-            <SectionCard>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="inline-flex p-3 rounded-xl bg-blue-600/10 border border-blue-600/20">
-                  <Share2 className="w-6 h-6 text-blue-400" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-white">Integrations</h2>
-                  <p className="text-white/60 text-sm">Connect with external services</p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <p className="text-white/70 text-sm">Connect WhizBoard with your favorite tools for a smoother workflow.</p>
-                <PrimaryButton onClick={() => setIsIntegrationsOpen(true)}>
-                  <Share2 className="w-4 h-4" /> Manage Integrations
-                </PrimaryButton>
-              </div>
-            </SectionCard>
 
             {/* Data Management */}
             <SectionCard>
@@ -398,12 +371,12 @@ export default function AdvancedSettingsPage() {
                 {/* Actions */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
-                  <PrimaryButton onClick={() => setShowExportModal(true)}>
-                    <Download className="w-4 h-4" /> Export All Data
-                  </PrimaryButton>
-                  <GhostButton onClick={() => setShowImportModal(true)}>
-                    <Upload className="w-4 h-4" /> Import Data
-                  </GhostButton>
+                    <PrimaryButton onClick={() => setShowExportModal(true)}>
+                      <Upload className="w-4 h-4" /> Export All Data
+                    </PrimaryButton>
+                    <GhostButton onClick={() => setShowImportModal(true)}>
+                      <Download className="w-4 h-4" /> Import Data
+                    </GhostButton>
                   </div>
                   <button
                     onClick={() => setShowClearConfirm(true)}
@@ -419,8 +392,6 @@ export default function AdvancedSettingsPage() {
       </section>
 
       {/* Modals */}
-      {/* ThemeCustomizer removed */}
-      <IntegrationsManager isOpen={isIntegrationsOpen} onClose={() => setIsIntegrationsOpen(false)} />
 
       {/* Export Modal */}
       <AnimatePresence>
@@ -456,15 +427,6 @@ export default function AdvancedSettingsPage() {
                   <label className="flex items-center gap-3">
                     <input
                       type="checkbox"
-                      checked={exportOptions.includeIntegrations}
-                      onChange={(e) => setExportOptions({ ...exportOptions, includeIntegrations: e.target.checked })}
-                      className="rounded border-white/20 bg-white/5"
-                    />
-                    <span className="text-white/90">Include Integrations</span>
-                  </label>
-                  <label className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
                       checked={exportOptions.includeHistory}
                       onChange={(e) => setExportOptions({ ...exportOptions, includeHistory: e.target.checked })}
                       className="rounded border-white/20 bg-white/5"
@@ -476,7 +438,7 @@ export default function AdvancedSettingsPage() {
                   <label className="block text-sm font-medium text-white/90 mb-2">Format</label>
                   <select
                     value={'json'}
-                    onChange={() => {}}
+                    onChange={() => { }}
                     className="w-full px-3 py-2 bg-white/[0.05] border border-white/[0.1] rounded-lg text-white"
                   >
                     <option value="json">JSON</option>

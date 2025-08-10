@@ -36,6 +36,15 @@ export interface WelcomeEmailData {
   boardName?: string;
 }
 
+export interface WorkspaceInvitationEmailData {
+  workspaceName: string;
+  inviterName: string;
+  inviterEmail: string;
+  inviteeEmail: string;
+  invitationToken: string;
+  role: string;
+}
+
 export interface CollaboratorNotificationData {
   boardId: string;
   boardName: string;
@@ -744,6 +753,120 @@ WhizBoard Team`,
                     <li>Instant synchronization across all devices</li>
                     <li>Collaborative history and undo/redo</li>
                   </ul>
+                </div>
+              </div>
+              
+              <div class="footer">
+                <p class="logo">WhizBoard</p>
+                <p>&copy; 2025 WhizBoard. All rights reserved.</p>
+                <p>Empowering teams through visual collaboration</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+  }
+
+  public static async sendWorkspaceInvitationEmail(data: WorkspaceInvitationEmailData): Promise<boolean> {
+    if (!this.isConfigured()) {
+      logger.warn('SendGrid not configured, skipping workspace invitation email');
+      return false;
+    }
+
+    try {
+      const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'noreply@whizboard.com';
+      
+      const msg = {
+        to: data.inviteeEmail,
+        from: {
+          email: fromEmail,
+          name: 'WhizBoard Team'
+        },
+        subject: `🚀 ${data.inviterName} invited you to join "${data.workspaceName}" workspace`,
+        html: this.generateWorkspaceInvitationEmailHtml(data),
+        text: `${data.inviterName} has invited you to join the "${data.workspaceName}" workspace on WhizBoard as a ${data.role}.
+
+Accept invitation: ${this.getBaseUrl()}/workspace/invite?token=${data.invitationToken}&email=${encodeURIComponent(data.inviteeEmail)}
+
+---
+WhizBoard Team
+Real-time collaborative whiteboard for teams`,
+        trackingSettings: {
+          clickTracking: { enable: false },
+          openTracking: { enable: false },
+        },
+      };
+
+      await sgMail.send(msg);
+      logger.info(`Workspace invitation email sent to ${data.inviteeEmail} for workspace ${data.workspaceName}`);
+      return true;
+
+    } catch (error) {
+      logger.error('Failed to send workspace invitation email:', error);
+      return false;
+    }
+  }
+
+  private static generateWorkspaceInvitationEmailHtml(data: WorkspaceInvitationEmailData): string {
+    const { workspaceName, inviterName, inviteeEmail, invitationToken, role } = data;
+
+    const baseUrl = this.getBaseUrl();
+    const invitationUrl = `${baseUrl}/workspace/invite?token=${invitationToken}&email=${encodeURIComponent(inviteeEmail)}`;
+    const declineUrl = `${baseUrl}/api/workspace/invite/decline?token=${invitationToken}&email=${encodeURIComponent(inviteeEmail)}`;
+    
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Workspace Invitation - WhizBoard</title>
+          ${this.getEmailStyles()}
+        </head>
+        <body>
+          <div class="email-container">
+            <div class="email-content">
+              <div class="header">
+                <h1>🚀 You're Invited to Join a Workspace!</h1>
+                <p style="color: #64748b; font-size: 16px; margin-bottom: 30px;">
+                  <strong>${inviterName}</strong> has invited you to join the <strong>"${workspaceName}"</strong> workspace on WhizBoard as a <strong>${role}</strong>.
+                </p>
+                
+                <div class="invitation-card">
+                  <div class="board-info">
+                    <div class="board-icon">🏢</div>
+                    <div>
+                      <h3 style="margin: 0; color: #1e293b; font-size: 18px;">${workspaceName}</h3>
+                      <p style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;">
+                        Role: ${role.charAt(0).toUpperCase() + role.slice(1)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="features-section">
+                  <h3 style="color: #1e293b; margin-bottom: 15px;">What you'll get access to:</h3>
+                  <ul style="color: #16a34a; margin: 0; padding-left: 20px;">
+                    <li>Collaborate with team members in real-time</li>
+                    <li>Create and manage unlimited boards</li>
+                    <li>Share ideas with powerful drawing tools</li>
+                    <li>Access workspace-wide resources and templates</li>
+                  </ul>
+                </div>
+                
+                <div class="cta-section">
+                  <a href="${invitationUrl}" class="cta-button" style="color: white; text-decoration: none;">
+                    🚀 Accept Invitation & Join Workspace
+                  </a>
+                  <a href="${declineUrl}" class="secondary-cta" style="color: #667eea; text-decoration: none;">
+                    Decline Invitation
+                  </a>
+                </div>
+
+                <div class="alternative-link">
+                  <p><strong>Having trouble with the buttons?</strong> Copy and paste this link into your browser:</p>
+                  <code>${invitationUrl}</code>
                 </div>
               </div>
               

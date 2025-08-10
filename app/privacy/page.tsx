@@ -10,18 +10,14 @@ import {
   FileText,
   Calendar,
   Mail,
-  Phone,
-  MapPin,
   ArrowRight,
   CheckCircle,
-  AlertTriangle,
   Users,
   Database,
   Globe,
   Cookie,
   Settings,
   Download,
-  ExternalLink,
 } from "lucide-react";
 import BackButton from "@/components/ui/BackButton";
 
@@ -445,94 +441,108 @@ const privacySections = [
 
 export default function PrivacyPage() {
   const [activeSection, setActiveSection] = useState<string>("overview");
+  const handleTocClick = (id: string) => {
+    setActiveSection(id);
+    if (typeof window !== "undefined") {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 max-w-6xl pt-6">
-        <BackButton 
-          variant="light"
-          position="relative"
-          size="md"
-          label="Back to Home"
-        />
+    <div className="relative min-h-screen bg-[#0A0A0B] text-white overflow-hidden">
+
+      {/* Gradient orbs (blue + neutral only) */}
+      <motion.div
+        className="absolute -top-16 -left-10 w-72 h-72 md:w-96 md:h-96"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(37,99,235,0.38) 0%, rgba(37,99,235,0.12) 50%, transparent 70%)",
+          filter: "blur(38px)",
+        }}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+      />
+      <motion.div
+        className="absolute bottom-24 right-0 w-64 h-64 md:w-80 md:h-80"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(115,115,115,0.20) 0%, rgba(115,115,115,0.06) 50%, transparent 70%)",
+          filter: "blur(48px)",
+        }}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1.2, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+      />
+
+      {/* Top bar with Back */}
+      <div className="container mx-auto px-4 max-w-6xl pt-6 relative z-10">
+        <BackButton variant="dark" position="relative" size="md" label="Back to Home" />
       </div>
-      {/* Hero Section */}
-      <section className="relative pt-20 pb-32 overflow-hidden">
+
+      {/* Hero */}
+      <section className="relative pt-14 pb-12 md:pt-20 md:pb-16">
         <div className="container mx-auto px-4 max-w-6xl relative z-10">
           <motion.div
-            initial={{ opacity: 0, y: 60 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.6, -0.05, 0.01, 0.99] }}
-            className="text-center mb-16"
+            className="text-center mb-8 md:mb-10"
           >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-6"
-            >
-              <Shield className="w-4 h-4" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/90 text-sm font-medium mb-6">
+              <Shield className="w-4 h-4 text-blue-400" />
               Privacy & Security
-            </motion.div>
-            
-            <h1 className="text-5xl lg:text-6xl font-bold text-slate-800 mb-6 leading-tight">
-              Privacy{" "}
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Policy
-              </span>
-            </h1>
-            
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto mb-12 leading-relaxed">
-              We're committed to protecting your privacy and being transparent about how we collect, 
-              use, and safeguard your information when you use WhizBoard.
+            </div>
+
+            <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight">Privacy Policy</h1>
+
+            <p className="text-white/70 max-w-3xl mx-auto mt-3">
+              We're committed to protecting your privacy and being transparent about how we collect and use your information.
             </p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-            >
-              <div className="flex items-center gap-2 text-slate-600">
-                <Calendar className="w-4 h-4" />
+            <div className="mt-5 flex flex-col sm:flex-row gap-3 justify-center items-center text-white/70">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-blue-400" />
                 <span className="text-sm">Last updated: January 15, 2024</span>
               </div>
-              <div className="flex items-center gap-2 text-slate-600">
-                <CheckCircle className="w-4 h-4" />
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-400" />
                 <span className="text-sm">GDPR & CCPA Compliant</span>
               </div>
-            </motion.div>
+            </div>
           </motion.div>
         </div>
       </section>
 
       {/* Table of Contents */}
-      <section className="py-12 bg-white">
-        <div className="container mx-auto px-4 max-w-6xl">
+      <section className="py-6 md:py-8">
+        <div className="container mx-auto px-4 max-w-6xl relative z-10">
           <motion.div
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
             variants={fadeInUp}
-            className="bg-slate-50 rounded-2xl p-8"
+            className="rounded-2xl p-6 bg-white/[0.03] border border-white/[0.08]"
           >
-            <h2 className="text-2xl font-bold text-slate-800 mb-6">Table of Contents</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {privacySections.map((section, index) => {
+            <h2 className="text-xl md:text-2xl font-semibold text-white mb-4">Table of Contents</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {privacySections.map((section) => {
                 const Icon = section.icon;
+                const isActive = activeSection === section.id;
                 return (
                   <button
                     key={section.id}
-                    onClick={() => setActiveSection(section.id)}
-                    className={`text-left p-4 rounded-xl transition-all duration-200 ${
-                      activeSection === section.id
-                        ? 'bg-blue-100 border-blue-300'
-                        : 'bg-white hover:bg-slate-100 border-slate-200'
-                    } border`}
+                    onClick={() => handleTocClick(section.id)}
+                    className={`text-left p-4 rounded-xl transition-all duration-200 border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      isActive
+                        ? "bg-blue-600/15 border-blue-500/30"
+                        : "bg-white/[0.02] hover:bg-white/[0.05] border-white/[0.08]"
+                    }`}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon className="w-5 h-5 text-blue-600" />
-                      <span className="font-medium text-slate-800">{section.title}</span>
+                      <Icon className="w-5 h-5 text-blue-400" />
+                      <span className="font-medium text-white/90">{section.title}</span>
                     </div>
                   </button>
                 );
@@ -542,34 +552,29 @@ export default function PrivacyPage() {
         </div>
       </section>
 
-      {/* Privacy Policy Content */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4 max-w-4xl">
+      {/* Content */}
+      <section className="py-10 md:py-14">
+        <div className="container mx-auto px-4 max-w-4xl relative z-10">
           <motion.div
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="space-y-16"
+            className="space-y-10 md:space-y-12"
           >
-            {privacySections.map((section, index) => {
+            {privacySections.map((section) => {
               const Icon = section.icon;
               return (
-                <motion.div
-                  key={section.id}
-                  variants={fadeInUp}
-                  id={section.id}
-                  className="scroll-mt-20"
-                >
-                  <div className="flex items-center gap-4 mb-8">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                      <Icon className="w-6 h-6 text-white" />
+                <motion.div key={section.id} variants={fadeInUp} id={section.id} className="scroll-mt-24">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-blue-600/15 border border-blue-500/30 flex items-center justify-center">
+                      <Icon className="w-6 h-6 text-blue-300" />
                     </div>
-                    <h2 className="text-3xl font-bold text-slate-800">{section.title}</h2>
+                    <h2 className="text-2xl font-semibold text-white">{section.title}</h2>
                   </div>
-                  
-                  <div 
-                    className="prose prose-slate max-w-none"
+
+                  <div
+                    className="prose prose-invert max-w-none prose-headings:text-white prose-a:text-blue-400 prose-strong:text-white prose-li:marker:text-white/50"
                     dangerouslySetInnerHTML={{ __html: section.content }}
                   />
                 </motion.div>
@@ -579,9 +584,9 @@ export default function PrivacyPage() {
         </div>
       </section>
 
-      {/* Download and Contact */}
-      <section className="py-20 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        <div className="container mx-auto px-4 max-w-4xl">
+      {/* CTA */}
+      <section className="pb-12 md:pb-16">
+        <div className="container mx-auto px-4 max-w-4xl relative z-10">
           <motion.div
             initial="initial"
             whileInView="animate"
@@ -589,41 +594,31 @@ export default function PrivacyPage() {
             variants={fadeInUp}
             className="text-center"
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-6">
-              Questions About Privacy?
-            </h2>
-            <p className="text-xl text-slate-600 mb-12">
-              We're here to help with any privacy-related questions or concerns.
-            </p>
+            <h2 className="text-3xl font-bold text-white mb-3">Questions About Privacy?</h2>
+            <p className="text-white/70 mb-8">We're here to help with any privacy-related questions or concerns.</p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="grid md:grid-cols-2 gap-6"
-            >
+            <div className="grid md:grid-cols-2 gap-4">
               <Link
                 href="/contact"
-                className="group bg-white rounded-xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                className="group rounded-xl p-6 bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] hover:border-white/[0.12] transition-all duration-300"
               >
-                <Mail className="w-8 h-8 text-blue-600 mb-4" />
-                <h3 className="font-bold text-slate-800 mb-2">Contact Privacy Team</h3>
-                <p className="text-slate-600 text-sm mb-4">Get in touch with our privacy experts</p>
-                <span className="text-blue-600 font-medium text-sm group-hover:text-blue-700 transition-colors">
-                  Send Message →
+                <Mail className="w-8 h-8 text-blue-400 mb-4" />
+                <h3 className="font-semibold text-white mb-2">Contact Privacy Team</h3>
+                <p className="text-white/70 text-sm mb-4">Get in touch with our privacy experts</p>
+                <span className="text-blue-400 font-medium text-sm group-hover:text-blue-300 transition-colors inline-flex items-center gap-1">
+                  Send Message <ArrowRight className="w-4 h-4" />
                 </span>
               </Link>
 
-              <button className="group bg-white rounded-xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <Download className="w-8 h-8 text-blue-600 mb-4" />
-                <h3 className="font-bold text-slate-800 mb-2">Download Policy</h3>
-                <p className="text-slate-600 text-sm mb-4">Get a PDF copy of this privacy policy</p>
-                <span className="text-blue-600 font-medium text-sm group-hover:text-blue-700 transition-colors">
-                  Download PDF →
+              <button className="group rounded-xl p-6 text-left bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] hover:border-white/[0.12] transition-all duration-300">
+                <Download className="w-8 h-8 text-blue-400 mb-4" />
+                <h3 className="font-semibold text-white mb-2">Download Policy</h3>
+                <p className="text-white/70 text-sm mb-4">Get a PDF copy of this privacy policy</p>
+                <span className="text-blue-400 font-medium text-sm group-hover:text-blue-300 transition-colors inline-flex items-center gap-1">
+                  Download PDF <ArrowRight className="w-4 h-4" />
                 </span>
               </button>
-            </motion.div>
+            </div>
           </motion.div>
         </div>
       </section>

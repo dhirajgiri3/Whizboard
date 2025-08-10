@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { createYoga } from 'graphql-yoga';
 import { decode } from 'next-auth/jwt';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import authOptions from '@/lib/auth/options';
 
 // Mock NextAuth
 vi.mock('next-auth/jwt', () => ({

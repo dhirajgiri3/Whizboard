@@ -11,7 +11,39 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Handle image upload only (no description)
+    const contentType = request.headers.get('content-type') || '';
+
+    // Branch 1: JSON body for profile text fields (name, bio, imageDescription)
+    if (contentType.includes('application/json')) {
+      const body = await request.json();
+      const update: Record<string, any> = { updatedAt: new Date() };
+
+      if (typeof body.name === 'string') update.name = body.name.trim();
+      if (typeof body.bio === 'string') update.bio = body.bio.trim();
+      if (typeof body.username === 'string') update.username = body.username.trim().toLowerCase();
+      if (typeof body.isPublicProfile === 'boolean') update.isPublicProfile = body.isPublicProfile;
+      // Support legacy imageDescription field for backward compatibility
+      if (typeof body.imageDescription === 'string') update.imageDescription = body.imageDescription.trim();
+
+      if (Object.keys(update).length === 1) {
+        // Only updatedAt present → nothing to update
+        return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
+      }
+
+      const db = await connectToDatabase();
+      const result = await db.collection('users').updateOne(
+        { email: session.user.email },
+        { $set: update }
+      );
+
+      if (result.matchedCount === 0) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+
+      return NextResponse.json({ success: true });
+    }
+
+    // Branch 2: multipart/form-data for image upload
     const formData = await request.formData();
     const image = formData.get('image') as File | null;
 
@@ -33,14 +65,6 @@ export async function PUT(request: NextRequest) {
     // Upload to Cloudinary
     const arrayBuffer = await image.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const uploadResult = await cloudinary.uploader.upload_stream({
-      folder: 'whizboard/profile',
-      resource_type: 'image',
-      overwrite: true,
-      invalidate: true,
-    }, async (error, result) => {
-      // This callback form requires wrapping in a Promise; we handle below
-    });
     // Wrap upload_stream in a Promise
     const cloudinaryUpload = () => new Promise<any>((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
@@ -79,9 +103,9 @@ export async function PUT(request: NextRequest) {
       image: imageUrl,
     });
   } catch (error: any) {
-    console.error('Profile image update error:', error);
+    console.error('Profile update error:', error);
     return NextResponse.json(
-      { error: 'Failed to update profile image' },
+      { error: 'Failed to update profile' },
       { status: 500 }
     );
   }
@@ -97,11 +121,11 @@ export async function GET(request: NextRequest) {
     // Connect to database
     const db = await connectToDatabase();
 
-    // Get user profile data
-    const user = await db.collection('users').findOne(
-      { email: session.user.email },
-      { projection: { image: 1, name: 1, email: 1 } }
-    );
+  // Get user profile data
+  const user = await db.collection('users').findOne(
+    { email: session.user.email },
+    { projection: { image: 1, name: 1, email: 1, bio: 1, imageDescription: 1, createdAt: 1, lastLoginAt: 1, username: 1, isPublicProfile: 1 } }
+  );
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -113,6 +137,12 @@ export async function GET(request: NextRequest) {
         image: (user as any).image || null,
         name: (user as any).name,
         email: (user as any).email,
+        bio: (user as any).bio || '',
+        imageDescription: (user as any).imageDescription || '',
+        createdAt: (user as any).createdAt || null,
+        lastLoginAt: (user as any).lastLoginAt || null,
+        username: (user as any).username || null,
+        isPublicProfile: (user as any).isPublicProfile !== false, // Default to true
       },
     });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { X, Mail, Send, Users, AlertCircle, CheckCircle, Copy, Clock, UserCheck, UserX, Sparkles, Link, Loader2 } from 'lucide-react';
+import { X, Mail, Send, Users, AlertCircle, CheckCircle, Copy, Clock, UserCheck, UserX, Link, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
 import { useBoardContext } from '@/lib/context/BoardContext';
@@ -107,9 +107,6 @@ export default function InviteCollaboratorsModal({
       
       console.log('Valid invitations after filtering:', validInvitations);
       setPendingInvitations(validInvitations as PendingInvitation[]);
-    } else {
-      // no else
-      }
     } catch (error) {
       console.error('Error fetching invitations:', error);
     }
@@ -194,13 +191,13 @@ export default function InviteCollaboratorsModal({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'bg-amber-50 text-amber-700 border-amber-200 ring-amber-100';
+        return 'bg-amber-500/10 text-amber-300 border-amber-500/20';
       case 'accepted':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200 ring-emerald-100';
+        return 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20';
       case 'declined':
-        return 'bg-rose-50 text-rose-700 border-rose-200 ring-rose-100';
+        return 'bg-rose-500/10 text-rose-300 border-rose-500/20';
       default:
-        return 'bg-slate-50 text-slate-700 border-slate-200 ring-slate-100';
+        return 'bg-white/5 text-white/70 border-white/10';
     }
   };
 
@@ -288,79 +285,63 @@ export default function InviteCollaboratorsModal({
 
   return (
     <>
-      {/* Backdrop with blur effect */}
-      <div 
-        className={`fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 ${
-          showAnimation ? 'opacity-100' : 'opacity-0'
-        }`}
+      {/* Backdrop */}
+      <div
+        className={`fixed inset-0 z-[1050] bg-black/70 backdrop-blur-sm transition-opacity duration-300 ${showAnimation ? 'opacity-100' : 'opacity-0'}`}
         onClick={onCloseAction}
       />
-      
+
       {/* Modal container */}
-      <div className={`fixed inset-0 z-50 flex items-center justify-center ${isSmallScreen ? 'p-2' : 'p-4'}`}>
-        <div 
-          className={`bg-white rounded-3xl shadow-2xl border border-slate-200 w-full overflow-hidden transform transition-all duration-300 ${
-            // Responsive sizing
+      <div className={`fixed inset-0 z-[1060] flex items-center justify-center ${isSmallScreen ? 'p-2' : 'p-4'}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="invite-modal-title"
+      >
+        <div
+          className={`relative w-full overflow-hidden rounded-2xl border border-white/10 bg-[#111111] shadow-2xl transform transition-all duration-300 ${
             isSmallScreen ? 'max-w-sm max-h-[95vh]' : 'max-w-2xl max-h-[90vh]'
-          } ${
-            showAnimation ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
-          }`}
+          } ${showAnimation ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Gradient header */}
-          <div className={`relative bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white ${isSmallScreen ? 'px-4 py-4' : 'px-8 py-6'}`}>
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/90 via-blue-700/90 to-indigo-700/90" />
-            <div className="relative flex items-center justify-between">
-              <div className={`flex items-center ${isSmallScreen ? 'space-x-2' : 'space-x-4'}`}>
-                <div className={`bg-white/20 rounded-2xl backdrop-blur-sm ${isSmallScreen ? 'p-2' : 'p-3'}`}>
-                  <Users className={`text-white ${isSmallScreen ? 'w-5 h-5' : 'w-7 h-7'}`} />
-                </div>
-                <div>
-                  <h2 className={`font-bold text-white ${isSmallScreen ? 'text-lg' : 'text-2xl'}`}>
-                    {isSmallScreen ? 'Invite' : 'Invite Collaborators'}
-                  </h2>
-                  <p className={`text-blue-100 font-medium mt-1 ${isSmallScreen ? 'text-xs' : 'text-sm'}`}>
-                    {isSmallScreen && boardName.length > 20 ? `${boardName.substring(0, 20)}...` : boardName}
-                  </p>
-                </div>
+          {/* Header */}
+          <div className={`flex items-center justify-between px-5 ${isSmallScreen ? 'py-4' : 'py-5'} border-b border-white/10`}> 
+            <div className="flex items-center gap-3">
+              <div className="inline-flex p-2 rounded-xl bg-white/10 border border-white/15" aria-hidden="true">
+                <Users className="w-5 h-5 text-white/80" />
               </div>
-              <button
-                onClick={onCloseAction}
-                className={`hover:bg-white/20 rounded-xl transition-all duration-200 hover:scale-105 ${isSmallScreen ? 'p-1.5' : 'p-2'} ${isMobile ? 'touch-manipulation' : ''}`}
-              >
-                <X className={`text-white ${isSmallScreen ? 'w-5 h-5' : 'w-6 h-6'}`} />
-              </button>
+              <div>
+                <h2 id="invite-modal-title" className={`text-white font-semibold ${isSmallScreen ? 'text-base' : 'text-lg'}`}>Invite Collaborators</h2>
+                <p className={`text-white/50 ${isSmallScreen ? 'text-xs' : 'text-sm'}`}>{boardName}</p>
+              </div>
             </div>
-            {/* Decorative elements */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16" />
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12" />
+            <button
+              onClick={onCloseAction}
+              className={`w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 grid place-items-center transition-colors ${isMobile ? 'touch-manipulation' : ''}`}
+              aria-label="Close"
+            >
+              <X className="w-4 h-4 text-white/80" />
+            </button>
           </div>
 
-          <div className={`overflow-y-auto custom-scrollbar ${isSmallScreen ? 'px-4 py-4 max-h-[calc(95vh-120px)]' : 'px-8 py-6 max-h-[calc(90vh-160px)]'}`}>
+          <div className={`overflow-y-auto custom-scrollbar ${isSmallScreen ? 'px-4 py-4 max-h-[calc(95vh-120px)]' : 'px-6 py-6 max-h-[calc(90vh-160px)]'}`}>
             {showSuccess ? (
-              // Enhanced Success State
-              <div className="text-center py-12">
-                <div className="relative mb-8">
-                  <div className="w-20 h-20 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-lg">
-                    <CheckCircle className="w-10 h-10 text-white" />
-                  </div>
-                  <div className="absolute -inset-4 bg-emerald-100 rounded-full opacity-30 animate-ping" />
+              // Success State (dark)
+              <div className="text-center py-10">
+                <div className="w-16 h-16 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-8 h-8 text-emerald-300" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">Invitation Sent!</h3>
-                <p className="text-slate-600 mb-8 text-lg">
-                  We&apos;ve sent an invitation to <span className="font-semibold text-blue-700">{lastInvitedEmail}</span>
-                </p>
-                <div className="flex gap-4 justify-center">
+                <h3 className="text-white text-xl font-semibold mb-2">Invitation Sent</h3>
+                <p className="text-white/70 mb-6">We sent an invite to <span className="text-white">{lastInvitedEmail}</span></p>
+                <div className="flex gap-3 justify-center">
                   <button
                     onClick={() => setShowSuccess(false)}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2"
+                    className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
                   >
-                    <Sparkles className="w-4 h-4" />
-                    <span>Send Another</span>
+                    Send Another
                   </button>
                   <button
                     onClick={onCloseAction}
-                    className="px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium"
+                    className="px-5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-sm border border-white/10 transition-colors"
                   >
                     Done
                   </button>
@@ -368,14 +349,14 @@ export default function InviteCollaboratorsModal({
               </div>
             ) : (
               <>
-                {/* Enhanced Invitation Form */}
+                {/* Invitation Form */}
                 <form onSubmit={handleInvite} className="space-y-6 mb-8">
                   <div className="space-y-2">
-                    <label htmlFor="email" className="block text-sm font-semibold text-slate-700">
+                    <label htmlFor="email" className="block text-sm font-medium text-white/90">
                       Email Address
                     </label>
                     <div className="relative group">
-                      <Mail className={`absolute top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors duration-200 ${
+                      <Mail className={`absolute top-1/2 transform -translate-y-1/2 text-white/40 group-focus-within:text-blue-400 transition-colors duration-200 ${
                         isSmallScreen ? 'left-3 w-4 h-4' : 'left-4 w-5 h-5'
                       }`} />
                       <input
@@ -392,7 +373,7 @@ export default function InviteCollaboratorsModal({
                           e.stopPropagation();
                         }}
                         placeholder="Enter collaborator's email"
-                        className={`w-full pr-4 border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 bg-slate-50 focus:bg-white text-slate-900 placeholder-slate-500 ${
+                        className={`w-full pr-4 rounded-xl bg-white/[0.05] text-white placeholder-white/40 ring-1 ring-white/10 focus:ring-2 focus:ring-blue-500 hover:bg-white/[0.08] transition-all duration-200 ${
                           isSmallScreen ? 'pl-10 py-3 text-sm' : 'pl-12 py-4'
                         } ${isMobile ? 'touch-manipulation' : ''}`}
                         disabled={isInviting}
@@ -401,8 +382,8 @@ export default function InviteCollaboratorsModal({
                   </div>
 
                   <div className="space-y-2">
-                    <label htmlFor="message" className="block text-sm font-semibold text-slate-700">
-                      Personal Message <span className="text-slate-400 font-normal">(Optional)</span>
+                    <label htmlFor="message" className="block text-sm font-medium text-white/90">
+                      Personal Message <span className="text-white/40 font-normal">(Optional)</span>
                     </label>
                     <textarea
                       id="message"
@@ -418,7 +399,7 @@ export default function InviteCollaboratorsModal({
                       }}
                       placeholder="Add a personal message to your invitation..."
                       rows={isSmallScreen ? 2 : 3}
-                      className={`w-full border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 resize-none bg-slate-50 focus:bg-white text-slate-900 placeholder-slate-500 ${
+                      className={`w-full rounded-xl bg-white/[0.05] text-white placeholder-white/40 ring-1 ring-white/10 focus:ring-2 focus:ring-blue-500 hover:bg-white/[0.08] transition-all duration-200 resize-none ${
                         isSmallScreen ? 'px-3 py-3 text-sm' : 'px-4 py-4'
                       } ${isMobile ? 'touch-manipulation' : ''}`}
                       disabled={isInviting}
@@ -429,14 +410,14 @@ export default function InviteCollaboratorsModal({
                   <button
                     type="submit"
                     disabled={isInviting || !email.trim()}
-                    className={`w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-semibold flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:transform-none ${
+                    className={`w-full rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed ${
                       isSmallScreen ? 'py-3 px-4' : 'py-4 px-6'
                     } ${isMobile ? 'touch-manipulation' : ''}`}
                   >
                     {isInviting ? (
                       <>
                         <Loader2 className="animate-spin w-5 h-5 mr-3" />
-                        Sending Invitation...
+                        Sending invitation…
                       </>
                     ) : (
                       <>
@@ -447,44 +428,41 @@ export default function InviteCollaboratorsModal({
                   </button>
                 </form>
 
-                {/* Enhanced Share Link Section */}
-                <div className="border-t-2 border-slate-100 pt-8 mb-8">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <Link className="w-5 h-5 text-blue-600" />
-                    <h3 className="text-lg font-semibold text-slate-900">Or share board link</h3>
+                {/* Share Link */}
+                <div className="border-t border-white/10 pt-6 mb-8">
+                  <div className="flex items-center gap-2 mb-3 text-white">
+                    <Link className="w-4 h-4 text-blue-400" />
+                    <h3 className="text-sm font-medium text-white/90">Or share board link</h3>
                   </div>
                   <div className="flex gap-3">
                     <input
                       type="text"
-                      value={`${window.location.origin}/board/${boardId}`}
+                      value={`${typeof window !== 'undefined' ? window.location.origin : ''}/board/${boardId}`}
                       readOnly
-                      className="flex-1 px-4 py-3 border-2 border-slate-200 rounded-xl bg-slate-50 text-sm text-slate-600 font-mono"
+                      className="flex-1 px-4 py-3 rounded-xl bg-white/[0.05] text-white/80 ring-1 ring-white/10 text-sm font-mono"
                     />
                     <button
                       onClick={handleCopyBoardLink}
-                      className="px-4 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-all duration-200 flex items-center space-x-2 font-medium hover:scale-105"
+                      className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/10 transition-colors text-sm"
                     >
                       <Copy className="w-4 h-4" />
-                      <span className="hidden sm:inline">Copy</span>
                     </button>
                   </div>
-                  <div className="flex items-center mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                    <AlertCircle className="w-4 h-4 text-amber-600 mr-2 flex-shrink-0" />
-                    <p className="text-xs text-amber-700">
-                      Anyone with this link can view the board
-                    </p>
+                  <div className="flex items-center mt-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <AlertCircle className="w-4 h-4 text-amber-300 mr-2 flex-shrink-0" />
+                    <p className="text-xs text-amber-200">Anyone with this link can view the board</p>
                   </div>
                 </div>
 
-                {/* Enhanced Pending Invitations */}
+                {/* Pending Invitations */}
                 {(pendingInvitations.length > 0 || isLoading) && (
-                  <div className="border-t-2 border-slate-100 pt-8">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-lg font-semibold text-slate-900 flex items-center space-x-2">
-                        <Clock className="w-5 h-5 text-blue-600" />
-                        <span>Recent Invitations</span>
+                  <div className="border-t border-white/10 pt-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-white/90 text-sm font-medium flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-blue-400" />
+                        Recent Invitations
                         {pendingInvitations.length > 0 && (
-                          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">
+                          <span className="px-2 py-0.5 rounded-full bg-white/10 border border-white/15 text-white/70 text-xs">
                             {pendingInvitations.length}
                           </span>
                         )}
@@ -492,7 +470,7 @@ export default function InviteCollaboratorsModal({
                       <button
                         onClick={fetchPendingInvitations}
                         disabled={isLoading}
-                        className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium flex items-center space-x-1"
+                        className="text-sm text-blue-300 hover:text-blue-200 transition-colors disabled:opacity-50"
                       >
                         {isLoading ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -506,13 +484,13 @@ export default function InviteCollaboratorsModal({
                       <div className="space-y-3">
                         {[1, 2, 3].map((i) => (
                           <div key={i} className="animate-pulse">
-                            <div className="flex items-center space-x-4 p-4 bg-slate-50 rounded-xl">
-                              <div className="w-8 h-8 bg-slate-200 rounded-full" />
+                            <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                              <div className="w-8 h-8 bg-white/[0.08] rounded-full" />
                               <div className="flex-1 space-y-2">
-                                <div className="h-4 bg-slate-200 rounded w-1/3" />
-                                <div className="h-3 bg-slate-200 rounded w-1/2" />
+                                <div className="h-4 bg-white/[0.08] rounded w-1/3" />
+                                <div className="h-3 bg-white/[0.08] rounded w-1/2" />
                               </div>
-                              <div className="h-6 bg-slate-200 rounded w-16" />
+                              <div className="h-6 bg-white/[0.08] rounded w-16" />
                             </div>
                           </div>
                         ))}
@@ -522,38 +500,38 @@ export default function InviteCollaboratorsModal({
                         {pendingInvitations.map((invitation, index) => (
                           <div
                             key={`invitation-${invitation.id || index}-${invitation.inviteeEmail}`}
-                            className="group flex items-center justify-between p-4 bg-white border-2 border-slate-100 rounded-xl shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-200"
+                            className="group flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/[0.12] transition-colors"
                           >
-                            <div className="flex items-center space-x-4 flex-1 min-w-0">
+                            <div className="flex items-center gap-4 flex-1 min-w-0">
                               <div className="flex-shrink-0">
                                 {getStatusIcon(invitation.status)}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-slate-900 truncate">
+                                <p className="text-sm font-semibold text-white truncate">
                                   {invitation.inviteeEmail}
                                 </p>
-                                <p className="text-xs text-slate-500 flex items-center space-x-2">
+                                <p className="text-xs text-white/60 flex items-center gap-2">
                                   <span>Sent {formatRelativeTime(invitation.createdAt)}</span>
                                   {invitation.status === 'pending' && (
                                     <>
-                                      <span>•</span>
+                                      <span className="text-white/30">•</span>
                                       <span>Expires {formatExpiry(invitation.expiresAt)}</span>
                                     </>
                                   )}
                                 </p>
                                 {invitation.message && (
-                                  <p className="text-xs text-slate-400 italic truncate mt-1 bg-slate-50 px-2 py-1 rounded">
+                                  <p className="text-xs text-white/50 italic truncate mt-1 bg-white/[0.04] px-2 py-1 rounded">
                                     &ldquo;{invitation.message}&rdquo;
                                   </p>
                                 )}
                               </div>
                             </div>
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center gap-3">
                               <span className={`text-xs px-3 py-1 rounded-full border font-semibold ${getStatusColor(invitation.status)}`}>
                                 {getStatusText(invitation.status)}
                               </span>
                               {invitation.status === 'pending' && (
-                                <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                   <button
                                     onClick={() => {
                                       navigator.clipboard.writeText(
@@ -561,7 +539,7 @@ export default function InviteCollaboratorsModal({
                                       );
                                       toast.success('Invitation link copied');
                                     }}
-                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                                    className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                                     title="Copy invitation link"
                                   >
                                     <Copy className="w-4 h-4" />
@@ -576,7 +554,7 @@ export default function InviteCollaboratorsModal({
                                         });
                                         handleRevokeInvitation(invitation.id, invitation.inviteeEmail);
                                       }}
-                                      className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all duration-200"
+                                      className="p-2 text-white/60 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors"
                                       title="Revoke invitation"
                                     >
                                       <X className="w-4 h-4" />
@@ -603,15 +581,15 @@ export default function InviteCollaboratorsModal({
           width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f5f9;
+          background: rgba(255,255,255,0.04);
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
+          background: rgba(255,255,255,0.16);
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
+          background: rgba(255,255,255,0.22);
         }
       `}</style>
     </>

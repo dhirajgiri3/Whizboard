@@ -12,7 +12,10 @@
     "test:run": "vitest run",
     "security:audit": "npm audit && npm audit fix",
     "security:check": "snyk test",
-    "security:monitor": "snyk monitor"
+    "security:monitor": "snyk monitor",
+    "migrate:users": "node scripts/migrate-users.js",
+    "migrate:users:dry-run": "node scripts/migrate-users.js --dry-run",
+    "migrate:users:force": "node scripts/migrate-users.js --force"
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",

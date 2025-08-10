@@ -271,9 +271,9 @@ export default function ExportModal({
   ];
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {isOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div key="export-modal" className="fixed inset-0 z-50 overflow-y-auto">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -662,16 +662,25 @@ export default function ExportModal({
                             className="flex-1 px-2 py-2 rounded border border-gray-300 text-sm bg-white"
                           >
                             <option value="">Use default channel</option>
-                            {slackChannels.map((c) => (
-                              <option key={c.id} value={c.id}>#{c.name}</option>
-                            ))}
+                            {slackChannels
+                              .filter((c) => c.id && c.id.trim() !== '') // Filter out empty IDs
+                              .map((c, index) => (
+                                <option key={c.id || `channel-${index}`} value={c.id}>#{c.name}</option>
+                              ))}
                           </select>
                           <button
                             type="button"
                             onClick={async () => {
                               try {
                                 const res = await api.get('/api/integrations/slack/channels');
-                                setSlackChannels(res.data.channels || []);
+                                const channels = res.data.channels || [];
+                                // Filter out channels with empty or invalid IDs and ensure uniqueness
+                                const validChannels = channels
+                                  .filter((c: any) => c && c.id && c.id.trim() !== '' && c.name)
+                                  .filter((c: any, index: number, arr: any[]) => 
+                                    arr.findIndex(ch => ch.id === c.id) === index
+                                  );
+                                setSlackChannels(validChannels);
                               } catch (e) {
                                 // no-op
                               }
@@ -851,6 +860,7 @@ export default function ExportModal({
 
       {/* Google Drive Manager */}
       <GoogleDriveManager
+        key="google-drive-manager"
         isOpen={showGoogleDriveManager}
         onClose={() => setShowGoogleDriveManager(false)}
         onFolderSelect={(folder) => {
@@ -867,6 +877,7 @@ export default function ExportModal({
 
       {/* Google Drive Dashboard */}
       <GoogleDriveDashboard
+        key="google-drive-dashboard"
         isOpen={showGoogleDriveDashboard}
         onClose={() => setShowGoogleDriveDashboard(false)}
       />

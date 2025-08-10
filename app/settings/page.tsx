@@ -4,8 +4,9 @@ import { motion } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 // Using Lucide icons only to align with design preference; remove react-icons dependency
-// import { SiGoogledrive, SiSlack, SiFigma } from 'react-icons/si';
+// import { SiGoogledrive, SiSlack } from 'react-icons/si';
 import {
   User,
   Bell,
@@ -16,11 +17,17 @@ import {
   X,
   Settings,
   ExternalLink,
+  Lock,
+  Bot,
+  Send,
+  RefreshCw,
+  CloudUpload,
+  FolderOpen
 } from "lucide-react";
 import { useSettings } from "@/lib/context/SettingsContext";
 import { useAppContext } from "@/lib/context/AppContext";
 import api from '@/lib/http/axios';
- 
+
 import { toast } from "sonner";
 import BackButton from "@/components/ui/BackButton";
 import Loading, { LoadingOverlay } from "@/components/ui/loading/Loading";
@@ -57,7 +64,7 @@ const TextArea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
 const PrimaryButton = ({ children, className = "", ...rest }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode }) => (
   <button
     {...rest}
-    className={`group relative overflow-hidden bg-blue-600 hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 text-white font-semibold px-5 py-3 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 min-h-[44px] ${className}`}
+    className={`group relative overflow-hidden bg-blue-600 hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 text-white font-semibold px-5 py-3 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-black min-h-[44px] ${className}`}
   >
     <span className="relative z-10 flex items-center justify-center gap-2">{children}</span>
     <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
@@ -105,7 +112,7 @@ const SlackChannelPicker = () => {
 
   const handleSaveChannel = async () => {
     if (!selectedChannel) return;
-    
+
     setIsSaving(true);
     try {
       const channel = channels.find(c => c.id === selectedChannel);
@@ -183,7 +190,7 @@ const SlackChannelPicker = () => {
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
-  const { user, refreshUserProfilePicture } = useAppContext();
+  const { user, setUser, refreshUserProfilePicture } = useAppContext();
   const {
     integrations,
     toggleIntegration,
@@ -198,8 +205,18 @@ export default function SettingsPage() {
   const router = useRouter();
 
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string>("");
+  const [bio, setBio] = useState<string>("");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isDeletingImage, setIsDeletingImage] = useState(false);
+
+  // Integrations helpers (Slack + Drive)
+  const [slackDefaultChannel, setSlackDefaultChannel] = useState<{ id: string; name?: string } | null>(null);
+  const [slackTestMessage, setSlackTestMessage] = useState<string>("This is a test message from WhizBoard");
+  const [isInvitingBot, setIsInvitingBot] = useState(false);
+  const [isSendingTest, setIsSendingTest] = useState(false);
+  const [isTestingDrive, setIsTestingDrive] = useState(false);
 
   // Profile image edit states
   const [isEditingImage, setIsEditingImage] = useState(false);
@@ -211,10 +228,13 @@ export default function SettingsPage() {
     (async () => {
       try {
         const { data } = await api.get('/api/settings/account', { headers: { 'Cache-Control': 'no-store' } });
-        setProfileImageUrl(data?.user?.image || null);
-      } catch {}
+        const account = data?.user || {};
+        setProfileImageUrl(account.image || null);
+        setDisplayName(account.name || user?.name || "");
+        setBio(account.bio || "");
+      } catch { }
     })();
-  }, []);
+  }, [user?.name]);
 
   // Show integration connect result notifications from OAuth callbacks
   useEffect(() => {
@@ -230,7 +250,7 @@ export default function SettingsPage() {
     const svc = searchParams.get('integrations');
     const status = searchParams.get('status');
     if (!svc || !status) return;
-    const name = svc === 'googleDrive' ? 'Google Drive' : svc === 'slack' ? 'Slack' : svc === 'figma' ? 'Figma' : svc;
+    const name = svc === 'googleDrive' ? 'Google Drive' : svc === 'slack' ? 'Slack' : svc;
     if (status === 'connected') {
       toast.success(`${name} connected`);
     } else if (status === 'error') {
@@ -239,6 +259,85 @@ export default function SettingsPage() {
     // Clean URL without query params
     router.replace('/settings');
   }, [searchParams, router]);
+
+  // Load Slack default channel when Integrations tab is active and Slack is connected
+  useEffect(() => {
+    const loadDefault = async () => {
+      try {
+        const { data } = await api.get('/api/settings/integrations/slack-default-channel', { headers: { 'Cache-Control': 'no-store' } });
+        setSlackDefaultChannel(data?.defaultChannel || null);
+      } catch { }
+    };
+    if (activeTab === 'integrations' && integrations.slack) {
+      loadDefault();
+    }
+  }, [activeTab, integrations.slack]);
+
+  const refreshSlackDefault = async () => {
+    try {
+      const { data } = await api.get('/api/settings/integrations/slack-default-channel', { headers: { 'Cache-Control': 'no-store' } });
+      setSlackDefaultChannel(data?.defaultChannel || null);
+      toast.success('Refreshed');
+    } catch {
+      toast.error('Failed to refresh');
+    }
+  };
+
+  const handleInviteBotToDefault = async () => {
+    if (!slackDefaultChannel?.id) {
+      toast.error('Set a default Slack channel first');
+      return;
+    }
+    setIsInvitingBot(true);
+    try {
+      const res = await api.post('/api/integrations/slack/channels', { channelId: slackDefaultChannel.id });
+      if (res.status >= 200 && res.status < 300 && (res.data as any)?.success) {
+        toast.success('Bot invited to channel');
+      } else {
+        toast.error((res.data as any)?.message || 'Failed to invite bot');
+      }
+    } catch {
+      toast.error('Failed to invite bot');
+    } finally {
+      setIsInvitingBot(false);
+    }
+  };
+
+  const handleSendSlackTest = async () => {
+    if (!slackDefaultChannel?.id) {
+      toast.error('Set a default Slack channel first');
+      return;
+    }
+    setIsSendingTest(true);
+    try {
+      const res = await api.post('/api/integrations/slack/post', { channelId: slackDefaultChannel.id, text: slackTestMessage || 'Test from WhizBoard' });
+      if (res.status >= 200 && res.status < 300 && (res.data as any)?.success) {
+        toast.success('Test message sent');
+      } else {
+        toast.error('Failed to send test message');
+      }
+    } catch {
+      toast.error('Failed to send test message');
+    } finally {
+      setIsSendingTest(false);
+    }
+  };
+
+  const handleDriveTestUpload = async () => {
+    setIsTestingDrive(true);
+    try {
+      const res = await api.post('/api/integrations/google-drive/test-upload');
+      if (res.status >= 200 && res.status < 300) {
+        toast.success('Drive test upload initiated');
+      } else {
+        toast.error('Drive test failed');
+      }
+    } catch {
+      toast.error('Drive test failed');
+    } finally {
+      setIsTestingDrive(false);
+    }
+  };
 
   const handleDeleteAccount = async () => {
     if (
@@ -365,7 +464,7 @@ export default function SettingsPage() {
             <h3 className="text-xl font-semibold mb-6 text-white flex items-center gap-2">
               <User className="w-5 h-5 text-blue-400" /> Profile Settings
             </h3>
-            
+
             <div className="space-y-6">
               {/* Profile Image */}
               <div>
@@ -404,7 +503,7 @@ export default function SettingsPage() {
                       </button>
                     )}
                   </div>
-                  
+
                   <div className="flex-1">
                     <input
                       ref={fileInputRef}
@@ -421,7 +520,7 @@ export default function SettingsPage() {
                       <Camera className="w-4 h-4" />
                       {isEditingImage ? 'Change Image' : 'Upload Image'}
                     </label>
-                    
+
                     {isEditingImage && (
                       <div className="mt-2 flex gap-2">
                         <button
@@ -464,7 +563,8 @@ export default function SettingsPage() {
                 <Input
                   type="text"
                   placeholder="Enter your display name"
-                  defaultValue={user?.name || ""}
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
                 />
               </div>
 
@@ -484,14 +584,35 @@ export default function SettingsPage() {
                 <TextArea
                   placeholder="Tell us about yourself..."
                   rows={3}
-                  defaultValue=""
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
                 />
               </div>
 
               <div className="pt-4">
-                <PrimaryButton className="w-full sm:w-auto">
+                <PrimaryButton
+                  onClick={async () => {
+                    try {
+                      setIsSavingProfile(true);
+                      const res = await api.put('/api/settings/account', { name: displayName, bio });
+                      if (res.status >= 200 && res.status < 300) {
+                        toast.success('Profile updated');
+                        // Optimistically update global user name
+                        setUser(user ? { ...user, name: displayName } : user);
+                      } else {
+                        toast.error('Failed to update profile');
+                      }
+                    } catch {
+                      toast.error('Failed to update profile');
+                    } finally {
+                      setIsSavingProfile(false);
+                    }
+                  }}
+                  className="w-full sm:w-auto"
+                  disabled={isSavingProfile}
+                >
                   <Save className="w-4 h-4" />
-                  Save Changes
+                  {isSavingProfile ? 'Saving…' : 'Save Changes'}
                 </PrimaryButton>
               </div>
             </div>
@@ -503,7 +624,7 @@ export default function SettingsPage() {
             <h3 className="text-xl font-semibold mb-6 text-white flex items-center gap-2">
               <Bell className="w-5 h-5 text-blue-400" /> Notification Preferences
             </h3>
-            
+
             <div className="space-y-6">
               <div>
                 <Label>Email Notifications</Label>
@@ -521,7 +642,7 @@ export default function SettingsPage() {
                       <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notificationPrefs.email.boardInvitations ? 'translate-x-6' : 'translate-x-1'}`} />
                     </button>
                   </div>
-                  
+
                   <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
                     <div>
                       <h5 className="text-white font-medium">Activity Updates</h5>
@@ -535,7 +656,7 @@ export default function SettingsPage() {
                       <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notificationPrefs.email.activityUpdates ? 'translate-x-6' : 'translate-x-1'}`} />
                     </button>
                   </div>
-                  
+
                   <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
                     <div>
                       <h5 className="text-white font-medium">Weekly Digest</h5>
@@ -557,7 +678,7 @@ export default function SettingsPage() {
                 <div className="space-y-3">
                   <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.05] flex items-center justify-between">
                     <p className="text-white/60 text-sm mr-4">
-                      {integrations.slack 
+                      {integrations.slack
                         ? "Slack notifications are enabled for board creation and updates."
                         : "Connect your Slack workspace to receive real-time notifications."
                       }
@@ -594,10 +715,10 @@ export default function SettingsPage() {
         return (
           <SectionCard>
             <div className="flex flex-col gap-1 mb-6">
-            <h3 className="text-xl font-semibold text-white flex items-center gap-1">
-              <Share2 className="w-5 h-5 text-blue-400" /> Integrations
-            </h3>
-            <p className="text-white/60">Connect your WhizBoard account with other services.</p>
+              <h3 className="text-xl font-semibold text-white flex items-center gap-1">
+                <Share2 className="w-5 h-5 text-blue-400" /> Integrations
+              </h3>
+              <p className="text-white/60">Connect your WhizBoard account with other services.</p>
             </div>
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -608,7 +729,7 @@ export default function SettingsPage() {
                   </p>
                 </div>
               </div>
-              
+
               {Object.entries(integrations).map(([key, value]) => (
                 <div key={key} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
                   <div className="flex items-center gap-3">
@@ -631,26 +752,18 @@ export default function SettingsPage() {
                           className="w-5 h-5 object-contain"
                         />
                       )}
-                      {key === 'figma' && (
-                        <Image
-                          src="/images/logos/figma.svg"
-                          alt="Figma logo"
-                          width={20}
-                          height={20}
-                          className="w-5 h-5 object-contain"
-                        />
-                      )}
+
                     </div>
                     <div>
                       <h5 className="text-white font-medium capitalize">
-                        {key === 'googleDrive' ? 'Google Drive' : key === 'slack' ? 'Slack' : key === 'figma' ? 'Figma' : key}
+                        {key === 'googleDrive' ? 'Google Drive' : key === 'slack' ? 'Slack' : key}
                       </h5>
                       <p className="text-white/60 text-sm">
                         {value ? 'Connected' : 'Not connected'}
                       </p>
                     </div>
                   </div>
-                  
+
                   <button
                     onClick={async () => {
                       const enable = !value;
@@ -659,51 +772,136 @@ export default function SettingsPage() {
                       }
                       await toggleIntegration(key as keyof typeof integrations, enable);
                       if (!enable) {
-                        const name = key === 'googleDrive' ? 'Google Drive' : key === 'slack' ? 'Slack' : key === 'figma' ? 'Figma' : key;
+                        const name = key === 'googleDrive' ? 'Google Drive' : key === 'slack' ? 'Slack' : key;
                         toast.success(`${name} disconnected`);
                       }
                     }}
-                    className={`px-4 py-2 rounded-lg text-sm border transition-colors ${
-                      value
+                    className={`px-4 py-2 rounded-lg text-sm border transition-colors ${value
                         ? "bg-red-500/20 text-red-300 border-red-500/30 hover:bg-red-500/30"
                         : "bg-blue-600/20 text-blue-200 border-blue-500/30 hover:bg-blue-600/30"
-                    }`}
+                      }`}
                   >
                     {value ? "Disconnect" : "Connect"}
                   </button>
                 </div>
               ))}
 
-              {/* Slack Default Channel Setting */}
+              {/* Slack: Default Channel + actions */}
               {integrations.slack && (
-                <div>
+                <div className="space-y-4">
                   <SlackChannelPicker />
-                  
-                  {/* Simple Integration Info */}
-                  <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Bot className="w-4 h-4 text-blue-300" />
+                          <h6 className="text-white/90 text-sm font-medium">Invite Bot to Default Channel</h6>
+                        </div>
+                        <button onClick={refreshSlackDefault} className="text-xs text-white/60 hover:text-white inline-flex items-center gap-1">
+                          <RefreshCw className="w-3 h-3" /> Refresh
+                        </button>
+                      </div>
+                      <button
+                        onClick={handleInviteBotToDefault}
+                        disabled={isInvitingBot || !slackDefaultChannel?.id}
+                        className="w-full px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-sm border border-blue-500/30"
+                      >
+                        {isInvitingBot ? 'Inviting…' : 'Invite Bot'}
+                      </button>
+                      <p className="mt-2 text-xs text-white/50">Ensures the bot can post notifications into the selected channel.</p>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Send className="w-4 h-4 text-blue-300" />
+                          <h6 className="text-white/90 text-sm font-medium">Send Test Message</h6>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={slackTestMessage}
+                          onChange={(e) => setSlackTestMessage(e.target.value)}
+                          className="flex-1 rounded-lg bg-white/[0.05] px-3 py-2 text-white ring-1 ring-white/10 focus:ring-2 focus:ring-blue-500"
+                        />
+                        <button
+                          onClick={handleSendSlackTest}
+                          disabled={isSendingTest || !slackDefaultChannel?.id}
+                          className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-sm border border-blue-500/30"
+                        >
+                          {isSendingTest ? 'Sending…' : 'Send'}
+                        </button>
+                      </div>
+                      <p className="mt-2 text-xs text-white/50">Sends into your default channel to verify everything is working.</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-1 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                     <p className="text-sm text-blue-300">
                       <strong>Slack Integration Active</strong>
                       <br />
-                      Board creation notifications will be sent to your default channel. 
-                      The bot can automatically join channels as needed.
+                      Board creation notifications will be sent to your default channel. The bot can join channels as needed.
                     </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Google Drive quick actions */}
+              {integrations.googleDrive && (
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                    <div className="flex items-center gap-2 mb-3">
+                      <CloudUpload className="w-4 h-4 text-blue-300" />
+                      <h6 className="text-white/90 text-sm font-medium">Test Upload</h6>
+                    </div>
+                    <button
+                      onClick={handleDriveTestUpload}
+                      disabled={isTestingDrive}
+                      className="w-full px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-sm border border-blue-500/30"
+                    >
+                      {isTestingDrive ? 'Testing…' : 'Upload Sample File'}
+                    </button>
+                    <p className="mt-2 text-xs text-white/50">Creates a small test file in your Drive to verify permissions.</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                    <div className="flex items-center gap-2 mb-3">
+                      <FolderOpen className="w-4 h-4 text-blue-300" />
+                      <h6 className="text-white/90 text-sm font-medium">Open Drive Dashboard</h6>
+                    </div>
+                    <Link href="/google-drive" className="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.06] text-white text-sm border border-white/[0.08]">
+                      Open Google Drive
+                    </Link>
+                    <p className="mt-2 text-xs text-white/50">Manage files linked with your WhizBoard account.</p>
                   </div>
                 </div>
               )}
             </div>
           </SectionCard>
         );
+
       case "security":
         return (
           <SectionCard>
             <h3 className="text-xl font-semibold mb-6 text-white flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-blue-400" /> Security Settings
+              <Lock className="w-5 h-5 text-blue-400" /> Security Settings
             </h3>
-            
+
             <div className="space-y-6">
               <div>
-                <Label>Account Security</Label>
+                <Label>Password & Authentication</Label>
                 <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
+                    <div>
+                      <h5 className="text-white font-medium">Change Password</h5>
+                      <p className="text-white/60 text-sm">Update your account password</p>
+                    </div>
+                    <button className="px-4 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] text-white text-sm border border-white/[0.1] transition-colors">
+                      Change
+                    </button>
+                  </div>
+
                   <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
                     <div>
                       <h5 className="text-white font-medium">Two-Factor Authentication</h5>
@@ -713,7 +911,7 @@ export default function SettingsPage() {
                       Enable
                     </button>
                   </div>
-                  
+
                   <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
                     <div>
                       <h5 className="text-white font-medium">Active Sessions</h5>
@@ -738,19 +936,6 @@ export default function SettingsPage() {
                       Export
                     </button>
                   </div>
-                  
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
-                    <div>
-                      <h5 className="text-white font-medium">Delete Account</h5>
-                      <p className="text-white/60 text-sm">Permanently remove your account and all data</p>
-                    </div>
-                    <button 
-                      onClick={handleDeleteAccount}
-                      className="px-4 py-2 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-300 text-sm border border-red-500/30 transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
@@ -762,15 +947,15 @@ export default function SettingsPage() {
             <h3 className="text-xl font-semibold mb-6 text-red-300 flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-red-400" /> Danger Zone
             </h3>
-            
+
             <div className="space-y-6">
               <div className="p-4 rounded-lg bg-red-500/5 border border-red-500/20">
                 <h4 className="text-red-300 font-medium mb-2">Delete Account</h4>
                 <p className="text-red-300/80 text-sm mb-4">
-                  This action will permanently delete your account and all associated data. 
+                  This action will permanently delete your account and all associated data.
                   This action cannot be undone.
                 </p>
-                <button 
+                <button
                   onClick={handleDeleteAccount}
                   className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors"
                 >
@@ -786,31 +971,38 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen py-12 pt-4">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+    <div className="min-h-screen relative overflow-hidden bg-gray-950 pb-16">
+      {/* Background accents */}
+      <div className="absolute inset-0 grid-pattern opacity-20" />
+      <div className="absolute top-1/4 left-1/4 w-72 h-72 gradient-orb-blue" />
+      <div className="absolute bottom-1/3 right-1/4 w-60 h-60 gradient-orb-blue" />
+
+      {/* Top actions */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <BackButton variant="dark" />
       </div>
+
       {/* Header */}
-      <section className="pt-16 sm:pt-20 pb-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="pt-14 pb-8 relative z-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
-            className="text-center space-y-4"
+            className="space-y-4"
           >
             <div className="inline-flex items-center gap-2 bg-white/[0.03] border border-white/[0.08] rounded-full px-3 py-1.5 backdrop-blur-sm mx-auto">
-              <User className="h-4 w-4 text-blue-400" />
-              <span className="text-white/70 text-sm font-medium">Account Settings</span>
+              <Settings className="h-4 w-4 text-blue-400" />
+              <span className="text-white/70 text-sm font-medium">Settings</span>
             </div>
-            <h1 className="headline-lg text-white">Manage your experience</h1>
-            <p className="body-base text-white/70 max-w-2xl mx-auto">Personalize WhizBoard and set your preferences.</p>
+            <h1 className="headline-lg text-white">Manage your account</h1>
+            <p className="body-base text-white/70 max-w-2xl mx-auto">Customize your profile, notifications, integrations, and security preferences.</p>
           </motion.div>
         </div>
       </section>
 
       {/* Main Content */}
-      <section>
+      <section className="relative z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8">
             {/* Sidebar Navigation */}
@@ -821,17 +1013,16 @@ export default function SettingsPage() {
                     { id: "profile", label: "Profile", icon: User },
                     { id: "notifications", label: "Notifications", icon: Bell },
                     { id: "integrations", label: "Integrations", icon: Share2 },
-                    { id: "security", label: "Security", icon: AlertTriangle },
+                    { id: "security", label: "Security", icon: Lock },
                     { id: "danger-zone", label: "Danger Zone", icon: AlertTriangle },
                   ].map(({ id, label, icon: Icon }) => (
                     <button
                       key={id}
                       onClick={() => setActiveTab(id)}
-                      className={`flex items-center justify-between md:justify-start gap-3 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                        activeTab === id
+                      className={`flex items-center justify-between md:justify-start gap-3 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${activeTab === id
                           ? "bg-blue-600 text-white"
                           : "text-white/70 hover:text-white hover:bg-white/[0.05]"
-                      }`}
+                        }`}
                     >
                       <span className="flex items-center gap-3">
                         <Icon className="w-4 h-4" />
@@ -840,6 +1031,20 @@ export default function SettingsPage() {
                     </button>
                   ))}
                 </nav>
+                {/* Advanced Settings entry (navigates to dedicated page) */}
+                <div className="mt-3">
+                  <Link
+                    href="/settings/advanced"
+                    className="flex items-center justify-between gap-3 px-4 py-2 rounded-xl text-sm font-medium transition-colors text-white/80 bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.06] hover:text-white"
+                    aria-label="Open Advanced Settings"
+                  >
+                    <span className="flex items-center gap-3">
+                      <Settings className="w-4 h-4 text-blue-400" />
+                      Advanced Settings
+                    </span>
+                    <ExternalLink className="w-4 h-4 text-white/60" />
+                  </Link>
+                </div>
               </div>
             </aside>
 

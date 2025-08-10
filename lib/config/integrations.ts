@@ -29,15 +29,7 @@ export const integrationsConfig = {
       .filter(Boolean),
   },
 
-  figma: {
-    clientId: process.env.FIGMA_CLIENT_ID || '',
-    clientSecret: process.env.FIGMA_CLIENT_SECRET || '',
-    // comma-separated in env
-    scopes: (process.env.FIGMA_SCOPES || 'file_read')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean),
-  },
+
 };
 
 export function getAppBaseUrl(): string {

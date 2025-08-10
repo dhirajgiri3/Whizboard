@@ -9,7 +9,6 @@ import AboutTeam from "./components/AboutTeam";
 import AboutTimeline from "./components/AboutTimeline";
 import AboutCTA from "./components/AboutCTA";
 import SmoothScrollProvider from "@/components/landing/SmoothScrollProvider";
-import BackButton from "@/components/ui/BackButton";
 
 export default function AboutPage() {
   const backgroundVariants = {
@@ -25,14 +24,6 @@ export default function AboutPage() {
   return (
     <SmoothScrollProvider>
       <div className="min-h-screen bg-[#0A0A0B] text-white overflow-hidden pt-10">
-        <div className="max-w-6xl mx-auto px-4">
-          <BackButton 
-            variant="dark" 
-            position="relative"
-            size="md"
-            label="Back to Home"
-          />
-        </div>
         {/* Background Elements */}
         <motion.div 
           className="absolute inset-0 opacity-30"
@@ -44,8 +35,8 @@ export default function AboutPage() {
         >
           <div className="absolute inset-0" style={{
             backgroundImage: `
-              linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
+              linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
             `,
             backgroundSize: '32px 32px'
           }}></div>

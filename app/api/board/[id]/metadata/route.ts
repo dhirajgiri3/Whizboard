@@ -5,11 +5,11 @@ import { withAuth, AuthenticatedUser } from '@/lib/middleware/apiAuth';
 
 async function getBoardMetadata(
   request: NextRequest,
-  user: AuthenticatedUser,
-  { params }: { params: Promise<{ id: string }> }
+  user: AuthenticatedUser
 ) {
   try {
-    const { id } = await params;
+    const url = new URL(request.url);
+    const id = url.pathname.split('/')[3];
     
     if (!id) {
       return NextResponse.json(

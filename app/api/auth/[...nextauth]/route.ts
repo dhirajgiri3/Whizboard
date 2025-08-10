@@ -1,7 +1,30 @@
 import NextAuth from 'next-auth';
 import authOptions from '@/lib/auth/options';
 
+// Ensure this route uses the Node.js runtime (not Edge), since it relies on the MongoDB adapter
+export const runtime = 'nodejs';
+
 // Enhanced security configuration
 const handler = NextAuth(authOptions);
 
-export { handler as GET, handler as POST }; 
+// Add custom error handling
+const customHandler = async (req: Request, context: any) => {
+  try {
+    return await handler(req, context);
+  } catch (error: any) {
+    console.error('NextAuth error:', error);
+    
+    // Handle OAuthAccountNotLinked error
+    if (error.message?.includes('OAuthAccountNotLinked')) {
+      const url = new URL(req.url);
+      url.pathname = '/auth/error';
+      url.searchParams.set('error', 'OAuthAccountNotLinked');
+      return Response.redirect(url);
+    }
+    
+    // Re-throw other errors
+    throw error;
+  }
+};
+
+export { customHandler as GET, customHandler as POST }; 

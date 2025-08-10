@@ -21,7 +21,7 @@ export default function BackButton({
   label = "Back",
   fallbackHref = "/",
   className = "",
-  variant = "light",
+  variant = "dark",
   position = "relative",
   showLabel = true,
   size = "md",
@@ -30,7 +30,6 @@ export default function BackButton({
 }: BackButtonProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [isPressed, setIsPressed] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Handle back navigation with loading state
@@ -38,7 +37,7 @@ export default function BackButton({
     if (disabled || isLoading) return;
 
     setIsLoading(true);
-    
+
     try {
       // Call custom onBack handler if provided
       if (onBack) {
@@ -78,62 +77,61 @@ export default function BackButton({
     }
   }, [position]);
 
-  // Size variants
+  // Size variants - Enhanced for dark theme
   const sizeClasses = {
-    sm: "h-8 px-2.5 text-xs",
-    md: "h-10 px-3 text-sm",
-    lg: "h-12 px-4 text-base",
+    sm: "h-9 px-3 text-xs gap-1.5",
+    md: "h-11 px-4 text-sm gap-2",
+    lg: "h-12 px-5 text-base gap-2.5",
   };
 
   // Position variants
   const positionClasses = {
-    fixed: "fixed top-4 left-4 z-40",
-    absolute: "absolute top-4 left-4 z-10",
-    relative: "relative",
-    sticky: "sticky top-4 z-10",
+    fixed: "fixed top-6 left-6 z-50",
+    absolute: "absolute top-18 left-6 z-20",
+    relative: "relative z-10",
+    sticky: "sticky top-6 z-30",
   };
 
-  // Base styles with improved accessibility
+  // Base styles optimized for dark theme
   const baseStyles = `
-    inline-flex items-center justify-center gap-2 
-    rounded-lg font-medium transition-all duration-200 
+    group relative inline-flex items-center justify-center font-medium 
+    rounded-xl transition-all duration-200 transform-gpu
     focus:outline-none focus:ring-2 focus:ring-offset-2 
     disabled:opacity-50 disabled:cursor-not-allowed
-    min-h-[44px] min-w-[44px]
+    min-h-[44px] min-w-[44px] backdrop-blur-sm cursor-pointer
     ${sizeClasses[size]}
     ${positionClasses[position]}
   `;
 
-  // Variant styles with better contrast and accessibility
+  // Enhanced variant styles matching design system
   const variantStyles = {
     light: `
-      text-slate-700 hover:text-slate-900 
-      bg-white hover:bg-slate-50 
-      border border-slate-200 hover:border-slate-300
+      text-gray-700 hover:text-gray-900 
+      bg-white hover:bg-gray-50 
+      border border-gray-200 hover:border-gray-300
       shadow-sm hover:shadow-md
       focus:ring-blue-500 focus:ring-offset-white
-      active:bg-slate-100 active:scale-95
+      active:bg-gray-100
     `,
     dark: `
-      text-white/90 hover:text-white 
-      bg-white/10 hover:bg-white/20 
-      border border-white/20 hover:border-white/30
-      backdrop-blur-sm
-      focus:ring-blue-400 focus:ring-offset-gray-900
-      active:bg-white/30 active:scale-95
+      text-white hover:text-blue-300 
+      bg-white/[0.03] hover:bg-white/[0.08] 
+      border border-white/[0.08] hover:border-white/[0.12]
+      focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-black
+      active:bg-white/[0.12]
     `,
     minimal: `
-      text-slate-600 hover:text-slate-900 
-      hover:bg-slate-100 
-      focus:ring-blue-500 focus:ring-offset-white
-      active:bg-slate-200 active:scale-95
+      text-white/70 hover:text-white 
+      hover:bg-white/[0.05] 
+      focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-black
+      active:bg-white/[0.08]
     `,
   };
 
   const styles = `${baseStyles} ${variantStyles[variant]} ${className}`;
 
   // Icon size based on button size
-  const iconSize = size === "sm" ? 16 : size === "lg" ? 20 : 18;
+  const iconSize = size === "sm" ? 14 : size === "lg" ? 18 : 16;
 
   return (
     <motion.button
@@ -141,55 +139,81 @@ export default function BackButton({
       type="button"
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      onMouseDown={() => setIsPressed(true)}
-      onMouseUp={() => setIsPressed(false)}
-      onMouseLeave={() => setIsPressed(false)}
       disabled={disabled || isLoading}
       className={styles}
       aria-label={showLabel ? `Go back to ${label}` : "Go back"}
       aria-describedby={isLoading ? "back-button-loading" : undefined}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      whileHover={{
+        scale: 1.02,
+        y: -1,
+        transition: { duration: 0.2, ease: "easeOut" }
+      }}
+      whileTap={{
+        scale: 0.98,
+        transition: { duration: 0.1 }
+      }}
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
       transition={{
         type: "spring",
-        stiffness: 400,
+        stiffness: 300,
         damping: 25,
+        duration: 0.4
       }}
+      style={{ pointerEvents: disabled || isLoading ? 'none' : 'auto' }}
     >
-      <AnimatePresence mode="wait">
-        {isLoading ? (
-          <motion.div
-            key="loading"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.2 }}
-          >
-            <Loader2 className={`w-${iconSize} h-${iconSize} animate-spin`} />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="arrow"
+      {/* Enhanced hover effect - positioned properly */}
+      <div
+        className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+      />
+
+      {/* Subtle gradient orb effect - contained within button */}
+      <div className="absolute top-1 left-1 w-4 h-4 bg-blue-600/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+      <div className="relative z-10 flex items-center gap-2">
+        <AnimatePresence mode="wait">
+          {isLoading ? (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0, scale: 0.8, rotate: -90 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              exit={{ opacity: 0, scale: 0.8, rotate: 90 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="flex items-center justify-center"
+            >
+              <Loader2
+                className="animate-spin text-blue-400"
+                size={iconSize}
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="arrow"
+              initial={{ opacity: 0, x: -6 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -6 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="flex items-center justify-center"
+            >
+              <ArrowLeft
+                className="text-current group-hover:text-blue-300 transition-colors duration-200"
+                size={iconSize}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {showLabel && (
+          <motion.span
+            className="hidden sm:inline whitespace-nowrap font-medium"
             initial={{ opacity: 0, x: -4 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -4 }}
-            transition={{ duration: 0.2 }}
+            transition={{ delay: 0.1, duration: 0.3 }}
           >
-            <ArrowLeft className={`w-${iconSize} h-${iconSize}`} />
-          </motion.div>
+            {label}
+          </motion.span>
         )}
-      </AnimatePresence>
-
-      {showLabel && (
-        <motion.span
-          className="hidden sm:inline whitespace-nowrap"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-        >
-          {label}
-        </motion.span>
-      )}
+      </div>
 
       {/* Screen reader only loading indicator */}
       {isLoading && (

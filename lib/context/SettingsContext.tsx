@@ -28,7 +28,6 @@ export interface NotificationPreferences {
 interface IntegrationStatus {
   googleDrive: boolean;
   slack: boolean;
-  figma: boolean;
 }
 
 interface SettingsContextType {
@@ -72,7 +71,6 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
   const [integrations, setIntegrations] = useState<IntegrationStatus>({
     googleDrive: false,
     slack: false,
-    figma: false,
   });
 
   const [isLoading, setIsLoading] = useState(false);

@@ -3,7 +3,7 @@ import logger from '@/lib/logger/logger';
 
 export interface StoredToken {
   userEmail: string;
-  provider: 'slack' | 'googleDrive' | 'figma';
+  provider: 'slack' | 'googleDrive';
   accessToken: string;
   refreshToken?: string;
   expiresAt?: Date | null;
@@ -13,33 +13,62 @@ export interface StoredToken {
 }
 
 export async function upsertToken(token: Omit<StoredToken, 'createdAt' | 'updatedAt'>) {
+  const requestId = Math.random().toString(36).substring(7);
   logger.info({ 
+    requestId,
     userEmail: token.userEmail, 
     provider: token.provider, 
     hasAccessToken: !!token.accessToken,
     hasRefreshToken: !!token.refreshToken,
+    accessTokenLength: token.accessToken?.length,
+    refreshTokenLength: token.refreshToken?.length,
+    expiresAt: token.expiresAt,
     scope: token.scope 
   }, 'Upserting integration token');
   
   try {
     const db = await connectToDatabase();
-    const result = await db.collection('integrationTokens').updateOne(
-      { userEmail: token.userEmail, provider: token.provider },
-      { $set: { ...token, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } },
-      { upsert: true }
-    );
+    logger.debug({ requestId, userEmail: token.userEmail, provider: token.provider }, 'Database connection established for token upsert');
+    
+    const filter = { userEmail: token.userEmail, provider: token.provider };
+    const update = { 
+      $set: { ...token, updatedAt: new Date() }, 
+      $setOnInsert: { createdAt: new Date() } 
+    };
+    const options = { upsert: true };
+    
+    logger.debug({ 
+      requestId,
+      userEmail: token.userEmail, 
+      provider: token.provider,
+      filter,
+      updateKeys: Object.keys(update.$set)
+    }, 'Executing token upsert operation');
+    
+    const result = await db.collection('integrationTokens').updateOne(filter, update, options);
     
     logger.info({ 
+      requestId,
       userEmail: token.userEmail, 
       provider: token.provider, 
       modifiedCount: result.modifiedCount,
-      upsertedId: result.upsertedId 
+      upsertedCount: result.upsertedCount,
+      upsertedId: result.upsertedId,
+      matchedCount: result.matchedCount,
+      acknowledged: result.acknowledged
     }, 'Token upserted successfully');
+    
+    return result;
   } catch (error) {
     logger.error({ 
+      requestId,
       userEmail: token.userEmail, 
       provider: token.provider, 
-      error 
+      error: {
+        message: (error as any).message,
+        name: (error as any).name,
+        stack: (error as any).stack
+      }
     }, 'Failed to upsert token');
     throw error;
   }
