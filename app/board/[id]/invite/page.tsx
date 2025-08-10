@@ -6,6 +6,7 @@ import { useSession, signIn } from 'next-auth/react';
 import { CheckCircle, XCircle, Mail, Users, Clock, ArrowRight } from 'lucide-react';
 import Loading from '@/components/ui/loading/Loading';
 import { toast } from 'sonner';
+import api from '@/lib/http/axios';
 
 interface InvitationData {
   boardId: string;
@@ -65,15 +66,7 @@ export default function InvitePage() {
     setProcessing(true);
 
     try {
-      const response = await fetch('/api/board/invite/accept', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token, email }),
-      });
-
-      const data = await response.json();
+      const { data } = await api.post('/api/board/invite/accept', { token, email });
 
       if (data.success) {
         toast.success(data.message);
@@ -93,15 +86,7 @@ export default function InvitePage() {
     setProcessing(true);
 
     try {
-      const response = await fetch('/api/board/invite/decline', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token, email }),
-      });
-
-      const data = await response.json();
+      const { data } = await api.post('/api/board/invite/decline', { token, email });
 
       if (data.success) {
         toast.success('Invitation declined');

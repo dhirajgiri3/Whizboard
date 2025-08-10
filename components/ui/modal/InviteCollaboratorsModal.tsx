@@ -5,6 +5,7 @@ import { X, Mail, Send, Users, AlertCircle, CheckCircle, Copy, Clock, UserCheck,
 import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
 import { useBoardContext } from '@/lib/context/BoardContext';
+import api from '@/lib/http/axios';
 
 interface InviteCollaboratorsModalProps {
   isOpen: boolean;
@@ -62,11 +63,8 @@ export default function InviteCollaboratorsModal({
     const fetchPendingInvitations = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`/api/board/invite?boardId=${boardId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setPendingInvitations(data.invitations || []);
-        }
+        const { data } = await api.get(`/api/board/invite?boardId=${boardId}`);
+        setPendingInvitations(data.invitations || []);
       } catch (error) {
         console.error('Error fetching invitations:', error);
       } finally {
@@ -96,23 +94,21 @@ export default function InviteCollaboratorsModal({
 
   const fetchPendingInvitations = async () => {
     try {
-      const response = await fetch(`/api/board/invite?boardId=${boardId}`);
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Fetched invitations:', data.invitations);
-        
-        const validInvitations = (data.invitations || []).filter((invitation: Partial<PendingInvitation>) => {
+      const { data } = await api.get(`/api/board/invite?boardId=${boardId}`);
+      console.log('Fetched invitations:', data.invitations);
+      
+      const validInvitations = (data.invitations || []).filter((invitation: Partial<PendingInvitation>) => {
           const isValid = invitation.id && invitation.inviteeEmail && invitation.invitationToken;
           if (!isValid) {
             console.warn('Invalid invitation found:', invitation);
           }
           return isValid;
         });
-        
-        console.log('Valid invitations after filtering:', validInvitations);
-        setPendingInvitations(validInvitations as PendingInvitation[]);
-      } else {
-        console.error('Failed to fetch invitations:', response.statusText);
+      
+      console.log('Valid invitations after filtering:', validInvitations);
+      setPendingInvitations(validInvitations as PendingInvitation[]);
+    } else {
+      // no else
       }
     } catch (error) {
       console.error('Error fetching invitations:', error);
@@ -135,19 +131,11 @@ export default function InviteCollaboratorsModal({
     setIsInviting(true);
 
     try {
-      const response = await fetch('/api/board/invite', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          boardId,
-          inviteeEmail: email.trim(),
-          message: message.trim(),
-        }),
+      const { data } = await api.post('/api/board/invite', {
+        boardId,
+        inviteeEmail: email.trim(),
+        message: message.trim(),
       });
-
-      const data = await response.json();
 
       if (data.success) {
         setLastInvitedEmail(email);
@@ -253,20 +241,12 @@ export default function InviteCollaboratorsModal({
         onClick: async () => {
           console.log('Attempting to revoke invitation:', { invitationId, boardId });
 
-          const revokePromise = fetch('/api/board/invite', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ invitationId: invitationId.trim(), boardId: boardId.trim() }),
+          const revokePromise = api.delete('/api/board/invite', {
+            data: { invitationId: invitationId.trim(), boardId: boardId.trim() }
           }).then(async (response) => {
-            const data = await response.json();
-            
-            console.log('Revoke invitation response:', { 
-              status: response.status, 
-              ok: response.ok, 
-              data 
-            });
-            
-            if (response.ok && data.success) {
+            const data = response.data as any;
+            console.log('Revoke invitation response:', { status: response.status, data });
+            if (response.status >= 200 && response.status < 300 && data.success) {
               await fetchPendingInvitations();
               return data;
             } else {

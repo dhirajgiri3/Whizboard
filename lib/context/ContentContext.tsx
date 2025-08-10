@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import { useAppContext } from './AppContext';
 import { Sparkles, Users, Shield, Zap } from 'lucide-react';
+import api from '@/lib/http/axios';
 
 // Types
 interface TeamMember {
@@ -122,13 +123,7 @@ export function ContentProvider({ children }: ContentProviderProps) {
   const fetchTeamMembers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/about/team');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch team members');
-      }
-      
-      const data = await response.json();
+      const { data } = await api.get('/api/about/team');
       setTeamMembers(data);
     } catch (error) {
       console.error('Error fetching team members:', error);
@@ -146,13 +141,7 @@ export function ContentProvider({ children }: ContentProviderProps) {
   const fetchTimelineEvents = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/about/timeline');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch timeline events');
-      }
-      
-      const data = await response.json();
+      const { data } = await api.get('/api/about/timeline');
       setTimelineEvents(data);
     } catch (error) {
       console.error('Error fetching timeline events:', error);
@@ -170,13 +159,7 @@ export function ContentProvider({ children }: ContentProviderProps) {
   const fetchCompanyStats = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/about/stats');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch company stats');
-      }
-      
-      const data = await response.json();
+      const { data } = await api.get('/api/about/stats');
       setCompanyStats(data);
     } catch (error) {
       console.error('Error fetching company stats:', error);
@@ -194,13 +177,7 @@ export function ContentProvider({ children }: ContentProviderProps) {
   const fetchPrivacyPolicy = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/legal/privacy');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch privacy policy');
-      }
-      
-      const data = await response.json();
+      const { data } = await api.get('/api/legal/privacy');
       setPrivacyPolicy(data);
     } catch (error) {
       console.error('Error fetching privacy policy:', error);
@@ -218,13 +195,7 @@ export function ContentProvider({ children }: ContentProviderProps) {
   const fetchTermsOfService = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/legal/terms');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch terms of service');
-      }
-      
-      const data = await response.json();
+      const { data } = await api.get('/api/legal/terms');
       setTermsOfService(data);
     } catch (error) {
       console.error('Error fetching terms of service:', error);
@@ -242,13 +213,7 @@ export function ContentProvider({ children }: ContentProviderProps) {
   const fetchContactOffices = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/contact/offices');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch contact offices');
-      }
-      
-      const data = await response.json();
+      const { data } = await api.get('/api/contact/offices');
       setContactOffices(data);
     } catch (error) {
       console.error('Error fetching contact offices:', error);
@@ -266,13 +231,7 @@ export function ContentProvider({ children }: ContentProviderProps) {
   const fetchFaqItems = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/help/faq');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch FAQ items');
-      }
-      
-      const data = await response.json();
+      const { data } = await api.get('/api/help/faq');
       setFaqItems(data);
     } catch (error) {
       console.error('Error fetching FAQ items:', error);

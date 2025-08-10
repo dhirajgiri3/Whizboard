@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { User, Camera, Edit, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { RequireAuth } from '@/components/auth/ProtectedRoute';
+import BackButton from '@/components/ui/BackButton';
+import api from '@/lib/http/axios';
 
 interface ProfileData {
   image?: string;
@@ -25,12 +27,9 @@ const ProfilePage = () => {
 
     const fetchProfileData = async () => {
         try {
-            const response = await fetch('/api/settings/account');
-            if (response.ok) {
-                const data = await response.json();
-                setProfileData(data.user);
-                setDescription(data.user.imageDescription || '');
-            }
+            const { data } = await api.get('/api/settings/account');
+            setProfileData(data.user);
+            setDescription(data.user.imageDescription || '');
         } catch (error) {
             console.error('Failed to fetch profile data:', error);
         }
@@ -39,24 +38,13 @@ const ProfilePage = () => {
     const handleDescriptionSave = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch('/api/settings/account', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    description: description,
-                }),
-            });
-
-            if (response.ok) {
+            await api.put('/api/settings/account', { description });
                 toast.success('Image description updated successfully!');
                 setIsEditingDescription(false);
                 setProfileData(prev => ({ ...prev, imageDescription: description }));
-            } else {
-                const error = await response.json();
-                toast.error(error.message || 'Failed to update description');
-            }
+        } else {
+            // no else
+        }
         } catch (error) {
             toast.error('Failed to update description');
         } finally {
@@ -69,6 +57,14 @@ const ProfilePage = () => {
     return (
         <div className="min-h-screen bg-slate-50 py-8">
             <div className="container mx-auto px-4 max-w-4xl">
+                <div className="mb-4">
+                    <BackButton 
+                        variant="light"
+                        position="relative"
+                        size="md"
+                        label="Back to Dashboard"
+                    />
+                </div>
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}

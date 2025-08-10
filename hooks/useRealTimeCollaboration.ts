@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import api from '@/lib/http/axios';
 import { toast } from 'sonner';
 import { useBoardContext } from '@/lib/context/BoardContext';
 import logger from '@/lib/logger/logger';
@@ -140,13 +141,7 @@ export function useRealTimeCollaboration({
   // Broadcast user presence
   const broadcastUserPresence = useCallback((presenceData: UserPresenceData) => {
     if (!isConnected) return;
-    fetch('/api/board/user-presence', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ boardId, userId, presence: presenceData }),
-    }).catch(error => {
+    api.post('/api/board/user-presence', { boardId, userId, presence: presenceData }).catch(error => {
       logger.error('Failed to broadcast user presence:', error);
     });
   }, [isConnected, boardId, userId]);
@@ -627,19 +622,7 @@ export function useRealTimeCollaboration({
     logger.info('Joining board once:', { boardId, userId, userName });
     hasJoinedRef.current = true;
     
-    fetch('/api/board/join', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        boardId,
-        user: {
-          id: userId,
-          name: userName,
-        },
-      }),
-    }).catch(error => {
+    api.post('/api/board/join', { boardId, user: { id: userId, name: userName } }).catch(error => {
       logger.error('Failed to join board:', error);
       // Reset on error so user can retry
       hasJoinedRef.current = false;
@@ -663,17 +646,7 @@ export function useRealTimeCollaboration({
             userId: currentUserId,
           }));
         } else {
-          fetch('/api/board/leave', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              boardId: currentBoardId,
-              userId: currentUserId,
-            }),
-            keepalive: true, // Keep request alive during page unload
-          }).catch(error => {
+          api.post('/api/board/leave', { boardId: currentBoardId, userId: currentUserId }).catch(error => {
             logger.error('Failed to leave board:', error);
           });
         }
@@ -759,13 +732,7 @@ export function useRealTimeCollaboration({
         // trail: getCursorTrail(), // Future: implement cursor trail
       };
 
-      fetch('/api/board/cursor', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ boardId, ...cursorData }),
-      }).catch(error => {
+      api.post('/api/board/cursor', { boardId, ...cursorData }).catch(error => {
         logger.error('Failed to broadcast cursor movement:', error);
       });
     }, CURSOR_THROTTLE_MS);
@@ -775,19 +742,7 @@ export function useRealTimeCollaboration({
   const broadcastTextElementCreate = useCallback((textElement: any) => {
     if (!isConnected || !userId || !userName) return;
 
-    fetch('/api/board/text', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        boardId,
-        userId,
-        userName,
-        textElement,
-        action: 'create',
-      }),
-    }).catch(error => {
+    api.post('/api/board/text', { boardId, userId, userName, textElement, action: 'create' }).catch(error => {
       logger.error('Failed to broadcast text element create:', error);
     });
   }, [isConnected, boardId, userId, userName]);
@@ -795,19 +750,7 @@ export function useRealTimeCollaboration({
   const broadcastTextElementUpdate = useCallback((textElement: any) => {
     if (!isConnected || !userId || !userName) return;
 
-    fetch('/api/board/text', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        boardId,
-        userId,
-        userName,
-        textElement,
-        action: 'update',
-      }),
-    }).catch(error => {
+    api.post('/api/board/text', { boardId, userId, userName, textElement, action: 'update' }).catch(error => {
       logger.error('Failed to broadcast text element update:', error);
     });
   }, [isConnected, boardId, userId, userName]);
@@ -815,19 +758,7 @@ export function useRealTimeCollaboration({
   const broadcastTextElementDelete = useCallback((textElementId: string) => {
     if (!isConnected || !userId || !userName) return;
 
-    fetch('/api/board/text', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        boardId,
-        userId,
-        userName,
-        textElement: { id: textElementId },
-        action: 'delete',
-      }),
-    }).catch(error => {
+    api.post('/api/board/text', { boardId, userId, userName, textElement: { id: textElementId }, action: 'delete' }).catch(error => {
       logger.error('Failed to broadcast text element delete:', error);
     });
   }, [isConnected, boardId, userId, userName]);
@@ -835,19 +766,7 @@ export function useRealTimeCollaboration({
   const broadcastTextElementEditStart = useCallback((textElementId: string) => {
     if (!isConnected || !userId || !userName) return;
 
-    fetch('/api/board/text', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        boardId,
-        userId,
-        userName,
-        textElement: { id: textElementId },
-        action: 'startEdit',
-      }),
-    }).catch(error => {
+    api.post('/api/board/text', { boardId, userId, userName, textElement: { id: textElementId }, action: 'startEdit' }).catch(error => {
       logger.error('Failed to broadcast text element edit start:', error);
     });
   }, [isConnected, boardId, userId, userName]);
@@ -855,19 +774,7 @@ export function useRealTimeCollaboration({
   const broadcastTextElementEditFinish = useCallback((textElementId: string) => {
     if (!isConnected || !userId || !userName) return;
 
-    fetch('/api/board/text', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        boardId,
-        userId,
-        userName,
-        textElement: { id: textElementId },
-        action: 'finishEdit',
-      }),
-    }).catch(error => {
+    api.post('/api/board/text', { boardId, userId, userName, textElement: { id: textElementId }, action: 'finishEdit' }).catch(error => {
       logger.error('Failed to broadcast text element edit finish:', error);
     });
   }, [isConnected, boardId, userId, userName]);
@@ -876,19 +783,7 @@ export function useRealTimeCollaboration({
     if (!isConnected || !userId || !userName) return;
     
     // Immediately send the start event
-    fetch('/api/board/drawing', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        boardId,
-        userId,
-        userName,
-        line,
-        action: 'start',
-      }),
-    }).catch(error => {
+    api.post('/api/board/drawing', { boardId, userId, userName, line, action: 'start' }).catch(error => {
       logger.error('Failed to broadcast drawing start:', error);
     });
   }, [isConnected, boardId, userId, userName]);
@@ -906,19 +801,7 @@ export function useRealTimeCollaboration({
     lastDrawingUpdateRef.current = now;
     pendingDrawingUpdateRef.current = null;
 
-    fetch('/api/board/drawing', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        boardId,
-        userId,
-        userName,
-        line,
-        action: 'update',
-      }),
-    }).catch(error => {
+    api.post('/api/board/drawing', { boardId, userId, userName, line, action: 'update' }).catch(error => {
       logger.error('Failed to broadcast drawing update:', error);
     });
 
@@ -949,19 +832,7 @@ export function useRealTimeCollaboration({
       pendingDrawingUpdateRef.current = null;
     }
 
-    fetch('/api/board/drawing', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        boardId,
-        userId,
-        userName,
-        line,
-        action: 'complete',
-      }),
-    }).catch(error => {
+    api.post('/api/board/drawing', { boardId, userId, userName, line, action: 'complete' }).catch(error => {
       logger.error('Failed to broadcast drawing complete:', error);
     });
   }, [isConnected, boardId, userId, userName]);
@@ -969,19 +840,7 @@ export function useRealTimeCollaboration({
   const broadcastElementUpdate = useCallback((element: any) => {
     if (!isConnected || !userId || !userName) return;
 
-    fetch('/api/board/element', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        boardId,
-        userId,
-        userName,
-        element,
-        action: 'update',
-      }),
-    }).catch(error => {
+    api.post('/api/board/element', { boardId, userId, userName, element, action: 'update' }).catch(error => {
       logger.error('Failed to broadcast element update:', error);
     });
   }, [isConnected, boardId, userId, userName]);
@@ -989,19 +848,7 @@ export function useRealTimeCollaboration({
   const broadcastElementDelete = useCallback((elementId: string) => {
     if (!isConnected || !userId || !userName) return;
 
-    fetch('/api/board/element', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        boardId,
-        userId,
-        userName,
-        elementId,
-        action: 'delete',
-      }),
-    }).catch(error => {
+    api.post('/api/board/element', { boardId, userId, userName, elementId, action: 'delete' }).catch(error => {
       logger.error('Failed to broadcast element delete:', error);
     });
   }, [isConnected, boardId, userId, userName]);
@@ -1009,19 +856,7 @@ export function useRealTimeCollaboration({
   const broadcastShapeElementCreate = useCallback((shapeElement: any) => {
     if (!isConnected || !userId || !userName) return;
 
-    fetch('/api/board/shape', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        boardId,
-        userId,
-        userName,
-        shapeElement,
-        action: 'create',
-      }),
-    }).catch(error => {
+    api.post('/api/board/shape', { boardId, userId, userName, shapeElement, action: 'create' }).catch(error => {
       logger.error('Failed to broadcast shape element create:', error);
     });
   }, [isConnected, boardId, userId, userName]);
@@ -1029,19 +864,7 @@ export function useRealTimeCollaboration({
   const broadcastShapeElementUpdate = useCallback((shapeElement: any) => {
     if (!isConnected || !userId || !userName) return;
 
-    fetch('/api/board/shape', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        boardId,
-        userId,
-        userName,
-        shapeElement,
-        action: 'update',
-      }),
-    }).catch(error => {
+    api.post('/api/board/shape', { boardId, userId, userName, shapeElement, action: 'update' }).catch(error => {
       logger.error('Failed to broadcast shape element update:', error);
     });
   }, [isConnected, boardId, userId, userName]);
@@ -1049,19 +872,7 @@ export function useRealTimeCollaboration({
   const broadcastShapeElementDelete = useCallback((shapeElementId: string) => {
     if (!isConnected || !userId || !userName) return;
 
-    fetch('/api/board/shape', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        boardId,
-        userId,
-        userName,
-        shapeElement: { id: shapeElementId },
-        action: 'delete',
-      }),
-    }).catch(error => {
+    api.post('/api/board/shape', { boardId, userId, userName, shapeElement: { id: shapeElementId }, action: 'delete' }).catch(error => {
       logger.error('Failed to broadcast shape element delete:', error);
     });
   }, [isConnected, boardId, userId, userName]);
@@ -1069,19 +880,7 @@ export function useRealTimeCollaboration({
   const broadcastShapeElementTransform = useCallback((shapeElement: any) => {
     if (!isConnected || !userId || !userName) return;
 
-    fetch('/api/board/shape', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        boardId,
-        userId,
-        userName,
-        shapeElement,
-        action: 'transform',
-      }),
-    }).catch(error => {
+    api.post('/api/board/shape', { boardId, userId, userName, shapeElement, action: 'transform' }).catch(error => {
       logger.error('Failed to broadcast shape element transform:', error);
     });
   }, [isConnected, boardId, userId, userName]);

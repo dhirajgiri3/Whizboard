@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Clock, Users, Target, Heart, Zap, Globe, Award, TrendingUp, Shield, Code, Sparkles, Flame } from "lucide-react";
+import api from '@/lib/http/axios';
 
 interface TimelineEvent {
   id: string;
@@ -36,10 +37,9 @@ const AboutTimeline = () => {
   useEffect(() => {
     const fetchTimeline = async () => {
       try {
-        const response = await fetch('/api/about/timeline');
-        if (response.ok) {
-          const timelineData: TimelineEvent[] = await response.json();
-          setTimelineEvents(timelineData);
+        const { data } = await api.get('/api/about/timeline');
+        if (Array.isArray(data)) {
+          setTimelineEvents(data as TimelineEvent[]);
         } else {
           // Fallback data if API fails
           setTimelineEvents([

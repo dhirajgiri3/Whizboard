@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { toast } from 'sonner';
+import api from '@/lib/http/axios';
 
 interface ImportModalProps {
   isOpen: boolean;
@@ -128,17 +129,9 @@ export default function ImportModal({ isOpen, onClose, onImportComplete }: Impor
         conflictResolution: importOptions.conflictResolution,
       }));
 
-      const response = await fetch(`/api/board/${params.id}/import`, {
-        method: 'POST',
-        body: formData,
+      const { data: result } = await api.post(`/api/board/${params.id}/import`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Import failed');
-      }
-
-      const result = await response.json();
       toast.success(`Successfully imported ${result.importedElements} elements!`);
       onImportComplete?.();
       onClose();
@@ -152,11 +145,8 @@ export default function ImportModal({ isOpen, onClose, onImportComplete }: Impor
 
   const loadTemplates = async () => {
     try {
-      const response = await fetch(`/api/board/${params.id}/import?category=all`);
-      if (response.ok) {
-        const data = await response.json();
-        setTemplates(data.templates || []);
-      }
+      const { data } = await api.get(`/api/board/${params.id}/import?category=all`);
+      setTemplates(data.templates || []);
     } catch (error) {
       console.error('Failed to load templates:', error);
     }

@@ -5,6 +5,7 @@ import {
   Grid3X3, List, Eye, Download, MoreVertical, Calendar, HardDrive, User
 } from 'lucide-react';
 import { useParams } from 'next/navigation';
+import api from '@/lib/http/axios';
 import { toast } from 'sonner';
 
 interface FileManagerModalProps {
@@ -163,16 +164,7 @@ export default function FileManagerModal({ isOpen, onClose }: FileManagerModalPr
         formData.append('tags', '');
         formData.append('metadata', JSON.stringify({ originalName: file.name }));
 
-        const response = await fetch(`/api/board/${params.id}/files`, {
-          method: 'POST',
-          body: formData,
-          credentials: 'include' as RequestCredentials,
-        });
-
-        if (!response.ok) {
-          const err = await response.json().catch(() => ({}));
-          throw new Error(err.error || `Upload failed (${response.status})`);
-        }
+        await api.post(`/api/board/${params.id}/files`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       }
 
       toast.success(`${fileList.length} file${fileList.length > 1 ? 's' : ''} uploaded successfully!`);
@@ -195,12 +187,7 @@ export default function FileManagerModal({ isOpen, onClose }: FileManagerModalPr
   const loadFiles = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/board/${params.id}/files`, { credentials: 'include' as RequestCredentials });
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || `Failed to load files (${response.status})`);
-      }
-      const data = await response.json();
+      const { data } = await api.get(`/api/board/${params.id}/files`);
       setFiles(data.files || []);
     } catch (error) {
       console.error('Failed to load files:', error);
@@ -269,17 +256,13 @@ export default function FileManagerModal({ isOpen, onClose }: FileManagerModalPr
     if (!confirm('Delete this file?')) return;
 
     try {
-      const response = await fetch(`/api/board/${params.id}/files?fileId=${fileId}`, {
-        method: 'DELETE',
-        credentials: 'include' as RequestCredentials,
-      });
-
-      if (response.ok) {
+    const response = await api.delete(`/api/board/${params.id}/files?fileId=${fileId}`);
+    if (response.status >= 200 && response.status < 300) {
         toast.success('File deleted successfully!');
         loadFiles();
       } else {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || `Delete failed (${response.status})`);
+      const err = (response.data as any) || {};
+      throw new Error(err.error || `Delete failed (${response.status})`);
       }
     } catch (error) {
       console.error('Delete error:', error);
@@ -291,31 +274,24 @@ export default function FileManagerModal({ isOpen, onClose }: FileManagerModalPr
     if (!selectedFile) return;
 
     try {
-      const response = await fetch(`/api/board/${params.id}/files`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fileId: selectedFile.id,
-          updates: {
-            name: editForm.name,
-            metadata: {
-              ...selectedFile.metadata,
-              description: editForm.description,
-            },
-            tags: editForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+      const response = await api.put(`/api/board/${params.id}/files`, {
+        fileId: selectedFile.id,
+        updates: {
+          name: editForm.name,
+          metadata: {
+            ...selectedFile.metadata,
+            description: editForm.description,
           },
-        }),
-        credentials: 'include' as RequestCredentials,
+          tags: editForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        },
       });
 
-      if (response.ok) {
+      if (response.status >= 200 && response.status < 300) {
         toast.success('File updated successfully!');
         setIsEditing(false);
         loadFiles();
       } else {
-        const err = await response.json().catch(() => ({}));
+        const err = (response.data as any) || {};
         throw new Error(err.error || `Update failed (${response.status})`);
       }
     } catch (error) {
@@ -326,22 +302,11 @@ export default function FileManagerModal({ isOpen, onClose }: FileManagerModalPr
 
   const loadVersions = async (fileId: string) => {
     try {
-      const response = await fetch(`/api/board/${params.id}/files`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fileId,
-          action: 'get_versions',
-        }),
-        credentials: 'include' as RequestCredentials,
+      const { data } = await api.patch(`/api/board/${params.id}/files`, {
+        fileId,
+        action: 'get_versions',
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setVersions(data.versions || []);
-      }
+      setVersions(data.versions || []);
     } catch (error) {
       console.error('Failed to load versions:', error);
     }
@@ -412,12 +377,9 @@ export default function FileManagerModal({ isOpen, onClose }: FileManagerModalPr
   const handleDownloadFile = async (file: BoardFile) => {
     try {
       console.log('Downloading file:', file);
-      const response = await fetch(`/api/board/${params.id}/files?fileId=${file.id}&action=download`, {
-        credentials: 'include' as RequestCredentials,
-      });
-      
-      if (response.ok) {
-        const blob = await response.blob();
+      const response = await api.get(`/api/board/${params.id}/files?fileId=${file.id}&action=download`, { responseType: 'blob' });
+      if (response.status >= 200 && response.status < 300) {
+        const blob = response.data as Blob;
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -428,7 +390,7 @@ export default function FileManagerModal({ isOpen, onClose }: FileManagerModalPr
         document.body.removeChild(a);
         toast.success('File downloaded successfully!');
       } else {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = (response.data as any) || {};
         throw new Error(errorData.error || 'Download failed');
       }
     } catch (error) {

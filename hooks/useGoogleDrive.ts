@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import api from '@/lib/http/axios';
 import { toast } from 'sonner';
 
 export interface GoogleDriveFile {
@@ -50,13 +51,17 @@ export function useGoogleDrive() {
         params.append('folderId', folderId);
       }
 
-      const response = await fetch(`/api/integrations/google-drive/files?${params.toString()}`);
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error || `Failed to fetch files: ${response.status} ${response.statusText}`;
+      try {
+        const { data } = await api.get(`/api/integrations/google-drive/files?${params.toString()}`);
+        setFiles(data.files || []);
+        return data.files || [];
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const errorData = err?.response?.data || {};
+        const errorMessage = errorData.error || `Failed to fetch files`;
         
         // Check for specific API errors
-        if (response.status === 403 && errorData.error?.includes('API has not been used')) {
+        if (status === 403 && errorData.error?.includes('API has not been used')) {
           toast.error('Google Drive API not enabled. Please enable it in Google Cloud Console.', {
             description: 'Click here to enable the API',
             action: {
@@ -65,18 +70,13 @@ export function useGoogleDrive() {
             },
             duration: 10000,
           });
-        } else if (response.status === 401) {
+        } else if (status === 401) {
           toast.error('Google Drive not connected. Please connect your account in settings.');
         } else {
           toast.error(errorMessage);
         }
-        
         throw new Error(errorMessage);
       }
-
-      const data = await response.json();
-      setFiles(data.files || []);
-      return data.files || [];
     } catch (error) {
       console.error('Error listing files:', error);
       // Don't show duplicate toast if already shown above
@@ -95,12 +95,7 @@ export function useGoogleDrive() {
       const params = new URLSearchParams();
       params.append('query', query);
 
-      const response = await fetch(`/api/integrations/google-drive/files?${params.toString()}`);
-      if (!response.ok) {
-        throw new Error('Failed to search files');
-      }
-
-      const data = await response.json();
+      const { data } = await api.get(`/api/integrations/google-drive/files?${params.toString()}`);
       setFiles(data.files || []);
       return data.files || [];
     } catch (error) {
@@ -142,17 +137,9 @@ export function useGoogleDrive() {
         formData.append('parentFolderId', parentFolderId);
       }
 
-      const response = await fetch('/api/integrations/google-drive/files', {
-        method: 'POST',
-        body: formData,
+      const { data: result } = await api.post('/api/integrations/google-drive/files', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to upload file');
-      }
-
-      const result = await response.json();
       toast.success('File uploaded successfully to Google Drive');
       return result;
     } catch (error) {
@@ -168,14 +155,11 @@ export function useGoogleDrive() {
   const downloadFile = useCallback(async (fileId: string): Promise<DownloadResult> => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/integrations/google-drive/download?fileId=${fileId}`);
-      if (!response.ok) {
-        throw new Error('Failed to download file');
-      }
-
-      const data = await response.arrayBuffer();
-      const fileName = response.headers.get('content-disposition')?.split('filename=')[1]?.replace(/"/g, '') || 'download';
-      const mimeType = response.headers.get('content-type') || 'application/octet-stream';
+      const response = await api.get(`/api/integrations/google-drive/download?fileId=${fileId}`, { responseType: 'arraybuffer' });
+      const data = response.data as ArrayBuffer;
+      const fileNameHeader = response.headers['content-disposition'] as string | undefined;
+      const fileName = fileNameHeader?.split('filename=')[1]?.replace(/"/g, '') || 'download';
+      const mimeType = (response.headers['content-type'] as string) || 'application/octet-stream';
 
       // Create download link
       const blob = new Blob([data], { type: mimeType });
@@ -207,13 +191,7 @@ export function useGoogleDrive() {
   const deleteFile = useCallback(async (fileId: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/integrations/google-drive/files?fileId=${fileId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete file');
-      }
+      await api.delete(`/api/integrations/google-drive/files?fileId=${fileId}`);
 
       toast.success('File deleted successfully');
       return true;
@@ -229,19 +207,7 @@ export function useGoogleDrive() {
   const createFolder = useCallback(async (name: string, parentFolderId?: string): Promise<GoogleDriveFolder | null> => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/integrations/google-drive/folders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, parentFolderId }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create folder');
-      }
-
-      const result = await response.json();
+      const { data: result } = await api.post('/api/integrations/google-drive/folders', { name, parentFolderId });
       toast.success('Folder created successfully');
       return result.folder;
     } catch (error) {
@@ -255,11 +221,7 @@ export function useGoogleDrive() {
 
     const getWhizboardFolder = useCallback(async (): Promise<{ success: boolean; folderId?: string; error?: string }> => {
     try {
-      const response = await fetch('/api/integrations/google-drive/folders/whizboard');
-      if (!response.ok) {
-        throw new Error('Failed to get Whizboard folder');
-      }
-      const data = await response.json();
+      const { data } = await api.get('/api/integrations/google-drive/folders/whizboard');
       return { success: true, folderId: data.folderId };
     } catch (error) {
       console.error('Error getting Whizboard folder:', error);
@@ -292,13 +254,7 @@ export function useGoogleDrive() {
         params.append('googleDriveFolderId', options.folderId);
       }
 
-      const response = await fetch(`/api/board/${boardId}/export?${params.toString()}`);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to export board');
-      }
-
-      const result = await response.json();
+      const { data: result } = await api.get(`/api/board/${boardId}/export?${params.toString()}`);
       toast.success('Board exported successfully to Google Drive');
       return result;
     } catch (error) {

@@ -31,6 +31,7 @@ import { GoogleDriveDashboard } from '@/components/ui/GoogleDriveDashboard';
 import { GoogleDriveOnboarding } from '@/components/ui/GoogleDriveOnboarding';
 import { GoogleDriveQuickActions } from '@/components/ui/GoogleDriveQuickActions';
 import { toast } from 'sonner';
+import BackButton from '@/components/ui/BackButton';
 
 // Local UI primitives aligned with settings page & design system
 const SectionCard = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
@@ -255,6 +256,14 @@ export default function GoogleDrivePage() {
 
   return (
     <div className="min-h-screen py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+        <BackButton 
+          variant="dark" 
+          position="relative"
+          size="md"
+          label="Back to Dashboard"
+        />
+      </div>
       {/* Header */}
       <section className="pt-16 sm:pt-20 pb-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">

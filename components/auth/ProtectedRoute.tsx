@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, ReactNode } from 'react';
-import { Loading } from '@/components/ui/loading/Loading';
+import { LoadingOverlay } from '@/components/ui/loading/Loading';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -18,7 +18,7 @@ export default function ProtectedRoute({
   requireAuth = false,
   requireUnauth = false,
   redirectTo,
-  fallback = <Loading />
+  fallback = <LoadingOverlay theme="dark" />
 }: ProtectedRouteProps) {
   const { data: session, status } = useSession();
   const router = useRouter();

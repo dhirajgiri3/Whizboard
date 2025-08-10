@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import api from '@/lib/http/axios';
 
 interface BoardAccess {
   hasAccess: boolean;
@@ -50,20 +51,16 @@ export function useBoardAccess({
 
       try {
         // Check board access via API
-        const response = await fetch(`/api/board/${boardId}/metadata`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response.ok) {
+        try {
+          await api.get(`/api/board/${boardId}/metadata`);
           setBoardAccess({
             hasAccess: true,
             isLoading: false,
             error: null
           });
-        } else if (response.status === 403) {
+        } catch (err: any) {
+          const status = err?.response?.status;
+          if (status === 403) {
           setBoardAccess({
             hasAccess: false,
             isLoading: false,
@@ -74,7 +71,7 @@ export function useBoardAccess({
             const redirectUrl = redirectTo || '/my-boards';
             router.push(redirectUrl);
           }
-        } else if (response.status === 404) {
+          } else if (status === 404) {
           setBoardAccess({
             hasAccess: false,
             isLoading: false,
@@ -84,8 +81,9 @@ export function useBoardAccess({
           if (redirectOnDeny) {
             router.push('/my-boards');
           }
-        } else {
-          throw new Error(`HTTP ${response.status}`);
+          } else {
+            throw err;
+          }
         }
       } catch (error) {
         console.error('Error checking board access:', error);
@@ -121,19 +119,8 @@ export function useBoardOwnership(boardId: string) {
       }
 
       try {
-        const response = await fetch(`/api/board/${boardId}/metadata`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response.ok) {
-          const boardData = await response.json();
-          setIsOwner(boardData.ownerId === session.user.id);
-        } else {
-          setIsOwner(false);
-        }
+        const { data: boardData } = await api.get(`/api/board/${boardId}/metadata`);
+        setIsOwner(boardData.ownerId === session.user.id);
       } catch (error) {
         console.error('Error checking board ownership:', error);
         setIsOwner(false);

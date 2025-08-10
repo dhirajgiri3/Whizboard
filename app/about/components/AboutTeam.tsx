@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Github, Linkedin, Twitter, Mail, Code, Coffee, Rocket, Terminal, Palette, Megaphone } from 'lucide-react';
+import api from '@/lib/http/axios';
 
 interface TeamMember {
   id: string;
@@ -27,10 +28,9 @@ const AboutTeam = () => {
   useEffect(() => {
     const fetchTeam = async () => {
       try {
-        const response = await fetch('/api/about/team');
-        if (response.ok) {
-          const teamData: TeamMember[] = await response.json();
-          setTeamMembers(teamData);
+        const { data } = await api.get('/api/about/team');
+        if (Array.isArray(data)) {
+          setTeamMembers(data as TeamMember[]);
         } else {
           // Solo founder data with enhanced content
           setTeamMembers([

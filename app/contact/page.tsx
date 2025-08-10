@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import Link from "next/link";
+import BackButton from "@/components/ui/BackButton";
 import {
   Mail,
   MessageCircle,
@@ -218,6 +219,9 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-white relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6 pt-6">
+        <BackButton variant="dark" />
+      </div>
       {/* Background Elements */}
       <div className="absolute inset-0 bg-[url('/grid-pattern-dark.svg')] bg-repeat opacity-[0.02] pointer-events-none"></div>
       

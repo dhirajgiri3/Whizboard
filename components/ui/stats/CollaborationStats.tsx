@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Users, Crown, Wifi, WifiOff, UserPlus, Mail } from 'lucide-react';
 import { useBoardContext } from '@/lib/context/BoardContext';
 import { toast } from 'sonner';
+import api from '@/lib/http/axios';
 
 interface User {
   id: string;
@@ -43,17 +44,11 @@ export default function CollaborationStats({
 
     setIsInviting(true);
     try {
-      const response = await fetch('/api/board/invite', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          boardId,
-          inviteeEmail: inviteEmail.trim(),
-          message: 'Join our collaborative whiteboard session!'
-        }),
+      const { data } = await api.post('/api/board/invite', {
+        boardId,
+        inviteeEmail: inviteEmail.trim(),
+        message: 'Join our collaborative whiteboard session!'
       });
-
-      const data = await response.json();
       if (data.success) {
         toast.success(`Invitation sent to ${inviteEmail}!`);
         setInviteEmail('');

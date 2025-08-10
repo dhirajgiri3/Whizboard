@@ -13,7 +13,7 @@ export const integrationsConfig = {
     clientId: process.env.SLACK_CLIENT_ID || '',
     clientSecret: process.env.SLACK_CLIENT_SECRET || '',
     // comma-separated in env
-    scopes: (process.env.SLACK_SCOPES || 'chat:write,channels:read,channels:join')
+    scopes: (process.env.SLACK_SCOPES || 'chat:write,channels:read,channels:join,commands,links:read,links:write,files:write')
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean),

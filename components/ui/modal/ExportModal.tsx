@@ -27,6 +27,7 @@ import { toast } from 'sonner';
 import { useGoogleDrive } from '@/hooks/useGoogleDrive';
 import { GoogleDriveManager } from '@/components/ui/GoogleDriveManager';
 import { GoogleDriveDashboard } from '@/components/ui/GoogleDriveDashboard';
+import api from '@/lib/http/axios';
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -65,6 +66,10 @@ export default function ExportModal({
   const [showGoogleDriveDashboard, setShowGoogleDriveDashboard] = useState(false);
   const [selectedFolderId, setSelectedFolderId] = useState<string | undefined>();
   const { exportBoardToGoogleDrive } = useGoogleDrive();
+  const [shareToSlack, setShareToSlack] = useState(false);
+  const [isSharingToSlack, setIsSharingToSlack] = useState(false);
+  const [slackChannelId, setSlackChannelId] = useState<string>('');
+  const [slackChannels, setSlackChannels] = useState<Array<{ id: string; name: string }>>([]);
   const [exportOptions, setExportOptions] = useState<ExportOptions>({
     format: 'png',
     resolution: '2x',
@@ -145,23 +150,22 @@ export default function ExportModal({
         url.searchParams.set('includeMetadata', exportOptions.includeMetadata.toString());
         url.searchParams.set('compression', exportOptions.compression.toString());
 
-        const response = await fetch(url.toString());
-        
-        if (!response.ok) {
-          const errorText = await response.text();
+        const response = await api.get(url.toString(), { responseType: 'blob' });
+        if (response.status < 200 || response.status >= 300) {
+          const errorText = typeof response.data === 'string' ? response.data : '';
           console.error('Export failed:', response.status, errorText);
-          throw new Error(`Export failed: ${response.status} ${response.statusText}`);
+          throw new Error(`Export failed: ${response.status}`);
         }
 
         // Create download link
-        const blob = await response.blob();
+        const blob = response.data as Blob;
         const downloadUrl = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = downloadUrl;
         
         // Determine file extension based on format and content type
         let fileExtension = exportOptions.format;
-        const contentType = response.headers.get('content-type');
+        const contentType = response.headers['content-type'] as string | undefined;
         if (contentType?.includes('svg')) {
           fileExtension = 'svg';
         } else if (contentType?.includes('json')) {
@@ -183,6 +187,22 @@ export default function ExportModal({
           description: `File saved as ${link.download}`,
           duration: 5000,
         });
+
+        // Optionally share to Slack
+        if (shareToSlack) {
+          try {
+            setIsSharingToSlack(true);
+            const formData = new FormData();
+            formData.append('file', blob, link.download);
+            formData.append('filename', link.download);
+            if (slackChannelId) formData.append('channelId', slackChannelId);
+            await api.post('/api/integrations/slack/upload', formData, {
+              headers: { 'Content-Type': 'multipart/form-data' },
+            });
+          } finally {
+            setIsSharingToSlack(false);
+          }
+        }
         onClose();
       }
     } catch (error) {
@@ -620,6 +640,49 @@ export default function ExportModal({
                         <div className="text-xs text-gray-600">Include current zoom and position data</div>
                       </div>
                     </label>
+                    <label className="flex items-center p-3 rounded-lg border-2 border-gray-200 hover:border-blue-300 transition-all duration-200 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={shareToSlack}
+                        onChange={(e) => setShareToSlack(e.target.checked)}
+                        className="w-4 h-4 text-blue-500 bg-gray-50 border-gray-300 rounded focus:ring-blue-500 mr-3"
+                      />
+                      <div>
+                        <div className="font-medium text-gray-900 text-sm">Share to Slack</div>
+                        <div className="text-xs text-gray-600">Post a message in your default Slack channel</div>
+                      </div>
+                    </label>
+                    {shareToSlack && (
+                      <div className="p-3 rounded-lg border-2 border-blue-200 bg-blue-50">
+                        <div className="text-xs text-gray-700 mb-2">Optional: choose Slack channel</div>
+                        <div className="flex gap-2">
+                          <select
+                            value={slackChannelId}
+                            onChange={(e) => setSlackChannelId(e.target.value)}
+                            className="flex-1 px-2 py-2 rounded border border-gray-300 text-sm bg-white"
+                          >
+                            <option value="">Use default channel</option>
+                            {slackChannels.map((c) => (
+                              <option key={c.id} value={c.id}>#{c.name}</option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                const res = await api.get('/api/integrations/slack/channels');
+                                setSlackChannels(res.data.channels || []);
+                              } catch (e) {
+                                // no-op
+                              }
+                            }}
+                            className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm"
+                          >
+                            Load Channels
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 

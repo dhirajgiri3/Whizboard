@@ -23,6 +23,7 @@ import {
   Eye,
   Handshake,
 } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 
 // Animation variants
 const fadeInUp = {
@@ -483,6 +484,14 @@ export default function TermsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <div className="container mx-auto px-4 max-w-6xl pt-6">
+        <BackButton 
+          variant="light"
+          position="relative"
+          size="md"
+          label="Back to Home"
+        />
+      </div>
       {/* Hero Section */}
       <section className="relative pt-20 pb-32 overflow-hidden">
         <div className="container mx-auto px-4 max-w-6xl relative z-10">

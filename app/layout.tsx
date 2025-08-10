@@ -5,7 +5,7 @@ import { ApolloProvider } from "@/lib/provider/ApolloProvider";
 import AuthSessionProvider from "@/lib/provider/AuthSessionProvider";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/options";
-import { Toaster } from "sonner";
+import AppToaster from "@/components/ui/AppToaster";
 import Script from "next/script";
 import { Providers } from "./layout/providers";
 import ConditionalHeader from "@/components/layout/header/utils/ConditionalHeader";
@@ -174,7 +174,7 @@ export default async function RootLayout({
               <div id="main-content">
                 {children}
               </div>
-              <Toaster richColors position="top-center" />
+              <AppToaster />
             </Providers>
           </ApolloProvider>
         </AuthSessionProvider>

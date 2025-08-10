@@ -2,6 +2,7 @@ import { createYoga } from 'graphql-yoga';
 import { schema, pubSub } from '@/lib/graphql/schema';
 import { decode } from 'next-auth/jwt';
 import { authOptions } from '@/lib/auth/options';
+import axios from 'axios';
 
 const yoga = createYoga({
   schema,
@@ -57,19 +58,17 @@ const yoga = createYoga({
               console.error('Error decoding token:', decodeError);
               // If token decoding fails, try to get session from the session endpoint
               try {
-                const sessionResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/auth/session`, {
-                  headers: {
-                    cookie: cookieHeader,
-                  },
+              try {
+                const { data: sessionData } = await axios.get(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/auth/session`, {
+                  headers: { cookie: cookieHeader as string },
+                  withCredentials: true,
+                  validateStatus: () => true,
                 });
-                
-                if (sessionResponse.ok) {
-                  const sessionData = await sessionResponse.json();
-                  if (sessionData.user?.id) {
-                    session = sessionData;
-                    console.log('Session retrieved from session endpoint:', !!session, session?.user?.id);
-                  }
+                if (sessionData?.user?.id) {
+                  session = sessionData;
+                  console.log('Session retrieved from session endpoint:', !!session, session?.user?.id);
                 }
+              } catch {}
               } catch (sessionError) {
                 console.error('Error fetching session:', sessionError);
               }

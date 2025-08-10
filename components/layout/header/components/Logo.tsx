@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import logo from '@/public/images/logo/whizboard_logo.png';
+import logo from '@/public/images/logos/whizboard_logo.png';
 import { headerAnimations, darkHeaderAnimations } from '../utils/animations';
 
 interface LogoProps {

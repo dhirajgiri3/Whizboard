@@ -38,7 +38,7 @@ import {
   DropdownContent,
   DropdownItem,
 } from "@/components/ui/header/Dropdown";
-import logo from "@/public/images/logo/whizboard_logo.png";
+import logo from "@/public/images/logos/whizboard_logo.png";
 
 interface User {
   id: string;

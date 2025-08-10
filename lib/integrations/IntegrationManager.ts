@@ -1,3 +1,4 @@
+import axios from 'axios';
 export interface IntegrationConfig {
   id: string;
   name: string;
@@ -243,15 +244,11 @@ class IntegrationManager {
         channel: targetChannel,
       };
 
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+      const response = await axios.post(webhookUrl, payload, {
+        headers: { 'Content-Type': 'application/json' },
+        validateStatus: () => true,
       });
-
-      return response.ok;
+      return response.status >= 200 && response.status < 300;
     } catch (error) {
       console.error('Failed to send Slack notification:', error);
       return false;
@@ -296,15 +293,11 @@ class IntegrationManager {
         text: message,
       };
 
-      const response = await fetch(targetWebhook, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+      const response = await axios.post(targetWebhook, payload, {
+        headers: { 'Content-Type': 'application/json' },
+        validateStatus: () => true,
       });
-
-      return response.ok;
+      return response.status >= 200 && response.status < 300;
     } catch (error) {
       console.error('Failed to send Teams notification:', error);
       return false;
@@ -345,16 +338,14 @@ class IntegrationManager {
         timestamp: new Date().toISOString(),
       };
 
-      const response = await fetch(integration.endpoint, {
-        method: 'POST',
+      const response = await axios.post(integration.endpoint, payload, {
         headers: {
           'Content-Type': 'application/json',
           ...(integration.apiKey && { 'Authorization': `Bearer ${integration.apiKey}` }),
         },
-        body: JSON.stringify(payload),
+        validateStatus: () => true,
       });
-
-      return response.ok;
+      return response.status >= 200 && response.status < 300;
     } catch (error) {
       console.error('Failed to trigger custom integration:', error);
       return false;

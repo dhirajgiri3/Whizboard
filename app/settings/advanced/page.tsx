@@ -20,6 +20,9 @@ import {
   HardDrive,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import BackButton from '@/components/ui/BackButton';
+import Loading from '@/components/ui/loading/Loading';
+import api from '@/lib/http/axios';
 
 interface StorageInfo {
   used: number;
@@ -77,13 +80,8 @@ export default function AdvancedSettingsPage() {
   const loadStorageInfo = useCallback(async () => {
     try {
       console.log('Loading storage info, session status:', status, 'session:', !!session);
-      const response = await fetch('/api/settings/storage');
-      if (response.ok) {
-        const data = await response.json();
-        setStorageInfo(data);
-      } else {
-        console.error('Storage info request failed:', response.status, response.statusText);
-      }
+      const { data } = await api.get('/api/settings/storage');
+      setStorageInfo(data);
     } catch (error) {
       console.error('Error loading storage info:', error);
     }
@@ -127,20 +125,8 @@ export default function AdvancedSettingsPage() {
   const handleExportData = async () => {
     setIsExporting(true);
     try {
-      const response = await fetch('/api/settings/account/export', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ ...exportOptions, format: 'json' }),
-      });
-
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({ error: 'Export failed' }));
-        throw new Error(err.error || 'Export failed');
-      }
-
-      const blob = await response.blob();
+      const response = await api.post('/api/settings/account/export', { ...exportOptions, format: 'json' }, { responseType: 'blob' });
+      const blob = response.data as Blob;
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -172,15 +158,8 @@ export default function AdvancedSettingsPage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/settings/account/import', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json().catch(() => ({ success: false, error: 'Invalid server response' }));
-      if (!response.ok || result?.error) {
-        throw new Error(result?.error || 'Import failed');
-      }
+      const { data: result } = await api.post('/api/settings/account/import', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      if (result?.error) throw new Error(result.error);
 
       console.log('Import successful, reloading storage info');
       await loadStorageInfo();
@@ -198,13 +177,7 @@ export default function AdvancedSettingsPage() {
   const handleClearAllData = async () => {
     setIsClearing(true);
     try {
-      const response = await fetch('/api/settings/account/clear', {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to clear data');
-      }
+      await api.post('/api/settings/account/clear');
 
       clearOfflineData();
 
@@ -265,6 +238,14 @@ export default function AdvancedSettingsPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-[var(--deep-canvas)] pb-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <BackButton 
+          variant="dark" 
+          position="relative"
+          size="md"
+          label="Back to Settings"
+        />
+      </div>
       {/* Background */}
       <div className="absolute inset-0 dot-pattern opacity-[0.15]" />
       <div className="absolute top-1/4 left-1/4 w-72 h-72 gradient-orb-blue" />
@@ -545,10 +526,7 @@ export default function AdvancedSettingsPage() {
                 </div>
                 {isImporting && (
                   <div className="text-center py-2">
-                    <div className="inline-flex items-center gap-2 text-blue-400">
-                      <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
-                      <span className="text-sm">Importing…</span>
-                    </div>
+                    <Loading size="sm" variant="dots" text="Importing…" tone="dark" />
                   </div>
                 )}
               </div>

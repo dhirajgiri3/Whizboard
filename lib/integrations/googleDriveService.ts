@@ -2,6 +2,7 @@ import { getToken, upsertToken } from './tokenStore';
 import logger from '@/lib/logger/logger';
 import { google } from 'googleapis';
 import { Readable } from 'stream';
+import axios from 'axios';
 
 export interface GoogleDriveFile {
   id: string;
@@ -63,24 +64,14 @@ class GoogleDriveService {
         }
 
         logger.debug({ userEmail }, 'Initiating token refresh request');
-        const refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({
-            client_id: process.env.GOOGLE_DRIVE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || '',
-            client_secret: process.env.GOOGLE_DRIVE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET || '',
-            refresh_token: token.refreshToken,
-            grant_type: 'refresh_token',
-          }),
-        });
+        const refreshResponse = await axios.post('https://oauth2.googleapis.com/token', new URLSearchParams({
+          client_id: process.env.GOOGLE_DRIVE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || '',
+          client_secret: process.env.GOOGLE_DRIVE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET || '',
+          refresh_token: token.refreshToken!,
+          grant_type: 'refresh_token',
+        }), { headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, withCredentials: false });
 
-        if (!refreshResponse.ok) {
-          const errorText = await refreshResponse.text();
-          logger.error({ userEmail, status: refreshResponse.status, error: errorText }, 'Failed to refresh Google Drive token');
-          return null;
-        }
-
-        const refreshData = await refreshResponse.json();
+        const refreshData = refreshResponse.data as any;
         const newExpiresAt = refreshData.expires_in 
           ? new Date(Date.now() + refreshData.expires_in * 1000)
           : null;
@@ -122,31 +113,38 @@ class GoogleDriveService {
 
     logger.debug({ userEmail, endpoint, hasAccessToken: !!accessToken }, 'Proceeding with Google Drive API request');
 
-    const response = await fetch(`https://www.googleapis.com/drive/v3/${endpoint}`, {
-      ...options,
+    const axiosResponse = await axios.request({
+      url: `https://www.googleapis.com/drive/v3/${endpoint}`,
+      method: (options.method as any) || 'GET',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
-        ...options.headers,
+        ...(options.headers as any),
       },
+      data: (options as any).body,
+      responseType: 'json',
+      withCredentials: false,
+      validateStatus: () => true,
     });
 
-    logger.debug({ userEmail, endpoint, status: response.status }, 'Google Drive API response received');
+    logger.debug({ userEmail, endpoint, status: axiosResponse.status }, 'Google Drive API response received');
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+    if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
+      const errorData = axiosResponse.data || {};
       logger.error({ 
         userEmail, 
         endpoint, 
-        status: response.status, 
-        statusText: response.statusText,
+        status: axiosResponse.status, 
+        statusText: axiosResponse.statusText,
         error: errorData 
       }, 'Google Drive API request failed');
-      throw new Error(`Google Drive API error: ${response.status} ${response.statusText}`);
+      throw new Error(`Google Drive API error: ${axiosResponse.status} ${axiosResponse.statusText}`);
     }
 
-    logger.info({ userEmail, endpoint, status: response.status }, 'Google Drive API request successful');
-    return response;
+    logger.info({ userEmail, endpoint, status: axiosResponse.status }, 'Google Drive API request successful');
+    // Create a Response-like object from axios data for current call sites
+    const blob = new Blob([JSON.stringify(axiosResponse.data)], { type: 'application/json' });
+    return new Response(blob, { status: axiosResponse.status, headers: { 'Content-Type': 'application/json' } });
   }
 
   async listFiles(userEmail: string, folderId?: string): Promise<GoogleDriveFile[]> {
@@ -351,21 +349,19 @@ class GoogleDriveService {
         return { success: false, error: 'No valid access token available' };
       }
 
-      const downloadResponse = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        }
-      );
+      const downloadResponse = await axios.get(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` },
+        responseType: 'arraybuffer',
+        withCredentials: false,
+        validateStatus: () => true,
+      });
 
-      if (!downloadResponse.ok) {
+      if (downloadResponse.status < 200 || downloadResponse.status >= 300) {
         return { success: false, error: `Download failed: ${downloadResponse.status} ${downloadResponse.statusText}` };
       }
 
       // Read as binary to avoid data corruption
-      const arrayBuffer = await downloadResponse.arrayBuffer();
+      const arrayBuffer = downloadResponse.data as ArrayBuffer;
       const data = Buffer.from(arrayBuffer);
       return {
         success: true,

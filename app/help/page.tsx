@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useCallback } from "react";
+import BackButton from "@/components/ui/BackButton";
 import HelpHero from "./components/HelpHero";
 import SearchResults from "./components/SearchResults";
 import QuickStartGuides from "./components/QuickStartGuides";
@@ -65,6 +66,14 @@ export default function HelpPage() {
 
   return (
     <div className="min-h-screen bg-gray-950">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <BackButton 
+          variant="dark" 
+          position="relative"
+          size="md"
+          label="Back to Dashboard"
+        />
+      </div>
       <HelpHero 
         searchQuery={searchQuery}
         onSearchChange={handleSearch}

@@ -1,8 +1,8 @@
 "use client";
 
-import { Palette, Users, Zap, Layers, Share2, Sparkles } from 'lucide-react';
+import { Palette, Users } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 interface LoadingProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -10,6 +10,8 @@ interface LoadingProps {
   showIcon?: boolean;
   className?: string;
   variant?: 'default' | 'minimal' | 'dots' | 'whiteboard' | 'collaboration' | 'pulse-grid';
+  tone?: 'light' | 'dark';
+  ariaLabel?: string;
 }
 
 const sizeClasses = {
@@ -39,26 +41,37 @@ const sizeClasses = {
   },
 };
 
-export default function Loading({ 
-  size = 'md', 
-  text, 
-  showIcon = true, 
+export default function Loading({
+  size = 'md',
+  text,
+  showIcon = true,
   className = '',
-  variant = 'default'
+  variant = 'default',
+  tone = 'light',
+  ariaLabel = 'Loading'
 }: LoadingProps) {
   const sizes = sizeClasses[size];
+  const prefersReducedMotion = useReducedMotion();
+  const isDarkTone = tone === 'dark';
+  const primaryTextClass = isDarkTone ? 'text-white/90' : 'text-gray-700';
+  const secondaryTextClass = isDarkTone ? 'text-white/70' : 'text-gray-600';
+  const spinnerTrackClass = isDarkTone ? 'border-white/10' : 'border-gray-200';
+  const spinnerAccentClass = isDarkTone ? 'border-t-blue-400' : 'border-t-blue-600';
 
   if (variant === 'whiteboard') {
     return (
-      <motion.div 
+      <motion.div
+        role="status"
+        aria-live="polite"
+        aria-label={ariaLabel}
         className={`flex flex-col items-center justify-center gap-4 ${className}`}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
+        initial={prefersReducedMotion ? undefined : { opacity: 0, y: 10 }}
+        animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+        transition={prefersReducedMotion ? undefined : { duration: 0.3, ease: "easeOut" }}
       >
         <div className="relative">
           {/* Animated whiteboard canvas */}
-          <div className="w-20 h-14 bg-white rounded-lg shadow-lg border border-gray-200 relative overflow-hidden backdrop-blur-sm">
+          <div className="w-20 h-14 bg-white rounded-lg shadow-lg border border-gray-200 relative overflow-hidden">
             {/* Drawing lines animation */}
             <svg className="absolute inset-0 w-full h-full">
               <motion.path
@@ -68,47 +81,41 @@ export default function Loading({
                 fill="none"
                 strokeDasharray="20"
                 strokeDashoffset="20"
-                animate={{
-                  strokeDashoffset: [20, 0, 20]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
+                animate={prefersReducedMotion ? undefined : { strokeDashoffset: [20, 0, 20] }}
+                transition={prefersReducedMotion ? undefined : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
               />
             </svg>
           </div>
           
           {/* Floating tools */}
-          <motion.div 
+          <motion.div
             className="absolute -top-2 -right-2 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center"
-            animate={{ y: [0, -4, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            animate={prefersReducedMotion ? undefined : { y: [0, -4, 0] }}
+            transition={prefersReducedMotion ? undefined : { duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
           >
             <Palette className="w-3 h-3 text-white" />
           </motion.div>
           
           {/* Collaboration indicator */}
           <div className="absolute -bottom-1 -left-1 flex -space-x-1">
-            <motion.div 
+            <motion.div
               className="w-3 h-3 bg-emerald-600 rounded-full border border-white animate-pulse"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              animate={prefersReducedMotion ? undefined : { scale: [1, 1.2, 1] }}
+              transition={prefersReducedMotion ? undefined : { duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
             />
-            <motion.div 
+            <motion.div
               className="w-3 h-3 bg-blue-600 rounded-full border border-white"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+              animate={prefersReducedMotion ? undefined : { scale: [1, 1.2, 1] }}
+              transition={prefersReducedMotion ? undefined : { duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
             />
           </div>
         </div>
         
         {text && (
-          <motion.div 
-            className={`${sizes.text} font-medium text-gray-700`}
-            animate={{ opacity: [0.7, 1, 0.7] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          <motion.div
+            className={`${sizes.text} font-medium ${primaryTextClass}`}
+            animate={prefersReducedMotion ? undefined : { opacity: [0.7, 1, 0.7] }}
+            transition={prefersReducedMotion ? undefined : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
             {text}
           </motion.div>
@@ -119,27 +126,30 @@ export default function Loading({
 
   if (variant === 'collaboration') {
     return (
-      <motion.div 
+      <motion.div
+        role="status"
+        aria-live="polite"
+        aria-label={ariaLabel}
         className={`flex flex-col items-center justify-center gap-4 ${className}`}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
+        initial={prefersReducedMotion ? undefined : { opacity: 0, y: 10 }}
+        animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+        transition={prefersReducedMotion ? undefined : { duration: 0.3, ease: "easeOut" }}
       >
         <div className="relative">
           {/* Central hub */}
-          <motion.div 
+          <motion.div
             className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center shadow-lg"
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            animate={prefersReducedMotion ? undefined : { scale: [1, 1.05, 1] }}
+            transition={prefersReducedMotion ? undefined : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
             <Users className="w-8 h-8 text-white" />
           </motion.div>
           
           {/* Orbiting collaboration indicators */}
-          <motion.div 
+          <motion.div
             className="absolute inset-0"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            animate={prefersReducedMotion ? undefined : { rotate: 360 }}
+            transition={prefersReducedMotion ? undefined : { duration: 3, repeat: Infinity, ease: "linear" }}
           >
             <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-emerald-600 rounded-full shadow-md"></div>
             <div className="absolute top-1/2 -right-2 transform -translate-y-1/2 w-4 h-4 bg-amber-600 rounded-full shadow-md"></div>
@@ -148,20 +158,20 @@ export default function Loading({
           </motion.div>
           
           {/* Pulse rings */}
-          <motion.div 
+          <motion.div
             className="absolute inset-0"
-            animate={{ scale: [1, 1.5, 1], opacity: [0.2, 0, 0.2] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            animate={prefersReducedMotion ? undefined : { scale: [1, 1.5, 1], opacity: [0.2, 0, 0.2] }}
+            transition={prefersReducedMotion ? undefined : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
             <div className="w-full h-full bg-blue-600 rounded-full"></div>
           </motion.div>
         </div>
         
         {text && (
-          <motion.div 
-            className={`${sizes.text} font-medium text-gray-700`}
-            animate={{ opacity: [0.7, 1, 0.7] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          <motion.div
+            className={`${sizes.text} font-medium ${primaryTextClass}`}
+            animate={prefersReducedMotion ? undefined : { opacity: [0.7, 1, 0.7] }}
+            transition={prefersReducedMotion ? undefined : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
             {text}
           </motion.div>
@@ -172,36 +182,31 @@ export default function Loading({
 
   if (variant === 'pulse-grid') {
     return (
-      <motion.div 
+      <motion.div
+        role="status"
+        aria-live="polite"
+        aria-label={ariaLabel}
         className={`flex flex-col items-center justify-center gap-4 ${className}`}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
+        initial={prefersReducedMotion ? undefined : { opacity: 0, y: 10 }}
+        animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+        transition={prefersReducedMotion ? undefined : { duration: 0.3, ease: "easeOut" }}
       >
         <div className="grid grid-cols-3 gap-2">
           {Array.from({ length: 9 }).map((_, i) => (
             <motion.div
               key={i}
               className="w-4 h-4 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg"
-              animate={{ 
-                scale: [1, 1.2, 1],
-                opacity: [0.6, 1, 0.6]
-              }}
-              transition={{ 
-                duration: 1.5,
-                repeat: Infinity,
-                delay: i * 0.1,
-                ease: "easeInOut"
-              }}
+              animate={prefersReducedMotion ? undefined : { scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }}
+              transition={prefersReducedMotion ? undefined : { duration: 1.5, repeat: Infinity, delay: i * 0.1, ease: "easeInOut" }}
             />
           ))}
         </div>
         
         {text && (
-          <motion.div 
-            className={`${sizes.text} font-medium text-gray-700`}
-            animate={{ opacity: [0.7, 1, 0.7] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          <motion.div
+            className={`${sizes.text} font-medium ${primaryTextClass}`}
+            animate={prefersReducedMotion ? undefined : { opacity: [0.7, 1, 0.7] }}
+            transition={prefersReducedMotion ? undefined : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
             {text}
           </motion.div>
@@ -212,22 +217,25 @@ export default function Loading({
 
   if (variant === 'minimal') {
     return (
-      <motion.div 
+      <motion.div
+        role="status"
+        aria-live="polite"
+        aria-label={ariaLabel}
         className={`flex items-center justify-center ${className}`}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
+        initial={prefersReducedMotion ? undefined : { opacity: 0, y: 10 }}
+        animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+        transition={prefersReducedMotion ? undefined : { duration: 0.3, ease: "easeOut" }}
       >
-        <motion.div 
-          className={`${sizes.spinner} border-3 border-gray-200 border-t-blue-600 rounded-full`}
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        <motion.div
+          className={`${sizes.spinner} border-2 ${spinnerTrackClass} ${spinnerAccentClass} rounded-full`}
+          animate={prefersReducedMotion ? undefined : { rotate: 360 }}
+          transition={prefersReducedMotion ? undefined : { duration: 1, repeat: Infinity, ease: "linear" }}
         />
         {text && (
-          <motion.span 
-            className={`ml-3 ${sizes.text} font-medium text-gray-700`}
-            animate={{ opacity: [0.7, 1, 0.7] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          <motion.span
+            className={`ml-3 ${sizes.text} font-medium ${primaryTextClass}`}
+            animate={prefersReducedMotion ? undefined : { opacity: [0.7, 1, 0.7] }}
+            transition={prefersReducedMotion ? undefined : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
             {text}
           </motion.span>
@@ -238,32 +246,30 @@ export default function Loading({
 
   if (variant === 'dots') {
     return (
-      <motion.div 
+      <motion.div
+        role="status"
+        aria-live="polite"
+        aria-label={ariaLabel}
         className={`flex items-center justify-center gap-2 ${className}`}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
+        initial={prefersReducedMotion ? undefined : { opacity: 0, y: 10 }}
+        animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+        transition={prefersReducedMotion ? undefined : { duration: 0.3, ease: "easeOut" }}
       >
         <div className="flex space-x-1">
           {[0, 1, 2].map((i) => (
             <motion.div
               key={i}
               className="w-2 h-2 bg-blue-600 rounded-full"
-              animate={{ y: [0, -6, 0] }}
-              transition={{ 
-                duration: 0.6,
-                repeat: Infinity,
-                delay: i * 0.2,
-                ease: "easeInOut"
-              }}
+              animate={prefersReducedMotion ? undefined : { y: [0, -6, 0] }}
+              transition={prefersReducedMotion ? undefined : { duration: 0.6, repeat: Infinity, delay: i * 0.2, ease: "easeInOut" }}
             />
           ))}
         </div>
         {text && (
-          <motion.span 
-            className={`ml-3 ${sizes.text} font-medium text-gray-700`}
-            animate={{ opacity: [0.7, 1, 0.7] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          <motion.span
+            className={`ml-3 ${sizes.text} font-medium ${primaryTextClass}`}
+            animate={prefersReducedMotion ? undefined : { opacity: [0.7, 1, 0.7] }}
+            transition={prefersReducedMotion ? undefined : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
             {text}
           </motion.span>
@@ -273,42 +279,45 @@ export default function Loading({
   }
 
   return (
-    <motion.div 
+    <motion.div
+      role="status"
+      aria-live="polite"
+      aria-label={ariaLabel}
       className={`flex flex-col items-center justify-center gap-3 ${className}`}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
+      initial={prefersReducedMotion ? undefined : { opacity: 0, y: 10 }}
+      animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+      transition={prefersReducedMotion ? undefined : { duration: 0.3, ease: "easeOut" }}
     >
       <div className="relative">
         {/* Outer spinning ring */}
         <div 
-          className={`${sizes.container} border-4 border-gray-200 rounded-full`}
+          className={`${sizes.container} border-4 ${spinnerTrackClass} rounded-full`}
         />
         
         {/* Inner spinning ring */}
-        <motion.div 
-          className={`absolute top-0 left-0 ${sizes.container} border-4 border-blue-600 border-t-transparent rounded-full`}
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        <motion.div
+          className={`absolute top-0 left-0 ${sizes.container} border-4 ${isDarkTone ? 'border-blue-400' : 'border-blue-600'} border-t-transparent rounded-full`}
+          animate={prefersReducedMotion ? undefined : { rotate: 360 }}
+          transition={prefersReducedMotion ? undefined : { duration: 1, repeat: Infinity, ease: "linear" }}
         />
         
         {/* Center icon */}
         {showIcon && (
-          <motion.div 
+          <motion.div
             className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2`}
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            animate={prefersReducedMotion ? undefined : { scale: [1, 1.1, 1] }}
+            transition={prefersReducedMotion ? undefined : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
-            <Palette className={`${sizes.icon} text-blue-600`} />
+            <Palette className={`${sizes.icon} ${isDarkTone ? 'text-blue-400' : 'text-blue-600'}`} />
           </motion.div>
         )}
       </div>
       
       {text && (
-        <motion.div 
-          className={`${sizes.text} font-medium text-gray-700`}
-          animate={{ opacity: [0.7, 1, 0.7] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        <motion.div
+          className={`${sizes.text} font-medium ${primaryTextClass}`}
+          animate={prefersReducedMotion ? undefined : { opacity: [0.7, 1, 0.7] }}
+          transition={prefersReducedMotion ? undefined : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
         >
           {text}
         </motion.div>
@@ -321,13 +330,16 @@ export default function Loading({
 export function LoadingOverlay({ 
   text = "Loading...", 
   variant = 'whiteboard',
-  subtitle = "Preparing your collaborative workspace"
+  subtitle = "Preparing your collaborative workspace",
+  theme = 'dark'
 }: { 
   text?: string; 
   variant?: 'default' | 'minimal' | 'dots' | 'whiteboard' | 'collaboration';
   subtitle?: string;
+  theme?: 'dark' | 'light';
 }) {
   const [progress, setProgress] = useState(0);
+  const prefersReducedMotion = useReducedMotion();
   
   useEffect(() => {
     const timer = setInterval(() => {
@@ -340,76 +352,85 @@ export function LoadingOverlay({
     return () => clearInterval(timer);
   }, []);
 
+  const isDark = theme === 'dark';
+
   return (
-    <motion.div 
-      className="fixed inset-0 bg-white/95 backdrop-blur-xl z-50 flex items-center justify-center"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
+    <motion.div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Loading overlay"
+      className={`fixed inset-0 z-50 flex items-center justify-center ${isDark ? 'bg-[#0f1115]/95' : 'bg-white'}`}
+      initial={prefersReducedMotion ? undefined : { opacity: 0 }}
+      animate={prefersReducedMotion ? undefined : { opacity: 1 }}
+      exit={prefersReducedMotion ? undefined : { opacity: 0 }}
+      transition={prefersReducedMotion ? undefined : { duration: 0.3 }}
     >
       {/* Animated background pattern */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-blue-600 rounded-full">
           <motion.div
             className="w-full h-full bg-blue-600 rounded-full"
-            animate={{ scale: [1, 2, 1], opacity: [0.5, 0, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            animate={prefersReducedMotion ? undefined : { scale: [1, 2, 1], opacity: [0.5, 0, 0.5] }}
+            transition={prefersReducedMotion ? undefined : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
           />
         </div>
         <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-gray-500 rounded-full">
           <motion.div
             className="w-full h-full bg-gray-500 rounded-full"
-            animate={{ scale: [1, 2, 1], opacity: [0.5, 0, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            animate={prefersReducedMotion ? undefined : { scale: [1, 2, 1], opacity: [0.5, 0, 0.5] }}
+            transition={prefersReducedMotion ? undefined : { duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
           />
         </div>
         <div className="absolute bottom-1/4 left-1/3 w-1.5 h-1.5 bg-blue-600 rounded-full">
           <motion.div
             className="w-full h-full bg-blue-600 rounded-full"
-            animate={{ scale: [1, 2, 1], opacity: [0.5, 0, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+            animate={prefersReducedMotion ? undefined : { scale: [1, 2, 1], opacity: [0.5, 0, 0.5] }}
+            transition={prefersReducedMotion ? undefined : { duration: 2, repeat: Infinity, ease: "easeInOut", delay: 2 }}
           />
         </div>
       </div>
       
-      <motion.div 
+      <motion.div
         className="text-center relative z-10"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
+        initial={prefersReducedMotion ? undefined : { opacity: 0, y: 20 }}
+        animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+        transition={prefersReducedMotion ? undefined : { duration: 0.5, delay: 0.2 }}
       >
-        <Loading size="xl" text={text} variant={variant} />
+        <Loading size="xl" text={text} variant={variant} tone={isDark ? 'dark' : 'light'} />
         {subtitle && (
-          <motion.p 
-            className="text-gray-600 text-sm mt-3 leading-relaxed max-w-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+          <motion.p
+            className={`${isDark ? 'text-white/75' : 'text-gray-600'} text-sm mt-3 leading-relaxed max-w-sm`}
+            initial={prefersReducedMotion ? undefined : { opacity: 0 }}
+            animate={prefersReducedMotion ? undefined : { opacity: 1 }}
+            transition={prefersReducedMotion ? undefined : { duration: 0.5, delay: 0.4 }}
           >
             {subtitle}
           </motion.p>
         )}
         
         {/* Progress bar */}
-        <motion.div 
-          className="mt-6 w-64 h-1 bg-gray-200 rounded-full overflow-hidden backdrop-blur-sm"
-          initial={{ opacity: 0, scaleX: 0 }}
-          animate={{ opacity: 1, scaleX: 1 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
+        <motion.div
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progress)}
+          className={`mt-6 w-64 h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-gray-200'}`}
+          initial={prefersReducedMotion ? undefined : { opacity: 0, scaleX: 0 }}
+          animate={prefersReducedMotion ? undefined : { opacity: 1, scaleX: 1 }}
+          transition={prefersReducedMotion ? undefined : { duration: 0.5, delay: 0.6 }}
         >
-          <motion.div 
-            className="h-full bg-gradient-to-r from-blue-600 to-blue-700 rounded-full"
-            initial={{ width: 0 }}
+          <motion.div
+            className={`h-full rounded-full ${isDark ? 'bg-gradient-to-r from-blue-500 to-blue-600' : 'bg-gradient-to-r from-blue-600 to-blue-700'}`}
+            initial={prefersReducedMotion ? undefined : { width: 0 }}
             animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+            transition={prefersReducedMotion ? undefined : { duration: 0.3, ease: "easeOut" }}
           />
         </motion.div>
-        <motion.div 
-          className="text-xs text-gray-500 mt-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.8 }}
+        <motion.div
+          className={`text-xs mt-2 ${isDark ? 'text-white/70' : 'text-gray-500'}`}
+          initial={prefersReducedMotion ? undefined : { opacity: 0 }}
+          animate={prefersReducedMotion ? undefined : { opacity: 1 }}
+          transition={prefersReducedMotion ? undefined : { duration: 0.5, delay: 0.8 }}
         >
           {Math.round(progress)}% complete
         </motion.div>

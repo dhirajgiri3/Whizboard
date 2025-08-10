@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import api from '@/lib/http/axios';
 import { useAppContext } from './AppContext';
 
 // Types
@@ -92,15 +93,12 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     setError(null);
     try {
       const [integrationsRes, notificationsRes] = await Promise.all([
-        fetch('/api/settings/integrations', { cache: 'no-store' }),
-        fetch('/api/settings/notifications', { cache: 'no-store' }),
+        api.get('/api/settings/integrations', { headers: { 'Cache-Control': 'no-store' } }),
+        api.get('/api/settings/notifications', { headers: { 'Cache-Control': 'no-store' } }),
       ]);
 
-      if (!integrationsRes.ok) throw new Error(`HTTP error! status: ${integrationsRes.status} from integrations settings`);
-      if (!notificationsRes.ok) throw new Error(`HTTP error! status: ${notificationsRes.status} from notifications settings`);
-
-      setIntegrations(await integrationsRes.json());
-      setNotificationPrefsState(await notificationsRes.json());
+      setIntegrations(integrationsRes.data);
+      setNotificationPrefsState(notificationsRes.data);
 
       setLastUpdated(new Date());
     } catch (err: any) {
@@ -124,16 +122,12 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: body ? JSON.stringify(body) : undefined,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
+      if (method === 'GET') await api.get(url);
+      else if (method === 'POST') await api.post(url, body ?? {});
+      else if (method === 'PUT') await api.put(url, body ?? {});
+      else if (method === 'DELETE') await api.delete(url, { data: body });
+      else if (method === 'PATCH') await api.patch(url, body ?? {});
+      else await api.request({ url, method: method as any, data: body });
       setLastUpdated(new Date());
       return true;
     } catch (err: any) {
@@ -165,18 +159,9 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
   // Integrations Actions
   const toggleIntegration = useCallback(async (service: keyof IntegrationStatus, enable: boolean) => {
     const body: Partial<IntegrationStatus> = { [service]: enable } as Partial<IntegrationStatus>;
-    const response = await fetch('/api/settings/integrations', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      setError(data.error || 'Failed to update integrations');
-      return false;
-    }
-    if (enable && data.redirectUrl) {
-      window.location.href = data.redirectUrl;
+    const { data } = await api.put('/api/settings/integrations', body);
+    if (enable && (data as any).redirectUrl) {
+      window.location.href = (data as any).redirectUrl;
       return true;
     }
     // disable path
@@ -193,21 +178,12 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/settings/account/export', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          includeBoards: true,
-          includeSettings: true,
-          includeIntegrations: true,
-          includeHistory: false,
-        }),
+      const { data } = await api.post('/api/settings/account/export', {
+        includeBoards: true,
+        includeSettings: true,
+        includeIntegrations: true,
+        includeHistory: false,
       });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json(); // Assuming the data is JSON for simplicity
       setLastUpdated(new Date());
       return JSON.stringify(data, null, 2);
     } catch (err: any) {

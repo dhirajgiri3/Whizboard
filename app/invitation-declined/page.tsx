@@ -3,6 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { XCircle, Home, Mail } from 'lucide-react';
+import BackButton from '@/components/ui/BackButton';
 
 export default function InvitationDeclinedPage() {
   const searchParams = useSearchParams();
@@ -11,6 +12,14 @@ export default function InvitationDeclinedPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="absolute top-4 left-4">
+          <BackButton 
+            variant="light"
+            position="absolute"
+            size="sm"
+            label="Back to Home"
+          />
+        </div>
         <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
           <div className="flex justify-center mb-6">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
@@ -43,6 +52,9 @@ export default function InvitationDeclinedPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="absolute top-4 left-4">
+        <BackButton />
+      </div>
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">

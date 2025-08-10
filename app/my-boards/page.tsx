@@ -33,6 +33,7 @@ import InviteCollaboratorsModal from "@/components/ui/modal/InviteCollaboratorsM
 import { toast } from "sonner";
 import { LoadingOverlay } from "@/components/ui/loading/Loading";
 import CreateBoardModal from "@/components/ui/modal/CreateBoardModal";
+import BackButton from "@/components/ui/BackButton";
 
 const GET_MY_BOARDS = gql`
   query GetMyBoards {
@@ -292,7 +293,7 @@ const MyBoardsPage = () => {
   if (loading)
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <LoadingOverlay text="Loading boards..." />
+        <LoadingOverlay text="Loading boards..." theme="dark" />
       </div>
     );
 
@@ -329,6 +330,14 @@ const MyBoardsPage = () => {
   return (
     <div id="hero" className="min-h-screen h-[110vh] bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <div className="container mx-auto py-8">
+        <div className="max-w-7xl mx-auto px-4 mb-4">
+          <BackButton 
+            variant="light"
+            position="relative"
+            size="md"
+            label="Back to Dashboard"
+          />
+        </div>
         <div className="max-w-7xl mx-auto">
           {/* Header Section */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">

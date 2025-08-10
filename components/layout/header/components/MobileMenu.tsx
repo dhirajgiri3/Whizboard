@@ -7,7 +7,7 @@ import { signOut } from 'next-auth/react';
 import { MenuItem, UserMenuItem } from '../types';
 import { headerAnimations, darkHeaderAnimations } from '../utils/animations';
 import CreateBoardButton from './CreateBoardButton';
-import logo from '@/public/images/logo/whizboard_logo.png';
+import logo from '@/public/images/logos/whizboard_logo.png';
 
 interface MobileMenuProps {
   isOpen: boolean;

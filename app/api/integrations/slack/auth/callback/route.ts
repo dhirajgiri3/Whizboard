@@ -3,6 +3,7 @@ import { integrationsConfig, getAppBaseUrl } from '@/lib/config/integrations';
 import { upsertToken } from '@/lib/integrations/tokenStore';
 import { readAndClearStateCookie } from '@/lib/utils/oauthState';
 import logger from '@/lib/logger/logger';
+import axios from 'axios';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -32,18 +33,17 @@ export async function GET(request: NextRequest) {
     logger.info({ userEmail: emailFromCookie }, 'Processing Slack OAuth callback for user');
 
     const redirectUri = `${getAppBaseUrl()}/api/integrations/slack/auth/callback`;
-    const tokenResp = await fetch('https://slack.com/api/oauth.v2.access', {
-      method: 'POST',
+    const tokenResp = await axios.post('https://slack.com/api/oauth.v2.access', new URLSearchParams({
+      code: code!,
+      client_id: integrationsConfig.slack.clientId,
+      client_secret: integrationsConfig.slack.clientSecret,
+      redirect_uri: redirectUri,
+    }), {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        code,
-        client_id: integrationsConfig.slack.clientId,
-        client_secret: integrationsConfig.slack.clientSecret,
-        redirect_uri: redirectUri,
-      }),
+      withCredentials: false,
     });
 
-    const tokenJson = await tokenResp.json();
+    const tokenJson = tokenResp.data as any;
     if (!tokenJson.ok) {
       logger.error({ 
         userEmail: emailFromCookie, 

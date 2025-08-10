@@ -25,6 +25,7 @@ import {
 import { useGoogleDrive } from '@/hooks/useGoogleDrive';
 import { GoogleDriveManager } from './GoogleDriveManager';
 import { toast } from 'sonner';
+import api from '@/lib/http/axios';
 
 interface GoogleDriveDashboardProps {
   isOpen: boolean;
@@ -273,10 +274,7 @@ export function GoogleDriveDashboard({ isOpen, onClose }: GoogleDriveDashboardPr
                   <button
                     onClick={async () => {
                       try {
-                        const response = await fetch('/api/integrations/google-drive/test-upload', {
-                          method: 'POST',
-                        });
-                        const data = await response.json();
+                        const { data } = await api.post('/api/integrations/google-drive/test-upload');
                         if (data.success) {
                           toast.success('Test upload successful!', {
                             description: `File size: ${data.fileSize || 'Unknown'}`,

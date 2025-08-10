@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { integrationsConfig, getAppBaseUrl } from '@/lib/config/integrations';
 import { upsertToken } from '@/lib/integrations/tokenStore';
 import { readAndClearStateCookie } from '@/lib/utils/oauthState';
+import axios from 'axios';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -18,19 +19,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/settings?integrations=googleDrive&status=error', getAppBaseUrl()));
     }
     const redirectUri = `${getAppBaseUrl()}/api/integrations/google-drive/auth/callback`;
-    const tokenResp = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
+    const tokenResp = await axios.post('https://oauth2.googleapis.com/token', new URLSearchParams({
+      code: code!,
+      client_id: integrationsConfig.googleDrive.clientId,
+      client_secret: integrationsConfig.googleDrive.clientSecret,
+      redirect_uri: redirectUri,
+      grant_type: 'authorization_code',
+    }), {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        code,
-        client_id: integrationsConfig.googleDrive.clientId,
-        client_secret: integrationsConfig.googleDrive.clientSecret,
-        redirect_uri: redirectUri,
-        grant_type: 'authorization_code',
-      }),
+      withCredentials: false,
     });
-    const tokenJson = await tokenResp.json();
-    if (!tokenResp.ok || tokenJson.error) {
+    const tokenJson = tokenResp.data as any;
+    if (!tokenResp.status || tokenJson.error) {
       return NextResponse.redirect(new URL('/settings?integrations=googleDrive&status=error', getAppBaseUrl()));
     }
 

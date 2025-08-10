@@ -1,5 +1,6 @@
 import { connectToDatabase } from '@/lib/database/mongodb';
 import logger from '@/lib/logger/logger';
+import axios from 'axios';
 
 export async function getSlackBotTokenForEmail(userEmail: string): Promise<string | null> {
   logger.info({ userEmail }, 'Getting Slack bot token for user');
@@ -66,12 +67,10 @@ export async function listSlackChannels(botToken: string): Promise<Array<{ id: s
     url.searchParams.set('types', 'public_channel');
     url.searchParams.set('limit', '1000');
     
-    const resp = await fetch(url, {
+    const { data } = await axios.get(url.toString(), {
       headers: { Authorization: `Bearer ${botToken}` },
-      cache: 'no-store' as any,
+      withCredentials: false,
     });
-    
-    const data = await resp.json();
     
     if (data.ok) {
       const channels = (data.channels || []).map((c: any) => ({ id: c.id, name: c.name }));
@@ -91,13 +90,10 @@ export async function isBotInChannel(botToken: string, channelId: string): Promi
   logger.info({ channelId }, 'Checking if bot is in Slack channel');
   
   try {
-    const resp = await fetch(`https://slack.com/api/conversations.info?channel=${channelId}`, {
-      headers: {
-        Authorization: `Bearer ${botToken}`,
-      },
+    const { data } = await axios.get(`https://slack.com/api/conversations.info?channel=${channelId}`, {
+      headers: { Authorization: `Bearer ${botToken}` },
+      withCredentials: false,
     });
-    
-    const data = await resp.json();
     
     if (data.ok) {
       const isMember = data.channel?.is_member || false;
@@ -117,16 +113,13 @@ export async function inviteBotToChannel(botToken: string, channelId: string): P
   logger.info({ channelId }, 'Attempting to invite bot to Slack channel');
   
   try {
-    const resp = await fetch('https://slack.com/api/conversations.join', {
-      method: 'POST',
+    const { data } = await axios.post('https://slack.com/api/conversations.join', { channel: channelId }, {
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
         Authorization: `Bearer ${botToken}`,
       },
-      body: JSON.stringify({ channel: channelId }),
+      withCredentials: false,
     });
-    
-    const data = await resp.json();
     
     if (data.ok) {
       logger.info({ channelId }, 'Successfully joined Slack channel');
@@ -154,16 +147,13 @@ export async function postSlackMessage(botToken: string, channelId: string, text
   logger.info({ channelId, textLength: text.length }, 'Posting message to Slack');
   
   try {
-    const resp = await fetch('https://slack.com/api/chat.postMessage', {
-      method: 'POST',
+    const { data } = await axios.post('https://slack.com/api/chat.postMessage', { channel: channelId, text }, {
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
         Authorization: `Bearer ${botToken}`,
       },
-      body: JSON.stringify({ channel: channelId, text }),
+      withCredentials: false,
     });
-    
-    const data = await resp.json();
     
     if (data.ok) {
       logger.info({ channelId, messageId: data.ts }, 'Successfully posted message to Slack');
@@ -178,16 +168,13 @@ export async function postSlackMessage(botToken: string, channelId: string, text
           // Retry posting the message after joining
           logger.info({ channelId }, 'Retrying message post after joining channel');
           
-          const retryResp = await fetch('https://slack.com/api/chat.postMessage', {
-            method: 'POST',
+          const { data: retryData } = await axios.post('https://slack.com/api/chat.postMessage', { channel: channelId, text }, {
             headers: {
               'Content-Type': 'application/json; charset=utf-8',
               Authorization: `Bearer ${botToken}`,
             },
-            body: JSON.stringify({ channel: channelId, text }),
+            withCredentials: false,
           });
-          
-          const retryData = await retryResp.json();
           
           if (retryData.ok) {
             logger.info({ channelId, messageId: retryData.ts }, 'Successfully posted message to Slack after joining channel');
@@ -218,6 +205,114 @@ export async function postSlackMessage(botToken: string, channelId: string, text
     logger.error({ channelId, error }, 'Failed to post message to Slack');
     return false;
   }
+}
+
+export type Block = any;
+
+export async function postSlackBlocks(
+  botToken: string,
+  channelId: string,
+  blocks: Block[],
+  textFallback: string = 'New notification'
+): Promise<boolean> {
+  try {
+    const { data } = await axios.post('https://slack.com/api/chat.postMessage', { channel: channelId, text: textFallback, blocks }, {
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        Authorization: `Bearer ${botToken}`,
+      },
+      withCredentials: false,
+    });
+    if (data.ok) return true;
+    if (data.error === 'not_in_channel') {
+      const joined = await inviteBotToChannel(botToken, channelId);
+      if (!joined) return false;
+      const { data: retryData } = await axios.post('https://slack.com/api/chat.postMessage', { channel: channelId, text: textFallback, blocks }, {
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          Authorization: `Bearer ${botToken}`,
+        },
+        withCredentials: false,
+      });
+      return !!retryData.ok;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+export async function uploadSlackFile(
+  botToken: string,
+  channels: string[],
+  fileBuffer: Buffer,
+  filename: string,
+  filetype?: string,
+  initialComment?: string
+): Promise<boolean> {
+  try {
+    const form = new FormData();
+    form.append('channels', channels.join(','));
+    form.append('filename', filename);
+    if (filetype) form.append('filetype', filetype);
+    if (initialComment) form.append('initial_comment', initialComment);
+    // @ts-ignore - FormData typing in Node runtime
+    form.append('file', new Blob([fileBuffer]), filename);
+
+    const { data } = await axios.post('https://slack.com/api/files.upload', form as any, {
+      headers: { Authorization: `Bearer ${botToken}` },
+      withCredentials: false,
+    });
+    return !!data.ok;
+  } catch {
+    return false;
+  }
+}
+
+export function buildExportBlocks(params: {
+  boardId: string;
+  boardName: string;
+  userName?: string;
+  appBaseUrl: string;
+}) {
+  const { boardId, boardName, userName, appBaseUrl } = params;
+  return [
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `*${boardName}* ${userName ? `by ${userName}` : ''}`.trim(),
+      },
+    },
+    {
+      type: 'actions',
+      elements: [
+        {
+          type: 'button',
+          text: { type: 'plain_text', text: 'Open Board' },
+          url: `${appBaseUrl}/board/${boardId}`,
+        },
+        {
+          type: 'button',
+          text: { type: 'plain_text', text: 'Export PNG' },
+          value: JSON.stringify({ action: 'export', format: 'png', boardId }),
+          action_id: 'whiz_export_png',
+        },
+        {
+          type: 'button',
+          text: { type: 'plain_text', text: 'Export SVG' },
+          value: JSON.stringify({ action: 'export', format: 'svg', boardId }),
+          action_id: 'whiz_export_svg',
+        },
+        {
+          type: 'button',
+          text: { type: 'plain_text', text: 'Export JSON' },
+          value: JSON.stringify({ action: 'export', format: 'json', boardId }),
+          action_id: 'whiz_export_json',
+        },
+      ],
+    },
+  ];
 }
 
 // Updated function to accept userEmail directly for better efficiency
@@ -283,23 +378,19 @@ export async function checkSlackBotPermissions(botToken: string): Promise<{
   try {
     // Test the channels:join permission by attempting to join a test channel
     // We'll use a non-existent channel ID to test the scope without actually joining
-    const testResp = await fetch('https://slack.com/api/conversations.join', {
-      method: 'POST',
+    const { data: testData } = await axios.post('https://slack.com/api/conversations.join', { channel: 'TEST_CHANNEL_ID' }, {
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
         Authorization: `Bearer ${botToken}`,
       },
-      body: JSON.stringify({ channel: 'TEST_CHANNEL_ID' }),
+      withCredentials: false,
     });
-    
-    const testData = await testResp.json();
     
     // Get current scopes from auth.test
-    const authResp = await fetch('https://slack.com/api/auth.test', {
+    const { data: authData } = await axios.get('https://slack.com/api/auth.test', {
       headers: { Authorization: `Bearer ${botToken}` },
+      withCredentials: false,
     });
-    
-    const authData = await authResp.json();
     const currentScopes = authData.ok ? (authData.scope || '').split(',').map((s: string) => s.trim()) : [];
     
     const requiredScopes = ['chat:write', 'channels:read', 'channels:join'];

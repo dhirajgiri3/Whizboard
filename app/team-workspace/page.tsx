@@ -17,6 +17,7 @@ import {
   Info,
   Save
 } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 
 interface TeamMember {
   id: string;
@@ -354,6 +355,9 @@ export default function TeamWorkspacePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-20">
+      <div className="container mx-auto px-4 max-w-6xl mb-4">
+        <BackButton />
+      </div>
       {/* Hero Section */}
       <section className="relative pt-20 pb-32 overflow-hidden">
         <div className="container mx-auto px-4 max-w-6xl relative z-10">

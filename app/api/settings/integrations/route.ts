@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import logger from '@/lib/logger/logger';
+import { getAppBaseUrl } from '@/lib/config/integrations';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { connectToDatabase } from '@/lib/database/mongodb';
@@ -21,13 +23,15 @@ export async function GET() {
 
     const has = (provider: string) => tokens.some((t: any) => t.provider === provider);
 
-    return NextResponse.json({
+    const payload = {
       googleDrive: has('googleDrive'),
       slack: has('slack'),
       figma: has('figma'),
-    });
+    };
+    logger.info({ userEmail, ...payload }, 'Integrations status fetched');
+    return NextResponse.json(payload);
   } catch (error) {
-    console.error('Integrations GET error:', error);
+    logger.error({ error }, 'Integrations GET error');
     return NextResponse.json({ error: 'Failed to load integrations' }, { status: 500 });
   }
 }
@@ -50,6 +54,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const [service, enable] = entries[0];
+    logger.info({ userEmail: session.user.email, service, enable }, 'Integrations PUT');
     const providerToStartPath: Record<typeof service, string> = {
       slack: '/api/integrations/slack/auth/start',
       googleDrive: '/api/integrations/google-drive/auth/start',
@@ -58,8 +63,10 @@ export async function PUT(request: NextRequest) {
 
     if (enable) {
       // Frontend should redirect to this URL to start OAuth
-      const redirectUrl = providerToStartPath[service];
-      return NextResponse.json({ redirectUrl });
+      const path = providerToStartPath[service];
+      const absoluteRedirect = new URL(path, getAppBaseUrl()).toString();
+      logger.info({ userEmail: session.user.email, absoluteRedirect }, 'Integrations OAuth start URL generated');
+      return NextResponse.json({ redirectUrl: absoluteRedirect });
     }
 
     // Disconnect: delete tokens
@@ -69,9 +76,10 @@ export async function PUT(request: NextRequest) {
       provider: service,
     });
 
+    logger.info({ userEmail: session.user.email, service }, 'Integration disconnected');
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Integrations PUT error:', error);
+    logger.error({ error }, 'Integrations PUT error');
     return NextResponse.json({ error: 'Failed to update integrations' }, { status: 500 });
   }
 }

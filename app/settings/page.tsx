@@ -19,8 +19,11 @@ import {
 } from "lucide-react";
 import { useSettings } from "@/lib/context/SettingsContext";
 import { useAppContext } from "@/lib/context/AppContext";
+import api from '@/lib/http/axios';
  
 import { toast } from "sonner";
+import BackButton from "@/components/ui/BackButton";
+import Loading, { LoadingOverlay } from "@/components/ui/loading/Loading";
 
 // Hoisted stateless UI building blocks to keep component identity stable between renders
 const SectionCard = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
@@ -75,11 +78,8 @@ const SlackChannelPicker = () => {
     const fetchChannels = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch('/api/integrations/slack/channels');
-        if (response.ok) {
-          const data = await response.json();
-          setChannels(data.channels || []);
-        }
+        const { data } = await api.get('/api/integrations/slack/channels');
+        setChannels(data.channels || []);
       } catch {
         toast.error('Failed to fetch Slack channels');
       } finally {
@@ -89,13 +89,10 @@ const SlackChannelPicker = () => {
 
     const fetchSavedChannel = async () => {
       try {
-        const response = await fetch('/api/settings/integrations/slack-default-channel');
-        if (response.ok) {
-          const data = await response.json();
-          setSavedChannel(data.defaultChannel);
-          if (data.defaultChannel?.id) {
-            setSelectedChannel(data.defaultChannel.id);
-          }
+        const { data } = await api.get('/api/settings/integrations/slack-default-channel');
+        setSavedChannel(data.defaultChannel);
+        if (data.defaultChannel?.id) {
+          setSelectedChannel(data.defaultChannel.id);
         }
       } catch {
         toast.error('Failed to fetch saved channel');
@@ -112,16 +109,11 @@ const SlackChannelPicker = () => {
     setIsSaving(true);
     try {
       const channel = channels.find(c => c.id === selectedChannel);
-      const response = await fetch('/api/settings/integrations/slack-default-channel', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          channelId: selectedChannel,
-          channelName: channel?.name
-        })
+      const response = await api.put('/api/settings/integrations/slack-default-channel', {
+        channelId: selectedChannel,
+        channelName: channel?.name
       });
-      
-      if (response.ok) {
+      if (response.status >= 200 && response.status < 300) {
         setSavedChannel({ id: selectedChannel, name: channel?.name });
         toast.success('Default Slack channel updated successfully');
       } else {
@@ -169,11 +161,20 @@ const SlackChannelPicker = () => {
           disabled={isSaving || !selectedChannel}
           className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors"
         >
-          {isSaving ? 'Saving...' : 'Save as Default'}
+          {isSaving ? (
+            <span className="inline-flex items-center gap-2">
+              <Loading size="sm" variant="dots" tone="dark" />
+              Saving…
+            </span>
+          ) : (
+            'Save as Default'
+          )}
         </button>
 
         {isLoading && (
-          <p className="text-sm text-white/50">Loading channels...</p>
+          <div className="flex items-center gap-2">
+            <Loading size="sm" variant="dots" text="Loading channels" tone="dark" />
+          </div>
         )}
       </div>
     </div>
@@ -209,17 +210,23 @@ export default function SettingsPage() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('/api/settings/account', { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          setProfileImageUrl(data?.user?.image || null);
-        }
+        const { data } = await api.get('/api/settings/account', { headers: { 'Cache-Control': 'no-store' } });
+        setProfileImageUrl(data?.user?.image || null);
       } catch {}
     })();
   }, []);
 
   // Show integration connect result notifications from OAuth callbacks
   useEffect(() => {
+    // Respect tab query parameter to open a specific settings tab (e.g., ?tab=integrations)
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      const allowed = ['profile', 'notifications', 'integrations', 'security', 'danger-zone'];
+      if (allowed.includes(tabParam)) {
+        setActiveTab(tabParam);
+      }
+    }
+
     const svc = searchParams.get('integrations');
     const status = searchParams.get('status');
     if (!svc || !status) return;
@@ -282,12 +289,8 @@ export default function SettingsPage() {
       const formData = new FormData();
       formData.append("image", selectedImage);
 
-      const response = await fetch("/api/settings/account", {
-        method: "PUT",
-        body: formData,
-      });
-
-      if (response.ok) {
+      const response = await api.put("/api/settings/account", formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      if (response.status >= 200 && response.status < 300) {
         toast.success("Profile image updated successfully", { id: toastId });
         setIsEditingImage(false);
         setSelectedImage(null);
@@ -296,8 +299,8 @@ export default function SettingsPage() {
         // Force refresh globally (header avatar, menus)
         await refreshUserProfilePicture();
       } else {
-        const error = await response.json();
-        toast.error(error.message || "Failed to update profile image", { id: toastId });
+        const data = (response.data as any) || {};
+        toast.error(data.message || "Failed to update profile image", { id: toastId });
       }
     } catch {
       toast.error("Failed to update profile image", { id: 'profile-image-upload' });
@@ -312,17 +315,13 @@ export default function SettingsPage() {
       setIsDeletingImage(true);
       const toastId = 'profile-image-delete';
       toast.loading('Removing image…', { id: toastId });
-      const res = await fetch('/api/settings/account', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete-image' }),
-      });
-      if (res.ok) {
+      const res = await api.delete('/api/settings/account', { data: { action: 'delete-image' } });
+      if (res.status >= 200 && res.status < 300) {
         setProfileImageUrl(null);
         toast.success('Profile image removed', { id: toastId });
         await refreshUserProfilePicture();
       } else {
-        const err = await res.json().catch(() => ({}));
+        const err = (res.data as any) || {};
         toast.error(err.error || 'Failed to remove image', { id: toastId });
       }
     } catch {
@@ -347,12 +346,12 @@ export default function SettingsPage() {
   // Prevent full-page flicker only during initial bootstrapping fetch
   if (isBootstrapping) {
     return (
-      <div className="min-h-screen bg-[var(--deep-canvas)] flex items-center justify-center">
-        <div className="flex items-center gap-3">
-          <div className="w-6 h-6 border-2 border-white/20 border-t-blue-500 rounded-full animate-spin" />
-          <span className="text-white/80 text-sm">Loading settings...</span>
-        </div>
-      </div>
+      <LoadingOverlay
+        text="Loading settings"
+        subtitle="Fetching your preferences and integrations"
+        variant="collaboration"
+        theme="dark"
+      />
     );
   }
 
@@ -430,14 +429,28 @@ export default function SettingsPage() {
                           disabled={isUploadingImage}
                           className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-sm transition-colors"
                         >
-                          {isUploadingImage ? 'Uploading...' : 'Save Image'}
+                          {isUploadingImage ? (
+                            <span className="inline-flex items-center gap-2">
+                              <Loading size="sm" variant="dots" tone="dark" />
+                              Uploading…
+                            </span>
+                          ) : (
+                            'Save Image'
+                          )}
                         </button>
                         <button
                           onClick={handleDeleteProfileImage}
                           disabled={isDeletingImage}
                           className="px-3 py-1.5 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-300 text-sm border border-red-500/30 transition-colors"
                         >
-                          {isDeletingImage ? 'Removing...' : 'Remove'}
+                          {isDeletingImage ? (
+                            <span className="inline-flex items-center gap-2">
+                              <Loading size="sm" variant="dots" tone="dark" />
+                              Removing…
+                            </span>
+                          ) : (
+                            'Remove'
+                          )}
                         </button>
                       </div>
                     )}
@@ -580,11 +593,12 @@ export default function SettingsPage() {
       case "integrations":
         return (
           <SectionCard>
-            <h3 className="text-xl font-semibold mb-6 text-white flex items-center gap-2">
+            <div className="flex flex-col gap-1 mb-6">
+            <h3 className="text-xl font-semibold text-white flex items-center gap-1">
               <Share2 className="w-5 h-5 text-blue-400" /> Integrations
             </h3>
-            <p className="text-white/60 mb-6">Connect your WhizBoard account with other services.</p>
-            
+            <p className="text-white/60">Connect your WhizBoard account with other services.</p>
+            </div>
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -599,9 +613,33 @@ export default function SettingsPage() {
                 <div key={key} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-white/[0.05] flex items-center justify-center">
-                      {key === 'slack' && <Share2 className="w-5 h-5 text-blue-400" />}
-                      {key === 'googleDrive' && <ExternalLink className="w-5 h-5 text-green-400" />}
-                      {key === 'figma' && <Settings className="w-5 h-5 text-blue-400" />}
+                      {key === 'slack' && (
+                        <Image
+                          src="/images/logos/slack.svg"
+                          alt="Slack logo"
+                          width={20}
+                          height={20}
+                          className="w-5 h-5 object-contain"
+                        />
+                      )}
+                      {key === 'googleDrive' && (
+                        <Image
+                          src="/images/logos/google-drive.svg"
+                          alt="Google Drive logo"
+                          width={20}
+                          height={20}
+                          className="w-5 h-5 object-contain"
+                        />
+                      )}
+                      {key === 'figma' && (
+                        <Image
+                          src="/images/logos/figma.svg"
+                          alt="Figma logo"
+                          width={20}
+                          height={20}
+                          className="w-5 h-5 object-contain"
+                        />
+                      )}
                     </div>
                     <div>
                       <h5 className="text-white font-medium capitalize">
@@ -748,7 +786,10 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen py-12">
+    <div className="min-h-screen py-12 pt-4">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+        <BackButton variant="dark" />
+      </div>
       {/* Header */}
       <section className="pt-16 sm:pt-20 pb-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
