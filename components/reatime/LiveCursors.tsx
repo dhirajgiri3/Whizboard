@@ -54,17 +54,20 @@ export default function LiveCursors({ cursors }: LiveCursorsProps) {
     <>
       {Object.values(cursors).map((cursor) => {
         const color = getUserColor(cursor.userId);
-        const pattern = getUserPattern(cursor.userId);
         const displayName = cursor.name || cursor.userId.substring(0, 8);
         const isActive = cursor.isActive !== false; // Default to true if not specified
 
         return (
           <Group key={cursor.userId} x={cursor.x} y={cursor.y}>
+            {/* Soft glow pulse on move */}
+            {isActive && (
+              <Circle x={8} y={12} radius={10} fill={color} opacity={0.08} />
+            )}
             {/* Cursor trail for active users */}
-            {cursor.trail && cursor.trail.length > 0 && isActive && (
+            {Array.isArray(cursor.trail) && cursor.trail.length > 0 && isActive && (
               <Group>
                 {cursor.trail.slice(-5).map((point, index) => {
-                  const opacity = (index + 1) / cursor.trail.length;
+                  const opacity = (index + 1) / cursor.trail!.length;
                   return (
                     <Circle
                       key={index}
@@ -112,7 +115,7 @@ export default function LiveCursors({ cursors }: LiveCursorsProps) {
                 closed={true}
               />
 
-              {/* Activity indicator ring */}
+              {/* Activity indicator ring with subtle motion */}
               {(cursor.isDrawing || cursor.isTyping || cursor.isSelecting) && (
                 <Circle
                   x={8}
@@ -182,7 +185,7 @@ export default function LiveCursors({ cursors }: LiveCursorsProps) {
                 y={0}
                 width={120}
                 height={24}
-                fill="rgba(0,0,0,0.8)"
+                fill="rgba(0,0,0,0.7)"
                 stroke="rgba(255,255,255,0.2)"
                 strokeWidth={1}
                 cornerRadius={8}
@@ -264,11 +267,7 @@ export default function LiveCursors({ cursors }: LiveCursorsProps) {
             {/* Connection quality indicator */}
             {cursor.lastActivity && (
               <Group x={-5} y={-5}>
-                <Circle
-                  radius={2}
-                  fill={Date.now() - cursor.lastActivity.getTime() < 5000 ? "#10B981" : "#EF4444"}
-                  opacity={0.7}
-                />
+                <Circle radius={2} fill={Date.now() - cursor.lastActivity.getTime() < 5000 ? "#10B981" : "#EF4444"} opacity={0.7} />
               </Group>
             )}
           </Group>

@@ -31,7 +31,9 @@ async function getBoardMetadata(
           createdAt: 1,
           updatedAt: 1,
           createdBy: 1,
-          isPublic: 1
+          isPublic: 1,
+          adminUsers: 1,
+          blockedUsers: 1
         }
       }
     );
@@ -45,9 +47,19 @@ async function getBoardMetadata(
 
     // Check if user has access to this board
     const isOwner = board.createdBy.toString() === user.id;
+    const isAdmin = board.adminUsers?.includes(user.id) || false;
+    const isBlocked = board.blockedUsers?.includes(user.id) || false;
     const isPublic = board.isPublic;
     
-    if (!isOwner && !isPublic) {
+    // Blocked users cannot access the board
+    if (isBlocked) {
+      return NextResponse.json(
+        { error: 'Access denied - You have been blocked from this board' },
+        { status: 403 }
+      );
+    }
+    
+    if (!isOwner && !isAdmin && !isPublic) {
       return NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
@@ -59,7 +71,7 @@ async function getBoardMetadata(
     try {
       const ownerData = await db.collection('users').findOne(
         { _id: board.createdBy },
-        { projection: { name: 1, email: 1, image: 1 } }
+        { projection: { name: 1, email: 1, image: 1, username: 1 } }
       );
       
       if (ownerData) {
@@ -67,7 +79,8 @@ async function getBoardMetadata(
           id: ownerData._id.toString(),
           name: ownerData.name,
           email: ownerData.email,
-          avatar: ownerData.image
+          avatar: ownerData.image,
+          username: ownerData.username
         };
       }
     } catch (err) {
@@ -78,7 +91,8 @@ async function getBoardMetadata(
           id: user.id,
           name: user.name || 'User',
           email: user.email || '',
-          avatar: null
+          avatar: null,
+          username: null
         };
       }
     }

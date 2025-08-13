@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       // Send initial connection message
       safeEnqueue('data: {"type":"connected"}\n\n');
 
-      // Subscribe to all board events
+      // Subscribe to all board events (extended for full realtime collaboration)
       const eventTypes = [
         'boardUpdates',
         'userJoined', 
@@ -46,6 +46,19 @@ export async function GET(request: NextRequest) {
         'drawingStarted',
         'drawingUpdated',
         'drawingCompleted',
+        'elementAdded',
+        'elementUpdated',
+        'elementDeleted',
+        'userPresenceUpdate',
+        'textElementCreated',
+        'textElementUpdated',
+        'textElementDeleted',
+        'textElementEditingStarted',
+        'textElementEditingFinished',
+        'shapeElementCreated',
+        'shapeElementUpdated',
+        'shapeElementDeleted',
+        'shapeElementTransformed',
       ];
 
       const subscriptions = [
@@ -59,6 +72,19 @@ export async function GET(request: NextRequest) {
         pubSub.subscribe('drawingStarted', boardId),
         pubSub.subscribe('drawingUpdated', boardId),
         pubSub.subscribe('drawingCompleted', boardId),
+        pubSub.subscribe('elementAdded', boardId),
+        pubSub.subscribe('elementUpdated', boardId),
+        pubSub.subscribe('elementDeleted', boardId),
+        pubSub.subscribe('userPresenceUpdate', boardId),
+        pubSub.subscribe('textElementAdded', boardId),
+        pubSub.subscribe('textElementUpdated', boardId),
+        pubSub.subscribe('textElementDeleted', boardId),
+        pubSub.subscribe('textElementEditingStarted', boardId),
+        pubSub.subscribe('textElementEditingFinished', boardId),
+        pubSub.subscribe('shapeElementCreated', boardId),
+        pubSub.subscribe('shapeElementUpdated', boardId),
+        pubSub.subscribe('shapeElementDeleted', boardId),
+        pubSub.subscribe('shapeElementTransformed', boardId),
       ];
 
       // Handle subscriptions

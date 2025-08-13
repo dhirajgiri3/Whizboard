@@ -123,6 +123,8 @@ interface BoardDocument extends Omit<Board, 'id' | 'createdBy' | 'elements'> {
   _id: ObjectId;
   createdBy: ObjectId; // Stored as ObjectId in MongoDB
   elements: DrawingElementDocument[];
+  adminUsers?: string[];
+  blockedUsers?: string[];
 }
 
 // DrawingElementDocument represents the structure of DrawingElement as stored in MongoDB subdocuments
@@ -221,6 +223,8 @@ builder.mutationType({
             name,
             elements: [],
             collaborators: [],
+            adminUsers: [], // Initialize empty admin users array
+            blockedUsers: [], // Initialize empty blocked users array
             createdBy: new ObjectId(session.user.id),
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -793,6 +797,16 @@ builder.objectType(BoardRef, {
     collaborators: t.field({
       type: [UserRef],
       resolve: (board) => board.collaborators,
+    }),
+    adminUsers: t.field({
+      type: ['String'],
+      resolve: (board) => board.adminUsers || [],
+      nullable: true,
+    }),
+    blockedUsers: t.field({
+      type: ['String'],
+      resolve: (board) => board.blockedUsers || [],
+      nullable: true,
     }),
     history: t.field({
       type: [BoardActionRef],

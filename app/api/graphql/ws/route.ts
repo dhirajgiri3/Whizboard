@@ -20,35 +20,16 @@ const yoga = createYoga({
       : ['http://localhost:3000'],
     credentials: true,
   },
-  websockets: {
-    onConnect: (ctx) => {
-      logger.info({ connectionParams: ctx.connectionParams }, 'WebSocket client connected');
-    },
-    onDisconnect: (ctx) => {
-      logger.info('WebSocket client disconnected');
-    },
-    onSubscribe: (ctx, message) => {
-      logger.debug({ message }, 'WebSocket subscription started');
-    },
-    onNext: (ctx, message, args, result) => {
-      logger.debug({ message, result }, 'WebSocket subscription data sent');
-    },
-    onError: (ctx, message, errors) => {
-      logger.error({ message, errors }, 'WebSocket subscription error');
-    },
-  },
+  // Note: WebSocket server is configured at the edge/runtime level or in a custom server.
+  // graphql-yoga v5 does not accept a `websockets` option in createYoga().
 });
 
 export async function GET(request: NextRequest) {
-  return yoga.handleNodeRequest(request, {
-    req: request,
-  });
+  return yoga.handleNodeRequest(request);
 }
 
 export async function POST(request: NextRequest) {
-  return yoga.handleNodeRequest(request, {
-    req: request,
-  });
+  return yoga.handleNodeRequest(request);
 }
 
 // WebSocket upgrade handler

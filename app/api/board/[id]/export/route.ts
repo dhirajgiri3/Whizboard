@@ -29,7 +29,7 @@ export async function GET(
   { params }: any
 ) {
   try {
-    const resolvedParams = params;
+    const resolvedParams = await params;
     const client = createApolloClientForRequest(request);
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {

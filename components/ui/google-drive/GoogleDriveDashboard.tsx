@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import {
   Cloud,
   Folder,
@@ -23,7 +23,7 @@ import {
   Lightbulb
 } from 'lucide-react';
 import { useGoogleDrive } from '@/hooks/useGoogleDrive';
-import { GoogleDriveManager } from './GoogleDriveManager';
+import { GoogleDriveManager } from '@/components/ui/google-drive/GoogleDriveManager';
 import { toast } from 'sonner';
 import api from '@/lib/http/axios';
 
@@ -42,6 +42,7 @@ interface DriveStats {
 
 export function GoogleDriveDashboard({ isOpen, onClose }: GoogleDriveDashboardProps) {
   const { files, listFiles, isLoading } = useGoogleDrive();
+  const prefersReducedMotion = useReducedMotion();
   const [showFileManager, setShowFileManager] = useState(false);
   const [stats, setStats] = useState<DriveStats>({
     totalFiles: 0,
@@ -60,8 +61,8 @@ export function GoogleDriveDashboard({ isOpen, onClose }: GoogleDriveDashboardPr
   const loadDashboardData = async () => {
     try {
       const driveFiles = await listFiles();
-      const folders = driveFiles.filter(f => f.mimeType === 'application/vnd.google-apps.folder');
-      const recentFiles = driveFiles.filter(f => {
+      const folders = driveFiles.filter((f: any) => f.mimeType === 'application/vnd.google-apps.folder');
+      const recentFiles = driveFiles.filter((f: any) => {
         const fileDate = new Date(f.modifiedTime);
         const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         return fileDate > weekAgo;
@@ -171,12 +172,12 @@ export function GoogleDriveDashboard({ isOpen, onClose }: GoogleDriveDashboardPr
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50" role="dialog" aria-modal>
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="rounded-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden bg-[#111111] border border-white/[0.08]"
+        initial={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.96, y: 20 }}
+        animate={prefersReducedMotion ? undefined : { opacity: 1, scale: 1, y: 0 }}
+        exit={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.96, y: 20 }}
+        className="rounded-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden bg-[#111111] border border-white/[0.08] backdrop-blur-xl"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/[0.08]">
@@ -194,14 +195,14 @@ export function GoogleDriveDashboard({ isOpen, onClose }: GoogleDriveDashboardPr
               onClick={loadDashboardData}
               disabled={isLoading}
               aria-label="Refresh"
-              className="p-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] text-white/70 hover:text-white disabled:opacity-50"
+              className="p-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] text-white/70 hover:text-white disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
             <button
               onClick={onClose}
               aria-label="Close"
-              className="p-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] text-white/70 hover:text-white"
+              className="p-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] text-white/70 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <X className="w-5 h-5" />
             </button>
@@ -354,10 +355,12 @@ export function GoogleDriveDashboard({ isOpen, onClose }: GoogleDriveDashboardPr
                   </button>
                 </div>
                 {files.length === 0 ? (
-                  <div className="text-center py-8 text-white/60">
-                    <Folder className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>No files found</p>
-                    <p className="text-sm">Start by exporting a board to Google Drive</p>
+                  <div className="text-center py-8 text-white/70">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/[0.04] border border-white/[0.08] mb-3">
+                      <Folder className="w-6 h-6 text-blue-400" />
+                    </div>
+                    <p className="font-medium">No files yet</p>
+                    <p className="text-sm text-white/60">Export a board to Google Drive to see it here</p>
                   </div>
                 ) : (
                   <div className="space-y-2">

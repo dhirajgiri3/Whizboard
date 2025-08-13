@@ -207,6 +207,76 @@ export async function postSlackMessage(botToken: string, channelId: string, text
   }
 }
 
+export interface ScheduleSlackMessageResult {
+  success: boolean;
+  scheduledMessageId?: string;
+  postAt?: number;
+  error?: string;
+}
+
+export async function scheduleSlackMessage(
+  botToken: string,
+  channelId: string,
+  text: string,
+  postAtEpochSeconds: number
+): Promise<ScheduleSlackMessageResult> {
+  logger.info({ channelId, textLength: text.length, postAtEpochSeconds }, 'Scheduling message to Slack');
+
+  try {
+    const { data } = await axios.post(
+      'https://slack.com/api/chat.scheduleMessage',
+      { channel: channelId, text, post_at: postAtEpochSeconds },
+      {
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          Authorization: `Bearer ${botToken}`,
+        },
+        withCredentials: false,
+      }
+    );
+
+    if (data.ok) {
+      logger.info({ channelId, scheduledMessageId: data.scheduled_message_id, postAt: data.post_at }, 'Successfully scheduled Slack message');
+      return { success: true, scheduledMessageId: data.scheduled_message_id, postAt: data.post_at };
+    }
+
+    if (data.error === 'not_in_channel') {
+      logger.warn({ channelId }, 'Bot not in channel when scheduling, attempting to join automatically');
+      const joined = await inviteBotToChannel(botToken, channelId);
+      if (!joined) {
+        logger.error({ channelId }, 'Failed to join channel, cannot schedule message');
+        return { success: false, error: 'not_in_channel' };
+      }
+
+      const { data: retryData } = await axios.post(
+        'https://slack.com/api/chat.scheduleMessage',
+        { channel: channelId, text, post_at: postAtEpochSeconds },
+        {
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            Authorization: `Bearer ${botToken}`,
+          },
+          withCredentials: false,
+        }
+      );
+
+      if (retryData.ok) {
+        logger.info({ channelId, scheduledMessageId: retryData.scheduled_message_id, postAt: retryData.post_at }, 'Scheduled Slack message after joining channel');
+        return { success: true, scheduledMessageId: retryData.scheduled_message_id, postAt: retryData.post_at };
+      }
+
+      logger.error({ channelId, slackError: retryData.error }, 'Slack API error when retrying scheduled message');
+      return { success: false, error: retryData.error };
+    }
+
+    logger.error({ channelId, slackError: data.error }, 'Slack API error when scheduling message');
+    return { success: false, error: data.error };
+  } catch (error: any) {
+    logger.error({ channelId, error }, 'Failed to schedule message to Slack');
+    return { success: false, error: 'exception' };
+  }
+}
+
 export type Block = any;
 
 export async function postSlackBlocks(

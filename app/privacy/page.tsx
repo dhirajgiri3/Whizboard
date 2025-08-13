@@ -20,6 +20,8 @@ import {
   Download,
 } from "lucide-react";
 import BackButton from "@/components/ui/BackButton";
+import { downloadPDF, createContentFromSections } from "@/lib/utils/pdfGenerator";
+import { LEGAL_DOCUMENTS } from "@/lib/constants/legalDocuments";
 
 // Animation variants
 const fadeInUp = {
@@ -412,20 +414,20 @@ const privacySections = [
       
       <h3>Privacy Team</h3>
       <ul>
-        <li>Email: privacy@whizboard.com</li>
-        <li>Phone: +1 (555) 123-4567</li>
-        <li>Address: 123 Market Street, Suite 456, San Francisco, CA 94102</li>
+        <li>Email: Hello@cyperstudio.in</li>
+        <li>Phone: +919569691483</li>
+        <li>Address: Delhi, India</li>
       </ul>
       
       <h3>Data Protection Officer</h3>
       <ul>
-        <li>Email: dpo@whizboard.com</li>
+        <li>Email: Hello@cyperstudio.in</li>
         <li>For EU data subjects and GDPR inquiries</li>
       </ul>
       
       <h3>Support Team</h3>
       <ul>
-        <li>Email: support@whizboard.com</li>
+        <li>Email: Hello@cyperstudio.in</li>
         <li>For general account and technical support</li>
       </ul>
       
@@ -441,11 +443,40 @@ const privacySections = [
 
 export default function PrivacyPage() {
   const [activeSection, setActiveSection] = useState<string>("overview");
+  const [isDownloading, setIsDownloading] = useState(false);
+  
   const handleTocClick = (id: string) => {
     setActiveSection(id);
     if (typeof window !== "undefined") {
       const el = document.getElementById(id);
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const handleDownloadPDF = () => {
+    setIsDownloading(true);
+    try {
+      const { PRIVACY_POLICY } = LEGAL_DOCUMENTS;
+      const fullContent = createContentFromSections(privacySections);
+      const privacyContent = `# ${PRIVACY_POLICY.title}
+
+${fullContent}
+
+Last updated: ${PRIVACY_POLICY.lastUpdated}
+Version: ${PRIVACY_POLICY.version}
+Effective Date: ${PRIVACY_POLICY.effectiveDate}`;
+
+      downloadPDF({
+        title: PRIVACY_POLICY.title,
+        content: privacyContent,
+        filename: "whizboard-privacy-policy.pdf",
+        version: PRIVACY_POLICY.version,
+        effectiveDate: PRIVACY_POLICY.effectiveDate
+      });
+    } catch (error) {
+      console.error('PDF download failed:', error);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -504,7 +535,7 @@ export default function PrivacyPage() {
             <div className="mt-5 flex flex-col sm:flex-row gap-3 justify-center items-center text-white/70">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-blue-400" />
-                <span className="text-sm">Last updated: January 15, 2024</span>
+                <span className="text-sm">Last updated: 15/01/2024</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-emerald-400" />
@@ -600,7 +631,7 @@ export default function PrivacyPage() {
             <div className="grid md:grid-cols-2 gap-4">
               <Link
                 href="/contact"
-                className="group rounded-xl p-6 bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] hover:border-white/[0.12] transition-all duration-300"
+                className="group text-left rounded-xl p-6 bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] hover:border-white/[0.12] transition-all duration-300"
               >
                 <Mail className="w-8 h-8 text-blue-400 mb-4" />
                 <h3 className="font-semibold text-white mb-2">Contact Privacy Team</h3>
@@ -610,12 +641,16 @@ export default function PrivacyPage() {
                 </span>
               </Link>
 
-              <button className="group rounded-xl p-6 text-left bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] hover:border-white/[0.12] transition-all duration-300">
+              <button 
+                onClick={handleDownloadPDF}
+                disabled={isDownloading}
+                className="group rounded-xl p-6 text-left bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] hover:border-white/[0.12] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <Download className="w-8 h-8 text-blue-400 mb-4" />
                 <h3 className="font-semibold text-white mb-2">Download Policy</h3>
                 <p className="text-white/70 text-sm mb-4">Get a PDF copy of this privacy policy</p>
                 <span className="text-blue-400 font-medium text-sm group-hover:text-blue-300 transition-colors inline-flex items-center gap-1">
-                  Download PDF <ArrowRight className="w-4 h-4" />
+                  {isDownloading ? "Generating..." : "Download PDF"} <ArrowRight className="w-4 h-4" />
                 </span>
               </button>
             </div>

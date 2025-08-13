@@ -46,10 +46,10 @@ const TextEditor: React.FC<TextEditorProps> = ({
 
   // Calculate position and size based on stage transform
   const editorPosition = {
-    x: (textElement?.x * stageScale) + stagePosition.x,
-    y: (textElement?.y * stageScale) + stagePosition.y,
-    width: Math.max(textElement?.width * stageScale, 120),
-    height: Math.max(textElement?.height * stageScale, 40),
+    x: ((textElement?.x || 0) * stageScale) + stagePosition.x,
+    y: ((textElement?.y || 0) * stageScale) + stagePosition.y,
+    width: Math.max((textElement?.width || 100) * stageScale, 120),
+    height: Math.max((textElement?.height || 50) * stageScale, 40),
   };
 
   // Auto-resize textarea
@@ -241,7 +241,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
 
   // Update text when textElement changes externally
   useEffect(() => {
-    if (textElement?.text !== text && !isFocused) {
+    if (textElement?.text !== text && !isFocused && textElement) {
       setText(textElement.text);
     }
   }, [textElement?.text, text, isFocused]);

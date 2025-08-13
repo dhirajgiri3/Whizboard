@@ -28,7 +28,7 @@ import type { LucideIcon } from "lucide-react";
 const cn = (...classes: (string | undefined | null | boolean)[]) =>
   classes.filter(Boolean).join(" ");
 
-export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame" | "highlighter" | "text" | "shapes" | "ai" | "line";
+export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame" | "highlighter" | "text" | "shapes" | "ai" | "line" | "image";
 
 interface MainToolbarProps {
   tool: Tool;

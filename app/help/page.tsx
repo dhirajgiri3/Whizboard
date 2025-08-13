@@ -9,6 +9,7 @@ import HelpCategories from "./components/HelpCategories";
 import ContactSupport from "./components/ContactSupport";
 import { helpCategories } from "./data/helpData";
 import { SearchResult } from "./types";
+import { semanticSearch } from "./utils/nluSearch";
 
 export default function HelpPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -30,32 +31,12 @@ export default function HelpPage() {
     }
 
     setIsSearching(true);
-    
+
     searchTimeoutRef.current = setTimeout(() => {
-      const results: SearchResult[] = [];
-      const searchLower = query.toLowerCase();
-
-      helpCategories.forEach(category => {
-        category.articles.forEach(article => {
-          const relevance = 
-            (article.title.toLowerCase().includes(searchLower) ? 3 : 0) +
-            (article.description.toLowerCase().includes(searchLower) ? 2 : 0) +
-            (article.tags.some(tag => tag.toLowerCase().includes(searchLower)) ? 1 : 0);
-
-          if (relevance > 0) {
-            results.push({
-              article,
-              category: category.title,
-              relevance
-            });
-          }
-        });
-      });
-
-      results.sort((a, b) => b.relevance - a.relevance);
+      const results: SearchResult[] = semanticSearch(query, helpCategories);
       setSearchResults(results);
       setIsSearching(false);
-    }, 300);
+    }, 250);
   }, []);
 
   const handleClearSearch = useCallback(() => {

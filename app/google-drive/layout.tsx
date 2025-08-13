@@ -1,3 +1,4 @@
+import Footer from '@/components/layout/footer/Footer';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -61,6 +62,7 @@ export default function GoogleDriveLayout({
       <div className="absolute -bottom-16 -left-16 w-32 h-32 gradient-orb-blue opacity-60" />
       
       {children}
+      <Footer />
     </div>
   );
 }

@@ -25,7 +25,7 @@ async function isAdmin(session: any): Promise<boolean> {
 
 export const runtime = 'nodejs';
 
-export async function DELETE(request: Request, context: any) {
+export async function DELETE(request: Request, { params }: any) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -36,7 +36,7 @@ export async function DELETE(request: Request, context: any) {
       );
     }
 
-    const { userId } = context.params as { userId: string };
+    const { userId } = await params;
     const { searchParams } = new URL(request.url);
     const hard = searchParams.get('hard') === 'true';
 

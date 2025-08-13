@@ -26,6 +26,7 @@ interface ProfileData {
     image?: string;
     name?: string;
     email?: string;
+    username?: string;
     bio?: string;
     createdAt?: string;
     lastLoginAt?: string;
@@ -154,9 +155,10 @@ const ProfilePage = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen relative overflow-hidden">
-                <div className="absolute inset-0 dot-pattern opacity-[0.12]" />
-                <div className="absolute -top-16 -right-16 w-48 h-48 gradient-orb-blue" />
+            <div className="min-h-screen relative overflow-hidden bg-gray-950 pt-32">
+                <div className="absolute inset-0 grid-pattern opacity-20" />
+                <div className="absolute top-1/4 left-1/4 w-72 h-72 gradient-orb-blue" />
+                <div className="absolute bottom-1/3 right-1/4 w-60 h-60 gradient-orb-blue" />
                 <div className="flex items-center justify-center min-h-screen">
                     <div className="text-center">
                         <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -168,11 +170,11 @@ const ProfilePage = () => {
     }
 
     return (
-        <div className="min-h-screen relative overflow-hidden py-8">
-            {/* Background effects matching design system */}
-            <div className="absolute inset-0 dot-pattern opacity-[0.12]" />
-            <div className="absolute -top-16 -right-16 w-48 h-48 gradient-orb-blue" />
-            <div className="absolute -bottom-16 -left-16 w-32 h-32 gradient-orb-blue opacity-60" />
+        <div className="min-h-screen relative overflow-hidden bg-gray-950 pb-16 pt-32">
+            {/* Background effects matching settings page */}
+            <div className="absolute inset-0 grid-pattern opacity-20" />
+            <div className="absolute top-1/4 left-1/4 w-72 h-72 gradient-orb-blue" />
+            <div className="absolute bottom-1/3 right-1/4 w-60 h-60 gradient-orb-blue" />
 
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
@@ -201,12 +203,20 @@ const ProfilePage = () => {
                                             src={profileData.image}
                                             alt="Profile"
                                             className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.style.display = 'none';
+                                                target.nextElementSibling?.classList.remove('hidden');
+                                            }}
                                         />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            <User className="w-8 h-8 text-white/40" />
+                                    ) : null}
+                                    <div className={`w-full h-full flex items-center justify-center ${profileData.image ? 'hidden' : ''}`}>
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center">
+                                            <span className="text-white font-semibold text-lg">
+                                                {profileData.name?.charAt(0)?.toUpperCase() || 'U'}
+                                            </span>
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
                                 <div className="absolute -bottom-1 -right-1 p-1.5 bg-blue-600 text-white rounded-lg">
                                     <Camera className="w-3 h-3" />
@@ -223,6 +233,12 @@ const ProfilePage = () => {
                                     <Mail className="w-4 h-4" />
                                     {profileData.email || 'No email provided'}
                                 </p>
+                                {profileData.username && (
+                                    <p className="text-white/60 text-sm flex items-center gap-2 mt-1">
+                                        <User className="w-4 h-4" />
+                                        @{profileData.username}
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -231,6 +247,12 @@ const ProfilePage = () => {
                                 <Settings className="w-4 h-4" />
                                 <span className="hidden sm:inline">Edit Profile</span>
                             </SecondaryButton>
+                            {profileData.username && (
+                                <SecondaryButton onClick={() => window.open(`/profile/${profileData.username}`, '_blank')}>
+                                    <ExternalLink className="w-4 h-4" />
+                                    <span className="hidden sm:inline">View Public Profile</span>
+                                </SecondaryButton>
+                            )}
                         </div>
                     </motion.div>
                 </SectionCard>
@@ -260,7 +282,7 @@ const ProfilePage = () => {
                             </div>
 
                             <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center">
-                                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-600/20 text-purple-300 mx-auto mb-2">
+                                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-600/20 text-blue-300 mx-auto mb-2">
                                     <Zap className="w-5 h-5" />
                                 </div>
                                 <div className="text-2xl font-bold text-white">{userStats.elements.total}</div>

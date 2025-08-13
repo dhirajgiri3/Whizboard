@@ -16,11 +16,13 @@ import {
     Zap,
     MessageSquare,
     Globe,
-    ArrowLeft
+    ArrowLeft,
+    X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import BackButton from '@/components/ui/BackButton';
 import api from '@/lib/http/axios';
+import { useSession } from 'next-auth/react';
 
 interface PublicProfileData {
     name: string;
@@ -34,16 +36,21 @@ interface PublicProfileData {
 interface PublicUserStats {
     boards: {
         total: number;
-        owned: number;
-        collaborated: number;
+        public: number;
+        private: number;
     };
     collaboration: {
-        totalCollaborators: number;
-        collaborationRate: number;
+        totalCollaborations: number;
     };
     elements: {
         total: number;
-        created: number;
+        text: number;
+        drawing: number;
+        shapes: number;
+    };
+    profile: {
+        totalViews: number;
+        uniqueViews: number;
     };
 }
 
@@ -61,11 +68,21 @@ const SectionCard = ({ children, className = "" }: { children: React.ReactNode; 
 export default function PublicProfilePage() {
     const params = useParams();
     const username = params.username as string;
+    const { data: session } = useSession();
     
     const [profileData, setProfileData] = useState<PublicProfileData | null>(null);
     const [userStats, setUserStats] = useState<PublicUserStats | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    
+    // Social interaction states
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [isCheckingFollow, setIsCheckingFollow] = useState(false);
+    const [followerCount, setFollowerCount] = useState(0);
+    const [followingCount, setFollowingCount] = useState(0);
+    
+    // Check if viewing own profile
+    const isOwnProfile = session?.user?.email && profileData?.email === session.user.email;
 
     useEffect(() => {
         if (username) {
@@ -81,6 +98,14 @@ export default function PublicProfilePage() {
             const { data } = await api.get(`/api/profile/${encodeURIComponent(username)}`);
             setProfileData(data.profile);
             setUserStats(data.stats);
+            
+            // If user is logged in, check follow status and get follower counts
+            if (session?.user?.email) {
+                await Promise.all([
+                    checkFollowStatus(),
+                    getFollowerCounts()
+                ]);
+            }
         } catch (error: any) {
             console.error('Failed to fetch public profile:', error);
             
@@ -93,6 +118,53 @@ export default function PublicProfilePage() {
             }
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const checkFollowStatus = async () => {
+        try {
+            const { data } = await api.get(`/api/profile/follow/status?targetUsername=${username}`);
+            setIsFollowing(data.isFollowing);
+        } catch (error) {
+            console.error('Failed to check follow status:', error);
+        }
+    };
+
+    const getFollowerCounts = async () => {
+        try {
+            const [followersRes, followingRes] = await Promise.all([
+                api.get(`/api/profile/follow?username=${username}&type=followers`),
+                api.get(`/api/profile/follow?username=${username}&type=following`)
+            ]);
+            
+            setFollowerCount(followersRes.data.count || 0);
+            setFollowingCount(followingRes.data.count || 0);
+        } catch (error) {
+            console.error('Failed to get follower counts:', error);
+        }
+    };
+
+    const handleFollowToggle = async () => {
+        try {
+            setIsCheckingFollow(true);
+            const action = isFollowing ? 'unfollow' : 'follow';
+            
+            const { data } = await api.post('/api/profile/follow', {
+                targetUsername: username,
+                action
+            });
+            
+            if (data.success) {
+                setIsFollowing(!isFollowing);
+                toast.success(data.message);
+                
+                // Refresh follower counts
+                await getFollowerCounts();
+            }
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Failed to update follow status');
+        } finally {
+            setIsCheckingFollow(false);
         }
     };
 
@@ -114,9 +186,10 @@ export default function PublicProfilePage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen relative overflow-hidden">
-                <div className="absolute inset-0 dot-pattern opacity-[0.12]" />
-                <div className="absolute -top-16 -right-16 w-48 h-48 gradient-orb-blue" />
+            <div className="min-h-screen relative overflow-hidden bg-gray-950 pt-32">
+                <div className="absolute inset-0 grid-pattern opacity-20" />
+                <div className="absolute top-1/4 left-1/4 w-72 h-72 gradient-orb-blue" />
+                <div className="absolute bottom-1/3 right-1/4 w-60 h-60 gradient-orb-blue" />
                 <div className="flex items-center justify-center min-h-screen">
                     <div className="text-center">
                         <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -129,9 +202,10 @@ export default function PublicProfilePage() {
 
     if (error) {
         return (
-            <div className="min-h-screen relative overflow-hidden">
-                <div className="absolute inset-0 dot-pattern opacity-[0.12]" />
-                <div className="absolute -top-16 -right-16 w-48 h-48 gradient-orb-blue" />
+            <div className="min-h-screen relative overflow-hidden bg-gray-950 pt-32">
+                <div className="absolute inset-0 grid-pattern opacity-20" />
+                <div className="absolute top-1/4 left-1/4 w-72 h-72 gradient-orb-blue" />
+                <div className="absolute bottom-1/3 right-1/4 w-60 h-60 gradient-orb-blue" />
                 <div className="flex items-center justify-center min-h-screen">
                     <div className="text-center max-w-md mx-auto px-4">
                         <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-4">
@@ -164,11 +238,11 @@ export default function PublicProfilePage() {
     }
 
     return (
-        <div className="min-h-screen relative overflow-hidden py-8">
-            {/* Background effects matching design system */}
-            <div className="absolute inset-0 dot-pattern opacity-[0.12]" />
-            <div className="absolute -top-16 -right-16 w-48 h-48 gradient-orb-blue" />
-            <div className="absolute -bottom-16 -left-16 w-32 h-32 gradient-orb-blue opacity-60" />
+        <div className="min-h-screen relative overflow-hidden bg-gray-950 pb-16 pt-32">
+            {/* Background effects matching settings page */}
+            <div className="absolute inset-0 grid-pattern opacity-20" />
+            <div className="absolute top-1/4 left-1/4 w-72 h-72 gradient-orb-blue" />
+            <div className="absolute bottom-1/3 right-1/4 w-60 h-60 gradient-orb-blue" />
 
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
@@ -197,12 +271,20 @@ export default function PublicProfilePage() {
                                             src={profileData.image}
                                             alt={`${profileData.name}'s profile`}
                                             className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.style.display = 'none';
+                                                target.nextElementSibling?.classList.remove('hidden');
+                                            }}
                                         />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            <User className="w-8 h-8 text-white/40" />
+                                    ) : null}
+                                    <div className={`w-full h-full flex items-center justify-center ${profileData.image ? 'hidden' : ''}`}> 
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center">
+                                            <span className="text-white font-semibold text-lg">
+                                                {profileData.name?.charAt(0)?.toUpperCase() || 'U'}
+                                            </span>
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
                                 <div className="absolute -bottom-1 -right-1 p-1.5 bg-green-600 text-white rounded-lg">
                                     <Globe className="w-3 h-3" />
@@ -219,7 +301,44 @@ export default function PublicProfilePage() {
                                     <Mail className="w-4 h-4" />
                                     @{profileData.username}
                                 </p>
+                                <p className="text-white/60 text-sm flex items-center gap-2 mt-1">
+                                    <Mail className="w-4 h-4" />
+                                    {profileData.email}
+                                </p>
+                                {profileData.bio && (
+                                    <p className="text-white/70 text-sm mt-2 max-w-md">
+                                        {profileData.bio}
+                                    </p>
+                                )}
                             </div>
+                        </div>
+
+                        {/* Social Interaction Buttons - Only show if not own profile */}
+                        {!isOwnProfile && session?.user?.email && (
+                            <div className="flex flex-wrap items-center gap-3">
+                                <button
+                                    onClick={handleFollowToggle}
+                                    disabled={isCheckingFollow}
+                                    className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 ${
+                                        isFollowing
+                                            ? 'bg-white/[0.1] hover:bg-white/[0.15] text-white border border-white/[0.2]'
+                                            : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                    }`}
+                                >
+                                    {isCheckingFollow ? (
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <Users className="w-4 h-4" />
+                                    )}
+                                    {isFollowing ? 'Following' : 'Follow'}
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Follower/Following Counts */}
+                        <div className="flex items-center gap-4 text-sm text-white/60">
+                            <span>{followerCount} followers</span>
+                            <span>{followingCount} following</span>
                         </div>
                     </motion.div>
                 </SectionCard>
@@ -243,12 +362,12 @@ export default function PublicProfilePage() {
                             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-600/20 text-emerald-300 mx-auto mb-2">
                                 <Users className="w-5 h-5" />
                             </div>
-                            <div className="text-2xl font-bold text-white">{userStats.collaboration.totalCollaborators}</div>
-                            <div className="text-xs text-white/60">Collaborators</div>
+                            <div className="text-2xl font-bold text-white">{userStats.collaboration.totalCollaborations}</div>
+                            <div className="text-xs text-white/60">Collaborations</div>
                         </div>
 
                         <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center">
-                            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-600/20 text-purple-300 mx-auto mb-2">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-600/20 text-blue-300 mx-auto mb-2">
                                 <Zap className="w-5 h-5" />
                             </div>
                             <div className="text-2xl font-bold text-white">{userStats.elements.total}</div>
@@ -265,12 +384,12 @@ export default function PublicProfilePage() {
                             </h4>
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-white/70 text-sm">Owned</span>
-                                    <span className="text-white font-medium">{userStats.boards.owned}</span>
+                                    <span className="text-white/70 text-sm">Public</span>
+                                    <span className="text-white font-medium">{userStats.boards.public}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-white/70 text-sm">Collaborated</span>
-                                    <span className="text-white font-medium">{userStats.boards.collaborated}</span>
+                                    <span className="text-white/70 text-sm">Private</span>
+                                    <span className="text-white font-medium">{userStats.boards.private}</span>
                                 </div>
                             </div>
                         </div>
@@ -283,12 +402,12 @@ export default function PublicProfilePage() {
                             </h4>
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-white/70 text-sm">Total Collaborators</span>
-                                    <span className="text-white font-medium">{userStats.collaboration.totalCollaborators}</span>
+                                    <span className="text-white/70 text-sm">Total Collaborations</span>
+                                    <span className="text-white font-medium">{userStats.collaboration.totalCollaborations}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-white/70 text-sm">Avg. per Board</span>
-                                    <span className="text-white font-medium">{userStats.collaboration.collaborationRate}</span>
+                                    <span className="text-white font-medium">{userStats.boards.total ? (userStats.collaboration.totalCollaborations / userStats.boards.total).toFixed(1) : '0.0'}</span>
                                 </div>
                             </div>
                         </div>
@@ -342,6 +461,8 @@ export default function PublicProfilePage() {
                     </div>
                 </div>
             </div>
+
+
         </div>
     );
 }

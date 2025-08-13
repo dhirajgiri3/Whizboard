@@ -5,6 +5,7 @@ import { User, UserPresenceData } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar/avatar";
 import { Users2, UserPlus2, Wifi, WifiOff, Clock, Activity, Crown, Shield, Eye, Edit3, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import UserLink from '@/components/ui/UserLink';
 
 interface UserPresenceProps {
   users: User[];
@@ -231,27 +232,24 @@ export default function UserPresence({
               return (
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage 
-                        src={user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`} 
-                        alt={user.name} 
-                      />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white font-semibold">
-                        {getInitials(user.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-slate-800">{user.name}</span>
-                        {user.id === currentUserId && (
-                          <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">
-                            You
-                          </span>
-                        )}
-                        {getRoleIcon(user)}
-                      </div>
-                      <p className="text-sm text-slate-500">{user.email}</p>
-                    </div>
+                    <UserLink
+                      user={{
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        username: user.username,
+                        image: user.avatar
+                      }}
+                      size="lg"
+                      variant="detailed"
+                      className="flex-1"
+                    />
+                    {user.id === currentUserId && (
+                      <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">
+                        You
+                      </span>
+                    )}
+                    {getRoleIcon(user)}
                   </div>
                   
                   {user.presence && (

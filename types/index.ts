@@ -2,6 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  username?: string;
   avatar?: string;
   cursor?: { x: number; y: number };
   isOnline: boolean;
@@ -15,6 +16,7 @@ export interface User {
     isSelecting?: boolean;
     activeElementId?: string;
     sessionDuration: number;
+    connectionQuality?: 'excellent' | 'good' | 'poor' | 'disconnected';
   };
   // User activity tracking
   activity?: {
@@ -33,9 +35,21 @@ export interface User {
     canManageUsers: boolean;
     role: 'owner' | 'admin' | 'editor' | 'viewer' | 'commenter';
   };
+  // Board-specific role and permissions
+  boardRole?: 'owner' | 'admin' | 'collaborator' | 'blocked';
+  boardPermissions?: {
+    canView: boolean;
+    canEdit: boolean;
+    canComment: boolean;
+    canInvite: boolean;
+    canDelete: boolean;
+    canExport: boolean;
+    canManageUsers: boolean;
+    canManagePermissions: boolean;
+  };
 }
 
-export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame" | "highlighter" | "text" | "shapes" | "ai" | "line";
+export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame" | "highlighter" | "text" | "shapes" | "ai" | "line" | "image";
 
 export interface DrawingElement {
   id: string;
@@ -232,6 +246,27 @@ export interface TextElement {
   version: number;
 }
 
+export interface ImageElement {
+  id: string;
+  type: 'image';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  src: string;
+  alt?: string;
+  naturalWidth?: number;
+  naturalHeight?: number;
+  opacity: number;
+  rotation: number;
+  scaleX?: number;
+  scaleY?: number;
+  createdBy: string;
+  createdAt: number;
+  updatedAt: number;
+  version: number;
+}
+
 export interface BoardAction {
   type: string;
   data: string; // JSON string of the action
@@ -374,6 +409,7 @@ export interface EnhancedCursor {
   lastActivity: Date;
   currentTool?: string;
   isDrawing?: boolean;
+  isTyping?: boolean;
   isSelecting?: boolean;
   activeElementId?: string;
   pressure?: number; // For stylus support
@@ -492,6 +528,9 @@ export interface Board {
   history?: BoardAction[];
   historyIndex?: number;
   pendingInvitations?: BoardInvitation[];
+  // Admin and user management
+  adminUsers?: string[]; // Array of user IDs who are admins
+  blockedUsers?: string[]; // Array of user IDs who are blocked
   // Enhanced collaboration features
   collaboration?: {
     sessionId: string;

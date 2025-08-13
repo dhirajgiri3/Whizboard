@@ -26,8 +26,8 @@ const DropdownMenu = ({
     : 'text-white/70 hover:text-white';
   
   const dropdownBg = isLightMode 
-    ? 'bg-white/95 backdrop-blur-xl border-gray-200/60' 
-    : 'bg-[#111111]/95 backdrop-blur-xl border-white/10';
+    ? 'bg-white border-gray-200' 
+    : 'bg-[#111111] border-white/10';
   
   const itemHoverBg = isLightMode 
     ? 'hover:bg-gray-50/80' 
@@ -73,10 +73,6 @@ const DropdownMenu = ({
             transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
             className={`absolute top-full left-0 mt-3 w-72 ${dropdownBg} rounded-2xl shadow-2xl border py-3 z-50`}
             role="menu"
-            style={{ 
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)'
-            }}
           >
             {items.map((item, index) => (
               <motion.div

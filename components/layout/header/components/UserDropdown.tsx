@@ -18,8 +18,8 @@ const UserDropdown = ({ session, isOpen, onClose, isLightMode, userMenuItems }: 
   const animations = isLightMode ? headerAnimations : darkHeaderAnimations;
   
   const dropdownBg = isLightMode
-    ? 'bg-white/90 backdrop-blur-xl border-white/20'
-    : 'bg-[#111111]/90 backdrop-blur-xl border-white/10';
+    ? 'bg-white border-gray-200'
+    : 'bg-[#111111] border-white/10';
   
   const borderColor = isLightMode
     ? 'border-gray-100/80'
@@ -61,18 +61,8 @@ const UserDropdown = ({ session, isOpen, onClose, isLightMode, userMenuItems }: 
           initial="initial"
           animate="animate"
           exit="exit"
-          className={`absolute right-0 mt-3 w-80 lg:w-96 ${dropdownBg} dropdown-backdrop-blur rounded-2xl border py-4 z-[55] overflow-hidden ${!isLightMode ? 'dark' : ''}`}
+          className={`absolute right-0 top-full mt-3 w-80 lg:w-96 ${dropdownBg} rounded-2xl border py-4 z-[55] overflow-hidden ${!isLightMode ? 'dark' : ''}`}
           role="menu"
-          style={{ 
-            backdropFilter: 'blur(24px) saturate(180%) brightness(1.1)',
-            WebkitBackdropFilter: 'blur(24px) saturate(180%) brightness(1.1)',
-            backgroundColor: isLightMode 
-              ? 'rgba(255, 255, 255, 0.8)' 
-              : 'rgba(17, 17, 17, 0.8)',
-            borderColor: isLightMode 
-              ? 'rgba(255, 255, 255, 0.3)' 
-              : 'rgba(255, 255, 255, 0.15)'
-          }}
         >
           {/* User Info */}
           <div className={`px-6 py-4 border-b ${borderColor}`}>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { 
   Cloud, 
   CheckCircle, 
@@ -53,6 +53,7 @@ export function GoogleDriveOnboarding({
 }: GoogleDriveOnboardingProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
+  const prefersReducedMotion = useReducedMotion();
 
   const steps: OnboardingStep[] = [
     {
@@ -522,12 +523,12 @@ export function GoogleDriveOnboarding({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50" role="dialog" aria-modal>
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="rounded-2xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden bg-[#111111] border border-white/[0.08]"
+        initial={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.96, y: 20 }}
+        animate={prefersReducedMotion ? undefined : { opacity: 1, scale: 1, y: 0 }}
+        exit={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.96, y: 20 }}
+        className="rounded-2xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden bg-[#111111] border border-white/[0.08] backdrop-blur-xl"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/[0.08]">
@@ -542,7 +543,7 @@ export function GoogleDriveOnboarding({
           </div>
           <button
             onClick={onClose}
-            className="p-2 h-10 w-10 flex items-center justify-center rounded-lg bg-white/[0.05] hover:bg-white/[0.08] text-white/70 hover:text-white"
+            className="p-2 h-10 w-10 flex items-center justify-center rounded-lg bg-white/[0.05] hover:bg-white/[0.08] text-white/70 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             ✕
           </button>

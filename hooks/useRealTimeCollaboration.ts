@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, createElement } from 'react';
 import api from '@/lib/http/axios';
 import { toast } from 'sonner';
 import { useBoardContext } from '@/lib/context/BoardContext';
 import logger from '@/lib/logger/logger';
 import { User, EnhancedCursor, UserPresenceData } from '@/types';
+import { UserPlus, UserMinus, Wifi, WifiOff, Type, Shapes, Pencil } from 'lucide-react';
 
 type RealtimeElement = {
   id: string;
@@ -101,7 +102,8 @@ export function useRealTimeCollaboration({
   const lastDrawingUpdateRef = useRef<number>(0);
   
   // Constants for throttling
-  const DRAWING_UPDATE_THROTTLE_MS = 100; // Send updates every 100ms max
+  // Lower throttle to improve perceived real-time streaming of strokes (~60fps -> ~16ms)
+  const DRAWING_UPDATE_THROTTLE_MS = 20;
   const CURSOR_THROTTLE_MS = 50; // Keep existing cursor throttle
 
   // State for user presence and activity
@@ -154,6 +156,7 @@ export function useRealTimeCollaboration({
       case 'connected':
         logger.info('SSE connection confirmed');
         setIsConnected(true);
+        toast.success('Connected to live collaboration', { icon: createElement(Wifi, { size: 16 }) , duration: 2000 });
         // On reconnection, rejoin the board
         if (hasJoinedRef.current) {
           joinBoard();
@@ -183,9 +186,10 @@ export function useRealTimeCollaboration({
             }
           } as Collaborator); // Cast to Collaborator
 
-          toast.success(`${event.payload.name || 'User'} joined the board! 🎉`, {
-            description: 'You can now collaborate in real-time.',
-            duration: 4000,
+          toast.success(`${event.payload.name || 'User'} joined the board`, {
+            description: 'Collaboration is active.',
+            icon: createElement(UserPlus, { size: 16 }),
+            duration: 2500,
           });
         }
         break;
@@ -201,42 +205,53 @@ export function useRealTimeCollaboration({
             return updated;
           });
 
-          toast.info(`User left the board`, {
-            duration: 3000,
-          });
+          toast.info('User left the board', { icon: createElement(UserMinus, { size: 16 }) , duration: 2500 });
         }
         break;
 
       case 'cursorMovement':
         if (typeof event.payload.userId === 'string' && event.payload.userId !== userId) {
-          const userCursor: EnhancedCursor = {
-            x: (event.payload.x as number) || 0,
-            y: (event.payload.y as number) || 0,
-            userId: event.payload.userId,
-            name: (event.payload.name as string) || 'Unknown User',
-            color: event.payload.color as string | undefined,
-            isActive: event.payload.isActive !== false,
-            lastActivity: new Date(event.payload.lastActivity || Date.now()),
-            currentTool: event.payload.currentTool as string | undefined,
-            isDrawing: event.payload.isDrawing as boolean | undefined,
-            isSelecting: event.payload.isSelecting as boolean | undefined,
-            activeElementId: event.payload.activeElementId as string | undefined,
-            pressure: event.payload.pressure as number | undefined,
-            velocity: event.payload.velocity as { x: number; y: number } | undefined,
-            trail: event.payload.trail as Array<{ x: number; y: number; timestamp: number }> | undefined,
-          };
-
-          setCursors(prev => ({
-            ...prev,
-            [event.payload.userId as string]: userCursor,
-          }));
+          const nowTs = Date.now();
+          const incomingX = (event.payload.x as number) || 0;
+          const incomingY = (event.payload.y as number) || 0;
+          const incomingId = event.payload.userId as string;
           
-          if (onCursorMove) {
-            onCursorMove({
-              ...cursors,
-              [event.payload.userId as string]: userCursor,
-            });
-          }
+          setCursors(prev => {
+            const prevCursor = prev[incomingId];
+            const lastTs = prevCursor?.lastActivity ? prevCursor.lastActivity.getTime() : nowTs;
+            const dt = Math.max(1, nowTs - lastTs);
+            const dx = prevCursor ? incomingX - prevCursor.x : 0;
+            const dy = prevCursor ? incomingY - prevCursor.y : 0;
+            const velocity = { x: dx / dt, y: dy / dt };
+            
+            const newTrail = [
+              ...((prevCursor?.trail as Array<{ x: number; y: number; timestamp: number }> | undefined) || []),
+              { x: incomingX, y: incomingY, timestamp: nowTs }
+            ].slice(-10);
+
+            const userCursor: EnhancedCursor = {
+              x: incomingX,
+              y: incomingY,
+              userId: incomingId,
+              name: (event.payload.name as string) || 'Unknown User',
+              color: event.payload.color as string | undefined,
+              isActive: true,
+              lastActivity: new Date(nowTs),
+              currentTool: event.payload.currentTool as string | undefined,
+              isDrawing: event.payload.isDrawing as boolean | undefined,
+              isSelecting: event.payload.isSelecting as boolean | undefined,
+              activeElementId: event.payload.activeElementId as string | undefined,
+              pressure: event.payload.pressure as number | undefined,
+              velocity,
+              trail: newTrail,
+            };
+
+            const next = { ...prev, [incomingId]: userCursor };
+            if (onCursorMove) {
+              onCursorMove(next);
+            }
+            return next;
+          });
         }
         break;
 
@@ -244,8 +259,9 @@ export function useRealTimeCollaboration({
         if (isOwner && typeof event.payload.inviteeEmail === 'string') {
           incrementPendingInvitations();
           toast.success(`Invitation sent to ${event.payload.inviteeEmail}`, {
-            description: 'They will receive an email with a link to join the board.',
-            duration: 4000,
+            description: 'They will receive an email with a link to join.',
+            icon: createElement(UserPlus, { size: 16 }),
+            duration: 2500,
           });
         }
         break;
@@ -286,16 +302,10 @@ export function useRealTimeCollaboration({
           const { status, email } = event.payload;
           
           if (status === 'accepted') {
-            toast.success(`${email} accepted your invitation! 🎉`, {
-              description: 'They can now collaborate on the board.',
-              duration: 4000,
-            });
+            toast.success(`${email} accepted your invitation`, { icon: createElement(UserPlus, { size: 16 }), duration: 2500 });
             decrementPendingInvitations();
           } else if (status === 'declined') {
-            toast.info(`${email} declined your invitation`, {
-              description: 'You can send them another invitation if needed.',
-              duration: 4000,
-            });
+            toast.info(`${email} declined your invitation`, { duration: 2500 });
             decrementPendingInvitations();
           }
         }
@@ -333,9 +343,16 @@ export function useRealTimeCollaboration({
             event.payload.userId !== userId &&
             event.payload.line &&
             typeof event.payload.line === 'object') {
-          // Handle real-time drawing start from other users
-          // You can implement optimistic UI updates here
-          logger.debug('Real-time drawing started by another user', event.payload);
+          // Create the line immediately so subsequent updates have a target to modify
+          if (onElementAdded && isDrawingLineData(event.payload.line)) {
+            const lineData = event.payload.line;
+            const startedElement: RealtimeElement = {
+              id: lineData.id,
+              type: 'line',
+              data: lineData as unknown as Record<string, unknown>,
+            };
+            onElementAdded(startedElement);
+          }
         }
         break;
 
@@ -353,6 +370,15 @@ export function useRealTimeCollaboration({
               data: lineData as unknown as Record<string, unknown>,
             };
             onElementUpdated(liveElement);
+          } else if (onElementAdded) {
+            // Fallback: if there is no updater, ensure we at least add/replace the line
+            const lineData = event.payload.line;
+            const fallbackElement: RealtimeElement = {
+              id: lineData.id,
+              type: 'line',
+              data: lineData as unknown as Record<string, unknown>,
+            };
+            onElementAdded(fallbackElement);
           }
         }
         break;
@@ -387,10 +413,8 @@ export function useRealTimeCollaboration({
             };
             onElementAdded(textElement);
           }
-          
-          toast.info(`${event.payload.userName || 'User'} added a text element`, {
-            duration: 2000,
-          });
+
+          toast.info(`${event.payload.userName || 'User'} added text`, { icon: createElement(Type, { size: 16 }), duration: 2000 });
         }
         break;
 
@@ -418,10 +442,8 @@ export function useRealTimeCollaboration({
           if (onElementDeleted) {
             onElementDeleted(event.payload.textElementId);
           }
-          
-          toast.info(`${event.payload.userName || 'User'} deleted a text element`, {
-            duration: 2000,
-          });
+
+          toast.info(`${event.payload.userName || 'User'} deleted text`, { icon: createElement(Type, { size: 16 }), duration: 2000 });
         }
         break;
 
@@ -459,10 +481,8 @@ export function useRealTimeCollaboration({
             };
             onElementAdded(shapeElement);
           }
-          
-          toast.info(`${event.payload.userName || 'User'} added a ${event.payload.shapeElement?.shapeType || 'shape'}`, {
-            duration: 2000,
-          });
+
+          toast.info(`${event.payload.userName || 'User'} added a ${event.payload.shapeElement?.shapeType || 'shape'}`, { icon: createElement(Shapes, { size: 16 }), duration: 2000 });
         }
         break;
 
@@ -490,10 +510,8 @@ export function useRealTimeCollaboration({
           if (onElementDeleted) {
             onElementDeleted(event.payload.shapeElementId);
           }
-          
-          toast.info(`${event.payload.userName || 'User'} deleted a shape`, {
-            duration: 2000,
-          });
+
+          toast.info(`${event.payload.userName || 'User'} deleted a shape`, { icon: createElement(Shapes, { size: 16 }), duration: 2000 });
         }
         break;
 

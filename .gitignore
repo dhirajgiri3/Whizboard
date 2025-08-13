@@ -39,5 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# temporary files
 konva_code.md
 shapetool_code_konva.md
+Landing_content_copy.md
+Whizboard_Development_Plan_Cursor_Tasks_Integrated.md
+
+# test scripts (temporary)
+scripts/test-*.js
+scripts/create-test-*.js
+scripts/check-*.js

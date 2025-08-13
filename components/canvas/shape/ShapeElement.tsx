@@ -12,7 +12,8 @@ import {
   Arrow, 
   Path, 
   Transformer, 
-  Group 
+  Group,
+  Text
 } from "react-konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import { ShapeElement as ShapeElementType } from "@/types";
@@ -84,8 +85,6 @@ const ShapeElement: React.FC<ShapeElementProps> = React.memo(({
     strokeLineCap = "round",
     strokeLineJoin = "round",
     shadow,
-    gradient,
-    pattern,
     opacity = 1,
     cornerRadius = 0,
   } = style;
@@ -114,13 +113,15 @@ const ShapeElement: React.FC<ShapeElementProps> = React.memo(({
   }, [shapeType]);
 
   // Enhanced transformer configuration
+  type BoundingBox = { x: number; y: number; width: number; height: number; rotation: number };
+
   const getTransformerConfig = useCallback(() => {
     const scaleFactor = Math.max(1 / scale, 0.5);
     const minSize = Math.max(10, 20 / scale);
     const maxSize = Math.min(5000 / scale, 5000);
 
     return {
-      boundBoxFunc: (oldBox: any, newBox: any) => {
+      boundBoxFunc: (oldBox: BoundingBox, newBox: BoundingBox) => {
         if (newBox.width < minSize || newBox.height < minSize) {
           return oldBox;
         }
@@ -340,7 +341,6 @@ const ShapeElement: React.FC<ShapeElementProps> = React.memo(({
     } : {};
 
     return {
-      ref: shapeRef,
       x: 0,
       y: 0,
       width: width,
@@ -379,6 +379,7 @@ const ShapeElement: React.FC<ShapeElementProps> = React.memo(({
       case 'rectangle':
         return (
           <Rect
+            ref={shapeRef}
             {...commonProps}
             cornerRadius={Array.isArray(cornerRadius) ? cornerRadius : [cornerRadius, cornerRadius, cornerRadius, cornerRadius]}
           />
@@ -549,6 +550,10 @@ const ShapeElement: React.FC<ShapeElementProps> = React.memo(({
       y={y}
       draggable={shouldBeDraggable}
       onDragStart={handleDragStart}
+      // Visual feedback while dragging
+      opacity={isDragging ? 0.9 : 1}
+      scaleX={isDragging ? 1.02 : 1}
+      scaleY={isDragging ? 1.02 : 1}
       onDragEnd={handleDragEnd}
       onTransformStart={handleTransformStart}
       onTransform={handleTransform}
@@ -557,7 +562,98 @@ const ShapeElement: React.FC<ShapeElementProps> = React.memo(({
       listening={true}
     >
       {renderShape()}
-      
+
+      {/* Hover indicator (subtle) */}
+      {isHovered && !isSelected && !isDragging && (
+        <Rect
+          x={-2}
+          y={-2}
+          width={width + 4}
+          height={height + 4}
+          cornerRadius={6}
+          stroke={draggable ? "#10b981" : "#6366f1"}
+          strokeWidth={Math.max(1.5 / scale, 0.75)}
+          dash={[Math.max(3 / scale, 1.5), Math.max(3 / scale, 1.5)]}
+          opacity={0.6}
+          listening={false}
+          perfectDrawEnabled={false}
+        />
+      )}
+
+      {/* Dragging indicator */}
+      {isDragging && (
+        <>
+          <Rect
+            x={-6}
+            y={-6}
+            width={width + 12}
+            height={height + 12}
+            cornerRadius={8}
+            stroke="#3b82f6"
+            strokeWidth={Math.max(2 / scale, 1)}
+            dash={[Math.max(4 / scale, 2), Math.max(4 / scale, 2)]}
+            opacity={0.85}
+            listening={false}
+            perfectDrawEnabled={false}
+          />
+          {/* Dragging label */}
+          <Rect
+            x={width / 2 - 30}
+            y={-24}
+            width={60}
+            height={16}
+            fill="#3b82f6"
+            cornerRadius={8}
+            opacity={0.9}
+            listening={false}
+            perfectDrawEnabled={false}
+          />
+          <Text
+            x={width / 2 - 28}
+            y={-21}
+            width={56}
+            height={10}
+            text="MOVING"
+            fontSize={Math.max(10 / scale, 8)}
+            fontFamily="'Inter', -apple-system, sans-serif"
+            fontStyle="600"
+            fill="#ffffff"
+            align="center"
+            verticalAlign="middle"
+            listening={false}
+            perfectDrawEnabled={false}
+          />
+        </>
+      )}
+
+      {/* Dimension label while transforming */}
+      {isTransforming && (
+        <>
+          <Rect
+            x={width / 2 - Math.max(35 / scale, 25)}
+            y={height + Math.max(12 / scale, 8)}
+            width={Math.max(70 / scale, 50)}
+            height={Math.max(20 / scale, 15)}
+            fill="#3b82f6"
+            cornerRadius={Math.max(6 / scale, 3)}
+            opacity={0.9}
+            listening={false}
+            perfectDrawEnabled={false}
+          />
+          <Text
+            x={width / 2 - Math.max(32 / scale, 24)}
+            y={height + Math.max(15 / scale, 11)}
+            text={`${Math.round(width)} × ${Math.round(height)}`}
+            fontSize={Math.max(11 / scale, 8)}
+            fontFamily="'Inter', monospace"
+            fontStyle="600"
+            fill="#ffffff"
+            listening={false}
+            perfectDrawEnabled={false}
+          />
+        </>
+      )}
+
       {isSelected && (
         <Transformer
           ref={trRef}

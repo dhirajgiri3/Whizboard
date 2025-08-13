@@ -81,9 +81,9 @@ const contactMethods: ContactMethod[] = [
     icon: Mail,
     title: "Email Support",
     description: "Get help from our support team within 24 hours",
-    info: "support@whizboard.com",
+    info: "Hello@cyperstudio.in",
     action: "Send Email",
-    href: "mailto:support@whizboard.com",
+    href: "mailto:Hello@cyperstudio.in",
     color: "from-blue-600 to-blue-500"
   },
   {
@@ -99,9 +99,9 @@ const contactMethods: ContactMethod[] = [
     icon: Phone,
     title: "Phone Support",
     description: "Speak directly with our enterprise team",
-    info: "+1 (555) 123-4567",
+    info: "+919569691483",
     action: "Call Now",
-    href: "tel:+15551234567",
+    href: "tel:+919569691483",
     color: "from-blue-700 to-blue-600"
   },
   {
@@ -117,22 +117,10 @@ const contactMethods: ContactMethod[] = [
 
 const officeLocations = [
   {
-    city: "San Francisco",
-    address: "123 Market Street, Suite 456",
-    coordinates: "San Francisco, CA 94102",
-    timezone: "PST (UTC-8)"
-  },
-  {
-    city: "New York",
-    address: "456 Fifth Avenue, 12th Floor", 
-    coordinates: "New York, NY 10018",
-    timezone: "EST (UTC-5)"
-  },
-  {
-    city: "London",
-    address: "789 Oxford Street, Level 3",
-    coordinates: "London, UK W1C 1DX", 
-    timezone: "GMT (UTC+0)"
+    city: "Delhi",
+    address: "Delhi, India",
+    coordinates: "Delhi, India",
+    timezone: "IST (UTC+5:30)"
   }
 ];
 
@@ -294,7 +282,7 @@ export default function ContactPage() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
-                href="mailto:support@whizboard.com"
+                href="mailto:Hello@cyperstudio.in"
                 className="group relative overflow-hidden bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">

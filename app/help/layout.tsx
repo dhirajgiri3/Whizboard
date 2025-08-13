@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Footer from '@/components/layout/footer/Footer';
+import SmoothScrollProvider from '@/components/landing/SmoothScrollProvider';
 
 export const metadata: Metadata = {
   title: 'Help Center | Whizboard - Documentation, Tutorials & Support',
@@ -59,9 +60,9 @@ export default function HelpLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
+    <SmoothScrollProvider>
       {children}
       <Footer />
-    </>
+    </SmoothScrollProvider>
   );
 }

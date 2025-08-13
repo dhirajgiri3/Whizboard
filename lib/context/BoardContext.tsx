@@ -14,6 +14,7 @@ interface BoardMetadata {
     name: string;
     email?: string;
     avatar?: string;
+    username?: string;
   };
   collaborators?: Array<{
     id: string;

@@ -6,6 +6,9 @@ import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 import { connectToDatabase } from '@/lib/database/mongodb';
 import { ObjectId } from 'mongodb';
 
+// Ensure Node.js runtime for Buffer support
+export const runtime = 'nodejs';
+
 function createApolloClientForRequest(request: NextRequest) {
   const link = createHttpLink({
     uri: `${request.nextUrl.origin}/api/graphql`,
@@ -35,7 +38,7 @@ export async function GET(
 ) {
   try {
     const client = createApolloClientForRequest(request);
-    const { id } = params;
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -301,7 +304,7 @@ export async function POST(
 ) {
   try {
     const client = createApolloClientForRequest(request);
-    const { id } = params;
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -403,7 +406,7 @@ export async function PUT(
 ) {
   try {
     const client = createApolloClientForRequest(request);
-    const { id } = params;
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -488,7 +491,7 @@ export async function DELETE(
 ) {
   try {
     const client = createApolloClientForRequest(request);
-    const { id } = params;
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -577,7 +580,7 @@ export async function PATCH(
 ) {
   try {
     const client = createApolloClientForRequest(request);
-    const { id } = params;
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

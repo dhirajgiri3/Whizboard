@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth/options';
 import { connectToDatabase } from '@/lib/database/mongodb';
 import { ObjectId } from 'mongodb';
 import logger from '@/lib/logger/logger';
-import { createAuditLog } from '../audit/route';
+import { createAuditLog } from '@/lib/workspace/audit';
 
 export async function POST(request: NextRequest) {
   try {

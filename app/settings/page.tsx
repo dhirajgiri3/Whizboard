@@ -18,10 +18,6 @@ import {
   Settings,
   ExternalLink,
   Lock,
-  Bot,
-  Send,
-  RefreshCw,
-  CloudUpload,
   FolderOpen
 } from "lucide-react";
 import { useSettings } from "@/lib/context/SettingsContext";
@@ -206,17 +202,21 @@ export default function SettingsPage() {
 
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
+  const [originalUsername, setOriginalUsername] = useState<string>("");
   const [bio, setBio] = useState<string>("");
+  const [isPublicProfile, setIsPublicProfile] = useState<boolean>(true);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isDeletingImage, setIsDeletingImage] = useState(false);
+  
+  // Username availability checking
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
+  const [usernameError, setUsernameError] = useState<string>("");
 
   // Integrations helpers (Slack + Drive)
   const [slackDefaultChannel, setSlackDefaultChannel] = useState<{ id: string; name?: string } | null>(null);
-  const [slackTestMessage, setSlackTestMessage] = useState<string>("This is a test message from WhizBoard");
-  const [isInvitingBot, setIsInvitingBot] = useState(false);
-  const [isSendingTest, setIsSendingTest] = useState(false);
-  const [isTestingDrive, setIsTestingDrive] = useState(false);
 
   // Profile image edit states
   const [isEditingImage, setIsEditingImage] = useState(false);
@@ -231,10 +231,81 @@ export default function SettingsPage() {
         const account = data?.user || {};
         setProfileImageUrl(account.image || null);
         setDisplayName(account.name || user?.name || "");
+        setUsername(account.username || "");
+        setOriginalUsername(account.username || "");
         setBio(account.bio || "");
+        setIsPublicProfile(account.isPublicProfile !== false);
       } catch { }
     })();
   }, [user?.name]);
+
+  // Username availability checking
+  const checkUsernameAvailability = async (usernameToCheck: string) => {
+    if (!usernameToCheck || usernameToCheck === originalUsername) {
+      setUsernameStatus('idle');
+      setUsernameError("");
+      return;
+    }
+
+    // Basic validation
+    if (usernameToCheck.length < 3) {
+      setUsernameStatus('invalid');
+      setUsernameError("Username must be at least 3 characters long");
+      return;
+    }
+
+    if (usernameToCheck.length > 30) {
+      setUsernameStatus('invalid');
+      setUsernameError("Username must be less than 30 characters");
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9._]+$/.test(usernameToCheck)) {
+      setUsernameStatus('invalid');
+      setUsernameError("Username can only contain letters, numbers, dots, and underscores");
+      return;
+    }
+
+    if (/^[._]/.test(usernameToCheck) || /[._]$/.test(usernameToCheck)) {
+      setUsernameStatus('invalid');
+      setUsernameError("Username cannot start or end with a dot or underscore");
+      return;
+    }
+
+    setIsCheckingUsername(true);
+    setUsernameStatus('checking');
+    setUsernameError("");
+
+    try {
+      const response = await api.post('/api/profile/check-username', { username: usernameToCheck });
+      if (response.data.available) {
+        setUsernameStatus('available');
+        setUsernameError("");
+      } else {
+        setUsernameStatus('taken');
+        setUsernameError("This username is already taken");
+      }
+    } catch (error: any) {
+      if (error.response?.data?.error) {
+        setUsernameStatus('invalid');
+        setUsernameError(error.response.data.error);
+      } else {
+        setUsernameStatus('invalid');
+        setUsernameError("Failed to check username availability");
+      }
+    } finally {
+      setIsCheckingUsername(false);
+    }
+  };
+
+  // Debounced username checking
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      checkUsernameAvailability(username);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [username]);
 
   // Show integration connect result notifications from OAuth callbacks
   useEffect(() => {
@@ -283,61 +354,7 @@ export default function SettingsPage() {
     }
   };
 
-  const handleInviteBotToDefault = async () => {
-    if (!slackDefaultChannel?.id) {
-      toast.error('Set a default Slack channel first');
-      return;
-    }
-    setIsInvitingBot(true);
-    try {
-      const res = await api.post('/api/integrations/slack/channels', { channelId: slackDefaultChannel.id });
-      if (res.status >= 200 && res.status < 300 && (res.data as any)?.success) {
-        toast.success('Bot invited to channel');
-      } else {
-        toast.error((res.data as any)?.message || 'Failed to invite bot');
-      }
-    } catch {
-      toast.error('Failed to invite bot');
-    } finally {
-      setIsInvitingBot(false);
-    }
-  };
 
-  const handleSendSlackTest = async () => {
-    if (!slackDefaultChannel?.id) {
-      toast.error('Set a default Slack channel first');
-      return;
-    }
-    setIsSendingTest(true);
-    try {
-      const res = await api.post('/api/integrations/slack/post', { channelId: slackDefaultChannel.id, text: slackTestMessage || 'Test from WhizBoard' });
-      if (res.status >= 200 && res.status < 300 && (res.data as any)?.success) {
-        toast.success('Test message sent');
-      } else {
-        toast.error('Failed to send test message');
-      }
-    } catch {
-      toast.error('Failed to send test message');
-    } finally {
-      setIsSendingTest(false);
-    }
-  };
-
-  const handleDriveTestUpload = async () => {
-    setIsTestingDrive(true);
-    try {
-      const res = await api.post('/api/integrations/google-drive/test-upload');
-      if (res.status >= 200 && res.status < 300) {
-        toast.success('Drive test upload initiated');
-      } else {
-        toast.error('Drive test failed');
-      }
-    } catch {
-      toast.error('Drive test failed');
-    } finally {
-      setIsTestingDrive(false);
-    }
-  };
 
   const handleDeleteAccount = async () => {
     if (
@@ -569,6 +586,87 @@ export default function SettingsPage() {
               </div>
 
               <div>
+                <Label>Username</Label>
+                <div className="relative">
+                  <Input
+                    type="text"
+                    placeholder="Enter your username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className={`${
+                      usernameStatus === 'available' ? 'ring-green-500' :
+                      usernameStatus === 'taken' ? 'ring-red-500' :
+                      usernameStatus === 'invalid' ? 'ring-red-500' :
+                      usernameStatus === 'checking' ? 'ring-yellow-500' :
+                      'ring-white/10'
+                    }`}
+                  />
+                  {usernameStatus === 'checking' && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <Loading size="sm" variant="dots" tone="dark" />
+                    </div>
+                  )}
+                  {usernameStatus === 'available' && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                  {usernameStatus === 'taken' && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Username status messages */}
+                {usernameStatus === 'available' && (
+                  <p className="mt-2 text-sm text-green-400 flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Username is available
+                  </p>
+                )}
+                
+                {usernameStatus === 'taken' && (
+                  <p className="mt-2 text-sm text-red-400 flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                    {usernameError}
+                  </p>
+                )}
+                
+                {usernameStatus === 'invalid' && (
+                  <p className="mt-2 text-sm text-red-400 flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {usernameError}
+                  </p>
+                )}
+                
+                {usernameStatus === 'checking' && (
+                  <p className="mt-2 text-sm text-yellow-400 flex items-center gap-2">
+                    <Loading size="sm" variant="dots" tone="dark" />
+                    Checking availability...
+                  </p>
+                )}
+                
+                <p className="mt-2 text-sm text-white/50">
+                  Your username will be used in your profile URL: /profile/{username || 'username'}
+                </p>
+              </div>
+
+              <div>
                 <Label>Email Address</Label>
                 <Input
                   type="email"
@@ -589,27 +687,83 @@ export default function SettingsPage() {
                 />
               </div>
 
+              {/* Public Profile Toggle */}
+              <div>
+                <Label>Public Profile</Label>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
+                    <div>
+                      <h5 className="text-white font-medium">Make Profile Public</h5>
+                      <p className="text-white/60 text-sm">
+                        Allow others to view your profile at /profile/{username || 'username'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setIsPublicProfile(!isPublicProfile)}
+                      aria-pressed={isPublicProfile}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isPublicProfile ? 'bg-blue-600' : 'bg-white/[0.1]'} hover:bg-white/[0.15]`}
+                    >
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isPublicProfile ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+                  
+                  {isPublicProfile && (
+                    <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                      <p className="text-sm text-blue-300">
+                        <strong>Public Profile Active</strong>
+                        <br />
+                        Your profile is visible to everyone. You can share your profile URL with others.
+                      </p>
+                    </div>
+                  )}
+                  
+                  {!isPublicProfile && (
+                    <div className="p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                      <p className="text-sm text-orange-300">
+                        <strong>Private Profile</strong>
+                        <br />
+                        Your profile is private and only visible to you. Others cannot view your profile.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="pt-4">
                 <PrimaryButton
                   onClick={async () => {
+                    // Validate username before saving
+                    if (username !== originalUsername) {
+                      if (usernameStatus !== 'available') {
+                        toast.error('Please choose a valid and available username');
+                        return;
+                      }
+                    }
+                    
                     try {
                       setIsSavingProfile(true);
-                      const res = await api.put('/api/settings/account', { name: displayName, bio });
+                      const res = await api.put('/api/settings/account', { name: displayName, username, bio, isPublicProfile });
                       if (res.status >= 200 && res.status < 300) {
-                        toast.success('Profile updated');
+                        toast.success('Profile updated successfully');
+                        // Update original username after successful save
+                        setOriginalUsername(username);
                         // Optimistically update global user name
                         setUser(user ? { ...user, name: displayName } : user);
                       } else {
                         toast.error('Failed to update profile');
                       }
-                    } catch {
-                      toast.error('Failed to update profile');
+                    } catch (error: any) {
+                      if (error.response?.data?.error) {
+                        toast.error(error.response.data.error);
+                      } else {
+                        toast.error('Failed to update profile');
+                      }
                     } finally {
                       setIsSavingProfile(false);
                     }
                   }}
                   className="w-full sm:w-auto"
-                  disabled={isSavingProfile}
+                  disabled={isSavingProfile || (username !== originalUsername && usernameStatus !== 'available')}
                 >
                   <Save className="w-4 h-4" />
                   {isSavingProfile ? 'Saving…' : 'Save Changes'}
@@ -786,57 +940,10 @@ export default function SettingsPage() {
                 </div>
               ))}
 
-              {/* Slack: Default Channel + actions */}
+              {/* Slack: Default Channel */}
               {integrations.slack && (
                 <div className="space-y-4">
                   <SlackChannelPicker />
-
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <Bot className="w-4 h-4 text-blue-300" />
-                          <h6 className="text-white/90 text-sm font-medium">Invite Bot to Default Channel</h6>
-                        </div>
-                        <button onClick={refreshSlackDefault} className="text-xs text-white/60 hover:text-white inline-flex items-center gap-1">
-                          <RefreshCw className="w-3 h-3" /> Refresh
-                        </button>
-                      </div>
-                      <button
-                        onClick={handleInviteBotToDefault}
-                        disabled={isInvitingBot || !slackDefaultChannel?.id}
-                        className="w-full px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-sm border border-blue-500/30"
-                      >
-                        {isInvitingBot ? 'Inviting…' : 'Invite Bot'}
-                      </button>
-                      <p className="mt-2 text-xs text-white/50">Ensures the bot can post notifications into the selected channel.</p>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <Send className="w-4 h-4 text-blue-300" />
-                          <h6 className="text-white/90 text-sm font-medium">Send Test Message</h6>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={slackTestMessage}
-                          onChange={(e) => setSlackTestMessage(e.target.value)}
-                          className="flex-1 rounded-lg bg-white/[0.05] px-3 py-2 text-white ring-1 ring-white/10 focus:ring-2 focus:ring-blue-500"
-                        />
-                        <button
-                          onClick={handleSendSlackTest}
-                          disabled={isSendingTest || !slackDefaultChannel?.id}
-                          className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-sm border border-blue-500/30"
-                        >
-                          {isSendingTest ? 'Sending…' : 'Send'}
-                        </button>
-                      </div>
-                      <p className="mt-2 text-xs text-white/50">Sends into your default channel to verify everything is working.</p>
-                    </div>
-                  </div>
 
                   <div className="mt-1 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                     <p className="text-sm text-blue-300">
@@ -848,33 +955,17 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {/* Google Drive quick actions */}
+              {/* Google Drive Dashboard Link */}
               {integrations.googleDrive && (
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                    <div className="flex items-center gap-2 mb-3">
-                      <CloudUpload className="w-4 h-4 text-blue-300" />
-                      <h6 className="text-white/90 text-sm font-medium">Test Upload</h6>
-                    </div>
-                    <button
-                      onClick={handleDriveTestUpload}
-                      disabled={isTestingDrive}
-                      className="w-full px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-sm border border-blue-500/30"
-                    >
-                      {isTestingDrive ? 'Testing…' : 'Upload Sample File'}
-                    </button>
-                    <p className="mt-2 text-xs text-white/50">Creates a small test file in your Drive to verify permissions.</p>
+                <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                  <div className="flex items-center gap-2 mb-3">
+                    <FolderOpen className="w-4 h-4 text-blue-300" />
+                    <h6 className="text-white/90 text-sm font-medium">Open Drive Dashboard</h6>
                   </div>
-                  <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                    <div className="flex items-center gap-2 mb-3">
-                      <FolderOpen className="w-4 h-4 text-blue-300" />
-                      <h6 className="text-white/90 text-sm font-medium">Open Drive Dashboard</h6>
-                    </div>
-                    <Link href="/google-drive" className="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.06] text-white text-sm border border-white/[0.08]">
-                      Open Google Drive
-                    </Link>
-                    <p className="mt-2 text-xs text-white/50">Manage files linked with your WhizBoard account.</p>
-                  </div>
+                  <Link href="/google-drive" className="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.06] text-white text-sm border border-white/[0.08]">
+                    Open Google Drive
+                  </Link>
+                  <p className="mt-2 text-xs text-white/50">Manage files linked with your WhizBoard account.</p>
                 </div>
               )}
             </div>

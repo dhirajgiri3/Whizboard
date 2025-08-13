@@ -3,6 +3,7 @@ import GoogleProvider from 'next-auth/providers/google';
 import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
 import clientPromise from '@/lib/database/mongodb';
 import { currentSecurityConfig } from '@/lib/config/security';
+import { generateUniqueUsername } from '@/lib/utils/usernameGenerator';
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -214,11 +215,15 @@ export const authOptions: AuthOptions = {
     async createUser({ user }) {
       console.log(`[SECURITY] New user created: ${user.email}`);
       
-      // Set createdAt timestamp for new users
+      // Set createdAt timestamp and generate username for new users
       if (user.email) {
         try {
           const client = await clientPromise;
           const db = client.db();
+          
+          // Generate unique username
+          const username = await generateUniqueUsername(user.email, user.name || undefined);
+          
           await db.collection('users').updateOne(
             { email: user.email },
             { 
@@ -227,40 +232,23 @@ export const authOptions: AuthOptions = {
                 lastLoginAt: new Date(),
                 updatedAt: new Date(),
                 status: 'active',
-                tokenVersion: 0
+                tokenVersion: 0,
+                username: username,
+                emailVerified: new Date(), // Auto-verify email for Google OAuth
+                isPublicProfile: true, // Default to public profile
+                bio: '', // Initialize empty bio
               } 
             }
           );
+          
+          console.log(`[AUTH] Generated username "${username}" for user ${user.email}`);
         } catch (error) {
-          console.error('Failed to set createdAt:', error);
+          console.error('Failed to set user data:', error);
         }
       }
     },
     async signOut({ session }) {
       console.log(`[SECURITY] User signed out: ${session?.user?.email}`);
-    },
-    async createUser({ user }) {
-      console.log(`[SECURITY] New user created: ${user.email}`);
-      
-      // Set createdAt timestamp for new users
-      if (user.email) {
-        try {
-          const client = await clientPromise;
-          const db = client.db();
-          await db.collection('users').updateOne(
-            { email: user.email },
-            { 
-              $set: { 
-                createdAt: new Date(),
-                lastLoginAt: new Date(),
-                updatedAt: new Date()
-              } 
-            }
-          );
-        } catch (error) {
-          console.error('Failed to set createdAt:', error);
-        }
-      }
     },
     async linkAccount({ user, account }) {
       console.log(`[SECURITY] Account linked: ${user.email} to ${account?.provider}`);

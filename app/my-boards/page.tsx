@@ -363,12 +363,13 @@ const MyBoardsPage = () => {
   );
 
   return (
-    <div className="min-h-screen relative overflow-hidden py-18">
-      {/* Subtle background accents (shared look with settings) */}
-      <div className="absolute inset-0 dot-pattern opacity-[0.12]" />
-      <div className="absolute -top-16 -right-16 w-48 h-48 gradient-orb-blue" />
+    <div className="min-h-screen relative overflow-hidden bg-gray-950 pb-16 pt-32">
+      {/* Background accents aligned with settings page */}
+      <div className="absolute inset-0 grid-pattern opacity-20" />
+      <div className="absolute top-1/4 left-1/4 w-72 h-72 gradient-orb-blue" />
+      <div className="absolute bottom-1/3 right-1/4 w-60 h-60 gradient-orb-blue" />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}
         <section className="pb-6" aria-labelledby="my-boards-heading" role="region">
@@ -453,7 +454,7 @@ const MyBoardsPage = () => {
                   </div>
                   <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
                     <div className="flex items-center gap-2 mb-1">
-                      <Activity className="w-4 h-4 text-purple-300" />
+                      <Activity className="w-4 h-4 text-blue-300" />
                       <span className="text-sm text-white/70">Active This Week</span>
                     </div>
                     <div className="text-2xl font-semibold text-white">{boardStats.recent}</div>

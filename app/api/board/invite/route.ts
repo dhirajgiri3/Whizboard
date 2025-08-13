@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     // Find the board and verify ownership
     const board = await db.collection('boards').findOne(
       { _id: new ObjectId(boardId) },
-      { projection: { name: 1, createdBy: 1, collaborators: 1 } }
+      { projection: { name: 1, createdBy: 1, collaborators: 1, adminUsers: 1, blockedUsers: 1 } }
     );
 
     if (!board) {
@@ -53,13 +53,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user is owner or collaborator
+    // Check if user is owner, admin, or collaborator
     const isOwner = board.createdBy.toString() === session.user.id;
+    const isAdmin = board.adminUsers?.includes(session.user.id) || false;
     const isCollaborator = board.collaborators?.some(
       (collab: BoardCollaborator) => collab.id === session.user.id
     );
 
-    if (!isOwner && !isCollaborator) {
+    if (!isOwner && !isAdmin && !isCollaborator) {
       return NextResponse.json(
         { error: 'Not authorized to invite collaborators to this board' },
         { status: 403 }
@@ -95,8 +96,8 @@ export async function POST(request: NextRequest) {
 
     // Generate invitation token
     const invitationToken = uuidv4();
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiration
+    // Set precise 7-day expiration (avoid DST issues)
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     // Create invitation record
     const invitation = {

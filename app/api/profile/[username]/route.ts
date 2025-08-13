@@ -1,215 +1,168 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/database/mongodb';
-import { ObjectId } from 'mongodb';
-
-export const runtime = 'nodejs';
 
 export async function GET(
-    request: Request,
-    context: any
+  request: NextRequest,
+  context: any
 ) {
-    try {
-        const { username } = context.params as { username: string };
+  try {
+    const username = context?.params?.username as string;
+    const db = await connectToDatabase();
 
-        if (!username) {
-            return NextResponse.json({ error: 'Username is required' }, { status: 400 });
-        }
+    // Get user profile data
+    const user = await db.collection('users').findOne(
+      { username: username },
+      { projection: { 
+        name: 1, 
+        email: 1, 
+        image: 1, 
+        bio: 1, 
+        createdAt: 1, 
+        username: 1, 
+        isPublicProfile: 1,
+        lastLoginAt: 1 
+      } }
+    );
 
-        const db = await connectToDatabase();
-
-        // Find user by username (we'll use email as username for now, or add a username field)
-        const user = await db.collection('users').findOne(
-            {
-                $or: [
-                    { username: username },
-                    { email: username }
-                ]
-            },
-            {
-                projection: {
-                    _id: 1,
-                    name: 1,
-                    email: 1,
-                    image: 1,
-                    bio: 1,
-                    createdAt: 1,
-                    username: 1,
-                    isPublicProfile: 1
-                }
-            }
-        );
-
-        if (!user) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
-        }
-
-        // Check if profile is public (default to true for now)
-        const isPublic = (user as any).isPublicProfile !== false;
-
-        if (!isPublic) {
-            return NextResponse.json({ error: 'Profile is private' }, { status: 403 });
-        }
-
-        const userId = (user as any)._id;
-
-        // Get user statistics
-        const [
-            boardsStats,
-            collaborationStats,
-            elementsStats
-        ] = await Promise.all([
-            // Public boards statistics
-            db.collection('boards').aggregate([
-                {
-                    $match: {
-                        $or: [
-                            { createdBy: userId, isPublic: true },
-                            { 'collaborators.id': userId.toString(), isPublic: true }
-                        ]
-                    }
-                },
-                {
-                    $group: {
-                        _id: null,
-                        totalBoards: { $sum: 1 },
-                        ownedBoards: {
-                            $sum: { $cond: [{ $eq: ['$createdBy', userId] }, 1, 0] }
-                        },
-                        collaboratedBoards: {
-                            $sum: { $cond: [{ $ne: ['$createdBy', userId] }, 1, 0] }
-                        }
-                    }
-                }
-            ]).toArray(),
-
-            // Collaboration statistics
-            db.collection('boards').aggregate([
-                {
-                    $match: {
-                        $or: [
-                            { createdBy: userId, isPublic: true },
-                            { 'collaborators.id': userId.toString(), isPublic: true }
-                        ]
-                    }
-                },
-                {
-                    $unwind: { path: '$collaborators', preserveNullAndEmptyArrays: true }
-                },
-                {
-                    $group: {
-                        _id: null,
-                        uniqueCollaborators: {
-                            $addToSet: {
-                                $cond: [
-                                    {
-                                        $and: [
-                                            { $ne: ['$collaborators.id', userId.toString()] },
-                                            { $ne: ['$collaborators.id', null] }
-                                        ]
-                                    },
-                                    '$collaborators.id',
-                                    null
-                                ]
-                            }
-                        }
-                    }
-                },
-                {
-                    $project: {
-                        totalCollaborators: {
-                            $size: {
-                                $filter: {
-                                    input: '$uniqueCollaborators',
-                                    cond: { $ne: ['$$this', null] }
-                                }
-                            }
-                        }
-                    }
-                }
-            ]).toArray(),
-
-            // Elements statistics
-            db.collection('boards').aggregate([
-                {
-                    $match: {
-                        $or: [
-                            { createdBy: userId, isPublic: true },
-                            { 'collaborators.id': userId.toString(), isPublic: true }
-                        ]
-                    }
-                },
-                {
-                    $unwind: { path: '$elements', preserveNullAndEmptyArrays: true }
-                },
-                {
-                    $match: {
-                        'elements.createdBy': { $exists: true, $ne: null }
-                    }
-                },
-                {
-                    $group: {
-                        _id: null,
-                        totalElements: { $sum: 1 },
-                        createdElements: {
-                            $sum: { $cond: [{ $eq: ['$elements.createdBy', userId.toString()] }, 1, 0] }
-                        }
-                    }
-                }
-            ]).toArray()
-        ]);
-
-        // Process results with defaults
-        const boards = boardsStats[0] || {
-            totalBoards: 0,
-            ownedBoards: 0,
-            collaboratedBoards: 0
-        };
-
-        const collaboration = collaborationStats[0] || {
-            totalCollaborators: 0
-        };
-
-        const elements = elementsStats[0] || {
-            totalElements: 0,
-            createdElements: 0
-        };
-
-        const collaborationRate = boards.totalBoards > 0
-            ? Math.round((collaboration.totalCollaborators / boards.totalBoards) * 10) / 10
-            : 0;
-
-        return NextResponse.json({
-            success: true,
-            profile: {
-                name: (user as any).name || 'Anonymous User',
-                email: (user as any).email,
-                image: (user as any).image || null,
-                bio: (user as any).bio || '',
-                createdAt: (user as any).createdAt || null,
-                username: (user as any).username || (user as any).email
-            },
-            stats: {
-                boards: {
-                    total: boards.totalBoards,
-                    owned: boards.ownedBoards,
-                    collaborated: boards.collaboratedBoards
-                },
-                collaboration: {
-                    totalCollaborators: collaboration.totalCollaborators,
-                    collaborationRate: collaborationRate
-                },
-                elements: {
-                    total: elements.totalElements,
-                    created: elements.createdElements
-                }
-            }
-        });
-
-    } catch (error: any) {
-        console.error('Public profile fetch error:', error);
-        return NextResponse.json(
-            { error: 'Failed to fetch profile' },
-            { status: 500 }
-        );
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+
+    // Check if profile is public
+    if (user.isPublicProfile === false) {
+      return NextResponse.json({ error: 'Profile is private' }, { status: 403 });
+    }
+
+    // Track profile view
+    await trackProfileView(db, username, request);
+
+    // Get user statistics
+    const stats = await getUserStats(db, user.email);
+
+    return NextResponse.json({
+      profile: {
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        bio: user.bio,
+        createdAt: user.createdAt,
+        username: user.username,
+        lastLoginAt: user.lastLoginAt
+      },
+      stats
+    });
+
+  } catch (error) {
+    console.error('Public profile fetch error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch profile' },
+      { status: 500 }
+    );
+  }
+}
+
+async function trackProfileView(db: any, username: string, request: NextRequest) {
+  try {
+    const userAgent = request.headers.get('user-agent') || '';
+    const ip = request.headers.get('x-forwarded-for') || 
+               request.headers.get('x-real-ip') || 
+               'unknown';
+    
+    const viewData = {
+      username,
+      timestamp: new Date(),
+      userAgent: userAgent.substring(0, 200), // Limit length
+      ip: ip.split(',')[0].trim(), // Get first IP if multiple
+      referer: request.headers.get('referer') || '',
+      country: 'unknown', // Could be enhanced with IP geolocation
+    };
+
+    await db.collection('profile_views').insertOne(viewData);
+  } catch (error) {
+    console.error('Failed to track profile view:', error);
+    // Don't fail the request if tracking fails
+  }
+}
+
+async function getUserStats(db: any, userEmail: string) {
+  try {
+    // Get public board statistics
+    const boardStats = await db.collection('boards').aggregate([
+      { $match: { createdBy: userEmail } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          public: { $sum: { $cond: [{ $eq: ['$isPublic', true] }, 1, 0] } },
+          private: { $sum: { $cond: [{ $eq: ['$isPublic', false] }, 1, 0] } }
+        }
+      }
+    ]).toArray();
+
+    // Get collaboration statistics
+    const collaborationStats = await db.collection('board_invitations').aggregate([
+      { $match: { invitedUserEmail: userEmail, status: 'accepted' } },
+      {
+        $group: {
+          _id: null,
+          totalCollaborations: { $sum: 1 }
+        }
+      }
+    ]).toArray();
+
+    // Get element creation statistics
+    const elementStats = await db.collection('board_elements').aggregate([
+      { $match: { createdBy: userEmail } },
+      {
+        $group: {
+          _id: null,
+          totalElements: { $sum: 1 },
+          textElements: { $sum: { $cond: [{ $eq: ['$type', 'text'] }, 1, 0] } },
+          drawingElements: { $sum: { $cond: [{ $eq: ['$type', 'drawing'] }, 1, 0] } },
+          shapeElements: { $sum: { $cond: [{ $eq: ['$type', 'shape'] }, 1, 0] } }
+        }
+      }
+    ]).toArray();
+
+    // Get profile view statistics
+    const viewStats = await db.collection('profile_views').aggregate([
+      { $match: { username: userEmail.split('@')[0] } }, // Simple username extraction
+      {
+        $group: {
+          _id: null,
+          totalViews: { $sum: 1 },
+          uniqueViews: { $addToSet: '$ip' }
+        }
+      }
+    ]).toArray();
+
+    return {
+      boards: {
+        total: boardStats[0]?.total || 0,
+        public: boardStats[0]?.public || 0,
+        private: boardStats[0]?.private || 0
+      },
+      collaboration: {
+        totalCollaborations: collaborationStats[0]?.totalCollaborations || 0
+      },
+      elements: {
+        total: elementStats[0]?.totalElements || 0,
+        text: elementStats[0]?.textElements || 0,
+        drawing: elementStats[0]?.drawingElements || 0,
+        shapes: elementStats[0]?.shapeElements || 0
+      },
+      profile: {
+        totalViews: viewStats[0]?.totalViews || 0,
+        uniqueViews: viewStats[0]?.uniqueViews?.length || 0
+      }
+    };
+  } catch (error) {
+    console.error('Failed to get user stats:', error);
+    return {
+      boards: { total: 0, public: 0, private: 0 },
+      collaboration: { totalCollaborations: 0 },
+      elements: { total: 0, text: 0, drawing: 0, shapes: 0 },
+      profile: { totalViews: 0, uniqueViews: 0 }
+    };
+  }
 }

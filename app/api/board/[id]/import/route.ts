@@ -88,7 +88,7 @@ export async function POST(
           }
         }
       `,
-      variables: { id: params.id },
+      variables: { id: (await params).id },
       fetchPolicy: 'no-cache',
     });
 
@@ -131,7 +131,7 @@ export async function POST(
     const { data: importData } = await client.mutate({
       mutation: IMPORT_BOARD_ELEMENTS,
       variables: {
-        boardId: params.id,
+        boardId: (await params).id,
         elements: elements.map(element => ({
           type: element.type,
           data: JSON.stringify(element.data),
@@ -145,7 +145,7 @@ export async function POST(
     await client.mutate({
       mutation: ADD_BOARD_ACTION,
       variables: {
-        boardId: params.id,
+        boardId: (await params).id,
         action: JSON.stringify({
           type: 'import',
           importType,

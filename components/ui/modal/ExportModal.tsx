@@ -25,8 +25,8 @@ import {
 import { useParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { useGoogleDrive } from '@/hooks/useGoogleDrive';
-import { GoogleDriveManager } from '@/components/ui/GoogleDriveManager';
-import { GoogleDriveDashboard } from '@/components/ui/GoogleDriveDashboard';
+import { GoogleDriveManager } from '@/components/ui/google-drive/GoogleDriveManager';
+import { GoogleDriveDashboard } from '@/components/ui/google-drive/GoogleDriveDashboard';
 import api from '@/lib/http/axios';
 
 interface ExportModalProps {

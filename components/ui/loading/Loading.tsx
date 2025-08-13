@@ -390,51 +390,52 @@ export function LoadingOverlay({
         </div>
       </div>
       
-      <motion.div
-        className="text-center relative z-10"
-        initial={prefersReducedMotion ? undefined : { opacity: 0, y: 20 }}
-        animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-        transition={prefersReducedMotion ? undefined : { duration: 0.5, delay: 0.2 }}
-      >
-        <Loading size="xl" text={text} variant={variant} tone={isDark ? 'dark' : 'light'} />
-        {subtitle && (
-          <motion.p
-            className={`${isDark ? 'text-white/75' : 'text-gray-600'} text-sm mt-3 leading-relaxed max-w-sm`}
+      <div className="text-center relative z-10 max-w-md mx-auto px-6">
+        <motion.div
+          initial={prefersReducedMotion ? undefined : { opacity: 0, y: 20 }}
+          animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+          transition={prefersReducedMotion ? undefined : { duration: 0.5, delay: 0.2 }}
+        >
+          <Loading size="xl" text={text} variant={variant} tone={isDark ? 'dark' : 'light'} />
+          {subtitle && (
+            <motion.p
+              className={`${isDark ? 'text-white/75' : 'text-gray-600'} text-sm mt-4 leading-relaxed`}
+              initial={prefersReducedMotion ? undefined : { opacity: 0 }}
+              animate={prefersReducedMotion ? undefined : { opacity: 1 }}
+              transition={prefersReducedMotion ? undefined : { duration: 0.5, delay: 0.4 }}
+            >
+              {subtitle}
+            </motion.p>
+          )}
+          
+          {/* Progress bar */}
+          <motion.div
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(progress)}
+            className={`mt-6 w-full max-w-xs mx-auto h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-gray-200'}`}
+            initial={prefersReducedMotion ? undefined : { opacity: 0, scaleX: 0 }}
+            animate={prefersReducedMotion ? undefined : { opacity: 1, scaleX: 1 }}
+            transition={prefersReducedMotion ? undefined : { duration: 0.5, delay: 0.6 }}
+          >
+            <motion.div
+              className={`h-full rounded-full ${isDark ? 'bg-gradient-to-r from-blue-500 to-blue-600' : 'bg-gradient-to-r from-blue-600 to-blue-700'}`}
+              initial={prefersReducedMotion ? undefined : { width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={prefersReducedMotion ? undefined : { duration: 0.3, ease: "easeOut" }}
+            />
+          </motion.div>
+          <motion.div
+            className={`text-xs mt-2 ${isDark ? 'text-white/70' : 'text-gray-500'}`}
             initial={prefersReducedMotion ? undefined : { opacity: 0 }}
             animate={prefersReducedMotion ? undefined : { opacity: 1 }}
-            transition={prefersReducedMotion ? undefined : { duration: 0.5, delay: 0.4 }}
+            transition={prefersReducedMotion ? undefined : { duration: 0.5, delay: 0.8 }}
           >
-            {subtitle}
-          </motion.p>
-        )}
-        
-        {/* Progress bar */}
-        <motion.div
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={Math.round(progress)}
-          className={`mt-6 w-64 h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-gray-200'}`}
-          initial={prefersReducedMotion ? undefined : { opacity: 0, scaleX: 0 }}
-          animate={prefersReducedMotion ? undefined : { opacity: 1, scaleX: 1 }}
-          transition={prefersReducedMotion ? undefined : { duration: 0.5, delay: 0.6 }}
-        >
-          <motion.div
-            className={`h-full rounded-full ${isDark ? 'bg-gradient-to-r from-blue-500 to-blue-600' : 'bg-gradient-to-r from-blue-600 to-blue-700'}`}
-            initial={prefersReducedMotion ? undefined : { width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={prefersReducedMotion ? undefined : { duration: 0.3, ease: "easeOut" }}
-          />
+            {Math.round(progress)}% complete
+          </motion.div>
         </motion.div>
-        <motion.div
-          className={`text-xs mt-2 ${isDark ? 'text-white/70' : 'text-gray-500'}`}
-          initial={prefersReducedMotion ? undefined : { opacity: 0 }}
-          animate={prefersReducedMotion ? undefined : { opacity: 1 }}
-          transition={prefersReducedMotion ? undefined : { duration: 0.5, delay: 0.8 }}
-        >
-          {Math.round(progress)}% complete
-        </motion.div>
-      </motion.div>
+      </div>
     </motion.div>
   );
 }

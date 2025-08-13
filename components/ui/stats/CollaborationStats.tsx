@@ -6,11 +6,13 @@ import { Users, Crown, Wifi, WifiOff, UserPlus, Mail } from 'lucide-react';
 import { useBoardContext } from '@/lib/context/BoardContext';
 import { toast } from 'sonner';
 import api from '@/lib/http/axios';
+import UserLink from '@/components/ui/UserLink';
 
 interface User {
   id: string;
   name: string;
   email: string;
+  username?: string;
   avatar?: string;
   isOnline: boolean;
   joinedAt?: string;
@@ -150,24 +152,23 @@ export default function CollaborationStats({
               {/* Current User */}
               {currentUser && (
                 <div className="flex items-center space-x-3 p-2 bg-blue-50 rounded-lg">
-                  <div className="relative">
-                    <Image
-                      src={currentUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.id}`}
-                      alt={currentUser.name}
-                      width={32}
-                      height={32}
-                      className="w-8 h-8 rounded-full"
-                    />
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-blue-600 rounded-full border-2 border-white"></div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {currentUser.name} (You)
-                      </p>
-                      {isOwner && <Crown className="w-3 h-3 text-amber-500" />}
-                    </div>
-                    <p className="text-xs text-gray-500 truncate">{currentUser.email}</p>
+                  <UserLink
+                    user={{
+                      id: currentUser.id,
+                      name: currentUser.name,
+                      email: currentUser.email,
+                      username: currentUser.username,
+                      image: currentUser.avatar
+                    }}
+                    size="sm"
+                    variant="compact"
+                    className="flex-1"
+                  />
+                  <div className="flex items-center space-x-2">
+                    <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">
+                      You
+                    </span>
+                    {isOwner && <Crown className="w-3 h-3 text-amber-500" />}
                   </div>
                   <div className="flex items-center space-x-1 text-green-600">
                     <Wifi className="w-3 h-3" />
@@ -179,26 +180,18 @@ export default function CollaborationStats({
               {/* Other Collaborators */}
               {collaborators.map((collaborator) => (
                 <div key={collaborator.id} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
-                  <div className="relative">
-                    <Image
-                      src={collaborator.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${collaborator.id}`}
-                      alt={collaborator.name}
-                      width={32}
-                      height={32}
-                      className="w-8 h-8 rounded-full"
-                    />
-                    <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
-                      collaborator.isOnline ? 'bg-green-500' : 'bg-gray-400'
-                    }`}></div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {collaborator.name}
-                      </p>
-                    </div>
-                    <p className="text-xs text-gray-500 truncate">{collaborator.email}</p>
-                  </div>
+                  <UserLink
+                    user={{
+                      id: collaborator.id,
+                      name: collaborator.name,
+                      email: collaborator.email,
+                      username: collaborator.username,
+                      image: collaborator.avatar
+                    }}
+                    size="sm"
+                    variant="compact"
+                    className="flex-1"
+                  />
                   <div className="flex flex-col items-end space-y-1">
                     <div className={`flex items-center space-x-1 ${
                       collaborator.isOnline ? 'text-green-600' : 'text-gray-400'

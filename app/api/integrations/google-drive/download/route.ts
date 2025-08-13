@@ -31,13 +31,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Return the file data with appropriate headers (binary)
-    const response = new NextResponse(result.data, {
-      headers: {
-        'Content-Type': result.mimeType || 'application/octet-stream',
-        'Content-Disposition': `attachment; filename="${result.fileName || 'download'}"`,
-        'Content-Length': result.data ? String(result.data.byteLength) : undefined,
-      },
-    });
+    const headers: Record<string, string> = {
+      'Content-Type': result.mimeType || 'application/octet-stream',
+      'Content-Disposition': `attachment; filename="${result.fileName || 'download'}"`,
+    };
+    
+    if (result.data) {
+      headers['Content-Length'] = String(result.data.byteLength);
+    }
+    
+    const response = new NextResponse(result.data, { headers });
     
     return response;
   } catch (error) {

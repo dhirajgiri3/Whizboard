@@ -188,19 +188,19 @@ const Footer = () => {
                 <div className="p-2 bg-white/[0.02] rounded-lg group-hover:bg-blue-500/10 transition-colors border border-white/[0.05]">
                   <Mail className="h-4 w-4" />
                 </div>
-                <span className="text-sm">hello@whizboard.com</span>
+                <span className="text-sm">Hello@cyperstudio.in</span>
               </div>
               <div className="flex items-center space-x-3 text-gray-400 hover:text-emerald-400 transition-colors group">
                 <div className="p-2 bg-white/[0.02] rounded-lg group-hover:bg-emerald-500/10 transition-colors border border-white/[0.05]">
                   <Phone className="h-4 w-4" />
                 </div>
-                <span className="text-sm">+1 (555) 123-4567</span>
+                <span className="text-sm">+919569691483</span>
               </div>
               <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-400 transition-colors group">
                 <div className="p-2 bg-white/[0.02] rounded-lg group-hover:bg-blue-500/10 transition-colors border border-white/[0.05]">
                   <MapPin className="h-4 w-4" />
                 </div>
-                <span className="text-sm">San Francisco, CA</span>
+                <span className="text-sm">Delhi, India</span>
               </div>
             </div>
           </motion.div>
@@ -426,7 +426,7 @@ const Footer = () => {
                 <div className="flex items-center space-x-2 text-gray-500 text-xs">
                   <span>Made with</span>
                   <Heart className="w-3 h-3 text-red-400" />
-                  <span>in San Francisco</span>
+                  <span>in Delhi, India</span>
                 </div>
               </div>
 
@@ -477,7 +477,7 @@ const Footer = () => {
                 <div className="flex items-center space-x-2 text-gray-500 text-xs">
                   <span>Made with</span>
                   <Heart className="w-3 h-3 text-red-400" />
-                  <span>in San Francisco</span>
+                  <span>in Delhi, India</span>
                 </div>
               </div>
 

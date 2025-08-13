@@ -3,8 +3,8 @@ import { Layer, Line, Circle, Group, Text, Rect } from 'react-konva';
 import { KonvaEventObject } from 'konva/lib/Node';
 import Konva from 'konva';
 import { Tool } from '@/types';
-import { StickyNoteElement, FrameElement, ILine, TextElement, ShapeElement } from '@/types';
-import LiveCursors, { Cursor } from '../reatime/LiveCursors';
+import { StickyNoteElement, FrameElement, ILine, TextElement, ShapeElement, ImageElement, EnhancedCursor } from '@/types';
+import LiveCursors from '../reatime/LiveCursors';
 import StickyNote from './stickynote/StickyNote';
 import EnhancedFrame from './frame/EnhancedFrame';
 import FrameAlignmentHelper from './frame/FrameAlignmentHelper';
@@ -12,6 +12,7 @@ import FrameSelectionManager from './frame/FrameSelectionManager';
 import TextElementComponent from './text/TextElement';
 import TextEditor from './text/TextEditor';
 import { ShapeElement as ShapeElementComponent } from './shape';
+import ImageElementComponent from '../reatime/whiteboard/ImageElement';
 
 interface GridProps {
   width: number;
@@ -111,25 +112,23 @@ interface CanvasLayersProps {
   frames: FrameElement[];
   textElements: TextElement[];
   shapes: ShapeElement[];
+  imageElements: ImageElement[];
   selectedFrameIds: string[];
-  selectedStickyNote?: string | null;
-  selectedTextElement?: string | null;
-  editingTextElement?: string | null;
-  selectedShape?: string | null;
-  selectedShapes?: string[];
+  selectedStickyNote: string | null;
+  selectedTextElement: string | null;
+  editingTextElement: TextElement | null;
+  selectedShape: string | null;
+  selectedShapes: string[];
+  selectedImageElement: string | null;
   tool: Tool;
   strokeWidth: number;
   hoveredLineIndex: number | null;
   showFrameAlignment: boolean;
-  frameCreationMode: {
-    isCreating: boolean;
-    startPoint: { x: number; y: number } | null;
-    currentFrame: Partial<FrameElement> | null;
-  };
-  cursors: Record<string, Cursor>;
-  handleLineClick: (lineIdx: number) => void;
+
+  cursors: Record<string, EnhancedCursor>;
+  handleLineClick: (lineIndex: number) => void;
   setHoveredLineIndex: (index: number | null) => void;
-  handleFrameSelect: (frameId: string, e?: KonvaEventObject<MouseEvent>) => void;
+  handleFrameSelect: (frameId: string) => void;
   handleFrameUpdate: (frame: FrameElement) => void;
   handleFrameDelete: (frameId: string) => void;
   handleFrameDragStart: () => void;
@@ -142,15 +141,20 @@ interface CanvasLayersProps {
   onTextElementSelectAction?: (textElementId: string) => void;
   onTextElementUpdateAction?: (textElement: TextElement) => void;
   onTextElementDeleteAction?: (textElementId: string) => void;
-  onTextElementStartEditAction?: (textElementId: string) => void;
+  onTextElementStartEditAction?: (textElement: TextElement) => void;
   onTextElementFinishEditAction?: () => void;
   handleTextElementDragStart: () => void;
   handleTextElementDragEnd: () => void;
-  onShapeSelectAction?: (shapeId: string, e?: KonvaEventObject<MouseEvent>, multiSelect?: boolean) => void;
+  onShapeSelectAction?: (shapeId: string) => void;
   onShapeUpdateAction?: (shape: ShapeElement) => void;
   onShapeDeleteAction?: (shapeId: string) => void;
   handleShapeDragStart: () => void;
   handleShapeDragEnd: () => void;
+  onImageElementSelectAction?: (imageElementId: string) => void;
+  onImageElementUpdateAction?: (imageElement: ImageElement) => void;
+  onImageElementDeleteAction?: (imageElementId: string) => void;
+  handleImageElementDragStart: () => void;
+  handleImageElementDragEnd: () => void;
   selectFrames: (frameIds: string[]) => void;
   stageRef: React.RefObject<Konva.Stage | null>;
 }
@@ -165,17 +169,18 @@ export function CanvasLayers({
   frames,
   textElements,
   shapes,
+  imageElements,
   selectedFrameIds,
   selectedStickyNote,
   selectedTextElement,
   editingTextElement,
   selectedShape,
   selectedShapes,
+  selectedImageElement,
   tool,
   strokeWidth,
   hoveredLineIndex,
   showFrameAlignment,
-  frameCreationMode,
   cursors,
   handleLineClick,
   setHoveredLineIndex,
@@ -201,6 +206,11 @@ export function CanvasLayers({
   onShapeDeleteAction,
   handleShapeDragStart,
   handleShapeDragEnd,
+  onImageElementSelectAction,
+  onImageElementUpdateAction,
+  onImageElementDeleteAction,
+  handleImageElementDragStart,
+  handleImageElementDragEnd,
   selectFrames,
   stageRef,
 }: CanvasLayersProps) {
@@ -428,7 +438,7 @@ export function CanvasLayers({
               frame={frame}
               isSelected={selectedFrameIds.includes(frame.id)}
               isDraggable={tool === 'select' || tool === 'frame'}
-              onSelectAction={(frameId, e) => handleFrameSelect(frameId, e)}
+              onSelectAction={(frameId) => handleFrameSelect(frameId)}
               onUpdateAction={handleFrameUpdate}
               onDeleteAction={handleFrameDelete}
               onDragStart={handleFrameDragStart}
@@ -443,79 +453,7 @@ export function CanvasLayers({
           </React.Fragment>
         ))}
         
-        {/* Render frame being created with enhanced visuals */}
-        {frameCreationMode.isCreating && frameCreationMode.currentFrame && (
-          <Group>
-            <EnhancedFrame
-              frame={{
-                ...frameCreationMode.currentFrame,
-                isCreating: true,
-                style: {
-                  ...frameCreationMode.currentFrame.style,
-                  stroke: '#3b82f6',
-                  strokeWidth: 2,
-                  fill: 'rgba(59, 130, 246, 0.1)',
-                  strokeDasharray: [5, 5],
-                }
-              } as FrameElement}
-              isSelected={true}
-              isDraggable={false}
-              onSelectAction={() => {}}
-              onUpdateAction={() => {}}
-              onDeleteAction={() => {}}
-              scale={stageScale}
-              stageRef={stageRef}
-              currentTool={tool}
-            />
-            
-            {/* Creation hint */}
-            {(frameCreationMode.currentFrame.width || 0) > 50 && (frameCreationMode.currentFrame.height || 0) > 30 && (
-              <Text
-                x={(frameCreationMode.currentFrame.x || 0) + (frameCreationMode.currentFrame.width || 0) / 2}
-                y={(frameCreationMode.currentFrame.y || 0) + (frameCreationMode.currentFrame.height || 0) / 2}
-                text="Release to create frame"
-                fontSize={12 / stageScale}
-                fontFamily="'Inter', -apple-system, sans-serif"
-                fontWeight="500"
-                fill="#3b82f6"
-                align="center"
-                verticalAlign="middle"
-                offsetX={50}
-                offsetY={6}
-                opacity={0.8}
-                listening={false}
-              />
-            )}
-            
-            {/* Dimensions display */}
-            {(frameCreationMode.currentFrame.width || 0) > 20 && (frameCreationMode.currentFrame.height || 0) > 20 && (
-              <Group>
-                <Rect
-                  x={(frameCreationMode.currentFrame.x || 0) + (frameCreationMode.currentFrame.width || 0) + 10}
-                  y={(frameCreationMode.currentFrame.y || 0)}
-                  width={80 / stageScale}
-                  height={24 / stageScale}
-                  fill="#1f2937"
-                  cornerRadius={6 / stageScale}
-                  opacity={0.9}
-                  listening={false}
-                />
-                <Text
-                  x={(frameCreationMode.currentFrame.x || 0) + (frameCreationMode.currentFrame.width || 0) + 50 / stageScale}
-                  y={(frameCreationMode.currentFrame.y || 0) + 12 / stageScale}
-                  text={`${Math.round(frameCreationMode.currentFrame.width || 0)} × ${Math.round(frameCreationMode.currentFrame.height || 0)}`}
-                  fontSize={11 / stageScale}
-                  fontFamily="'Inter', monospace"
-                  fontWeight="500"
-                  fill="#ffffff"
-                  align="center"
-                  verticalAlign="middle"
-                  listening={false}
-                />
-              </Group>
-            )}
-          </Group>
-        )}
+        {/* Frame creation is now handled externally through onCanvasClickAction */}
       </Layer>
       
       {/* Sticky Notes Layer */}
@@ -574,12 +512,17 @@ export function CanvasLayers({
             key={`text-${textElement.id}-v${textElement.version || 0}-idx${index}`}
             textElement={textElement}
             isSelected={selectedTextElement === textElement.id}
-            isEditing={editingTextElement === textElement.id}
+            isEditing={editingTextElement === textElement}
             isDraggable={tool === 'select' || tool === 'text'}
             onSelectAction={onTextElementSelectAction || (() => {})}
             onUpdateAction={onTextElementUpdateAction || (() => {})}
             onDeleteAction={onTextElementDeleteAction || (() => {})}
-            onStartEditAction={onTextElementStartEditAction || (() => {})}
+            onStartEditAction={(textId) => {
+              const textElement = textElements.find(el => el.id === textId);
+              if (textElement && onTextElementStartEditAction) {
+                onTextElementStartEditAction(textElement);
+              }
+            }}
             onDragStartAction={handleTextElementDragStart}
             onDragEndAction={handleTextElementDragEnd}
             scale={stageScale}
@@ -606,6 +549,38 @@ export function CanvasLayers({
             onDeleteAction={onShapeDeleteAction || (() => {})}
             onDragStart={handleShapeDragStart}
             onDragEnd={handleShapeDragEnd}
+            scale={stageScale}
+            stageRef={stageRef}
+            currentTool={tool}
+          />
+        ))}
+      </Layer>
+      
+      {/* Image Elements Layer */}
+      <Layer
+        hitGraphEnabled={true}
+        perfectDrawEnabled={false}
+        clearBeforeDraw={true}
+        imageSmoothingEnabled={false}
+      >
+        {imageElements.map((imageElement, index) => (
+          <ImageElementComponent
+            key={`image-${imageElement.id}-v${imageElement.version || 0}-t${imageElement.updatedAt || 0}-idx${index}`}
+            imageElement={imageElement}
+            isSelected={selectedImageElement === imageElement.id}
+            isDraggable={tool === 'select' || tool === 'image'}
+            onSelectAction={onImageElementSelectAction || (() => {})}
+            onUpdateAction={(id, updates) => {
+              if (onImageElementUpdateAction) {
+                const imageElement = imageElements.find(el => el.id === id);
+                if (imageElement) {
+                  onImageElementUpdateAction({ ...imageElement, ...updates });
+                }
+              }
+            }}
+            onDeleteAction={onImageElementDeleteAction || (() => {})}
+            onDragStart={handleImageElementDragStart}
+            onDragEnd={handleImageElementDragEnd}
             scale={stageScale}
             stageRef={stageRef}
             currentTool={tool}

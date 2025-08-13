@@ -43,10 +43,11 @@ const HelpHero = ({
   };
 
   const suggestions = [
-    "Getting Started",
-    "Collaboration",
-    "Troubleshooting",
-    "Keyboard Shortcuts",
+    "Invite collaborators",
+    "Pen tool",
+    "Frames & layers",
+    "Templates",
+    "Permissions",
   ];
 
   return (

@@ -3,6 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Search, Star, X } from "lucide-react";
+import Link from "next/link";
 
 interface HelpArticle {
   id: string;
@@ -86,45 +87,52 @@ const SearchResults = ({ searchQuery, searchResults, isSearching, onClearSearch 
             variants={staggerContainer}
             className="space-y-3 sm:space-y-4"
           >
-            {searchResults.map((result) => (
-              <motion.div
-                key={`${result.category}-${result.article.id}`}
-                variants={fadeInUp}
-                className="group p-4 sm:p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 backdrop-blur-sm cursor-pointer"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 flex-wrap">
-                      <span className="text-xs sm:text-sm font-medium text-blue-400 bg-blue-400/10 px-2 sm:px-3 py-1 rounded-full border border-blue-400/20 flex-shrink-0">
-                        {result.category}
-                      </span>
-                      <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium border ${getDifficultyColor(result.article.difficulty)} flex-shrink-0`}>
-                        {result.article.difficulty}
-                      </span>
-                      <span className="text-xs sm:text-sm text-white/50">{result.article.timeToRead}</span>
-                      {result.article.featured && (
-                        <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-current flex-shrink-0" />
-                      )}
+            {searchResults.map((result) => {
+              const href = `/help/article/${result.article.id}`;
+              return (
+                <motion.div
+                  key={`${result.category}-${result.article.id}`}
+                  variants={fadeInUp}
+                  className="group"
+                >
+                  <Link href={href} className="block">
+                    <div className="p-4 sm:p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 backdrop-blur-sm cursor-pointer">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 flex-wrap">
+                            <span className="text-xs sm:text-sm font-medium text-blue-400 bg-blue-400/10 px-2 sm:px-3 py-1 rounded-full border border-blue-400/20 flex-shrink-0">
+                              {result.category}
+                            </span>
+                            <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium border ${getDifficultyColor(result.article.difficulty)} flex-shrink-0`}>
+                              {result.article.difficulty}
+                            </span>
+                            <span className="text-xs sm:text-sm text-white/50">{result.article.timeToRead}</span>
+                            {result.article.featured && (
+                              <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-current flex-shrink-0" />
+                            )}
+                          </div>
+                          <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 line-clamp-2">{result.article.title}</h3>
+                          <p className="text-white/70 mb-3 sm:mb-4 leading-relaxed text-sm sm:text-base line-clamp-3">{result.article.description}</p>
+                          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                            {result.article.tags.slice(0, 4).map(tag => (
+                              <span key={tag} className="px-2 sm:px-3 py-1 bg-white/[0.05] text-white/60 rounded-lg text-xs border border-white/[0.08]">
+                                {tag}
+                              </span>
+                            ))}
+                            {result.article.tags.length > 4 && (
+                              <span className="px-2 sm:px-3 py-1 bg-white/[0.05] text-white/60 rounded-lg text-xs border border-white/[0.08]">
+                                +{result.article.tags.length - 4}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-white/40 ml-2 sm:ml-4 group-hover:text-blue-400 transition-colors duration-200 flex-shrink-0" />
+                      </div>
                     </div>
-                    <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 line-clamp-2">{result.article.title}</h3>
-                    <p className="text-white/70 mb-3 sm:mb-4 leading-relaxed text-sm sm:text-base line-clamp-3">{result.article.description}</p>
-                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                      {result.article.tags.slice(0, 4).map(tag => (
-                        <span key={tag} className="px-2 sm:px-3 py-1 bg-white/[0.05] text-white/60 rounded-lg text-xs border border-white/[0.08]">
-                          {tag}
-                        </span>
-                      ))}
-                      {result.article.tags.length > 4 && (
-                        <span className="px-2 sm:px-3 py-1 bg-white/[0.05] text-white/60 rounded-lg text-xs border border-white/[0.08]">
-                          +{result.article.tags.length - 4}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-white/40 ml-2 sm:ml-4 group-hover:text-blue-400 transition-colors duration-200 flex-shrink-0" />
-                </div>
-              </motion.div>
-            ))}
+                  </Link>
+                </motion.div>
+              );
+            })}
           </motion.div>
         )}
 

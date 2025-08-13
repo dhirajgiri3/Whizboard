@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import ExportModal from "@/components/ui/modal/ExportModal";
 import ImportModal from "@/components/ui/modal/ImportModal";
 import FileManagerModal from "@/components/ui/modal/FileManagerModal";
+import GoogleDrivePickerModal from "@/components/ui/modal/GoogleDrivePickerModal";
 import MainToolbar from "@/components/toolbar/MainToolbar";
 import FloatingStickyNoteToolbar from "@/components/toolbar/stickynote/FloatingStickyNoteToolbar";
 import FloatingFrameToolbar from "@/components/toolbar/frame/FloatingFrameToolbar";
@@ -21,6 +22,7 @@ import { LoadingOverlay } from "@/components/ui/loading/Loading";
 import { X, AlertCircle, ChevronUp, ChevronDown } from "lucide-react";
 import RenameBoardModal from "@/components/ui/modal/RenameBoardModal";
 import InviteCollaboratorsModal from "@/components/ui/modal/InviteCollaboratorsModal";
+import UserManagementModal from "@/components/ui/modal/UserManagementModal";
 import SuccessModal from "@/components/ui/modal/SuccessModal";
 import { toast } from "sonner";
 import CanvasHeader from "@/components/layout/header/utils/CanvasHeader";
@@ -36,6 +38,7 @@ import {
   Tool,
   TextElement,
   ShapeElement,
+  ImageElement,
 } from "@/types";
 import { FramePreset } from "@/components/toolbar/frame/types";
 import { EnhancedCursor } from "@/types";
@@ -55,6 +58,8 @@ import AdvancedSelectionManager from "@/components/canvas/selection/AdvancedSele
 
 import CanvasPerformanceOptimizer from "@/components/canvas/performance/CanvasPerformanceOptimizer";
 import LineToolbar from "@/components/toolbar/line/LineToolbar";
+import { useBoardUserManagement } from "@/hooks/useBoardUserManagement";
+
 
 const GET_BOARD = gql`
   query GetBoard($id: String!) {
@@ -202,6 +207,7 @@ function BoardPageContent() {
   const [frames, setFrames] = useState<FrameElement[]>([]);
   const [textElements, setTextElements] = useState<TextElement[]>([]);
   const [shapes, setShapes] = useState<ShapeElement[]>([]);
+  const [imageElements, setImageElements] = useState<ImageElement[]>([]);
   const [selectedStickyNote, setSelectedStickyNote] = useState<string | null>(
     null
   );
@@ -213,6 +219,7 @@ function BoardPageContent() {
     useState<TextElement | null>(null);
   const [selectedShape, setSelectedShape] = useState<string | null>(null);
   const [selectedShapes, setSelectedShapes] = useState<string[]>([]);
+  const [selectedImageElement, setSelectedImageElement] = useState<string | null>(null);
   const [history, setHistory] = useState<unknown[]>([]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [tool, setTool] = useState<Tool>("pen");
@@ -224,6 +231,7 @@ function BoardPageContent() {
   const [isCollaborationOpen, setIsCollaborationOpen] = useState(false);
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showUserManagementModal, setShowUserManagementModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [renamedBoard, setRenamedBoard] = useState<{
     id: string;
@@ -242,6 +250,7 @@ function BoardPageContent() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showFileManagerModal, setShowFileManagerModal] = useState(false);
+  const [showGoogleDrivePickerModal, setShowGoogleDrivePickerModal] = useState(false);
 
   // Mobile and tablet responsive states
   const [isMobile, setIsMobile] = useState(false);
@@ -273,6 +282,15 @@ function BoardPageContent() {
 
   // Derived responsive state
   const isSmallScreen = isMobile || isTablet;
+
+  // Admin functionality
+  const {
+    users: boardUsers,
+    currentUserRole,
+    canManageUsers,
+    isLoading: isLoadingUsers,
+    error: userManagementError
+  } = useBoardUserManagement({ boardId });
 
   // Responsive detection and setup
   useEffect(() => {
@@ -727,9 +745,14 @@ function BoardPageContent() {
           strokeWidth: (element.data.strokeWidth as number) || 3,
           color: (element.data.color as string) || "#000000",
         };
-        setLines((prev) =>
-          prev.map((line) => (line.id === element.id ? updatedLine : line))
-        );
+        setLines((prev) => {
+          const exists = prev.some((line) => line.id === element.id);
+          if (exists) {
+            return prev.map((line) => (line.id === element.id ? updatedLine : line));
+          }
+          // If the line doesn't exist yet (e.g., missed a 'start' event), append it
+          return [...prev, updatedLine];
+        });
       }
     },
     onElementDeleted: (elementId) => {
@@ -2508,6 +2531,178 @@ function BoardPageContent() {
     // No-op for now
   }, []);
 
+  // Image Element Handlers
+  const handleImageElementAdd = useCallback(
+    async (imageElement: ImageElement) => {
+      if (boardId) {
+        try {
+          const { data } = await addBoardAction({
+            variables: {
+              boardId,
+              action: JSON.stringify({
+                type: "add",
+                data: JSON.stringify(imageElement),
+              }),
+            },
+          });
+          if (data?.addBoardAction) {
+            const allElements = data.addBoardAction.elements || [];
+            const imageElementElements = allElements
+              .filter(
+                (el: { type: string; data: string }) =>
+                  (typeof el.data === "string" ? JSON.parse(el.data) : el.data)
+                    .type === "image"
+              )
+              .map((el: { data: string }) =>
+                typeof el.data === "string" ? JSON.parse(el.data) : el.data
+              );
+            setImageElements(imageElementElements);
+            setHistory(data.addBoardAction.history || []);
+            setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
+            updateBoardTimestamp(boardId);
+          }
+        } catch (err) {
+          logger.error({ err }, "Failed to add image element");
+        }
+      }
+    },
+    [
+      boardId,
+      addBoardAction,
+      updateBoardTimestamp,
+      setImageElements,
+      setHistory,
+      setHistoryIndex,
+    ]
+  );
+
+  const handleImageElementUpdate = useCallback(
+    async (updatedImageElement: ImageElement) => {
+      if (boardId) {
+        try {
+          const { data } = await addBoardAction({
+            variables: {
+              boardId,
+              action: JSON.stringify({
+                type: "update",
+                data: JSON.stringify(updatedImageElement),
+              }),
+            },
+          });
+          if (data?.addBoardAction) {
+            const allElements = data.addBoardAction.elements || [];
+            const imageElementElements = allElements
+              .filter(
+                (el: { type: string; data: string }) =>
+                  (typeof el.data === "string" ? JSON.parse(el.data) : el.data)
+                    .type === "image"
+              )
+              .map((el: { data: string }) =>
+                typeof el.data === "string" ? JSON.parse(el.data) : el.data
+              );
+            setImageElements(imageElementElements);
+            updateBoardTimestamp(boardId);
+          }
+        } catch (err) {
+          logger.error({ err }, "Failed to update image element");
+        }
+      }
+    },
+    [boardId, addBoardAction, updateBoardTimestamp, setImageElements]
+  );
+
+  const handleImageElementDelete = useCallback(
+    async (imageElementId: string) => {
+      if (!imageElementId || !boardId) {
+        logger.warn(
+          { imageElementId, boardId },
+          "Invalid image element delete request"
+        );
+        return;
+      }
+
+      logger.debug(
+        { imageElementId, boardId },
+        "Attempting to delete image element"
+      );
+
+      try {
+        const { data } = await addBoardAction({
+          variables: {
+            boardId,
+            action: JSON.stringify({
+              type: "remove",
+              data: JSON.stringify({ id: imageElementId, type: "image" }),
+            }),
+          },
+        });
+        if (data?.addBoardAction) {
+          const allElements = data.addBoardAction.elements || [];
+          const imageElementElements = allElements
+            .filter(
+              (el: { type: string; data: string }) =>
+                (typeof el.data === "string" ? JSON.parse(el.data) : el.data)
+                  .type === "image"
+            )
+            .map((el: { data: string }) =>
+              typeof el.data === "string" ? JSON.parse(el.data) : el.data
+            );
+          setImageElements(imageElementElements);
+          setHistory(data.addBoardAction.history || []);
+          setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
+          updateBoardTimestamp(boardId);
+          setSelectedImageElement(null);
+
+          logger.debug(
+            { deletedId: imageElementId },
+            "Image element deleted successfully"
+          );
+        }
+      } catch (err) {
+        logger.error(
+          { error: err, imageElementId },
+          "Failed to delete image element"
+        );
+      }
+    },
+    [
+      boardId,
+      addBoardAction,
+      updateBoardTimestamp,
+      setImageElements,
+      setHistory,
+      setHistoryIndex,
+      setSelectedImageElement,
+    ]
+  );
+
+  const handleImageElementSelect = useCallback(
+    (imageElementId: string) => {
+      setSelectedImageElement(imageElementId);
+      setSelectedStickyNote(null);
+      setSelectedFrame(null);
+      setSelectedTextElement(null);
+      setSelectedShape(null);
+      setSelectedShapes([]);
+    },
+    [
+      setSelectedImageElement,
+      setSelectedStickyNote,
+      setSelectedFrame,
+      setSelectedTextElement,
+      setSelectedShape,
+      setSelectedShapes,
+    ]
+  );
+
+  const handleImageElementDragStart = useCallback(() => {
+    // No-op for now
+  }, []);
+
+  const handleImageElementDragEnd = useCallback(() => {
+    // No-op for now
+  }, []);
+
   // Cleanup timeout on unmount
   useEffect(() => {
     const timeoutId = dragTimeoutRef.current;
@@ -2574,6 +2769,17 @@ function BoardPageContent() {
               typeof el.data === "string" ? JSON.parse(el.data) : el.data
             );
 
+          // Filter image elements
+          const imageElementElements = allElements
+            .filter((el: { data: string }) => {
+              const parsed =
+                typeof el.data === "string" ? JSON.parse(el.data) : el.data;
+              return parsed.type === "image";
+            })
+            .map((el: { data: string }) =>
+              typeof el.data === "string" ? JSON.parse(el.data) : el.data
+            );
+
           setLines(lineElements);
           setStickyNotes(stickyNoteElements);
           setFrames((prevFrames) => {
@@ -2585,6 +2791,7 @@ function BoardPageContent() {
             return prevFrames;
           });
           setTextElements(textElementElements);
+          setImageElements(imageElementElements);
           setHistory(data.undoBoardAction.history || []);
           setHistoryIndex(data.undoBoardAction.historyIndex ?? 0);
           updateBoardTimestamp(boardId);
@@ -2596,6 +2803,7 @@ function BoardPageContent() {
           setEditingTextElement(null);
           setSelectedShape(null);
           setSelectedShapes([]);
+          setSelectedImageElement(null);
         }
       } catch (err) {
         logger.error({ err }, "Failed to undo board action");
@@ -2610,12 +2818,14 @@ function BoardPageContent() {
     setStickyNotes,
     setFrames,
     setTextElements,
+    setImageElements,
     setHistory,
     setHistoryIndex,
     setSelectedStickyNote,
     setSelectedFrame,
     setSelectedTextElement,
     setEditingTextElement,
+    setSelectedImageElement,
   ]);
 
   const handleRedo = useCallback(async () => {
@@ -2674,6 +2884,17 @@ function BoardPageContent() {
               typeof el.data === "string" ? JSON.parse(el.data) : el.data
             );
 
+          // Filter image elements
+          const imageElementElements = allElements
+            .filter((el: { data: string }) => {
+              const parsed =
+                typeof el.data === "string" ? JSON.parse(el.data) : el.data;
+              return parsed.type === "image";
+            })
+            .map((el: { data: string }) =>
+              typeof el.data === "string" ? JSON.parse(el.data) : el.data
+            );
+
           setLines(lineElements);
           setStickyNotes(stickyNoteElements);
           setFrames((prevFrames) => {
@@ -2685,6 +2906,7 @@ function BoardPageContent() {
             return prevFrames;
           });
           setTextElements(textElementElements);
+          setImageElements(imageElementElements);
           setHistory(data.redoBoardAction.history || []);
           setHistoryIndex(data.redoBoardAction.historyIndex ?? 0);
           updateBoardTimestamp(boardId);
@@ -2710,12 +2932,14 @@ function BoardPageContent() {
     setStickyNotes,
     setFrames,
     setTextElements,
+    setImageElements,
     setHistory,
     setHistoryIndex,
     setSelectedStickyNote,
     setSelectedFrame,
     setSelectedTextElement,
     setEditingTextElement,
+    setSelectedImageElement,
   ]);
 
   const handleExport = useCallback(() => {
@@ -3007,6 +3231,7 @@ function BoardPageContent() {
           setEditingTextElement(null);
           setSelectedShape(null);
           setSelectedShapes([]);
+          setSelectedImageElement(null);
           break;
         case "?":
           setShowKeyboardShortcuts(!showKeyboardShortcuts);
@@ -3056,6 +3281,11 @@ function BoardPageContent() {
             }
             setSelectedShape(null);
             setSelectedShapes([]);
+          } else if (selectedImageElement) {
+            e.preventDefault();
+            logger.debug({ selectedImageElement }, "Deleting image element via keyboard");
+            handleImageElementDelete(selectedImageElement);
+            setSelectedImageElement(null);
           }
           break;
       }
@@ -3078,11 +3308,13 @@ function BoardPageContent() {
     selectedFrame,
     selectedTextElement,
     selectedShapes,
+    selectedImageElement,
     handleStickyNoteDelete,
     handleFrameDelete,
     handleTextElementDelete,
     handleShapeDelete,
     handleShapeDeleteMultiple,
+    handleImageElementDelete,
     tool,
     currentStickyNoteColor,
     colorPicker,
@@ -3098,6 +3330,7 @@ function BoardPageContent() {
     setEditingTextElement,
     setSelectedShape,
     setSelectedShapes,
+    setSelectedImageElement,
   ]);
 
   const handleClearCanvas = async () => {
@@ -3122,6 +3355,7 @@ function BoardPageContent() {
                 setStickyNotes([]);
                 setFrames([]);
                 setTextElements([]);
+                setImageElements([]);
                 setHistory(data.addBoardAction.history || []);
                 setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
                 updateBoardTimestamp(boardId);
@@ -3133,6 +3367,7 @@ function BoardPageContent() {
                 setEditingTextElement(null);
                 setSelectedShape(null);
                 setSelectedShapes([]);
+                setSelectedImageElement(null);
 
                 toast.success("Canvas cleared! You can undo this action.");
               }
@@ -3250,6 +3485,14 @@ function BoardPageContent() {
         return;
       }
 
+      /* ------------------------------------------------------------------ */
+      /* Image tool                                                         */
+      /* ------------------------------------------------------------------ */
+      if (tool === "image") {
+        setShowGoogleDrivePickerModal(true);
+        return;
+      }
+
       // Default: no special action
     },
     [
@@ -3268,6 +3511,7 @@ function BoardPageContent() {
       session?.user?.email,
       handleTextElementAdd,
       handleTextElementStartEdit,
+      setShowGoogleDrivePickerModal,
     ]
   );
 
@@ -3323,6 +3567,8 @@ function BoardPageContent() {
       <CanvasHeader
         currentUser={currentUser}
         onlineUsers={filteredOnlineUsers}
+        boardId={boardId}
+        boardName={initialData?.getBoard?.name}
         onShare={handleShare}
         onOpenCollaboration={() => setIsCollaborationOpen(true)}
         onInvite={handleInviteCollaborators}
@@ -3484,8 +3730,11 @@ function BoardPageContent() {
                     users={[currentUser, ...filteredOnlineUsers]}
                     currentUserId={localUserId}
                     onInviteAction={handleInviteCollaborators}
+                    onManageUsersAction={() => setShowUserManagementModal(true)}
                     boardOwner={session?.user?.name || "Owner"}
                     lastActivity={new Date().toISOString()}
+                    currentUserRole={currentUserRole}
+                    canManageUsers={canManageUsers}
                   />
                 </div>
               </div>
@@ -3504,12 +3753,14 @@ function BoardPageContent() {
               initialFrames={frames}
               initialTextElements={textElements}
               initialShapes={shapes}
+              initialImageElements={imageElements}
               selectedStickyNote={selectedStickyNote}
               selectedFrame={selectedFrame}
               selectedTextElement={selectedTextElement}
               editingTextElement={editingTextElement}
               selectedShape={selectedShape}
               selectedShapes={selectedShapes}
+              selectedImageElement={selectedImageElement}
               onDrawEndAction={handleSetLines}
               onEraseAction={handleErase}
               onStickyNoteAddAction={handleStickyNoteAdd}
@@ -3538,6 +3789,12 @@ function BoardPageContent() {
               onShapeSelectAction={handleShapeSelect}
               onShapeDragStartAction={handleShapeDragStart}
               onShapeDragEndAction={handleShapeDragEnd}
+              onImageElementAddAction={handleImageElementAdd}
+              onImageElementUpdateAction={handleImageElementUpdate}
+              onImageElementDeleteAction={handleImageElementDelete}
+              onImageElementSelectAction={handleImageElementSelect}
+              onImageElementDragStartAction={handleImageElementDragStart}
+              onImageElementDragEndAction={handleImageElementDragEnd}
               onCanvasClickAction={handleCanvasClick}
               onToolChangeAction={setTool}
               cursors={realTimeCursors}
@@ -4003,7 +4260,61 @@ function BoardPageContent() {
       
       <FileManagerModal 
         isOpen={showFileManagerModal} 
-        onClose={() => setShowFileManagerModal(false)} 
+        onClose={() => setShowFileManagerModal(false)}
+        onImageSelect={(imageData) => {
+          const newImageElement: ImageElement = {
+            id: `image-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            type: "image",
+            x: 100,
+            y: 100,
+            width: imageData.width,
+            height: imageData.height,
+            src: imageData.src,
+            alt: imageData.alt,
+            opacity: 1,
+            rotation: 0,
+            createdBy: session?.user?.id || "unknown",
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            version: 1,
+          };
+          handleImageElementAdd(newImageElement);
+          setSelectedImageElement(newImageElement.id);
+        }}
+      />
+
+      <GoogleDrivePickerModal
+        isOpen={showGoogleDrivePickerModal}
+        onClose={() => setShowGoogleDrivePickerModal(false)}
+        onImageSelect={(imageData) => {
+          const newImageElement: ImageElement = {
+            id: `image-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            type: "image",
+            x: 100,
+            y: 100,
+            width: imageData.width,
+            height: imageData.height,
+            src: imageData.src,
+            alt: imageData.alt,
+            opacity: 1,
+            rotation: 0,
+            createdBy: session?.user?.id || "unknown",
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            version: 1,
+          };
+          handleImageElementAdd(newImageElement);
+          setSelectedImageElement(newImageElement.id);
+        }}
+      />
+
+      {/* Admin User Management Modal */}
+      <UserManagementModal
+        isOpen={showUserManagementModal}
+        onClose={() => setShowUserManagementModal(false)}
+        boardId={boardId}
+        boardName={initialData?.getBoard?.name || "Untitled Board"}
+        isMobile={isMobile}
       />
     </div>
   );

@@ -95,15 +95,7 @@ export function useCanvasInteractions({
   const [isDrawingInFrame, setIsDrawingInFrame] = useState(false);
   
   // Refs
-  const frameCreationModeRef = useRef<{
-    isCreating: boolean;
-    startPoint: { x: number; y: number } | null;
-    currentFrame: Partial<FrameElement> | null;
-  }>({
-    isCreating: false,
-    startPoint: null,
-    currentFrame: null,
-  });
+
   const lastPointer = useRef<{ x: number; y: number } | null>(null);
   const lastUpdatePoint = useRef<{ x: number; y: number } | null>(null); // Track last update point
   const performanceMode = useRef(false);
@@ -586,61 +578,12 @@ export function useCanvasInteractions({
       return;
     }
 
-    if (tool === 'frame' && isFramePlacementMode) {
-      // Delegate frame placement to external handler (e.g., preset placement logic)
+    if (tool === 'frame') {
+      // Delegate frame creation to external handler for better control
       if (onCanvasClickAction) {
         onCanvasClickAction(e);
       }
       return; // Skip internal frame-draw flow
-    }
-
-    if (tool === 'frame') {
-      const framePos = stage.getPointerPosition();
-      if (framePos) {
-        const transform = stage.getAbsoluteTransform().copy();
-        transform.invert();
-        const stagePoint = transform.point(framePos);
-        
-        if (stagePoint) {
-          frameCreationModeRef.current = {
-            isCreating: true,
-            startPoint: stagePoint,
-            currentFrame: {
-              id: `frame-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-              type: 'frame',
-              x: stagePoint.x,
-              y: stagePoint.y,
-              width: 0,
-              height: 0,
-              name: 'New Frame',
-              frameType: 'basic',
-              isCreating: true,
-              style: {
-                fill: 'rgba(255, 255, 255, 1.0)',
-                stroke: '#22c55e',
-                strokeWidth: 2,
-              },
-              metadata: {
-                labels: [],
-                tags: [],
-                status: 'draft',
-                priority: 'low',
-                comments: [],
-              },
-              hierarchy: {
-                childIds: [],
-                level: 0,
-                order: frames.length,
-              },
-              createdBy: 'current-user',
-              createdAt: Date.now(),
-              updatedAt: Date.now(),
-              version: 1,
-            },
-          };
-        }
-      }
-      return;
     }
 
     if (tool === 'text') {
@@ -686,6 +629,14 @@ export function useCanvasInteractions({
 
     if (tool === 'shapes') {
       // For shapes tool, pass the click to canvas click handler for shape creation
+      if (onCanvasClickAction) {
+        onCanvasClickAction(e);
+      }
+      return;
+    }
+
+    if (tool === 'image') {
+      // For image tool, pass the click to canvas click handler for image creation
       if (onCanvasClickAction) {
         onCanvasClickAction(e);
       }
@@ -797,33 +748,8 @@ export function useCanvasInteractions({
 
     if (isPanning.current) return;
 
-    // Handle frame creation
-    if (frameCreationModeRef.current.isCreating && frameCreationModeRef.current.startPoint && frameCreationModeRef.current.currentFrame) {
-      const transform = stage?.getAbsoluteTransform().copy();
-      if (transform) {
-        transform.invert();
-        const stagePoint = transform.point(point);
-        
-        if (stagePoint) {
-          const startX = Math.min(frameCreationModeRef.current.startPoint.x, stagePoint.x);
-          const startY = Math.min(frameCreationModeRef.current.startPoint.y, stagePoint.y);
-          const width = Math.abs(stagePoint.x - frameCreationModeRef.current.startPoint.x);
-          const height = Math.abs(stagePoint.y - frameCreationModeRef.current.startPoint.y);
-          
-          frameCreationModeRef.current = {
-            ...frameCreationModeRef.current,
-            currentFrame: {
-              ...frameCreationModeRef.current.currentFrame,
-              x: startX,
-              y: startY,
-              width: Math.max(width, 20),
-              height: Math.max(height, 20),
-            },
-          };
-        }
-      }
-      return;
-    }
+    // Frame creation is now handled externally through onCanvasClickAction
+    // No internal frame creation logic needed here
 
     if (!isDrawing) return;
 
@@ -943,77 +869,7 @@ export function useCanvasInteractions({
       resetTouchGesture();
     }
 
-    if (frameCreationModeRef.current.isCreating && frameCreationModeRef.current.currentFrame) {
-      const currentFrame = frameCreationModeRef.current.currentFrame;
-      
-      // Determine final frame dimensions
-      let finalWidth = currentFrame.width || 0;
-      let finalHeight = currentFrame.height || 0;
-
-      // If the user only clicked (no drag), assign sensible default size
-      if (finalWidth === 0 && finalHeight === 0) {
-        finalWidth = 300; // default width
-        finalHeight = 200; // default height
-      }
-
-      // Enforce minimum dimensions
-      finalWidth = Math.max(finalWidth, 20);
-      finalHeight = Math.max(finalHeight, 20);
-
-      if (finalWidth >= 20 && finalHeight >= 20) {
-        const newFrame: FrameElement = {
-          id: currentFrame.id || `frame-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          type: 'frame',
-          x: currentFrame.x || 0,
-          y: currentFrame.y || 0,
-          width: finalWidth,
-          height: finalHeight,
-          name: currentFrame.name || 'New Frame',
-          frameType: currentFrame.frameType || 'basic',
-          isCreating: false,
-          style: {
-            fill: 'rgba(255, 255, 255, 1.0)',
-            stroke: '#3b82f6',
-            strokeWidth: 2,
-            fillOpacity: 1,
-            strokeOpacity: 1,
-          },
-          metadata: {
-            labels: [],
-            tags: [],
-            status: 'draft',
-            priority: 'low',
-            comments: [],
-          },
-          hierarchy: {
-            childIds: [],
-            level: 0,
-            order: frames.length,
-          },
-          createdBy: 'current-user',
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-          version: 1,
-        };
-        
-        addFrame(newFrame);
-        
-        if (onFrameAddAction) {
-          onFrameAddAction(newFrame);
-        }
-        
-        if (onRealTimeFrameAction) {
-          onRealTimeFrameAction(newFrame);
-        }
-      }
-      
-      // Reset creation mode state regardless of creation success
-      frameCreationModeRef.current = {
-        isCreating: false,
-        startPoint: null,
-        currentFrame: null,
-      };
-    }
+    // Frame creation is now handled externally through onCanvasClickAction
 
     setIsDrawing(false);
     setIsDrawingInFrame(false);
@@ -1068,7 +924,7 @@ export function useCanvasInteractions({
       case 'highlighter': return 'crosshair';
       case 'eraser': return 'cell';
       case 'sticky-note': return 'copy';
-      case 'frame': return frameCreationModeRef.current.isCreating ? 'crosshair' : 'copy';
+      case 'frame': return 'crosshair';
       default: return 'crosshair';
     }
   };
@@ -1145,7 +1001,7 @@ export function useCanvasInteractions({
     isStickyNoteDragging,
     isFrameDragging,
     showFrameAlignment,
-    frameCreationMode: frameCreationModeRef.current,
+
     activeFrameId,
     isDrawingInFrame,
     performanceMode: performanceMode.current,

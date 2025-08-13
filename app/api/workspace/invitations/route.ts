@@ -61,8 +61,8 @@ export async function POST(request: NextRequest) {
 
     // Create invitation
     const invitationToken = uuidv4();
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiration
+    // Set precise 7-day expiration (avoid DST issues)
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     const invitation = {
       workspaceId: workspace._id,

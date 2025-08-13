@@ -3,12 +3,12 @@ import { Stage, Layer } from 'react-konva';
 import { KonvaEventObject } from 'konva/lib/Node';
 import Konva from 'konva';
 import { Tool } from '@/types';
-import { StickyNoteElement, FrameElement, ILine, TextElement, ShapeElement } from '@/types';
+import { StickyNoteElement, FrameElement, ILine, TextElement, ShapeElement, ImageElement } from '@/types';
 import { useFrameManager } from '@/hooks/useFrameManager';
 import { useCanvasInteractions } from '@/hooks/useCanvasInteractions';
 import { CanvasLayers } from './CanvasLayers';
 import { CanvasControls } from './CanvasControls';
-import { Cursor } from '../reatime/LiveCursors';
+import { EnhancedCursor } from '@/types';
 import TextEditor from './text/TextEditor';
 
 interface DrawingCanvasProps {
@@ -21,6 +21,7 @@ interface DrawingCanvasProps {
   initialFrames?: FrameElement[];
   initialTextElements?: TextElement[];
   initialShapes?: ShapeElement[];
+  initialImageElements?: ImageElement[];
   isFramePlacementMode?: boolean;
   selectedStickyNote?: string | null;
   selectedFrame?: string | null;
@@ -28,6 +29,7 @@ interface DrawingCanvasProps {
   editingTextElement?: TextElement | null;
   selectedShape?: string | null;
   selectedShapes?: string[];
+  selectedImageElement?: string | null;
   isMobile?: boolean;
   isTablet?: boolean;
   showGrid?: boolean;
@@ -59,9 +61,15 @@ interface DrawingCanvasProps {
   onShapeSelectAction?: (shapeId: string) => void;
   onShapeDragStartAction?: () => void;
   onShapeDragEndAction?: () => void;
+  onImageElementAddAction?: (imageElement: ImageElement) => void;
+  onImageElementUpdateAction?: (imageElement: ImageElement) => void;
+  onImageElementDeleteAction?: (imageElementId: string) => void;
+  onImageElementSelectAction?: (imageElementId: string) => void;
+  onImageElementDragStartAction?: () => void;
+  onImageElementDragEndAction?: () => void;
   onCanvasClickAction?: (e: KonvaEventObject<MouseEvent>) => void;
   onToolChangeAction?: (tool: Tool) => void;
-  cursors: Record<string, Cursor>;
+  cursors: Record<string, EnhancedCursor>;
   moveCursorAction: (x: number, y: number) => void;
   onRealTimeDrawingAction?: (line: ILine) => void;
   onRealTimeLineUpdateAction?: (line: ILine) => void;
@@ -69,6 +77,8 @@ interface DrawingCanvasProps {
   onRealTimeFrameDeleteAction?: (frameId: string) => void;
   onRealTimeTextElementAction?: (textElement: TextElement) => void;
   onRealTimeTextElementDeleteAction?: (textElementId: string) => void;
+  onRealTimeImageElementAction?: (imageElement: ImageElement) => void;
+  onRealTimeImageElementDeleteAction?: (imageElementId: string) => void;
 }
 
 export default function DrawingCanvas({
@@ -81,6 +91,7 @@ export default function DrawingCanvas({
   initialFrames = [],
   initialTextElements = [],
   initialShapes = [],
+  initialImageElements = [],
   isFramePlacementMode = false,
   selectedStickyNote,
   selectedFrame,
@@ -88,6 +99,7 @@ export default function DrawingCanvas({
   editingTextElement,
   selectedShape,
   selectedShapes,
+  selectedImageElement,
   isMobile = false,
   isTablet = false,
   showGrid: showGridProp = true,
@@ -119,6 +131,12 @@ export default function DrawingCanvas({
   onShapeSelectAction,
   onShapeDragStartAction,
   onShapeDragEndAction,
+  onImageElementAddAction,
+  onImageElementUpdateAction,
+  onImageElementDeleteAction,
+  onImageElementSelectAction,
+  onImageElementDragStartAction,
+  onImageElementDragEndAction,
   onCanvasClickAction,
   onToolChangeAction,
   cursors,
@@ -129,12 +147,15 @@ export default function DrawingCanvas({
   onRealTimeFrameDeleteAction,
   onRealTimeTextElementAction,
   onRealTimeTextElementDeleteAction,
+  onRealTimeImageElementAction,
+  onRealTimeImageElementDeleteAction,
 }: DrawingCanvasProps) {
   // State management
   const [lines, setLines] = useState<ILine[]>(initialLines);
   const [stickyNotes, setStickyNotes] = useState<StickyNoteElement[]>(initialStickyNotes);
   const [textElements, setTextElements] = useState<TextElement[]>(initialTextElements);
   const [shapes, setShapes] = useState<ShapeElement[]>(initialShapes);
+  const [imageElements, setImageElements] = useState<ImageElement[]>(initialImageElements);
   const [dimensions, setDimensions] = useState({ 
     width: typeof window !== 'undefined' ? window.innerWidth : 1920, 
     height: typeof window !== 'undefined' ? window.innerHeight : 1080 
@@ -166,7 +187,7 @@ export default function DrawingCanvas({
     isStickyNoteDragging,
     isFrameDragging,
     showFrameAlignment,
-    frameCreationMode,
+
     activeFrameId,
     isDrawingInFrame,
     performanceMode,
@@ -245,8 +266,8 @@ export default function DrawingCanvas({
           );
           
           // Store initial distance for pinch detection
-          if (!e.target.dataset.initialDistance) {
-            e.target.dataset.initialDistance = distance.toString();
+          if (e.target && !(e.target as HTMLElement).dataset.initialDistance) {
+            (e.target as HTMLElement).dataset.initialDistance = distance.toString();
           }
           
           // Allow the gesture to continue for zoom
@@ -265,13 +286,15 @@ export default function DrawingCanvas({
       if (isTablet && e.touches.length === 1) {
         // For single touch on tablet, ensure smooth drawing
         const touch = e.touches[0];
-        const rect = e.target.getBoundingClientRect();
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-        
-        // Emit cursor movement for better collaboration
-        if (moveCursorAction) {
-          moveCursorAction(x, y);
+        if (e.target) {
+          const rect = (e.target as HTMLElement).getBoundingClientRect();
+          const x = touch.clientX - rect.left;
+          const y = touch.clientY - rect.top;
+          
+          // Emit cursor movement for better collaboration
+          if (moveCursorAction) {
+            moveCursorAction(x, y);
+          }
         }
       }
     };
@@ -302,7 +325,7 @@ export default function DrawingCanvas({
       
       // Account for mobile browser UI changes
       const adjustedHeight = isMobile 
-        ? newHeight - (window.innerHeight - window.visualViewport?.height || 0)
+        ? newHeight - (window.innerHeight - (window.visualViewport?.height || window.innerHeight))
         : newHeight;
       
       setDimensions({
@@ -347,6 +370,19 @@ export default function DrawingCanvas({
   useEffect(() => {
     setTextElements(initialTextElements);
   }, [initialTextElements]);
+
+  useEffect(() => {
+    setImageElements(initialImageElements);
+  }, [initialImageElements]);
+
+  // Ensure Konva stage redraws promptly when collaborative state updates arrive
+  useEffect(() => {
+    if (stageRef.current) {
+      try {
+        stageRef.current.batchDraw();
+      } catch {}
+    }
+  }, [lines, frames, textElements, shapes, imageElements, stageRef]);
 
   // Event handlers
   const handleStickyNoteDragStart = useCallback(() => {
@@ -440,6 +476,18 @@ export default function DrawingCanvas({
     }
   }, [onTextElementDragEndAction]);
 
+  const handleImageElementDragStart = useCallback(() => {
+    if (onImageElementDragStartAction) {
+      onImageElementDragStartAction();
+    }
+  }, [onImageElementDragStartAction]);
+
+  const handleImageElementDragEnd = useCallback(() => {
+    if (onImageElementDragEndAction) {
+      onImageElementDragEndAction();
+    }
+  }, [onImageElementDragEndAction]);
+
   // Enhanced stage configuration for mobile/tablet
   const stageConfig = {
     width: dimensions.width,
@@ -531,7 +579,7 @@ export default function DrawingCanvas({
               stopPropagation: () => e.evt.stopPropagation(),
             }
           };
-          handleMouseUp(mouseEvent as any);
+          handleMouseUp();
         } : undefined}
       >
         <CanvasLayers
@@ -545,50 +593,76 @@ export default function DrawingCanvas({
           frames={frames}
           textElements={textElements}
           shapes={shapes}
+          imageElements={imageElements}
           selectedFrameIds={selectedFrameIds}
-          selectedStickyNote={selectedStickyNote}
-          selectedFrame={selectedFrame}
-          selectedTextElement={selectedTextElement}
-          editingTextElement={editingTextElement}
-          selectedShape={selectedShape}
-          selectedShapes={selectedShapes}
+          selectedStickyNote={selectedStickyNote || null}
+          selectedTextElement={selectedTextElement || null}
+          editingTextElement={editingTextElement || null}
+          selectedShape={selectedShape || null}
+          selectedShapes={selectedShapes || []}
+          selectedImageElement={selectedImageElement || null}
           tool={tool}
           strokeWidth={strokeWidth}
           hoveredLineIndex={hoveredLineIndex}
           showFrameAlignment={showFrameAlignment}
-          frameCreationMode={frameCreationMode}
-          activeFrameId={activeFrameId}
-          isDrawingInFrame={isDrawingInFrame}
-          performanceMode={performanceMode}
+
+          // Props not used by CanvasLayers have been removed to match its interface
           cursors={cursors}
           handleLineClick={handleLineClick}
           setHoveredLineIndex={setHoveredLineIndex}
           handleFrameSelect={handleFrameSelect}
-          handleFrameUpdate={onFrameUpdateAction}
-          handleFrameDelete={onFrameDeleteAction}
-          handleFrameDragStart={onFrameDragStartAction}
-          handleFrameDragEnd={onFrameDragEndAction}
+          handleFrameUpdate={(frame) => {
+            if (onFrameUpdateAction) onFrameUpdateAction(frame);
+          }}
+          handleFrameDelete={(frameId) => {
+            if (onFrameDeleteAction) onFrameDeleteAction(frameId);
+          }}
+          handleFrameDragStart={() => {
+            if (onFrameDragStartAction) onFrameDragStartAction();
+          }}
+          handleFrameDragEnd={() => {
+            if (onFrameDragEndAction) onFrameDragEndAction();
+          }}
           onStickyNoteSelectAction={onStickyNoteSelectAction}
           onStickyNoteUpdateAction={onStickyNoteUpdateAction}
           onStickyNoteDeleteAction={onStickyNoteDeleteAction}
-          handleStickyNoteDragStart={onStickyNoteDragStartAction}
-          handleStickyNoteDragEnd={onStickyNoteDragEndAction}
+          handleStickyNoteDragStart={() => {
+            if (onStickyNoteDragStartAction) onStickyNoteDragStartAction();
+          }}
+          handleStickyNoteDragEnd={() => {
+            if (onStickyNoteDragEndAction) onStickyNoteDragEndAction();
+          }}
           onTextElementSelectAction={onTextElementSelectAction}
           onTextElementUpdateAction={onTextElementUpdateAction}
           onTextElementDeleteAction={onTextElementDeleteAction}
           onTextElementStartEditAction={onTextElementStartEditAction}
           onTextElementFinishEditAction={onTextElementFinishEditAction}
-          handleTextElementDragStart={onTextElementDragStartAction}
-          handleTextElementDragEnd={onTextElementDragEndAction}
+          handleTextElementDragStart={() => {
+            if (onTextElementDragStartAction) onTextElementDragStartAction();
+          }}
+          handleTextElementDragEnd={() => {
+            if (onTextElementDragEndAction) onTextElementDragEndAction();
+          }}
           onShapeSelectAction={onShapeSelectAction}
           onShapeUpdateAction={onShapeUpdateAction}
           onShapeDeleteAction={onShapeDeleteAction}
-          handleShapeDragStart={onShapeDragStartAction}
-          handleShapeDragEnd={onShapeDragEndAction}
+          handleShapeDragStart={() => {
+            if (onShapeDragStartAction) onShapeDragStartAction();
+          }}
+          handleShapeDragEnd={() => {
+            if (onShapeDragEndAction) onShapeDragEndAction();
+          }}
+          onImageElementSelectAction={onImageElementSelectAction}
+          onImageElementUpdateAction={onImageElementUpdateAction}
+          onImageElementDeleteAction={onImageElementDeleteAction}
+          handleImageElementDragStart={() => {
+            if (onImageElementDragStartAction) onImageElementDragStartAction();
+          }}
+          handleImageElementDragEnd={() => {
+            if (onImageElementDragEndAction) onImageElementDragEndAction();
+          }}
           selectFrames={selectFrames}
           stageRef={stageRef}
-          isMobile={isMobile}
-          isTablet={isTablet}
         />
       </Stage>
       
@@ -612,7 +686,7 @@ export default function DrawingCanvas({
         isPanning={isPanning}
         isStickyNoteDragging={isStickyNoteDragging}
         isFrameDragging={isFrameDragging}
-        frameCreationMode={frameCreationMode}
+
         hoveredLineIndex={hoveredLineIndex}
         tool={tool}
         isDrawingInFrame={isDrawingInFrame}
@@ -631,9 +705,15 @@ export default function DrawingCanvas({
         <div className={`absolute z-50 ${isSmallScreen ? 'inset-4' : ''}`}>
         <TextEditor
             textElement={editingTextElement}
-            onUpdate={onTextElementUpdateAction}
-            onFinish={onTextElementFinishEditAction}
-            stageRef={stageRef}
+            isVisible={true}
+            onUpdateAction={(textElement) => {
+              if (onTextElementUpdateAction) onTextElementUpdateAction(textElement);
+            }}
+            onFinishEditingAction={() => {
+              if (onTextElementFinishEditAction) onTextElementFinishEditAction();
+            }}
+            stageScale={stageScale}
+            stagePosition={stagePos}
             isMobile={isMobile}
             isTablet={isTablet}
         />

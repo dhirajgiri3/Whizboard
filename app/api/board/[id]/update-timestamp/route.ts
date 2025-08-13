@@ -9,7 +9,7 @@ export async function PATCH(
   { params }: any
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     if (!id) {
       return NextResponse.json(

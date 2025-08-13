@@ -69,13 +69,7 @@ export const DropdownContent = ({ children }: { children: ReactNode }) => {
 
   return (
     <div 
-      className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg bg-white/90 backdrop-blur-xl dropdown-backdrop-blur border border-slate-200/60 z-50 animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95"
-      style={{ 
-        backdropFilter: 'blur(24px) saturate(180%) brightness(1.1)',
-        WebkitBackdropFilter: 'blur(24px) saturate(180%) brightness(1.1)',
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-        borderColor: 'rgba(148, 163, 184, 0.8)'
-      }}
+      className="origin-top-right absolute right-0 mt-2 w-56 rounded-lg border border-gray-200 shadow-2xl z-50 animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 bg-white"
     >
       <div
         className="py-2"

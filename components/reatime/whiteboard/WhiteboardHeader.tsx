@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { ZoomIn, ZoomOut, Wifi, Grid3X3, Settings } from "lucide-react";
 import { Cursor } from "./types";
+import UserLink from "@/components/ui/UserLink";
 
 interface WhiteboardHeaderProps {
   zoomLevel: number;
@@ -69,18 +70,20 @@ const WhiteboardHeader: React.FC<WhiteboardHeaderProps> = ({
                 .filter((c) => c.isActive)
                 .slice(0, isMobile ? 2 : 3)
                 .map((user) => (
-                  <motion.div
+                  <UserLink
                     key={user.id}
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-white shadow-sm"
-                    style={{
-                      backgroundImage: `url(${user.avatar})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
+                    user={{
+                      id: user.id,
+                      name: user.name,
+                      email: user.email || '',
+                      username: user.username,
+                      image: user.avatar
                     }}
-                    title={user.name}
+                    size="sm"
+                    variant="compact"
+                    showAvatar={true}
+                    showEmail={false}
+                    className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-white shadow-sm"
                   />
                 ))}
               {collaborators.filter((c) => c.isActive).length > (isMobile ? 2 : 3) && (

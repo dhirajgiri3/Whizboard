@@ -39,10 +39,16 @@ import {
   DropdownItem,
 } from "@/components/ui/header/Dropdown";
 import logo from "@/public/images/logos/whizboard_logo.png";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar/avatar";
+import SlackButton from "@/components/ui/SlackButton";
+import { toast } from "sonner";
+import api from "@/lib/http/axios";
 
 interface User {
   id: string;
   name: string;
+  email?: string;
+  username?: string;
   avatar?: string;
   isOnline: boolean;
 }
@@ -50,6 +56,9 @@ interface User {
 interface CanvasHeaderProps {
   currentUser: User;
   onlineUsers: User[];
+  // Board info
+  boardId?: string;
+  boardName?: string;
   // Collaboration actions
   onShare: () => void;
   onOpenCollaboration: () => void;
@@ -77,6 +86,8 @@ interface CanvasHeaderProps {
 const CanvasHeader: React.FC<CanvasHeaderProps> = ({
   currentUser,
   onlineUsers,
+  boardId,
+  boardName: propBoardName,
   onShare,
   onOpenCollaboration,
   onInvite,
@@ -97,7 +108,7 @@ const CanvasHeader: React.FC<CanvasHeaderProps> = ({
 }) => {
   const { boardMetadata } = useBoardContext();
 
-  const boardName = boardMetadata?.name || "Untitled Board";
+  const boardName = propBoardName || boardMetadata?.name || "Untitled Board";
   const boardOwner = boardMetadata?.owner?.name || "Owner";
   const createdAt = boardMetadata?.createdAt;
   const updatedAt = boardMetadata?.updatedAt;
@@ -111,6 +122,14 @@ const CanvasHeader: React.FC<CanvasHeaderProps> = ({
 
   const [isExporting, setIsExporting] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  const getInitials = (name: string) =>
+    name
+      .split(" ")
+      .map((part) => part.charAt(0))
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
 
   const handleExport = async () => {
     if (!onExport) return;
@@ -133,6 +152,8 @@ const CanvasHeader: React.FC<CanvasHeaderProps> = ({
   };
 
   const isSmallScreen = isMobile || isTablet;
+
+
 
   return (
     <header className="fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-xl border-b border-slate-200/60 z-50 shadow-sm">
@@ -229,22 +250,12 @@ const CanvasHeader: React.FC<CanvasHeaderProps> = ({
         <div className="flex items-center gap-2">
           <div className="flex items-center -space-x-2">
             {users.slice(0, 4).map((user) => (
-              <div
-                key={user.id}
-                className="w-9 h-9 rounded-full ring-2 ring-white"
-                title={user.name}
-              >
-                <Image
-                  src={
-                    user.avatar ||
-                    `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`
-                  }
-                  alt={user.name}
-                  width={36}
-                  height={36}
-                  className="rounded-full"
-                />
-              </div>
+              <Avatar key={user.id} className="w-9 h-9 ring-2 ring-white bg-slate-200">
+                <AvatarImage src={user.avatar || ''} alt={user.name} />
+                <AvatarFallback className="text-slate-700 text-xs font-semibold">
+                  {getInitials(user.name)}
+                </AvatarFallback>
+              </Avatar>
             ))}
             {extraUserCount > 0 && (
               <div className="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-semibold text-xs ring-2 ring-white">
@@ -257,7 +268,31 @@ const CanvasHeader: React.FC<CanvasHeaderProps> = ({
             onClick={onInvite}
             label="Invite"
           />
-          <QuickActionButton icon={Share2} onClick={onShare} label="Share" />
+          {/* Enhanced Slack button with status indicator and quick actions */}
+          {/* Only render Slack button when relevant. It supports both with and without boardId. */}
+          <SlackButton
+            boardId={boardId}
+            boardName={boardName}
+            variant="primary"
+            size="md"
+            showQuickActions={true}
+            mode="light"
+          />
+          {/* Share menu now only for general sharing */}
+          <Dropdown>
+            <DropdownTrigger>
+              <button className="inline-flex items-center gap-2 px-3 h-9 text-sm font-semibold text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+                <Share2 className="w-4 h-4" />
+                Share
+              </button>
+            </DropdownTrigger>
+            <DropdownContent>
+              <DropdownItem onClick={onShare}>
+                <Share2 className="w-4 h-4 mr-2" /> Share link
+              </DropdownItem>
+
+            </DropdownContent>
+          </Dropdown>
           <div className="hidden sm:inline-flex"></div>
           {isSmallScreen && (
             <Dropdown>
@@ -300,6 +335,7 @@ const CanvasHeader: React.FC<CanvasHeaderProps> = ({
           )}
         </div>
       </div>
+      {/* Slack Composer is now handled by SlackButton component */}
     </header>
   );
 };

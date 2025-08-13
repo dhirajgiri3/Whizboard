@@ -79,9 +79,9 @@ export const handleStartRename = (
 export const handleFinishRename = (
   selectedFrames: FrameElement[],
   renameValue: string,
-  onFrameRenameAction?: (frameId: string, newName: string) => void,
   setIsRenaming: (value: boolean) => void,
-  setRenameValue: (value: string) => void
+  setRenameValue: (value: string) => void,
+  onFrameRenameAction?: (frameId: string, newName: string) => void
 ) => {
   if (
     selectedFrames.length === 1 &&

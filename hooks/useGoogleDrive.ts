@@ -188,6 +188,21 @@ export function useGoogleDrive() {
     }
   }, []);
 
+  // Lightweight fetch that returns ArrayBuffer and mime type without forcing a browser download.
+  const fetchFileData = useCallback(async (fileId: string): Promise<DownloadResult> => {
+    try {
+      const response = await api.get(`/api/integrations/google-drive/download?fileId=${fileId}`, { responseType: 'arraybuffer' });
+      const data = response.data as ArrayBuffer;
+      const fileNameHeader = response.headers['content-disposition'] as string | undefined;
+      const fileName = fileNameHeader?.split('filename=')[1]?.replace(/"/g, '') || 'download';
+      const mimeType = (response.headers['content-type'] as string) || 'application/octet-stream';
+      return { success: true, data, fileName, mimeType };
+    } catch (error) {
+      console.error('Error fetching file data:', error);
+      return { success: false, error: 'Failed to fetch file data' };
+    }
+  }, []);
+
   const deleteFile = useCallback(async (fileId: string): Promise<boolean> => {
     setIsLoading(true);
     try {
@@ -275,6 +290,7 @@ export function useGoogleDrive() {
     searchFiles,
     uploadFile,
     downloadFile,
+    fetchFileData,
     deleteFile,
     createFolder,
     exportBoardToGoogleDrive,

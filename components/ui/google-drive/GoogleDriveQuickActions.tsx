@@ -165,7 +165,7 @@ export function GoogleDriveQuickActions({
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/40 z-40"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
         onClick={() => setIsOpen(false)}
       />
 
@@ -174,7 +174,7 @@ export function GoogleDriveQuickActions({
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="fixed bottom-6 right-6 w-80 rounded-2xl shadow-2xl border border-white/[0.08] bg-[#111111] z-50 overflow-hidden"
+        className="fixed bottom-6 right-6 w-80 rounded-2xl shadow-2xl border border-white/[0.08] bg-[#111111] backdrop-blur-xl z-50 overflow-hidden"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/[0.08]">

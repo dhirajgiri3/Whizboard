@@ -10,6 +10,7 @@ import { headerAnimations, darkHeaderAnimations } from "./utils/animations";
 import { navigationItems, companyMenuItems, supportMenuItems, userMenuItems } from "./data/menuItems";
 import CreateBoardModal from "@/components/ui/modal/CreateBoardModal";
 import SuccessModal from "@/components/ui/modal/SuccessModal";
+import SlackButton from "@/components/ui/SlackButton";
 
 // Import components
 import Logo from "./components/Logo";
@@ -19,6 +20,7 @@ import CreateBoardButton from "./components/CreateBoardButton";
 import UserAvatar from "./components/UserAvatar";
 import UserDropdown from "./components/UserDropdown";
 import MobileMenu from "./components/MobileMenu";
+import NotificationBell from "./components/NotificationBell";
 
 const Header = () => {
   const { data: session, status } = useSession();
@@ -34,6 +36,7 @@ const Header = () => {
     id: string;
     name: string;
   } | null>(null);
+
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Use scroll direction hook
@@ -114,7 +117,7 @@ const Header = () => {
     <>
       {/* Desktop Header */}
       <motion.header
-        className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 hidden lg:block"
+        className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 hidden lg:block"
         variants={animations.header}
         animate={shouldShowHeader ? "visible" : "hidden"}
         transition={{
@@ -193,15 +196,31 @@ const Header = () => {
                   <CreateBoardButton onClick={handleCreateBoard} isLightMode={isLightMode} />
                 </motion.div>
 
+                {/* Slack Button */}
+                <motion.div
+                  variants={animations.fadeInUp}
+                  initial="initial"
+                  animate="animate"
+                  transition={{ delay: 0.45 }}
+                >
+                  <SlackButton
+                    variant="default"
+                    size="md"
+                    showQuickActions={true}
+                    mode={isLightMode ? 'light' : 'dark'}
+                  />
+                </motion.div>
+
                 {/* User Menu */}
                 <motion.div
                   variants={animations.fadeInUp}
                   initial="initial"
                   animate="animate"
                   transition={{ delay: 0.5 }}
-                  className="relative"
+                  className="relative flex items-center gap-3"
                   ref={dropdownRef}
                 >
+                  <NotificationBell />
                   <UserAvatar
                     session={session}
                     isDropdownOpen={isDropdownOpen}
@@ -265,6 +284,8 @@ const Header = () => {
           </nav>
         </motion.div>
       </motion.header>
+
+      {/* Slack functionality is now handled by SlackButton component */}
 
       {/* Mobile Header */}
       <motion.header

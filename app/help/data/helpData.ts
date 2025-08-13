@@ -4,10 +4,8 @@ import {
   Users, 
   HelpCircle, 
   Clock, 
-  Play, 
   Keyboard, 
   Star, 
-  MessageCircle, 
   Mail 
 } from "lucide-react";
 import { HelpCategory, QuickStartGuide, SupportOption } from "../types";
@@ -35,7 +33,17 @@ export const helpCategories: HelpCategory[] = [
         description: "Learn how to invite colleagues and start collaborating in real-time",
         difficulty: "beginner",
         timeToRead: "3 min",
-        tags: ["collaboration", "invite", "team"]
+        tags: [
+          "collaboration",
+          "invite",
+          "team",
+          "collaborator",
+          "members",
+          "share",
+          "sharing",
+          "permissions",
+          "access"
+        ]
       },
       {
         id: "basic-tools",
@@ -43,7 +51,7 @@ export const helpCategories: HelpCategory[] = [
         description: "Master the essential drawing, text, and shape tools",
         difficulty: "beginner",
         timeToRead: "8 min",
-        tags: ["tools", "drawing", "text", "shapes"]
+        tags: ["tools", "drawing", "pen", "pencil", "text", "shapes"]
       }
     ]
   },
@@ -153,55 +161,32 @@ export const quickStartGuides: QuickStartGuide[] = [
     title: "5-Minute Setup",
     description: "Get up and running in just 5 minutes",
     icon: Clock,
-    href: "#",
+    href: "/help/quick-start/5-min-setup",
     color: "from-blue-500 to-indigo-600"
-  },
-  {
-    title: "Video Tutorials",
-    description: "Watch step-by-step video guides",
-    icon: Play,
-    href: "#",
-    color: "from-blue-600 to-blue-700"
   },
   {
     title: "Keyboard Shortcuts",
     description: "Master productivity with keyboard shortcuts",
     icon: Keyboard,
-    href: "#",
+    href: "/help/shortcuts",
     color: "from-emerald-500 to-green-600"
   },
   {
     title: "Best Practices",
     description: "Learn from the pros with expert tips",
     icon: Star,
-    href: "#",
+    href: "/help/best-practices",
     color: "from-amber-500 to-orange-600"
   }
 ];
 
 export const supportOptions: SupportOption[] = [
   {
-    title: "Live Chat",
-    description: "Get instant help from our support team",
-    icon: MessageCircle,
-    href: "/contact",
-    cta: "Start Chat",
-    color: "from-blue-500 to-indigo-600"
-  },
-  {
     title: "Email Support",
     description: "Send us a detailed message",
     icon: Mail,
-    href: "mailto:support@whizboard.com",
+    href: "mailto:Hello@cyperstudio.in",
     cta: "Send Email",
     color: "from-emerald-500 to-green-600"
-  },
-  {
-    title: "Request Feature",
-    description: "Suggest new features or improvements",
-    icon: HelpCircle,
-    href: "/contact",
-    cta: "Submit Request",
-    color: "from-amber-500 to-orange-600"
   }
 ]; 

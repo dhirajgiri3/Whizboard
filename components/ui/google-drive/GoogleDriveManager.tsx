@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import {
   Folder,
   File,
@@ -56,6 +56,7 @@ export function GoogleDriveManager({
     deleteFile,
     createFolder,
   } = useGoogleDrive();
+  const prefersReducedMotion = useReducedMotion();
 
   const [currentFolderId, setCurrentFolderId] = useState<string | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
@@ -198,12 +199,12 @@ export function GoogleDriveManager({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50" role="dialog" aria-modal>
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="rounded-2xl w-full max-w-4xl h-[80vh] flex flex-col bg-[#111111] border border-white/[0.08]"
+        initial={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.96, y: 20 }}
+        animate={prefersReducedMotion ? undefined : { opacity: 1, scale: 1, y: 0 }}
+        exit={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.96, y: 20 }}
+        className="rounded-2xl w-full max-w-4xl h-[80vh] flex flex-col bg-[#111111] border border-white/[0.08] backdrop-blur-xl overflow-hidden"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/[0.08]">
@@ -225,7 +226,7 @@ export function GoogleDriveManager({
           {currentFolderId && (
             <button
               onClick={handleBackToParent}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-white/80 hover:bg-white/[0.06] rounded-lg"
+              className="flex items-center gap-2 px-3 py-2 text-sm text-white/80 hover:bg-white/[0.06] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <ArrowLeft className="w-4 h-4" />
               Back
@@ -240,7 +241,8 @@ export function GoogleDriveManager({
                 placeholder="Search files..."
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/[0.02] border border-white/[0.08] text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Search Google Drive files"
+                className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           )}
@@ -271,16 +273,16 @@ export function GoogleDriveManager({
 
         {/* Create Folder Modal */}
         {showCreateFolder && (
-          <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
-            <div className="w-96 rounded-2xl p-6 bg-white/[0.03] border border-white/[0.08]">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-10">
+            <div className="w-96 rounded-2xl p-6 bg-[#111111] border border-white/[0.08]">
               <h3 className="text-lg font-semibold mb-4 text-white">Create New Folder</h3>
               <input
                 type="text"
                 placeholder="Folder name"
                 value={newFolderName}
                 onChange={(e) => setNewFolderName(e.target.value)}
-                className="w-full px-3 py-2 mb-4 rounded-lg bg-white/[0.02] border border-white/[0.08] text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onKeyPress={(e) => e.key === 'Enter' && handleCreateFolder()}
+                className="w-full px-3 py-2 mb-4 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onKeyDown={(e) => e.key === 'Enter' && handleCreateFolder()}
               />
               <div className="flex gap-3">
                 <button
@@ -307,10 +309,28 @@ export function GoogleDriveManager({
               <RefreshCw className="w-6 h-6 animate-spin text-white/60" />
             </div>
           ) : files.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-white/60">
-              <Folder className="w-16 h-16 mb-4" />
-              <p className="text-lg font-medium">No files found</p>
-              <p className="text-sm">Upload files or create folders to get started</p>
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-white/[0.04] border border-white/[0.08] mb-3">
+                <Folder className="w-6 h-6 text-blue-400" />
+              </div>
+              <p className="text-white font-medium">No files yet</p>
+              <p className="text-sm text-white/70">Upload a file or create a folder to get started</p>
+              <div className="flex items-center gap-3 mt-4">
+                {allowCreateFolder && (
+                  <button
+                    onClick={() => setShowCreateFolder(true)}
+                    className="px-4 py-2 rounded-lg bg-white/[0.06] border border-white/[0.12] text-white hover:bg-white/[0.1] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <Plus className="w-4 h-4 mr-2 inline" /> New Folder
+                  </button>
+                )}
+                {allowUpload && (
+                  <label className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <Upload className="w-4 h-4" /> Upload
+                    <input type="file" onChange={handleFileUpload} className="hidden" />
+                  </label>
+                )}
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

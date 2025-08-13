@@ -121,7 +121,7 @@ const FrameSelectionManager: React.FC<SelectionRectProps> = ({
     }
 
     // Check if the target or its parents are interactive elements that should not trigger frame selection
-    let currentNode = target;
+    let currentNode: any = target;
     while (currentNode && currentNode !== stage) {
       if (typeof currentNode.hasName === 'function') {
         const hasTextElement = currentNode.hasName('text-element');
@@ -133,7 +133,12 @@ const FrameSelectionManager: React.FC<SelectionRectProps> = ({
           return;
         }
       }
-      currentNode = currentNode.getParent();
+      const parent = currentNode.getParent();
+      if (parent) {
+        currentNode = parent;
+      } else {
+        break;
+      }
     }
 
     // If we get here, it's a click on some other element - don't start frame selection

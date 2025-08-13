@@ -62,265 +62,135 @@ export class EmailService {
   private static getCommonEmailStyles(): string {
     return `
       <style>
-        body { 
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; 
-          margin: 0; 
-          padding: 0; 
-          background-color: #f8fafc; 
-          line-height: 1.6;
-        }
-        .email-wrapper { 
-          background-color: #f8fafc; 
-          padding: 20px 0; 
-          min-height: 100vh; 
-        }
-        .email-container { 
-          max-width: 600px; 
-          margin: 0 auto; 
-          background-color: #ffffff; 
-          border-radius: 12px; 
-          overflow: hidden; 
-          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); 
-        }
-        .header { 
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-          color: white; 
-          padding: 40px 30px; 
-          text-align: center; 
-          position: relative;
-        }
-        .header::after {
-          content: '';
-          position: absolute;
-          bottom: -1px;
-          left: 0;
-          width: 100%;
-          height: 20px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          transform: skewY(-1deg);
-          transform-origin: bottom left;
-        }
-        .header h1 { 
-          margin: 0; 
-          font-size: 32px; 
-          font-weight: 700; 
-          text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        .header p { 
-          margin: 10px 0 0; 
-          opacity: 0.95; 
-          font-size: 16px; 
-          font-weight: 300;
-        }
-        .content { 
-          padding: 50px 30px; 
-        }
-        .invitation-card { 
-          background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-          border-radius: 12px; 
-          padding: 30px; 
-          margin: 30px 0; 
-          border-left: 6px solid #667eea; 
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        }
-        .board-info { 
-          display: flex; 
-          align-items: center; 
-          margin-bottom: 20px; 
-        }
-        .board-icon { 
-          width: 50px; 
-          height: 50px; 
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          border-radius: 10px; 
-          display: flex; 
-          align-items: center; 
-          justify-content: center; 
-          color: white; 
-          font-size: 24px; 
-          margin-right: 15px;
-          box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
-        }
-        .board-name { 
-          font-size: 24px; 
-          font-weight: 700; 
-          color: #1e293b; 
+        /* Base */
+        body {
           margin: 0;
+          padding: 0;
+          background-color: #F3F4F6; /* gray-100 */
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          line-height: 1.6;
+          color: #111827; /* gray-900 */
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
-        .inviter-info { 
-          color: #64748b; 
-          font-size: 14px; 
-          margin-top: 5px; 
-          font-weight: 500;
+        .email-wrapper {
+          padding: 24px 0;
         }
-        .personal-message { 
-          background-color: #ffffff; 
-          border: 2px solid #e2e8f0; 
-          border-radius: 8px; 
-          padding: 20px; 
-          margin: 20px 0; 
-          font-style: italic; 
-          color: #475569; 
-          position: relative;
+        .email-container {
+          max-width: 640px;
+          margin: 0 auto;
+          background-color: #FFFFFF;
+          border: 1px solid #E5E7EB; /* gray-200 */
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
         }
-        .personal-message::before {
-          content: '"';
-          font-size: 48px;
-          color: #cbd5e1;
-          position: absolute;
-          top: -10px;
-          left: 10px;
-          font-family: serif;
-        }
-        .cta-section { 
-          text-align: center; 
-          margin: 40px 0; 
-        }
-        .cta-button { 
-          display: inline-block; 
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-          color: white; 
-          text-decoration: none; 
-          padding: 16px 40px; 
-          border-radius: 8px; 
-          font-weight: 600; 
-          font-size: 18px; 
-          transition: all 0.3s ease;
-          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-        .cta-button:hover { 
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
-        }
-        .secondary-cta {
-          display: inline-block;
-          background: transparent;
-          color: #667eea;
-          text-decoration: none;
-          padding: 12px 32px;
-          border: 2px solid #667eea;
-          border-radius: 8px;
-          font-weight: 600;
-          font-size: 16px;
-          margin-left: 15px;
-          transition: all 0.3s ease;
-        }
-        .secondary-cta:hover {
-          background: #667eea;
-          color: white;
-        }
-        .features-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 20px;
-          margin: 30px 0;
-        }
-        .feature-item {
-          text-align: center;
-          padding: 20px;
-        }
-        .feature-icon {
-          width: 40px;
-          height: 40px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          border-radius: 50%;
-          margin: 0 auto 10px;
+        .header {
+          padding: 20px 24px;
+          border-bottom: 1px solid #E5E7EB;
           display: flex;
           align-items: center;
-          justify-content: center;
-          color: white;
+          gap: 12px;
+        }
+        .brand-logo {
+          height: 24px;
+          width: auto;
+          display: inline-block;
+        }
+        .brand-name {
           font-size: 18px;
-        }
-        .feature-title {
-          font-weight: 600;
-          color: #1e293b;
-          margin-bottom: 5px;
-        }
-        .feature-desc {
-          font-size: 14px;
-          color: #64748b;
-        }
-        .alternative-link { 
-          background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-          border-radius: 8px; 
-          padding: 20px; 
-          margin-top: 30px; 
-          border: 1px solid #cbd5e1;
-        }
-        .alternative-link p { 
-          margin: 0 0 10px 0; 
-          color: #475569; 
-          font-size: 14px; 
-          font-weight: 500;
-        }
-        .alternative-link code { 
-          background-color: #1e293b; 
-          color: #e2e8f0;
-          padding: 8px 12px; 
-          border-radius: 6px; 
-          font-size: 12px; 
-          word-break: break-all;
-          display: block;
-          margin-top: 8px;
-        }
-        .footer { 
-          background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-          padding: 30px; 
-          text-align: center; 
-          border-top: 1px solid #e2e8f0; 
-        }
-        .footer p { 
-          margin: 5px 0; 
-          color: #64748b; 
-          font-size: 14px; 
-        }
-        .footer .logo {
           font-weight: 700;
-          color: #1e293b;
-          font-size: 16px;
+          color: #111827;
+          margin: 0;
         }
-        .expiry-notice {
-          background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
-          border: 2px solid #f59e0b;
+        .content {
+          padding: 28px 24px 24px 24px;
+        }
+        h1, h2, h3 {
+          color: #111827;
+          margin: 0 0 8px 0;
+        }
+        h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+        p { color: #4B5563; /* gray-600 */ font-size: 16px; margin: 0 0 16px 0; }
+        .section {
+          background-color: #F9FAFB; /* gray-50 */
+          border: 1px solid #F3F4F6; /* gray-100 */
+          border-radius: 10px;
+          padding: 16px;
+          margin: 16px 0;
+        }
+        .meta { color: #6B7280; font-size: 14px; }
+        .card {
+          border: 1px solid #E5E7EB;
+          border-radius: 10px;
+          padding: 16px;
+          margin: 16px 0;
+          background: #FFFFFF;
+        }
+        .cta { margin: 24px 0 8px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .button {
+          display: inline-block;
+          background-color: #2563EB; /* primary blue-600 */
+          color: #FFFFFF;
+          text-decoration: none;
+          padding: 12px 20px;
+          min-height: 44px;
+          line-height: 20px;
+          font-weight: 600;
+          font-size: 14px;
+          border-radius: 10px;
+        }
+        .button:hover { background-color: #1D4ED8; /* blue-700 */ }
+        .button-secondary {
+          display: inline-block;
+          background-color: transparent;
+          color: #1D4ED8; /* slightly darker for contrast */
+          text-decoration: none;
+          padding: 10px 16px;
+          border: 1px solid #93C5FD; /* blue-300 */
+          border-radius: 10px;
+          font-weight: 600;
+          font-size: 14px;
+          margin-left: 0;
+        }
+        .muted { color: #6B7280; font-size: 12px; }
+        .alt-link {
+          background-color: #F9FAFB;
+          border: 1px solid #E5E7EB;
+          border-radius: 10px;
+          padding: 12px;
+          margin-top: 16px;
+          word-break: break-all;
+        }
+        .alt-link code {
+          display: block;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+          font-size: 13px;
+          color: #111827;
+          background: #F3F4F6;
+          padding: 8px 10px;
           border-radius: 8px;
-          padding: 15px;
-          margin: 25px 0;
+        }
+        .footer {
+          padding: 18px 24px;
+          border-top: 1px solid #E5E7EB;
           text-align: center;
         }
-        .expiry-notice p {
-          margin: 0;
-          color: #92400e;
-          font-weight: 600;
-          font-size: 14px;
+        .footer p { margin: 4px 0; font-size: 12px; color: #6B7280; }
+        .warning {
+          background: #FEF3C7; /* amber-100 */
+          border: 1px solid #F59E0B; /* amber-500 */
+          color: #92400E; /* amber-800 */
+          border-radius: 10px;
+          padding: 10px 12px;
+          text-align: center;
+          font-size: 12px;
+          margin: 16px 0 0 0;
         }
         @media only screen and (max-width: 600px) {
-          .email-container { 
-            margin: 10px; 
-            border-radius: 8px; 
-          }
-          .content { 
-            padding: 30px 20px; 
-          }
-          .header { 
-            padding: 30px 20px; 
-          }
-          .header h1 { 
-            font-size: 28px; 
-          }
-          .invitation-card { 
-            padding: 20px; 
-          }
-          .features-grid {
-            grid-template-columns: 1fr;
-          }
-          .cta-button {
-            display: block;
-            margin: 10px 0;
-          }
-          .secondary-cta {
-            display: block;
-            margin: 10px 0;
-          }
+          .content { padding: 20px 16px; }
+          .header { padding: 16px; }
+          .email-container { border-radius: 10px; margin: 8px; }
         }
       </style>
     `;
@@ -346,13 +216,12 @@ export class EmailService {
           <div class="email-wrapper">
             <div class="email-container">
               <div class="header">
-                <h1>🎨 WhizBoard</h1>
-                <p>Real-time Collaborative Whiteboard</p>
+                <p class="brand-name">WhizBoard</p>
               </div>
               
               <div class="content">
-                <h2 style="color: #1e293b; font-size: 28px; margin-bottom: 10px;">You're Invited to Collaborate!</h2>
-                <p style="color: #64748b; font-size: 16px; margin-bottom: 30px;">
+                <h2>You're invited to collaborate</h2>
+                <p>
                   <strong>${inviterName}</strong> has invited you to collaborate on their whiteboard project.
                 </p>
                 
@@ -379,52 +248,29 @@ export class EmailService {
                   ` : ''}
                 </div>
                 
-                <div class="features-grid">
-                  <div class="feature-item">
-                    <div class="feature-icon">⚡</div>
-                    <div class="feature-title">Real-time</div>
-                    <div class="feature-desc">Collaborate in real-time with live cursors</div>
-                  </div>
-                  <div class="feature-item">
-                    <div class="feature-icon">🎨</div>
-                    <div class="feature-title">Creative Tools</div>
-                    <div class="feature-desc">Draw, sketch, and brainstorm together</div>
-                  </div>
-                  <div class="feature-item">
-                    <div class="feature-icon">💾</div>
-                    <div class="feature-title">Auto-save</div>
-                    <div class="feature-desc">Never lose your work with automatic saving</div>
-                  </div>
-                </div>
+                
                 
                 <div class="cta-section">
-                  <a href="${invitationUrl}" class="cta-button" style="color: white; text-decoration: none;">
-                    🚀 Accept Invitation & Join Board
-                  </a>
-                  <a href="${declineUrl}" class="secondary-cta" style="color: #667eea; text-decoration: none;">
-                    Decline Invitation
-                  </a>
+                  <a href="${invitationUrl}" class="button">Accept invitation and join board</a>
+                  <a href="${declineUrl}" class="button-secondary">Decline</a>
                 </div>
                 
-                <div class="alternative-link">
-                  <p><strong>Having trouble with the buttons?</strong> Copy and paste this link into your browser:</p>
+                <div class="alt-link">
+                  <p style="margin:0 0 8px 0; font-weight:600; color:#374151;">Having trouble with the button?</p>
                   <code>${invitationUrl}</code>
                 </div>
                 
-                <div class="expiry-notice">
-                  <p>⏰ This invitation expires in 7 days. Don't miss out on the collaboration!</p>
-                </div>
+                <p class="warning">This invitation expires in 7 days.</p>
                 
-                <p style="color: #64748b; font-size: 14px; line-height: 1.5; margin-top: 30px;">
+                <p class="muted" style="margin-top:12px;">
                   If you don't have a WhizBoard account yet, you'll be prompted to create one when you accept the invitation. 
                   It's quick, free, and you can sign in with your Google account.
                 </p>
               </div>
               
               <div class="footer">
-                <p class="logo">WhizBoard</p>
-                <p>&copy; 2025 WhizBoard. All rights reserved.</p>
-                <p>Empowering teams through visual collaboration</p>
+                <p>&copy; 2025 WhizBoard</p>
+                <p>Real-time collaborative whiteboard for teams</p>
               </div>
             </div>
           </div>
@@ -436,7 +282,7 @@ export class EmailService {
   static async sendInvitationEmail(data: InvitationEmailData): Promise<boolean> {
     try {
       // Use a verified email address - for development, use your own email or set up domain verification
-      const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'hello@cyperstudio.in'; // Use your verified email
+      const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'Hello@cyperstudio.in';
       
       const msg = {
         to: data.inviteeEmail,
@@ -444,7 +290,7 @@ export class EmailService {
           email: fromEmail, // Use verified email address
           name: 'WhizBoard Team'
         },
-        subject: `🎨 ${data.inviterName} invited you to collaborate on "${data.boardName}"`,
+        subject: `${data.inviterName} invited you to collaborate on "${data.boardName}" - WhizBoard`,
         html: this.generateInvitationEmailHtml(data),
         text: `You've been invited to collaborate on "${data.boardName}" by ${data.inviterName}. 
                
@@ -502,7 +348,7 @@ Real-time collaborative whiteboard for teams`,
 
   static async sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean> {
     try {
-      const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'dhirajgiri334@gmail.com';
+      const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'Hello@cyperstudio.in';
       
       const msg = {
         to: data.userEmail,
@@ -511,8 +357,8 @@ Real-time collaborative whiteboard for teams`,
           name: 'WhizBoard Team'
         },
         subject: data.inviterName 
-          ? `🎉 Welcome to WhizBoard! You've joined "${data.boardName}"`
-          : '🎉 Welcome to WhizBoard!',
+          ? `Welcome to WhizBoard — You joined "${data.boardName}"`
+          : 'Welcome to WhizBoard',
         html: this.generateWelcomeEmailHtml(data),
         text: `Welcome to WhizBoard, ${data.userName}! 
 
@@ -564,7 +410,7 @@ Real-time collaborative whiteboard for teams`,
 
   static async sendCollaboratorJoinedNotification(data: CollaboratorNotificationData): Promise<boolean> {
     try {
-      const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'dhirajgiri334@gmail.com';
+      const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'Hello@cyperstudio.in';
       
       const msg = {
         to: data.ownerEmail,
@@ -572,7 +418,7 @@ Real-time collaborative whiteboard for teams`,
           email: fromEmail,
           name: 'WhizBoard Team'
         },
-        subject: `🎉 ${data.collaboratorName} joined your board "${data.boardName}"`,
+        subject: `${data.collaboratorName} joined your board "${data.boardName}" - WhizBoard`,
         html: this.generateCollaboratorJoinedEmailHtml(data),
         text: `Great news! ${data.collaboratorName} (${data.collaboratorEmail}) has joined your board "${data.boardName}".
 
@@ -631,14 +477,11 @@ WhizBoard Team`,
           <div class="email-wrapper">
             <div class="email-container">
               <div class="header">
-                <h1>🎉 Welcome to WhizBoard!</h1>
-                <p>Your collaborative whiteboard journey starts here</p>
+                <p class="brand-name">WhizBoard</p>
               </div>
               
               <div class="content">
-                <h2 style="color: #1e293b; font-size: 28px; margin-bottom: 10px;">
-                  Hello ${data.userName}!
-                </h2>
+                <h2>Hello ${data.userName}!</h2>
                 
                 ${data.inviterName ? `
                   <p style="color: #64748b; font-size: 16px; margin-bottom: 30px;">
@@ -646,34 +489,20 @@ WhizBoard Team`,
                     Welcome to the team!
                   </p>
                 ` : `
-                  <p style="color: #64748b; font-size: 16px; margin-bottom: 30px;">
-                    We're thrilled to have you join our collaborative whiteboard platform. 
-                    Get ready to unleash your creativity and collaborate like never before!
-                  </p>
+                  <p>We’re excited to have you. Create boards, collaborate in real-time, and bring ideas to life.</p>
                 `}
                 
-                <div class="features-grid">
-                  <div class="feature-item">
-                    <div class="feature-icon">🎨</div>
-                    <div class="feature-title">Create & Draw</div>
-                    <div class="feature-desc">Unlimited boards with powerful drawing tools</div>
-                  </div>
-                  <div class="feature-item">
-                    <div class="feature-icon">👥</div>
-                    <div class="feature-title">Collaborate</div>
-                    <div class="feature-desc">Real-time collaboration with live cursors</div>
-                  </div>
-                  <div class="feature-item">
-                    <div class="feature-icon">🔄</div>
-                    <div class="feature-title">Sync & Save</div>
-                    <div class="feature-desc">Automatic saving and version history</div>
-                  </div>
+                <div class="section">
+                  <h3 style="font-size:16px; margin:0 0 8px 0;">Quick start</h3>
+                  <ul style="padding-left:18px; margin:0; color:#4B5563; font-size:14px;">
+                    <li>Create a new board and sketch ideas</li>
+                    <li>Invite teammates to collaborate</li>
+                    <li>Use text, shapes, and sticky notes</li>
+                  </ul>
                 </div>
                 
-                <div class="cta-section">
-                  <a href="${boardUrl}" class="cta-button" style="color: white; text-decoration: none;">
-                    ${data.inviterName ? '🚀 Go to Board' : '🚀 Get Started'}
-                  </a>
+                <div class="cta">
+                  <a href="${boardUrl}" class="button">${data.inviterName ? 'Open WhizBoard' : 'Get started'}</a>
                 </div>
                 
                 <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; padding: 25px; margin: 30px 0; border-left: 4px solid #0ea5e9;">
@@ -688,9 +517,8 @@ WhizBoard Team`,
               </div>
               
               <div class="footer">
-                <p class="logo">WhizBoard</p>
-                <p>&copy; 2025 WhizBoard. All rights reserved.</p>
-                <p>Empowering teams through visual collaboration</p>
+                <p>&copy; 2025 WhizBoard</p>
+                <p>Real-time collaborative whiteboard for teams</p>
               </div>
             </div>
           </div>
@@ -716,50 +544,23 @@ WhizBoard Team`,
           <div class="email-wrapper">
             <div class="email-container">
               <div class="header">
-                <h1>🎉 WhizBoard</h1>
-                <p>Collaboration Update</p>
+                <p class="brand-name">WhizBoard</p>
               </div>
               
               <div class="content">
-                <h2 style="color: #1e293b; font-size: 28px; margin-bottom: 10px;">
-                  Great news, ${data.ownerName}!
-                </h2>
-                
-                <p style="color: #64748b; font-size: 16px; margin-bottom: 30px;">
-                  <strong>${data.collaboratorName}</strong> has joined your board and is ready to collaborate.
-                </p>
-                
-                <div class="invitation-card">
-                  <div class="board-info">
-                    <div class="board-icon">🎯</div>
-                    <div>
-                      <h3 class="board-name">${data.boardName}</h3>
-                      <p class="inviter-info">New collaborator: ${data.collaboratorName} (${data.collaboratorEmail})</p>
-                    </div>
-                  </div>
+                <h2>New collaborator joined</h2>
+                <p class="meta">${data.collaboratorName} (${data.collaboratorEmail}) joined your board</p>
+                <div class="card">
+                  <h3 style="margin:0; font-size:16px;">${data.boardName}</h3>
                 </div>
-                
-                <div class="cta-section">
-                  <a href="${boardUrl}" class="cta-button" style="color: white; text-decoration: none;">
-                    🚀 View Board & Collaborate
-                  </a>
-                </div>
-                
-                <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 12px; padding: 25px; margin: 30px 0; border-left: 4px solid #22c55e;">
-                  <h3 style="color: #15803d; margin-top: 0;">Collaboration Features:</h3>
-                  <ul style="color: #16a34a; margin: 0; padding-left: 20px;">
-                    <li>See live cursors of all collaborators</li>
-                    <li>Real-time drawing and editing</li>
-                    <li>Instant synchronization across all devices</li>
-                    <li>Collaborative history and undo/redo</li>
-                  </ul>
+                <div class="cta">
+                  <a href="${boardUrl}" class="button">Open board</a>
                 </div>
               </div>
               
               <div class="footer">
-                <p class="logo">WhizBoard</p>
-                <p>&copy; 2025 WhizBoard. All rights reserved.</p>
-                <p>Empowering teams through visual collaboration</p>
+                <p>&copy; 2025 WhizBoard</p>
+                <p>Real-time collaborative whiteboard for teams</p>
               </div>
             </div>
           </div>
@@ -769,13 +570,8 @@ WhizBoard Team`,
   }
 
   public static async sendWorkspaceInvitationEmail(data: WorkspaceInvitationEmailData): Promise<boolean> {
-    if (!this.isConfigured()) {
-      logger.warn('SendGrid not configured, skipping workspace invitation email');
-      return false;
-    }
-
     try {
-      const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'noreply@whizboard.com';
+      const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'Hello@cyperstudio.in';
       
       const msg = {
         to: data.inviteeEmail,
@@ -783,13 +579,15 @@ WhizBoard Team`,
           email: fromEmail,
           name: 'WhizBoard Team'
         },
-        subject: `🚀 ${data.inviterName} invited you to join "${data.workspaceName}" workspace`,
+        subject: `${data.inviterName} invited you to join "${data.workspaceName}" workspace - WhizBoard`,
         html: this.generateWorkspaceInvitationEmailHtml(data),
         text: `${data.inviterName} has invited you to join the "${data.workspaceName}" workspace on WhizBoard as a ${data.role}.
 
 Accept invitation: ${this.getBaseUrl()}/workspace/invite?token=${data.invitationToken}&email=${encodeURIComponent(data.inviteeEmail)}
 
----
+This invitation expires in 7 days.
+
+--
 WhizBoard Team
 Real-time collaborative whiteboard for teams`,
         trackingSettings: {
@@ -817,63 +615,39 @@ Real-time collaborative whiteboard for teams`,
     
     return `
       <!DOCTYPE html>
-      <html>
+      <html lang="en">
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Workspace Invitation - WhizBoard</title>
-          ${this.getEmailStyles()}
+          ${this.getCommonEmailStyles()}
         </head>
         <body>
-          <div class="email-container">
-            <div class="email-content">
+          <div class="email-wrapper">
+            <div class="email-container">
               <div class="header">
-                <h1>🚀 You're Invited to Join a Workspace!</h1>
-                <p style="color: #64748b; font-size: 16px; margin-bottom: 30px;">
-                  <strong>${inviterName}</strong> has invited you to join the <strong>"${workspaceName}"</strong> workspace on WhizBoard as a <strong>${role}</strong>.
-                </p>
-                
-                <div class="invitation-card">
-                  <div class="board-info">
-                    <div class="board-icon">🏢</div>
-                    <div>
-                      <h3 style="margin: 0; color: #1e293b; font-size: 18px;">${workspaceName}</h3>
-                      <p style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;">
-                        Role: ${role.charAt(0).toUpperCase() + role.slice(1)}
-                      </p>
-                    </div>
-                  </div>
+                <p class="brand-name">WhizBoard</p>
+              </div>
+              <div class="content">
+                <h2>You're invited to join a workspace</h2>
+                <p class="meta">Invited by ${inviterName}</p>
+                <div class="card">
+                  <h3 style="margin:0 0 6px 0; font-size:16px;">${workspaceName}</h3>
+                  <p class="meta" style="margin:0;">Role: ${role.charAt(0).toUpperCase() + role.slice(1)}</p>
                 </div>
-                
-                <div class="features-section">
-                  <h3 style="color: #1e293b; margin-bottom: 15px;">What you'll get access to:</h3>
-                  <ul style="color: #16a34a; margin: 0; padding-left: 20px;">
-                    <li>Collaborate with team members in real-time</li>
-                    <li>Create and manage unlimited boards</li>
-                    <li>Share ideas with powerful drawing tools</li>
-                    <li>Access workspace-wide resources and templates</li>
-                  </ul>
+                <div class="cta">
+                  <a href="${invitationUrl}" class="button">Accept invitation</a>
+                  <a href="${declineUrl}" class="button-secondary">Decline</a>
                 </div>
-                
-                <div class="cta-section">
-                  <a href="${invitationUrl}" class="cta-button" style="color: white; text-decoration: none;">
-                    🚀 Accept Invitation & Join Workspace
-                  </a>
-                  <a href="${declineUrl}" class="secondary-cta" style="color: #667eea; text-decoration: none;">
-                    Decline Invitation
-                  </a>
-                </div>
-
-                <div class="alternative-link">
-                  <p><strong>Having trouble with the buttons?</strong> Copy and paste this link into your browser:</p>
+                <div class="alt-link">
+                  <p style="margin:0 0 8px 0; font-weight:600; color:#374151;">Having trouble with the button?</p>
                   <code>${invitationUrl}</code>
                 </div>
+                <p class="warning">This invitation expires in 7 days.</p>
               </div>
-              
               <div class="footer">
-                <p class="logo">WhizBoard</p>
-                <p>&copy; 2025 WhizBoard. All rights reserved.</p>
-                <p>Empowering teams through visual collaboration</p>
+                <p>&copy; 2025 WhizBoard</p>
+                <p>Real-time collaborative whiteboard for teams</p>
               </div>
             </div>
           </div>
