@@ -1,4 +1,5 @@
 import { AuthOptions } from 'next-auth';
+import { randomUUID as nodeRandomUUID } from 'crypto';
 import GoogleProvider from 'next-auth/providers/google';
 import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
 import clientPromise from '@/lib/database/mongodb';
@@ -82,7 +83,9 @@ export const authOptions: AuthOptions = {
         (token as any).emailVerified = (user as any).emailVerified;
         (token as any).provider = account.provider;
         (token as any).iat = Math.floor(Date.now() / 1000);
-        (token as any).jti = crypto.randomUUID();
+        (token as any).jti = (globalThis as any).crypto?.randomUUID
+          ? (globalThis as any).crypto.randomUUID()
+          : nodeRandomUUID();
         // Initialize tokenVersion used for session invalidation
         (token as any).tokenVersion = (user as any).tokenVersion ?? 0;
       }
