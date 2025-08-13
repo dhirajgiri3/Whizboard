@@ -27,6 +27,18 @@ export default function AuthErrorPage() {
           message: 'Please check your email and click the verification link.',
           action: 'Check your email'
         };
+      case 'Callback':
+        return {
+          title: 'Authentication Configuration Error',
+          message: 'There was an issue with the authentication setup. This is typically caused by incorrect OAuth configuration or missing environment variables.',
+          action: 'Contact Support'
+        };
+      case 'Configuration':
+        return {
+          title: 'Authentication Configuration Error',
+          message: 'The authentication system is not properly configured. Please check your environment variables and OAuth settings.',
+          action: 'Contact Support'
+        };
       default:
         return {
           title: 'Authentication Error',
