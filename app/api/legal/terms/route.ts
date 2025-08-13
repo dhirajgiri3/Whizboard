@@ -47,7 +47,7 @@ let termsDocuments: LegalDocument[] = [
 
       ## 8. CONTACT US
 
-      If you have any questions about these Terms, please contact us at legal@whizboard.com.
+      If you have any questions about these Terms, please contact us at Hello@cyperstudio.in.
 
       Last updated: July 01, 2024
     `,

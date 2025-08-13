@@ -13,7 +13,6 @@ import {
   Calendar,
   Mail,
   Download,
-  ExternalLink,
   ArrowRight,
   Lock,
   Globe,
@@ -23,6 +22,9 @@ import {
   Eye,
   Handshake,
 } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
+import { downloadPDF, createContentFromSections } from "@/lib/utils/pdfGenerator";
+import { LEGAL_DOCUMENTS } from "@/lib/constants/legalDocuments";
 
 // Animation variants
 const fadeInUp = {
@@ -223,7 +225,7 @@ const termsSections = [
       <h3>Data Usage</h3>
       <ul>
         <li>We use your data to provide and improve our services</li>
-        <li>We may use anonymized data for analytics</li>
+        <li>We may use anonymized data for research</li>
         <li>We will not share your data without your consent</li>
         <li>We comply with applicable data protection laws</li>
       </ul>
@@ -385,7 +387,7 @@ const termsSections = [
       <h3>Arbitration</h3>
       <ul>
         <li>Disputes may be resolved through binding arbitration</li>
-        <li>Arbitration will be conducted in San Francisco, CA</li>
+        <li>Arbitration will be conducted in Delhi, India</li>
         <li>Arbitration is more efficient than court proceedings</li>
         <li>You waive your right to a jury trial</li>
       </ul>
@@ -448,14 +450,14 @@ const termsSections = [
       
       <h3>Legal Department</h3>
       <ul>
-        <li>Email: legal@whizboard.com</li>
-        <li>Phone: +1 (555) 123-4567</li>
-        <li>Address: 123 Market Street, Suite 456, San Francisco, CA 94102</li>
+        <li>Email: Hello@cyperstudio.in</li>
+        <li>Phone: +919569691483</li>
+        <li>Address: Delhi, India</li>
       </ul>
       
       <h3>Support Team</h3>
       <ul>
-        <li>Email: support@whizboard.com</li>
+        <li>Email: Hello@cyperstudio.in</li>
         <li>For general questions about our services</li>
         <li>Available during business hours</li>
       </ul>
@@ -480,86 +482,137 @@ const termsSections = [
 
 export default function TermsPage() {
   const [activeSection, setActiveSection] = useState<string>("overview");
+  const [isDownloading, setIsDownloading] = useState(false);
+  
+  const handleTocClick = (id: string) => {
+    setActiveSection(id);
+    if (typeof window !== "undefined") {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const handleDownloadPDF = () => {
+    setIsDownloading(true);
+    try {
+      const { TERMS_OF_SERVICE } = LEGAL_DOCUMENTS;
+      const fullContent = createContentFromSections(termsSections);
+      const termsContent = `# ${TERMS_OF_SERVICE.title}
+
+${fullContent}
+
+Last updated: ${TERMS_OF_SERVICE.lastUpdated}
+Version: ${TERMS_OF_SERVICE.version}
+Effective Date: ${TERMS_OF_SERVICE.effectiveDate}`;
+
+      downloadPDF({
+        title: TERMS_OF_SERVICE.title,
+        content: termsContent,
+        filename: "whizboard-terms-of-service.pdf",
+        version: TERMS_OF_SERVICE.version,
+        effectiveDate: TERMS_OF_SERVICE.effectiveDate
+      });
+    } catch (error) {
+      console.error('PDF download failed:', error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Hero Section */}
-      <section className="relative pt-20 pb-32 overflow-hidden">
+    <div className="relative min-h-screen bg-[#0A0A0B] text-white overflow-hidden">
+
+      {/* Gradient orbs */}
+      <motion.div
+        className="absolute -top-16 -left-10 w-72 h-72 md:w-96 md:h-96"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(37,99,235,0.38) 0%, rgba(37,99,235,0.12) 50%, transparent 70%)",
+          filter: "blur(38px)",
+        }}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+      />
+      <motion.div
+        className="absolute bottom-24 right-0 w-64 h-64 md:w-80 md:h-80"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(115,115,115,0.20) 0%, rgba(115,115,115,0.06) 50%, transparent 70%)",
+          filter: "blur(48px)",
+        }}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1.2, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+      />
+
+      {/* Top bar with Back */}
+      <div className="container mx-auto px-4 max-w-6xl pt-24 relative z-10">
+        <BackButton variant="dark" position="relative" size="md" label="Back to Home" />
+      </div>
+
+      {/* Hero */}
+      <section className="relative pt-14 pb-12 md:pt-20 md:pb-16">
         <div className="container mx-auto px-4 max-w-6xl relative z-10">
           <motion.div
-            initial={{ opacity: 0, y: 60 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.6, -0.05, 0.01, 0.99] }}
-            className="text-center mb-16"
+            className="text-center mb-8 md:mb-10"
           >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-6"
-            >
-              <Scale className="w-4 h-4" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/90 text-sm font-medium mb-6">
+              <Scale className="w-4 h-4 text-blue-400" />
               Legal & Terms
-            </motion.div>
-            
-            <h1 className="text-5xl lg:text-6xl font-bold text-slate-800 mb-6 leading-tight">
-              Terms of{" "}
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Service
-              </span>
-            </h1>
-            
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto mb-12 leading-relaxed">
-              These terms govern your use of WhizBoard. By using our service, you agree to these terms 
-              and our commitment to providing a safe, collaborative environment.
+            </div>
+
+            <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight">Terms of Service</h1>
+
+            <p className="text-white/70 max-w-3xl mx-auto mt-3">
+              These terms govern your use of WhizBoard. By using our service, you agree to these terms and our commitment to a safe, collaborative environment.
             </p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-            >
-              <div className="flex items-center gap-2 text-slate-600">
-                <Calendar className="w-4 h-4" />
-                <span className="text-sm">Last updated: January 15, 2024</span>
+            <div className="mt-5 flex flex-col sm:flex-row gap-3 justify-center items-center text-white/70">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-blue-400" />
+                <span className="text-sm">Last updated: 15/01/2024</span>
               </div>
-              <div className="flex items-center gap-2 text-slate-600">
-                <CheckCircle className="w-4 h-4" />
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-400" />
                 <span className="text-sm">Legally Binding Agreement</span>
               </div>
-            </motion.div>
+            </div>
           </motion.div>
         </div>
       </section>
 
       {/* Table of Contents */}
-      <section className="py-12 bg-white">
-        <div className="container mx-auto px-4 max-w-6xl">
+      <section className="py-6 md:py-8">
+        <div className="container mx-auto px-4 max-w-6xl relative z-10">
           <motion.div
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
             variants={fadeInUp}
-            className="bg-slate-50 rounded-2xl p-8"
+            className="rounded-2xl p-6 bg-white/[0.03] border border-white/[0.08]"
           >
-            <h2 className="text-2xl font-bold text-slate-800 mb-6">Table of Contents</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {termsSections.map((section, index) => {
+            <h2 className="text-xl md:text-2xl font-semibold text-white mb-4">Table of Contents</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {termsSections.map((section) => {
                 const Icon = section.icon;
+                const isActive = activeSection === section.id;
                 return (
                   <button
                     key={section.id}
-                    onClick={() => setActiveSection(section.id)}
-                    className={`text-left p-4 rounded-xl transition-all duration-200 ${
-                      activeSection === section.id
-                        ? 'bg-blue-100 border-blue-300'
-                        : 'bg-white hover:bg-slate-100 border-slate-200'
-                    } border`}
+                    onClick={() => handleTocClick(section.id)}
+                    className={`text-left p-4 rounded-xl transition-all duration-200 border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      isActive
+                        ? "bg-blue-600/15 border-blue-500/30"
+                        : "bg-white/[0.02] hover:bg-white/[0.05] border-white/[0.08]"
+                    }`}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon className="w-5 h-5 text-blue-600" />
-                      <span className="font-medium text-slate-800">{section.title}</span>
+                      <Icon className="w-5 h-5 text-blue-400" />
+                      <span className="font-medium text-white/90">{section.title}</span>
                     </div>
                   </button>
                 );
@@ -569,34 +622,29 @@ export default function TermsPage() {
         </div>
       </section>
 
-      {/* Terms Content */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4 max-w-4xl">
+      {/* Content */}
+      <section className="py-10 md:py-14">
+        <div className="container mx-auto px-4 max-w-4xl relative z-10">
           <motion.div
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="space-y-16"
+            className="space-y-10 md:space-y-12"
           >
-            {termsSections.map((section, index) => {
+            {termsSections.map((section) => {
               const Icon = section.icon;
               return (
-                <motion.div
-                  key={section.id}
-                  variants={fadeInUp}
-                  id={section.id}
-                  className="scroll-mt-20"
-                >
-                  <div className="flex items-center gap-4 mb-8">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                      <Icon className="w-6 h-6 text-white" />
+                <motion.div key={section.id} variants={fadeInUp} id={section.id} className="scroll-mt-24">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-blue-600/15 border border-blue-500/30 flex items-center justify-center">
+                      <Icon className="w-6 h-6 text-blue-300" />
                     </div>
-                    <h2 className="text-3xl font-bold text-slate-800">{section.title}</h2>
+                    <h2 className="text-2xl font-semibold text-white">{section.title}</h2>
                   </div>
-                  
-                  <div 
-                    className="prose prose-slate max-w-none"
+
+                  <div
+                    className="prose prose-invert max-w-none prose-headings:text-white prose-a:text-blue-400 prose-strong:text-white prose-li:marker:text-white/50"
                     dangerouslySetInnerHTML={{ __html: section.content }}
                   />
                 </motion.div>
@@ -606,9 +654,9 @@ export default function TermsPage() {
         </div>
       </section>
 
-      {/* Contact and Download */}
-      <section className="py-20 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        <div className="container mx-auto px-4 max-w-4xl">
+      {/* CTA */}
+      <section className="pb-12 md:pb-16">
+        <div className="container mx-auto px-4 max-w-4xl relative z-10">
           <motion.div
             initial="initial"
             whileInView="animate"
@@ -616,41 +664,35 @@ export default function TermsPage() {
             variants={fadeInUp}
             className="text-center"
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-6">
-              Questions About Terms?
-            </h2>
-            <p className="text-xl text-slate-600 mb-12">
-              We're here to help clarify any questions about our terms of service.
-            </p>
+            <h2 className="text-3xl font-bold text-white mb-3">Questions About Terms?</h2>
+            <p className="text-white/70 mb-8">We're here to help clarify any questions about our terms of service.</p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="grid md:grid-cols-2 gap-6"
-            >
+            <div className="grid md:grid-cols-2 gap-4">
               <Link
                 href="/contact"
-                className="group bg-white rounded-xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                className="group rounded-xl text-left p-6 bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] hover:border-white/[0.12] transition-all duration-300"
               >
-                <Mail className="w-8 h-8 text-blue-600 mb-4" />
-                <h3 className="font-bold text-slate-800 mb-2">Contact Legal Team</h3>
-                <p className="text-slate-600 text-sm mb-4">Get in touch with our legal experts</p>
-                <span className="text-blue-600 font-medium text-sm group-hover:text-blue-700 transition-colors">
-                  Send Message →
+                <Mail className="w-8 h-8 text-blue-400 mb-4" />
+                <h3 className="font-semibold text-white mb-2">Contact Legal Team</h3>
+                <p className="text-white/70 text-sm mb-4">Get in touch with our legal experts</p>
+                <span className="text-blue-400 font-medium text-sm group-hover:text-blue-300 transition-colors inline-flex items-center gap-1">
+                  Send Message <ArrowRight className="w-4 h-4" />
                 </span>
               </Link>
 
-              <button className="group bg-white rounded-xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <Download className="w-8 h-8 text-blue-600 mb-4" />
-                <h3 className="font-bold text-slate-800 mb-2">Download Terms</h3>
-                <p className="text-slate-600 text-sm mb-4">Get a PDF copy of these terms</p>
-                <span className="text-blue-600 font-medium text-sm group-hover:text-blue-700 transition-colors">
-                  Download PDF →
+              <button 
+                onClick={handleDownloadPDF}
+                disabled={isDownloading}
+                className="group rounded-xl p-6 text-left bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] hover:border-white/[0.12] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Download className="w-8 h-8 text-blue-400 mb-4" />
+                <h3 className="font-semibold text-white mb-2">Download Terms</h3>
+                <p className="text-white/70 text-sm mb-4">Get a PDF copy of these terms</p>
+                <span className="text-blue-400 font-medium text-sm group-hover:text-blue-300 transition-colors inline-flex items-center gap-1">
+                  {isDownloading ? "Generating..." : "Download PDF"} <ArrowRight className="w-4 h-4" />
                 </span>
               </button>
-            </motion.div>
+            </div>
           </motion.div>
         </div>
       </section>

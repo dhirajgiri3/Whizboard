@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect } from 'react';
-// import { useSubscription } from '@apollo/client';
-// import { gql } from '@apollo/client';
+import { useSubscription } from '@apollo/client';
+import { gql } from '@apollo/client';
 import { toast } from 'sonner';
 import { useBoardContext } from '@/lib/context/BoardContext';
 import logger from '@/lib/logger/logger';
 
-// Temporarily disable subscriptions until WebSocket setup is fixed
-/*
 const COLLABORATOR_INVITED = gql`
   subscription CollaboratorInvited($boardId: String!) {
     collaboratorInvited(boardId: $boardId) {
@@ -44,7 +42,37 @@ const INVITATION_STATUS_CHANGED = gql`
     }
   }
 `;
-*/
+
+const BOARD_UPDATES = gql`
+  subscription BoardUpdates($boardId: String!) {
+    boardUpdates(boardId: $boardId) {
+      id
+      name
+      elements {
+        id
+        type
+        data
+      }
+      history {
+        type
+        data
+        timestamp
+      }
+      historyIndex
+    }
+  }
+`;
+
+const CURSOR_MOVEMENT = gql`
+  subscription CursorMovement($boardId: String!) {
+    cursorMovement(boardId: $boardId) {
+      x
+      y
+      userId
+      userName
+    }
+  }
+`;
 
 interface UseCollaborationEventsProps {
   boardId: string;
@@ -59,12 +87,8 @@ export function useCollaborationEvents({ boardId, userId, isOwner }: UseCollabor
     decrementPendingInvitations 
   } = useBoardContext();
 
-  // Temporarily disable subscriptions to fix WebSocket errors
-  // TODO: Re-enable once WebSocket setup is properly configured
-  
-  /*
   // Listen for new invitations sent
-  useSubscription(COLLABORATOR_INVITED, {
+  const { error: invitedError } = useSubscription(COLLABORATOR_INVITED, {
     variables: { boardId },
     skip: !boardId,
     onData: ({ data }) => {
@@ -85,11 +109,12 @@ export function useCollaborationEvents({ boardId, userId, isOwner }: UseCollabor
     },
     onError: (error) => {
       logger.error('Error in collaborator invited subscription:', error);
+      toast.error('Connection issue with invitations. Please refresh the page.');
     }
   });
 
   // Listen for new collaborators joining
-  useSubscription(COLLABORATOR_JOINED, {
+  const { error: joinedError } = useSubscription(COLLABORATOR_JOINED, {
     variables: { boardId },
     skip: !boardId,
     onData: ({ data }) => {
@@ -131,11 +156,12 @@ export function useCollaborationEvents({ boardId, userId, isOwner }: UseCollabor
     },
     onError: (error) => {
       logger.error('Error in collaborator joined subscription:', error);
+      toast.error('Connection issue with collaborators. Please refresh the page.');
     }
   });
 
   // Listen for invitation status changes
-  useSubscription(INVITATION_STATUS_CHANGED, {
+  const { error: statusError } = useSubscription(INVITATION_STATUS_CHANGED, {
     variables: { boardId },
     skip: !boardId,
     onData: ({ data }) => {
@@ -168,9 +194,63 @@ export function useCollaborationEvents({ boardId, userId, isOwner }: UseCollabor
     },
     onError: (error) => {
       logger.error('Error in invitation status changed subscription:', error);
+      toast.error('Connection issue with invitation status. Please refresh the page.');
     }
   });
-  */
+
+  // Listen for board updates
+  const { error: boardUpdatesError } = useSubscription(BOARD_UPDATES, {
+    variables: { boardId },
+    skip: !boardId,
+    onData: ({ data }) => {
+      logger.debug({ subscriptionData: data }, 'Board updates event received');
+      const updatedBoard = data.data?.boardUpdates;
+      
+      if (updatedBoard) {
+        // Handle board updates (this will be handled by the board component)
+        logger.info('Board updated via subscription');
+      }
+    },
+    onError: (error) => {
+      logger.error('Error in board updates subscription:', error);
+      toast.error('Connection issue with board updates. Please refresh the page.');
+    }
+  });
+
+  // Listen for cursor movement
+  const { error: cursorError } = useSubscription(CURSOR_MOVEMENT, {
+    variables: { boardId },
+    skip: !boardId,
+    onData: ({ data }) => {
+      logger.debug({ subscriptionData: data }, 'Cursor movement event received');
+      const cursorData = data.data?.cursorMovement;
+      
+      if (cursorData && cursorData.userId !== userId) {
+        // Handle cursor movement (this will be handled by the cursor component)
+        logger.debug('Cursor movement received from another user');
+      }
+    },
+    onError: (error) => {
+      logger.error('Error in cursor movement subscription:', error);
+      // Don't show toast for cursor errors as they're less critical
+    }
+  });
+
+  // Handle subscription errors
+  useEffect(() => {
+    const errors = [invitedError, joinedError, statusError, boardUpdatesError, cursorError];
+    const hasErrors = errors.some(error => error);
+
+    if (hasErrors) {
+      logger.warn('Some collaboration subscriptions have errors', {
+        invitedError: !!invitedError,
+        joinedError: !!joinedError,
+        statusError: !!statusError,
+        boardUpdatesError: !!boardUpdatesError,
+        cursorError: !!cursorError,
+      });
+    }
+  }, [invitedError, joinedError, statusError, boardUpdatesError, cursorError]);
 
   // Cleanup function for any additional cleanup needed
   useEffect(() => {

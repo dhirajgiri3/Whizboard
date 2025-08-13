@@ -3,10 +3,12 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { ApolloProvider } from "@/lib/provider/ApolloProvider";
 import AuthSessionProvider from "@/lib/provider/AuthSessionProvider";
-import { Toaster } from "sonner";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/options";
+import AppToaster from "@/components/ui/AppToaster";
 import Script from "next/script";
 import { Providers } from "./layout/providers";
-import ConditionalHeader from "@/components/layout/header/ConditionalHeader";
+import ConditionalHeader from "@/components/layout/header/utils/ConditionalHeader";
 
 const maisonNeue = localFont({
   src: [
@@ -112,11 +114,12 @@ const structuredData = {
   }
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getServerSession(authOptions);
   return (
     <html lang="en" className={maisonNeue.variable}>
       <head>
@@ -164,14 +167,14 @@ export default function RootLayout({
         />
       </head>
       <body className={maisonNeue.className}>
-        <AuthSessionProvider>
+        <AuthSessionProvider session={session}>
           <ApolloProvider>
             <Providers>
               <ConditionalHeader />
               <div id="main-content">
                 {children}
               </div>
-              <Toaster richColors position="top-center" />
+              <AppToaster />
             </Providers>
           </ApolloProvider>
         </AuthSessionProvider>

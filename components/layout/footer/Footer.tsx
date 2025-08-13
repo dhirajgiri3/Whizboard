@@ -48,9 +48,6 @@ const Footer = () => {
     ],
     company: [
       { name: "About", href: "/about" },
-      { name: "Blog", href: "/blog" },
-      { name: "Careers", href: "/careers" },
-      { name: "Press", href: "/press" },
       { name: "Contact", href: "/contact" },
     ],
     resources: [
@@ -151,17 +148,17 @@ const Footer = () => {
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
-        {/* Enhanced Main Footer Content */}
+        {/* Main Footer Content - Improved Grid Layout */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12 lg:mb-16"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-12 lg:mb-16"
         >
-          {/* Enhanced Company Info */}
+          {/* Company Info Section - Spans 4 columns */}
           <motion.div
             variants={itemVariants}
-            className="md:col-span-2 lg:col-span-1"
+            className="lg:col-span-4"
           >
             <div className="flex items-center space-x-3 mb-6">
               <div className="relative">
@@ -184,138 +181,128 @@ const Footer = () => {
               Transform chaotic brainstorms into organized action plans with
               professional-grade collaborative tools that actually work.
             </p>
-            {/* Enhanced Stats */}
-            <div className="flex gap-4 mb-8 justify-center items-start">
-              <div className="text-center p-3 sm:p-4 bg-white/[0.02] rounded-lg border border-white/[0.05] backdrop-blur-sm flex-1">
-                <div className="text-lg sm:text-xl font-bold text-blue-400">
-                  50K+
+            
+            {/* Contact Information - Better Organized */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-400 transition-colors group">
+                <div className="p-2 bg-white/[0.02] rounded-lg group-hover:bg-blue-500/10 transition-colors border border-white/[0.05]">
+                  <Mail className="h-4 w-4" />
                 </div>
-                <div className="text-xs text-gray-400">Active Users</div>
+                <span className="text-sm">Hello@cyperstudio.in</span>
               </div>
-              <div className="text-center p-3 sm:p-4 bg-white/[0.02] rounded-lg border border-white/[0.05] backdrop-blur-sm flex-1">
-                <div className="text-lg sm:text-xl font-bold text-emerald-400">
-                  99.9%
+              <div className="flex items-center space-x-3 text-gray-400 hover:text-emerald-400 transition-colors group">
+                <div className="p-2 bg-white/[0.02] rounded-lg group-hover:bg-emerald-500/10 transition-colors border border-white/[0.05]">
+                  <Phone className="h-4 w-4" />
                 </div>
-                <div className="text-xs text-gray-400">Uptime</div>
+                <span className="text-sm">+919569691483</span>
               </div>
-
-              {/* Enhanced Contact Info */}
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-400 transition-colors group">
-                  <div className="p-2 bg-white/[0.02] rounded-lg group-hover:bg-blue-500/10 transition-colors border border-white/[0.05]">
-                    <Mail className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm">hello@whizboard.com</span>
+              <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-400 transition-colors group">
+                <div className="p-2 bg-white/[0.02] rounded-lg group-hover:bg-blue-500/10 transition-colors border border-white/[0.05]">
+                  <MapPin className="h-4 w-4" />
                 </div>
-                <div className="flex items-center space-x-3 text-gray-400 hover:text-emerald-400 transition-colors group">
-                  <div className="p-2 bg-white/[0.02] rounded-lg group-hover:bg-emerald-500/10 transition-colors border border-white/[0.05]">
-                    <Phone className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm">+1 (555) 123-4567</span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-400 transition-colors group">
-                  <div className="p-2 bg-white/[0.02] rounded-lg group-hover:bg-blue-500/10 transition-colors border border-white/[0.05]">
-                    <MapPin className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm">San Francisco, CA</span>
-                </div>
+                <span className="text-sm">Delhi, India</span>
               </div>
             </div>
           </motion.div>
 
-          {/* Enhanced Footer Links */}
-          <motion.div variants={itemVariants} className="relative">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="p-1 bg-blue-500/20 rounded-lg">
-                <Globe className="w-4 h-4 text-blue-400" />
+          {/* Navigation Links Section - Spans 8 columns with 3 columns inside */}
+          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-8">
+            {/* Product Links */}
+            <motion.div variants={itemVariants} className="relative">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="p-1 bg-blue-500/20 rounded-lg">
+                  <Globe className="w-4 h-4 text-blue-400" />
+                </div>
+                <h3 className="font-semibold text-white text-sm uppercase tracking-wider">
+                  Product
+                </h3>
               </div>
-              <h3 className="font-semibold text-white text-sm uppercase tracking-wider">
-                Product
-              </h3>
-            </div>
-            <ul className="space-y-3">
-              {footerLinks.product.map((link) => (
-                <motion.li
-                  key={link.name}
-                  whileHover={{ x: 4 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <a
-                    href={link.href}
-                    className="group flex items-center text-gray-400 hover:text-blue-400 transition-all duration-200 text-sm"
+              <ul className="space-y-3">
+                {footerLinks.product.map((link) => (
+                  <motion.li
+                    key={link.name}
+                    whileHover={{ x: 4 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    <ArrowRight className="w-3 h-3 mr-2 opacity-0 group-hover:opacity-100 transition-all duration-200 text-blue-400" />
-                    <span className="group-hover:translate-x-1 transition-transform">
-                      {link.name}
-                    </span>
-                  </a>
-                </motion.li>
-              ))}
-            </ul>
-          </motion.div>
+                    <a
+                      href={link.href}
+                      className="group flex items-center text-gray-400 hover:text-blue-400 transition-all duration-200 text-sm"
+                    >
+                      <ArrowRight className="w-3 h-3 mr-2 opacity-0 group-hover:opacity-100 transition-all duration-200 text-blue-400" />
+                      <span className="group-hover:translate-x-1 transition-transform">
+                        {link.name}
+                      </span>
+                    </a>
+                  </motion.li>
+                ))}
+              </ul>
+            </motion.div>
 
-          <motion.div variants={itemVariants} className="relative">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="p-1 bg-blue-500/20 rounded-lg">
-                <Building2 className="w-4 h-4 text-blue-400" />
+            {/* Company Links */}
+            <motion.div variants={itemVariants} className="relative">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="p-1 bg-blue-500/20 rounded-lg">
+                  <Building2 className="w-4 h-4 text-blue-400" />
+                </div>
+                <h3 className="font-semibold text-white text-sm uppercase tracking-wider">
+                  Company
+                </h3>
               </div>
-              <h3 className="font-semibold text-white text-sm uppercase tracking-wider">
-                Company
-              </h3>
-            </div>
-            <ul className="space-y-3">
-              {footerLinks.company.map((link) => (
-                <motion.li
-                  key={link.name}
-                  whileHover={{ x: 4 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <a
-                    href={link.href}
-                    className="group flex items-center text-gray-400 hover:text-blue-400 transition-all duration-200 text-sm"
+              <ul className="space-y-3">
+                {footerLinks.company.map((link) => (
+                  <motion.li
+                    key={link.name}
+                    whileHover={{ x: 4 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    <ArrowRight className="w-3 h-3 mr-2 opacity-0 group-hover:opacity-100 transition-all duration-200 text-blue-400" />
-                    <span className="group-hover:translate-x-1 transition-transform">
-                      {link.name}
-                    </span>
-                  </a>
-                </motion.li>
-              ))}
-            </ul>
-          </motion.div>
+                    <a
+                      href={link.href}
+                      className="group flex items-center text-gray-400 hover:text-blue-400 transition-all duration-200 text-sm"
+                    >
+                      <ArrowRight className="w-3 h-3 mr-2 opacity-0 group-hover:opacity-100 transition-all duration-200 text-blue-400" />
+                      <span className="group-hover:translate-x-1 transition-transform">
+                        {link.name}
+                      </span>
+                    </a>
+                  </motion.li>
+                ))}
+              </ul>
+            </motion.div>
 
-          <motion.div variants={itemVariants} className="relative">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="p-1 bg-blue-500/20 rounded-lg">
-                <BookOpen className="w-4 h-4 text-blue-400" />
+            {/* Resources Links */}
+            <motion.div variants={itemVariants} className="relative">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="p-1 bg-blue-500/20 rounded-lg">
+                  <BookOpen className="w-4 h-4 text-blue-400" />
+                </div>
+                <h3 className="font-semibold text-white text-sm uppercase tracking-wider">
+                  Resources
+                </h3>
               </div>
-              <h3 className="font-semibold text-white text-sm uppercase tracking-wider">
-                Resources
-              </h3>
-            </div>
-            <ul className="space-y-3">
-              {footerLinks.resources.map((link) => (
-                <motion.li
-                  key={link.name}
-                  whileHover={{ x: 4 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <a
-                    href={link.href}
-                    className="group flex items-center text-gray-400 hover:text-blue-400 transition-all duration-200 text-sm"
+              <ul className="space-y-3">
+                {footerLinks.resources.map((link) => (
+                  <motion.li
+                    key={link.name}
+                    whileHover={{ x: 4 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    <ArrowRight className="w-3 h-3 mr-2 opacity-0 group-hover:opacity-100 transition-all duration-200 text-blue-400" />
-                    <span className="group-hover:translate-x-1 transition-transform">
-                      {link.name}
-                    </span>
-                  </a>
-                </motion.li>
-              ))}
-            </ul>
-          </motion.div>
+                    <a
+                      href={link.href}
+                      className="group flex items-center text-gray-400 hover:text-blue-400 transition-all duration-200 text-sm"
+                    >
+                      <ArrowRight className="w-3 h-3 mr-2 opacity-0 group-hover:opacity-100 transition-all duration-200 text-blue-400" />
+                      <span className="group-hover:translate-x-1 transition-transform">
+                        {link.name}
+                      </span>
+                    </a>
+                  </motion.li>
+                ))}
+              </ul>
+            </motion.div>
+          </div>
         </motion.div>
 
-        {/* Enhanced Newsletter Section */}
+        {/* Newsletter Section - Full Width */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
@@ -412,55 +399,121 @@ const Footer = () => {
           </div>
         </motion.div>
 
-        {/* Enhanced Bottom Section */}
+        {/* Bottom Section - Premium Design */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ delay: 0.6, duration: 0.6 }}
-          className="border-t border-white/[0.05] pt-8 lg:pt-12 relative"
+          className="relative"
         >
-          <div className="flex flex-col space-y-6 lg:flex-row lg:justify-between lg:items-center lg:space-y-0 relative z-10">
-            {/* Copyright */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-gray-400 text-sm">
-              <span>© 2024 Whizboard. All rights reserved.</span>
-              <span className="hidden sm:inline text-gray-600">•</span>
-              <span className="flex items-center gap-1">
-                Made with <Heart className="w-3 h-3 text-red-400" /> in San
-                Francisco
-              </span>
+          {/* Premium Border with Gradient */}
+          <div className="relative border-t border-white/[0.08] pt-8 lg:pt-12">
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-white/5 via-white/10 to-white/5"></div>
+          </div>
+
+          {/* Main Content Container */}
+          <div className="relative z-10">
+            {/* Desktop Layout */}
+            <div className="hidden lg:grid lg:grid-cols-3 gap-8 items-center">
+              {/* Copyright Section - Left */}
+              <div className="flex flex-col space-y-2">
+                <div className="flex items-center space-x-3">
+                  <span className="text-gray-300 font-medium text-sm">© 2024 Whizboard</span>
+                  <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
+                  <span className="text-gray-400 text-sm">All rights reserved</span>
+                </div>
+                <div className="flex items-center space-x-2 text-gray-500 text-xs">
+                  <span>Made with</span>
+                  <Heart className="w-3 h-3 text-red-400" />
+                  <span>in Delhi, India</span>
+                </div>
+              </div>
+
+              {/* Legal Links - Center */}
+              <div className="flex justify-center space-x-6">
+                {footerLinks.legal.map((link) => (
+                  <motion.a
+                    key={link.name}
+                    href={link.href}
+                    whileHover={{ y: -1 }}
+                    className="text-gray-400 hover:text-blue-400 transition-all duration-300 text-sm font-medium relative group"
+                  >
+                    {link.name}
+                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-400 to-blue-500 group-hover:w-full transition-all duration-300 rounded-full"></span>
+                  </motion.a>
+                ))}
+              </div>
+
+              {/* Social Links - Right */}
+              <div className="flex justify-end space-x-3">
+                {socialLinks.map((social, index) => (
+                  <motion.a
+                    key={social.name}
+                    href={social.href}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.8 + index * 0.1 }}
+                    className="group relative p-3 bg-white/[0.03] backdrop-blur-sm rounded-xl text-gray-400 hover:text-white border border-white/[0.06] hover:border-white/[0.12] transition-all duration-300 min-h-[48px] min-w-[48px] flex items-center justify-center hover:bg-white/[0.08] hover:shadow-lg hover:shadow-blue-500/10"
+                  >
+                    <social.icon className="h-4 w-4 group-hover:scale-110 transition-transform group-hover:text-blue-400" />
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-blue-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </motion.a>
+                ))}
+              </div>
             </div>
 
-            {/* Legal Links */}
-            <div className="flex flex-wrap gap-4 sm:gap-6 lg:gap-8 text-sm">
-              {footerLinks.legal.map((link) => (
-                <motion.a
-                  key={link.name}
-                  href={link.href}
-                  whileHover={{ y: -1 }}
-                  className="text-gray-400 hover:text-blue-400 transition-all duration-200 relative group"
-                >
-                  {link.name}
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 group-hover:w-full transition-all duration-300" />
-                </motion.a>
-              ))}
-            </div>
+            {/* Mobile Layout */}
+            <div className="lg:hidden space-y-6">
+              {/* Copyright Section */}
+              <div className="flex flex-col items-center space-y-3 text-center">
+                <div className="flex items-center space-x-3">
+                  <span className="text-gray-300 font-medium text-sm">© 2024 Whizboard</span>
+                  <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
+                  <span className="text-gray-400 text-sm">All rights reserved</span>
+                </div>
+                <div className="flex items-center space-x-2 text-gray-500 text-xs">
+                  <span>Made with</span>
+                  <Heart className="w-3 h-3 text-red-400" />
+                  <span>in Delhi, India</span>
+                </div>
+              </div>
 
-            {/* Enhanced Social Links */}
-            <div className="flex space-x-3 sm:space-x-4">
-              {socialLinks.map((social, index) => (
-                <motion.a
-                  key={social.name}
-                  href={social.href}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 + index * 0.1 }}
-                  className="group p-2.5 sm:p-3 bg-white/[0.02] backdrop-blur-sm rounded-lg sm:rounded-xl text-gray-400 hover:text-white border border-white/[0.05] hover:border-white/[0.08] transition-all duration-300 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                >
-                  <social.icon className="h-4 w-4 sm:h-5 sm:w-5 group-hover:scale-110 transition-transform group-hover:text-blue-400" />
-                </motion.a>
-              ))}
+              {/* Legal Links */}
+              <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+                {footerLinks.legal.map((link) => (
+                  <motion.a
+                    key={link.name}
+                    href={link.href}
+                    whileHover={{ y: -1 }}
+                    className="text-gray-400 hover:text-blue-400 transition-all duration-300 text-sm font-medium relative group"
+                  >
+                    {link.name}
+                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-400 to-blue-500 group-hover:w-full transition-all duration-300 rounded-full"></span>
+                  </motion.a>
+                ))}
+              </div>
+
+              {/* Social Links */}
+              <div className="flex justify-center space-x-3">
+                {socialLinks.map((social, index) => (
+                  <motion.a
+                    key={social.name}
+                    href={social.href}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.8 + index * 0.1 }}
+                    className="group relative p-3 bg-white/[0.03] backdrop-blur-sm rounded-xl text-gray-400 hover:text-white border border-white/[0.06] hover:border-white/[0.12] transition-all duration-300 min-h-[48px] min-w-[48px] flex items-center justify-center hover:bg-white/[0.08] hover:shadow-lg hover:shadow-blue-500/10"
+                  >
+                    <social.icon className="h-4 w-4 group-hover:scale-110 transition-transform group-hover:text-blue-400" />
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-blue-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </motion.a>
+                ))}
+              </div>
             </div>
           </div>
         </motion.div>

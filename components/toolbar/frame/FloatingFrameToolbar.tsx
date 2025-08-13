@@ -643,9 +643,9 @@ export default function FloatingFrameToolbar({
                                 handleFinishRename(
                                   selectedFrames,
                                   renameValue,
-                                  onFrameRenameAction,
                                   setIsRenaming,
-                                  setRenameValue
+                                  setRenameValue,
+                                  onFrameRenameAction
                                 );
                               if (e.key === "Escape")
                                 handleCancelRename(
@@ -657,9 +657,9 @@ export default function FloatingFrameToolbar({
                               handleFinishRename(
                                 selectedFrames,
                                 renameValue,
-                                onFrameRenameAction,
                                 setIsRenaming,
-                                setRenameValue
+                                setRenameValue,
+                                onFrameRenameAction
                               )
                             }
                             className="flex-1 px-3 py-2 text-sm font-medium text-slate-800 bg-white border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
@@ -669,9 +669,9 @@ export default function FloatingFrameToolbar({
                               handleFinishRename(
                                 selectedFrames,
                                 renameValue,
-                                onFrameRenameAction,
                                 setIsRenaming,
-                                setRenameValue
+                                setRenameValue,
+                                onFrameRenameAction
                               )
                             }
                             className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"

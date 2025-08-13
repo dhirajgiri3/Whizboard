@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Play, Users, Star, Zap, CheckCircle, Sparkles, Hand, MousePointer, Wand2 } from "lucide-react";
+import { motion, useScroll, useTransform, Variants } from "framer-motion";
+import { ArrowRight, Play, Users, Star, Zap, Hand } from "lucide-react";
 import RealtimeWhiteboard from "@/components/reatime/whiteboard/RealtimeWhiteboard";
 
 /**
@@ -49,6 +49,17 @@ const Hero = () => {
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
+
+  // Unified reveal-on-scroll variants (first time only) for a minimal, smooth experience
+  const viewportOnce = { once: true, amount: 0.2 } as const;
+  const revealVariants: Variants = {
+    hidden: { opacity: 0, y: 24 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+    },
+  };
 
   // Optimized wave patterns with better performance
   const waveVariants = {
@@ -106,6 +117,7 @@ const Hero = () => {
   return (
     <div
       className="relative w-full overflow-hidden"
+      id="hero"
       style={{
         background:
           "linear-gradient(135deg, #ffffff 0%, #F0F7FF 3%, #E5F0FF 8%, #D1E5FF 15%, #B3D7FF 25%, #85C1FF 35%, #57A9FF 45%, #3b82f6 55%, #2563eb 65%, #1d4ed8 75%, #1e40af 85%, #1e3a8a 92%, #172554 96%, #0f172a 100%)",
@@ -309,13 +321,11 @@ const Hero = () => {
           >
             {/* Enhanced social proof with better mobile design */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{
-                duration: 0.8,
-                delay: 0.3,
-                ease: [0.22, 1, 0.36, 1],
-              }}
+              variants={revealVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+              transition={{ delay: 0.15 }}
               className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 sm:px-4 py-2 backdrop-blur-md border border-white/25"
             >
               <div className="flex -space-x-1 sm:-space-x-2">
@@ -352,13 +362,11 @@ const Hero = () => {
             <div className="flex flex-col items-center justify-center space-y-2">
               {/* Enhanced main heading with better responsive typography */}
               <motion.h1
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: 1,
-                  delay: 0.4,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
+                variants={revealVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={viewportOnce}
+                transition={{ delay: 0.2 }}
                 className="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight text-white text-center max-w-sm sm:max-w-2xl px-2 sm:px-0"
               >
                 Transform Brainstorms into{" "}
@@ -385,13 +393,11 @@ const Hero = () => {
 
               {/* Enhanced description with better responsive design */}
               <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: 0.8,
-                  delay: 0.6,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
+                variants={revealVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={viewportOnce}
+                transition={{ delay: 0.25 }}
                 className="max-w-lg md:max-w-xl text-sm sm:text-base lg:text-lg text-white/80 leading-[1.6] font-light px-4 sm:px-0"
               >
                 Create, collaborate, and bring your ideas to life with the most
@@ -402,22 +408,20 @@ const Hero = () => {
 
             {/* Enhanced CTA buttons with better mobile design */}
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.8,
-                delay: 0.8,
-                ease: [0.22, 1, 0.36, 1],
-              }}
+              variants={revealVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+              transition={{ delay: 0.3 }}
               className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 md:gap-6 justify-center w-full px-4 sm:px-0 mt-6 sm:mt-8"
             >
               <motion.a
-                href="/signup"
+                href="/login"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-6 py-4 sm:px-8 sm:py-4 rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/35 w-full sm:w-auto min-w-[200px] min-h-[44px] flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-black"
               >
-                <span>Start Free Trial</span>
+                <span>Get Started</span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </motion.a>
 
@@ -434,9 +438,11 @@ const Hero = () => {
 
             {/* Enhanced trust indicators with better mobile layout */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 1.2 }}
+              variants={revealVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+              transition={{ delay: 0.35 }}
               className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 lg:gap-8 text-white/85 text-xs sm:text-sm px-4 sm:px-0 mt-6 sm:mt-8"
             >
               <div className="flex items-center gap-2">
@@ -462,7 +468,7 @@ const Hero = () => {
         {/* Interactive Whiteboard Section */}
         <div className="px-4 sm:px-6 lg:px-8 pb-8 sm:pb-12 md:pb-16 lg:pb-20">
           {/* Interactive Prompt Overlay */}
-          {showInteractivePrompt && (
+          {/* {showInteractivePrompt && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -490,15 +496,17 @@ const Hero = () => {
                 </div>
               </motion.div>
             </motion.div>
-          )}
+          )} */}
 
           {/* Enhanced Whiteboard Container */}
           <motion.div
+            variants={revealVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+            transition={{ delay: 0.4 }}
             className="w-full mx-auto relative z-10"
             style={{ y: parallaxY }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.2 }}
             onClick={handleInteraction}
           >
             {/* Clean Whiteboard Container */}

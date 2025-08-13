@@ -1,788 +1,32 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import Link from "next/link";
-import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X } from "lucide-react";
 import { useScrollDirection } from "@/hooks/useScrollDirection";
-import {
-  ChevronDown,
-  User,
-  Settings,
-  LogOut,
-  Plus,
-  Menu,
-  X,
-  Users,
-  Info,
-  HelpCircle,
-  MessageSquare,
-  FileText,
-  ChevronRight,
-} from "lucide-react";
+import { useHeaderTheme } from "./hooks/useHeaderTheme";
+import { headerAnimations, darkHeaderAnimations } from "./utils/animations";
+import { navigationItems, companyMenuItems, supportMenuItems, userMenuItems } from "./data/menuItems";
 import CreateBoardModal from "@/components/ui/modal/CreateBoardModal";
 import SuccessModal from "@/components/ui/modal/SuccessModal";
-import logo from "@/public/images/logo/whizboard_logo.png";
+import SlackButton from "@/components/ui/SlackButton";
 
-// Types
-interface NavigationItem {
-  href: string;
-  label: string;
-  description?: string;
-  color: {
-    bg: string;
-    text: string;
-    hover: {
-      bg: string;
-      text: string;
-    };
-  };
-}
+// Import components
+import Logo from "./components/Logo";
+import NavigationLink from "./components/NavigationLink";
+import DropdownMenu from "./components/DropdownMenu";
+import CreateBoardButton from "./components/CreateBoardButton";
+import UserAvatar from "./components/UserAvatar";
+import UserDropdown from "./components/UserDropdown";
+import MobileMenu from "./components/MobileMenu";
+import NotificationBell from "./components/NotificationBell";
 
-interface UserMenuItem {
-  href?: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  description: string;
-  color: {
-    bg: string;
-    text: string;
-    hover: {
-      bg: string;
-      text: string;
-    };
-  };
-  action?: () => void;
-}
-
-// Data Objects
-const navigationItems: NavigationItem[] = [
-  {
-    href: "/",
-    label: "Home",
-    color: {
-      bg: "bg-blue-100",
-      text: "text-blue-600",
-      hover: { bg: "hover:bg-blue-200", text: "hover:text-blue-700" },
-    },
-  },
-  {
-    href: "/my-boards",
-    label: "My Boards",
-    color: {
-      bg: "bg-indigo-100",
-      text: "text-indigo-600",
-      hover: { bg: "hover:bg-indigo-200", text: "hover:text-indigo-700" },
-    },
-  },
-];
-
-// Grouped menu items for dropdowns
-const companyMenuItems = [
-  {
-    href: "/about",
-    label: "About Us",
-    description: "Learn about our mission and team",
-    icon: Info,
-  },
-  {
-    href: "/blog",
-    label: "Blog",
-    description: "Latest updates and insights",
-    icon: FileText,
-  },
-];
-
-const supportMenuItems = [
-  {
-    href: "/help",
-    label: "Help Center",
-    description: "Get help and support",
-    icon: HelpCircle,
-  },
-  {
-    href: "/contact",
-    label: "Contact",
-    description: "Get in touch with us",
-    icon: MessageSquare,
-  },
-];
-
-const userMenuItems: UserMenuItem[] = [
-  {
-    href: "/profile",
-    label: "My Profile",
-    icon: User,
-    description: "Manage your account",
-    color: {
-      bg: "bg-blue-100",
-      text: "text-blue-600",
-      hover: { bg: "hover:bg-blue-200", text: "hover:text-blue-700" },
-    },
-  },
-  {
-    href: "/team-workspace",
-    label: "Team & Workspace",
-    icon: Users,
-    description: "Manage your team and workspace",
-    color: {
-      bg: "bg-teal-100",
-      text: "text-teal-600",
-      hover: { bg: "hover:bg-teal-200", text: "hover:text-teal-700" },
-    },
-  },
-  {
-    href: "/settings",
-    label: "Settings",
-    icon: Settings,
-    description: "Preferences & privacy",
-    color: {
-      bg: "bg-gray-100",
-      text: "text-gray-600",
-      hover: { bg: "hover:bg-gray-200", text: "hover:text-gray-900" },
-    },
-  },
-  {
-    label: "Sign Out",
-    icon: LogOut,
-    description: "End your session",
-    color: {
-      bg: "bg-red-100",
-      text: "text-red-600",
-      hover: { bg: "hover:bg-red-200", text: "hover:text-red-700" },
-    },
-    action: () => signOut(),
-  },
-];
-
-// Animation Variants
-const animations = {
-  header: {
-    transparent: {
-      backgroundColor: "rgba(255, 255, 255, 0)",
-      backdropFilter: "blur(0px)",
-    },
-    glass: {
-      backgroundColor: "rgba(255, 255, 255, 0.8)",
-      backdropFilter: "blur(20px)",
-    },
-    hidden: {
-      y: "-100%",
-      opacity: 0,
-    },
-    visible: {
-      y: "0%",
-      opacity: 1,
-    },
-  },
-  logo: {
-    initial: { opacity: 0, x: -10 },
-    animate: { opacity: 1, x: 0 },
-    hover: {
-      scale: 1.05,
-      rotate: [0, -5, 5, 0],
-      transition: {
-        rotate: { duration: 0.4, ease: "easeInOut" as const },
-        scale: { type: "spring" as const, stiffness: 300, damping: 20 },
-      },
-    },
-  },
-  fadeInUp: {
-    initial: { opacity: 0, y: -10 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6, ease: "easeOut" as const },
-  },
-  dropdown: {
-    initial: { opacity: 0, scale: 0.95, y: -10 },
-    animate: { opacity: 1, scale: 1, y: 0 },
-    exit: { opacity: 0, scale: 0.95, y: -10 },
-    transition: { duration: 0.2, ease: "easeOut" as const },
-  },
-  mobileMenu: {
-    initial: { opacity: 0, y: -20 },
-    animate: { 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        duration: 0.3,
-        ease: "easeOut" as const,
-        staggerChildren: 0.05
-      }
-    },
-    exit: { 
-      opacity: 0, 
-      y: -20,
-      transition: {
-        duration: 0.2,
-        ease: "easeIn" as const
-      }
-    },
-  },
-  mobileMenuItem: {
-    initial: { opacity: 0, x: -20 },
-    animate: { 
-      opacity: 1, 
-      x: 0,
-      transition: {
-        duration: 0.3,
-        ease: "easeOut" as const
-      }
-    },
-    exit: { opacity: 0, x: -20 }
-  }
-};
-
-// Reusable Components
-const NavigationLink = ({ item, onClick }: {
-  item: NavigationItem;
-  onClick?: () => void;
-}) => (
-  <motion.div
-    whileHover={{ scale: 1.02 }}
-    whileTap={{ scale: 0.98 }}
-  >
-    <Link
-      href={item.href}
-      onClick={onClick}
-      className="group px-3 py-1.5 rounded-full text-sm font-medium text-gray-700 hover:text-gray-950 transition-all duration-300 flex items-center gap-2 relative overflow-hidden"
-    >
-      <span>{item.label}</span>
-    </Link>
-  </motion.div>
-);
-
-const DropdownMenu = ({
-  label,
-  items,
-  isOpen,
-  onToggle
-}: {
-  label: string;
-  items: Array<{ href: string; label: string; description: string; icon: any }>;
-  isOpen: boolean;
-  onToggle: () => void;
-}) => (
-  <div className="relative">
-    <motion.button
-      onClick={onToggle}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      className="group px-3 py-1.5 rounded-full text-sm font-medium text-gray-700 hover:text-gray-950 transition-all duration-300 flex items-center gap-2"
-      aria-expanded={isOpen}
-      aria-haspopup="true"
-    >
-      <span>{label}</span>
-      <motion.div
-        animate={{ rotate: isOpen ? 180 : 0 }}
-        transition={{ duration: 0.2 }}
-      >
-        <ChevronDown className="w-4 h-4" />
-      </motion.div>
-    </motion.button>
-
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -10, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -10, scale: 0.95 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-          className="absolute top-full left-0 mt-3 w-72 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/60 py-3 z-50"
-          role="menu"
-        >
-          {items.map((item, index) => (
-            <motion.div
-              key={item.label}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <Link
-                href={item.href}
-                className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 hover:text-gray-900 transition-all duration-200 group"
-                onClick={onToggle}
-                role="menuitem"
-              >
-                <div className="p-2.5 rounded-xl bg-gray-100/80 group-hover:bg-blue-100/80 transition-colors">
-                  <item.icon className="w-4 h-4 text-gray-600 group-hover:text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-medium text-gray-900">{item.label}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">{item.description}</div>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
-        </motion.div>
-      )}
-    </AnimatePresence>
-  </div>
-);
-
-const CreateBoardButton = ({ onClick, isMobile = false }: {
-  onClick: () => void;
-  isMobile?: boolean;
-}) => (
-  <motion.button
-    onClick={onClick}
-    whileHover={{ scale: 1.02 }}
-    whileTap={{ scale: 0.98 }}
-    className={`group relative flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 via-blue-500 to-blue-600 text-white text-sm font-medium rounded-full hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-sm ${
-      isMobile ? "w-full" : ""
-    }`}
-    aria-label="Create new board"
-  >
-    <Plus className="w-4 h-4" />
-    <span>Create Board</span>
-  </motion.button>
-);
-
-const UserAvatar = ({ session, isDropdownOpen, onClick }: {
-  session: any;
-  isDropdownOpen: boolean;
-  onClick: () => void;
-}) => (
-  <motion.button
-    onClick={onClick}
-    whileHover={{ scale: 1.02 }}
-    whileTap={{ scale: 0.98 }}
-    className={`group flex items-center gap-2 px-2 py-1 rounded-full transition-all duration-300 hover:bg-gray-100/80 ${
-      isDropdownOpen ? "bg-gray-100/80" : ""
-    }`}
-    aria-expanded={isDropdownOpen}
-    aria-haspopup="true"
-    aria-label="User menu"
-  >
-    <motion.div whileHover={{ scale: 1.05 }} className="relative">
-      <Image
-        src={session.user?.image || "/default-avatar.png"}
-        alt="User Avatar"
-        width={32}
-        height={32}
-        className="w-8 h-8 rounded-full ring-2 ring-gray-200 group-hover:ring-blue-300 transition-all duration-300"
-      />
-    </motion.div>
-
-    <motion.div
-      animate={{ rotate: isDropdownOpen ? 180 : 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <ChevronDown className="w-4 h-4 text-gray-600 group-hover:text-gray-900" />
-    </motion.div>
-  </motion.button>
-);
-
-const UserDropdown = ({ session, isOpen, onClose }: {
-  session: any;
-  isOpen: boolean;
-  onClose: () => void;
-}) => (
-  <AnimatePresence>
-    {isOpen && (
-      <motion.div
-        variants={animations.dropdown}
-        initial="initial"
-        animate="animate"
-        exit="exit"
-        className="absolute right-0 mt-3 w-80 lg:w-96 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 py-4 z-[55] overflow-hidden"
-        role="menu"
-      >
-        {/* User Info */}
-        <div className="px-6 py-4 border-b border-gray-100/80">
-          <div className="flex items-center gap-4">
-            <motion.div whileHover={{ scale: 1.05 }} className="relative">
-              <Image
-                src={session.user?.image || "/default-avatar.png"}
-                alt="User Avatar"
-                width={48}
-                height={48}
-                className="w-12 h-12 rounded-full ring-3 ring-blue-100"
-              />
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white" />
-            </motion.div>
-            <div className="flex-1 min-w-0">
-              <div className="text-base font-bold text-gray-900 truncate">
-                {session.user?.name || "User"}
-              </div>
-              <div className="text-sm text-gray-500 truncate">
-                {session.user?.email}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Menu Items */}
-        <div className="py-2">
-          {userMenuItems.map((item, index) => (
-            <motion.div
-              key={item.label}
-              whileHover={{ x: 4 }}
-              whileTap={{ scale: 0.98 }}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              {item.href ? (
-                <Link
-                  href={item.href}
-                  className="flex items-center gap-4 px-6 py-3 text-sm font-medium text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-slate-50 hover:text-gray-900 transition-all duration-300 group"
-                  onClick={onClose}
-                  role="menuitem"
-                >
-                  <div className={`p-2 rounded-full ${item.color.bg} ${item.color.text} group-hover:${item.color.hover.bg} transition-colors`}>
-                    <item.icon className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="font-medium">{item.label}</div>
-                    <div className="text-xs text-gray-500">{item.description}</div>
-                  </div>
-                </Link>
-              ) : (
-                <button
-                  onClick={() => {
-                    onClose();
-                    item.action?.();
-                  }}
-                  className="flex items-center gap-4 px-6 py-3 text-sm font-medium text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 hover:text-red-700 transition-all duration-300 w-full text-left group"
-                  role="menuitem"
-                >
-                  <div className={`p-2 rounded-full ${item.color.bg} ${item.color.text} group-hover:${item.color.hover.bg} transition-colors`}>
-                    <item.icon className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="font-medium">{item.label}</div>
-                    <div className="text-xs text-gray-500">{item.description}</div>
-                  </div>
-                </button>
-              )}
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
-    )}
-  </AnimatePresence>
-);
-
-// Enhanced Mobile Menu Components
-const MobileMenuSection = ({ 
-  title, 
-  children 
-}: { 
-  title: string; 
-  children: React.ReactNode;
-}) => (
-  <motion.div
-    variants={animations.mobileMenuItem}
-    className="space-y-2"
-  >
-    <div className="px-6 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-      {title}
-    </div>
-    {children}
-  </motion.div>
-);
-
-const MobileMenuLink = ({ 
-  href, 
-  icon: Icon, 
-  label, 
-  description, 
-  onClick,
-  variant = "default"
-}: {
-  href?: string;
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  description: string;
-  onClick?: () => void;
-  variant?: "default" | "danger";
-}) => {
-  const baseClasses = "flex items-center gap-4 px-6 py-4 text-sm font-medium rounded-2xl mx-3 transition-all duration-300 group active:scale-[0.98]";
-  const variantClasses = variant === "danger" 
-    ? "text-red-600 hover:bg-red-50/80 focus:bg-red-50/80" 
-    : "text-gray-700 hover:bg-gray-50/80 focus:bg-gray-50/80";
-
-  const content = (
-    <>
-      <div className={`p-3 rounded-xl transition-colors ${
-        variant === "danger" 
-          ? "bg-red-100/80 group-hover:bg-red-200/80 group-focus:bg-red-200/80" 
-          : "bg-gray-100/80 group-hover:bg-blue-100/80 group-focus:bg-blue-100/80"
-      }`}>
-        <Icon className={`w-5 h-5 transition-colors ${
-          variant === "danger" 
-            ? "text-red-600" 
-            : "text-gray-600 group-hover:text-blue-600 group-focus:text-blue-600"
-        }`} />
-      </div>
-      <div className="flex-1">
-        <div className="font-medium">{label}</div>
-        <div className="text-xs text-gray-500 mt-0.5">{description}</div>
-      </div>
-      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-    </>
-  );
-
-  if (href) {
-    return (
-      <motion.div variants={animations.mobileMenuItem}>
-        <Link
-          href={href}
-          className={`${baseClasses} ${variantClasses}`}
-          onClick={onClick}
-        >
-          {content}
-        </Link>
-      </motion.div>
-    );
-  }
-
-  return (
-    <motion.div variants={animations.mobileMenuItem}>
-      <button
-        onClick={onClick}
-        className={`${baseClasses} ${variantClasses} w-full text-left`}
-      >
-        {content}
-      </button>
-    </motion.div>
-  );
-};
-
-const MobileMenu = ({
-  isOpen,
-  status,
-  session,
-  onClose,
-  onCreateBoard
-}: {
-  isOpen: boolean;
-  status: string;
-  session: any;
-  onClose: () => void;
-  onCreateBoard: () => void;
-}) => (
-  <AnimatePresence>
-    {isOpen && (
-      <>
-        {/* Backdrop */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
-          onClick={onClose}
-        />
-        
-        {/* Mobile Menu */}
-        <motion.div
-          variants={animations.mobileMenu}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-xl z-50 lg:hidden shadow-2xl"
-        >
-          {/* Mobile Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-            <motion.div
-              variants={animations.mobileMenuItem}
-              className="flex items-center gap-3"
-            >
-              <Image
-                src={logo}
-                alt="WhizBoard Logo"
-                width={80}
-                height={80}
-                className="w-20 h-auto object-contain"
-              />
-            </motion.div>
-            
-            <motion.button
-              variants={animations.mobileMenuItem}
-              onClick={onClose}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-              aria-label="Close menu"
-            >
-              <X className="w-6 h-6 text-gray-600" />
-            </motion.button>
-          </div>
-
-          {/* Menu Content */}
-          <div className="max-h-[calc(100vh-80px)] overflow-y-auto">
-            <div className="py-6 space-y-8">
-              {status === "authenticated" ? (
-                <>
-                  {/* User Info Section */}
-                  <motion.div
-                    variants={animations.mobileMenuItem}
-                    className="px-6"
-                  >
-                    <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl">
-                      <div className="relative">
-                        <Image
-                          src={session?.user?.image || "/default-avatar.png"}
-                          alt="User Avatar"
-                          width={48}
-                          height={48}
-                          className="w-12 h-12 rounded-full ring-3 ring-blue-200"
-                        />
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-base font-bold text-gray-900 truncate">
-                          {session?.user?.name || "User"}
-                        </div>
-                        <div className="text-sm text-gray-600 truncate">
-                          {session?.user?.email}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  {/* Create Board Button */}
-                  <motion.div
-                    variants={animations.mobileMenuItem}
-                    className="px-6"
-                  >
-                    <CreateBoardButton onClick={onCreateBoard} isMobile />
-                  </motion.div>
-
-                  {/* Navigation Section */}
-                  <MobileMenuSection title="Navigation">
-                    {navigationItems.map((item) => (
-                      <MobileMenuLink
-                        key={item.label}
-                        href={item.href}
-                        icon={item.label === "Home" ? Info : FileText}
-                        label={item.label}
-                        description={item.description || `Go to ${item.label.toLowerCase()}`}
-                        onClick={onClose}
-                      />
-                    ))}
-                  </MobileMenuSection>
-
-                  {/* Account Section */}
-                  <MobileMenuSection title="Account">
-                    {userMenuItems.slice(0, -1).map((item) => (
-                      <MobileMenuLink
-                        key={item.label}
-                        href={item.href}
-                        icon={item.icon}
-                        label={item.label}
-                        description={item.description}
-                        onClick={onClose}
-                      />
-                    ))}
-                  </MobileMenuSection>
-
-                  {/* Company Section */}
-                  <MobileMenuSection title="Company">
-                    {companyMenuItems.map((item) => (
-                      <MobileMenuLink
-                        key={item.label}
-                        href={item.href}
-                        icon={item.icon}
-                        label={item.label}
-                        description={item.description}
-                        onClick={onClose}
-                      />
-                    ))}
-                  </MobileMenuSection>
-
-                  {/* Support Section */}
-                  <MobileMenuSection title="Support">
-                    {supportMenuItems.map((item) => (
-                      <MobileMenuLink
-                        key={item.label}
-                        href={item.href}
-                        icon={item.icon}
-                        label={item.label}
-                        description={item.description}
-                        onClick={onClose}
-                      />
-                    ))}
-                  </MobileMenuSection>
-
-                  {/* Sign Out */}
-                  <div className="border-t border-gray-100 pt-6">
-                    <MobileMenuLink
-                      icon={LogOut}
-                      label="Sign Out"
-                      description="End your session"
-                      variant="danger"
-                      onClick={() => {
-                        onClose();
-                        signOut();
-                      }}
-                    />
-                  </div>
-                </>
-              ) : (
-                <>
-                  {/* Company Section */}
-                  <MobileMenuSection title="Company">
-                    {companyMenuItems.map((item) => (
-                      <MobileMenuLink
-                        key={item.label}
-                        href={item.href}
-                        icon={item.icon}
-                        label={item.label}
-                        description={item.description}
-                        onClick={onClose}
-                      />
-                    ))}
-                  </MobileMenuSection>
-
-                  {/* Support Section */}
-                  <MobileMenuSection title="Support">
-                    {supportMenuItems.map((item) => (
-                      <MobileMenuLink
-                        key={item.label}
-                        href={item.href}
-                        icon={item.icon}
-                        label={item.label}
-                        description={item.description}
-                        onClick={onClose}
-                      />
-                    ))}
-                  </MobileMenuSection>
-
-                  {/* Auth Buttons */}
-                  <div className="px-6 space-y-4">
-                    <motion.div variants={animations.mobileMenuItem}>
-                      <Link
-                        href="/login"
-                        className="block w-full px-6 py-4 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-all duration-300 text-center border border-gray-200"
-                        onClick={onClose}
-                      >
-                        Sign In
-                      </Link>
-                    </motion.div>
-
-                    <motion.div variants={animations.mobileMenuItem}>
-                      <Link
-                        href="/signup"
-                        className="block w-full px-6 py-4 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-2xl transition-all duration-300 text-center shadow-sm"
-                        onClick={onClose}
-                      >
-                        Get Started
-                      </Link>
-                    </motion.div>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </motion.div>
-      </>
-    )}
-  </AnimatePresence>
-);
-
-// Main Header Component
 const Header = () => {
   const { data: session, status } = useSession();
+  const { isLightMode } = useHeaderTheme();
+  
+  // State management
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -792,6 +36,7 @@ const Header = () => {
     id: string;
     name: string;
   } | null>(null);
+
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Use scroll direction hook
@@ -826,6 +71,13 @@ const Header = () => {
     };
   }, [isMobileMenuOpen]);
 
+  // Update userMenuItems with signOut action
+  const updatedUserMenuItems = userMenuItems.map(item => 
+    item.label === 'Sign Out' 
+      ? { ...item, action: () => signOut() }
+      : item
+  );
+
   const handleCreateBoard = () => {
     setShowCreateModal(true);
     setIsMobileMenuOpen(false);
@@ -842,41 +94,59 @@ const Header = () => {
   // Determine header visibility based on scroll direction
   const shouldShowHeader = scrollDirection === 'up' || scrollY < 100;
 
+  // Theme-based styling with smooth transitions
+  const animations = isLightMode ? headerAnimations : darkHeaderAnimations;
+  
+  const headerBg = isLightMode
+    ? 'bg-white/80 backdrop-blur-md border-gray-200/60'
+    : 'bg-[#0A0A0B]/80 backdrop-blur-md border-white/10';
+  
+  const mobileHeaderBg = isLightMode
+    ? 'bg-white/90 backdrop-blur-lg border-gray-100'
+    : 'bg-[#0A0A0B]/90 backdrop-blur-lg border-white/10';
+  
+  const textColor = isLightMode
+    ? 'text-gray-600 hover:text-gray-900'
+    : 'text-white/70 hover:text-white';
+  
+  const buttonBg = isLightMode
+    ? 'hover:bg-gray-100 active:bg-gray-200'
+    : 'hover:bg-white/5 active:bg-white/10';
+
   return (
     <>
       {/* Desktop Header */}
       <motion.header
-        className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 hidden lg:block"
+        className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 hidden lg:block"
         variants={animations.header}
         animate={shouldShowHeader ? "visible" : "hidden"}
         transition={{
           duration: 0.3,
-          ease: "easeInOut",
+          ease: [0.4, 0, 0.2, 1],
           type: "spring",
           stiffness: 100,
           damping: 20
         }}
       >
-        <div className="bg-white/80 backdrop-blur-md rounded-full border">
+        <motion.div 
+          className={`${headerBg} backdrop-blur-enhanced rounded-full border ${!isLightMode ? 'dark' : ''}`} 
+          style={{ backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)' }}
+          animate={{
+            backgroundColor: isLightMode 
+              ? 'rgba(255, 255, 255, 0.8)' 
+              : 'rgba(10, 10, 11, 0.8)',
+            borderColor: isLightMode 
+              ? 'rgba(229, 231, 235, 0.6)' 
+              : 'rgba(255, 255, 255, 0.1)'
+          }}
+          transition={{
+            duration: 0.4,
+            ease: [0.4, 0, 0.2, 1]
+          }}
+        >
           <nav className="flex w-full items-center justify-between py-2 px-6">
             {/* Logo */}
-            <motion.div
-              initial="initial"
-              animate="animate"
-              whileHover="hover"
-              variants={animations.logo}
-              transition={{ delay: 0.2, duration: 0.6 }}
-            >
-              <Link href="/" className="flex items-center space-x-3 group">
-                <Image
-                  src={logo}
-                  alt="WhizBoard Logo"
-                  width={100}
-                  height={100}
-                  className="w-24 sm:w-28 h-auto object-contain object-center"
-                />
-              </Link>
-            </motion.div>
+            <Logo isLightMode={isLightMode} />
 
             {/* Desktop Navigation */}
             {status === "authenticated" ? (
@@ -893,6 +163,7 @@ const Header = () => {
                     <NavigationLink
                       key={item.label}
                       item={item}
+                      isLightMode={isLightMode}
                     />
                   ))}
 
@@ -902,6 +173,7 @@ const Header = () => {
                     items={companyMenuItems}
                     isOpen={activeDropdown === 'company'}
                     onToggle={() => setActiveDropdown(activeDropdown === 'company' ? null : 'company')}
+                    isLightMode={isLightMode}
                   />
 
                   {/* Support Dropdown */}
@@ -910,6 +182,7 @@ const Header = () => {
                     items={supportMenuItems}
                     isOpen={activeDropdown === 'support'}
                     onToggle={() => setActiveDropdown(activeDropdown === 'support' ? null : 'support')}
+                    isLightMode={isLightMode}
                   />
                 </motion.div>
 
@@ -920,7 +193,22 @@ const Header = () => {
                   animate="animate"
                   transition={{ delay: 0.4 }}
                 >
-                  <CreateBoardButton onClick={handleCreateBoard} />
+                  <CreateBoardButton onClick={handleCreateBoard} isLightMode={isLightMode} />
+                </motion.div>
+
+                {/* Slack Button */}
+                <motion.div
+                  variants={animations.fadeInUp}
+                  initial="initial"
+                  animate="animate"
+                  transition={{ delay: 0.45 }}
+                >
+                  <SlackButton
+                    variant="default"
+                    size="md"
+                    showQuickActions={true}
+                    mode={isLightMode ? 'light' : 'dark'}
+                  />
                 </motion.div>
 
                 {/* User Menu */}
@@ -929,18 +217,22 @@ const Header = () => {
                   initial="initial"
                   animate="animate"
                   transition={{ delay: 0.5 }}
-                  className="relative"
+                  className="relative flex items-center gap-3"
                   ref={dropdownRef}
                 >
+                  <NotificationBell />
                   <UserAvatar
                     session={session}
                     isDropdownOpen={isDropdownOpen}
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    isLightMode={isLightMode}
                   />
                   <UserDropdown
                     session={session}
                     isOpen={isDropdownOpen}
                     onClose={() => setIsDropdownOpen(false)}
+                    isLightMode={isLightMode}
+                    userMenuItems={updatedUserMenuItems}
                   />
                 </motion.div>
               </div>
@@ -958,6 +250,7 @@ const Header = () => {
                   items={companyMenuItems}
                   isOpen={activeDropdown === 'company'}
                   onToggle={() => setActiveDropdown(activeDropdown === 'company' ? null : 'company')}
+                  isLightMode={isLightMode}
                 />
 
                 {/* Support Dropdown */}
@@ -966,30 +259,33 @@ const Header = () => {
                   items={supportMenuItems}
                   isOpen={activeDropdown === 'support'}
                   onToggle={() => setActiveDropdown(activeDropdown === 'support' ? null : 'support')}
+                  isLightMode={isLightMode}
                 />
 
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Link
+                  <a
                     href="/login"
-                    className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-all duration-300 rounded-full hover:bg-gray-100/80"
+                    className={`px-3 py-1.5 text-sm font-medium transition-all duration-300 rounded-full ${textColor}`}
                   >
                     Sign In
-                  </Link>
+                  </a>
                 </motion.div>
 
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Link
-                    href="/signup"
+                  <a
+                    href="/login"
                     className="px-3 py-1.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-full transition-all duration-300 shadow-sm"
                   >
                     Get Started
-                  </Link>
+                  </a>
                 </motion.div>
               </motion.div>
             )}
           </nav>
-        </div>
+        </motion.div>
       </motion.header>
+
+      {/* Slack functionality is now handled by SlackButton component */}
 
       {/* Mobile Header */}
       <motion.header
@@ -998,32 +294,31 @@ const Header = () => {
         animate={shouldShowHeader ? "visible" : "hidden"}
         transition={{
           duration: 0.3,
-          ease: "easeInOut",
+          ease: [0.4, 0, 0.2, 1],
           type: "spring",
           stiffness: 100,
           damping: 20
         }}
       >
-        <div className="bg-white/90 backdrop-blur-lg border-b border-gray-100">
+        <motion.div 
+          className={`${mobileHeaderBg} backdrop-blur-enhanced border-b ${!isLightMode ? 'dark' : ''}`} 
+          style={{ backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)' }}
+          animate={{
+            backgroundColor: isLightMode 
+              ? 'rgba(255, 255, 255, 0.9)' 
+              : 'rgba(10, 10, 11, 0.9)',
+            borderColor: isLightMode 
+              ? 'rgba(243, 244, 246, 1)' 
+              : 'rgba(255, 255, 255, 0.1)'
+          }}
+          transition={{
+            duration: 0.4,
+            ease: [0.4, 0, 0.2, 1]
+          }}
+        >
           <nav className="flex items-center justify-between px-4 py-3">
             {/* Mobile Logo */}
-            <motion.div
-              initial="initial"
-              animate="animate"
-              whileHover="hover"
-              variants={animations.logo}
-              transition={{ delay: 0.2, duration: 0.6 }}
-            >
-              <Link href="/" className="flex items-center">
-                <Image
-                  src={logo}
-                  alt="WhizBoard Logo"
-                  width={80}
-                  height={80}
-                  className="w-20 h-auto object-contain"
-                />
-              </Link>
-            </motion.div>
+            <Logo isLightMode={isLightMode} className="flex items-center" />
 
             {/* Mobile Menu Button */}
             <motion.button
@@ -1033,8 +328,8 @@ const Header = () => {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`p-2 rounded-full transition-all duration-300 text-gray-600 hover:bg-gray-100 active:bg-gray-200 ${
-                isMobileMenuOpen ? "bg-gray-100" : ""
+              className={`p-2 rounded-full transition-all duration-300 ${textColor} ${buttonBg} ${
+                isMobileMenuOpen ? (isLightMode ? 'bg-gray-100' : 'bg-white/5') : ''
               }`}
               aria-label="Toggle mobile menu"
               aria-expanded={isMobileMenuOpen}
@@ -1046,7 +341,7 @@ const Header = () => {
                     initial={{ rotate: -90, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
                     exit={{ rotate: 90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                   >
                     <X className="w-6 h-6" />
                   </motion.div>
@@ -1056,7 +351,7 @@ const Header = () => {
                     initial={{ rotate: 90, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
                     exit={{ rotate: -90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                   >
                     <Menu className="w-6 h-6" />
                   </motion.div>
@@ -1064,7 +359,7 @@ const Header = () => {
               </AnimatePresence>
             </motion.button>
           </nav>
-        </div>
+        </motion.div>
       </motion.header>
 
       {/* Mobile Menu */}
@@ -1074,6 +369,10 @@ const Header = () => {
         session={session}
         onClose={() => setIsMobileMenuOpen(false)}
         onCreateBoard={handleCreateBoard}
+        isLightMode={isLightMode}
+        companyMenuItems={companyMenuItems}
+        supportMenuItems={supportMenuItems}
+        userMenuItems={updatedUserMenuItems}
       />
 
       {/* Modals */}

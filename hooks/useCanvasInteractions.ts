@@ -95,20 +95,14 @@ export function useCanvasInteractions({
   const [isDrawingInFrame, setIsDrawingInFrame] = useState(false);
   
   // Refs
-  const frameCreationModeRef = useRef<{
-    isCreating: boolean;
-    startPoint: { x: number; y: number } | null;
-    currentFrame: Partial<FrameElement> | null;
-  }>({
-    isCreating: false,
-    startPoint: null,
-    currentFrame: null,
-  });
+
   const lastPointer = useRef<{ x: number; y: number } | null>(null);
   const lastUpdatePoint = useRef<{ x: number; y: number } | null>(null); // Track last update point
   const performanceMode = useRef(false);
   const isSpacePressed = useRef(false);
   const isPanning = useRef(false);
+  // Stylus pressure tracking
+  const pressureRef = useRef<number>(1);
 
   // Enhanced touch gesture support
   const touchGestureRef = useRef<{
@@ -198,11 +192,12 @@ export function useCanvasInteractions({
   const startLongPress = useCallback((point: { x: number; y: number }) => {
     touchGestureRef.current.longPressTimer = setTimeout(() => {
       touchGestureRef.current.isLongPress = true;
-      // Handle long press - could switch to selection tool or show context menu
-      console.log('Long press detected at:', point);
-      // Could trigger tool switch or context menu here
+      // Switch to select tool on long press for better tablet/mobile UX
+      if (onToolChangeAction && tool !== 'select') {
+        onToolChangeAction('select');
+      }
     }, LONG_PRESS_DURATION);
-  }, []);
+  }, [onToolChangeAction, tool]);
 
   const cancelLongPress = useCallback(() => {
     if (touchGestureRef.current.longPressTimer) {
@@ -413,11 +408,16 @@ export function useCanvasInteractions({
   }, [stageRef, dimensions]);
 
   const fitToScreen = useCallback(() => {
+    console.log('useCanvasInteractions fitToScreen called');
     const stage = stageRef.current;
-    if (!stage || lines.length === 0) return;
+    if (!stage) {
+      console.log('No stage available in useCanvasInteractions');
+      return;
+    }
     
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     
+    // Check lines
     lines.forEach(line => {
       // Skip lines that don't have valid points
       if (!line.points || !Array.isArray(line.points) || line.points.length === 0) {
@@ -434,7 +434,28 @@ export function useCanvasInteractions({
       }
     });
     
-    if (minX === Infinity) return;
+    // Check frames
+    frames.forEach(frame => {
+      if (frame) {
+        const frameX = frame.x || 0;
+        const frameY = frame.y || 0;
+        const frameWidth = frame.width || 0;
+        const frameHeight = frame.height || 0;
+        
+        minX = Math.min(minX, frameX);
+        minY = Math.min(minY, frameY);
+        maxX = Math.max(maxX, frameX + frameWidth);
+        maxY = Math.max(maxY, frameY + frameHeight);
+      }
+    });
+    
+    // If no content found, set default bounds
+    if (minX === Infinity) {
+      minX = 0;
+      minY = 0;
+      maxX = 1000;
+      maxY = 1000;
+    }
     
     const padding = 50;
     const contentWidth = maxX - minX;
@@ -463,7 +484,8 @@ export function useCanvasInteractions({
     
     setStageScale(newScale);
     setStagePos(newPos);
-  }, [stageRef, lines, dimensions]);
+    console.log('useCanvasInteractions fitToScreen completed successfully');
+  }, [stageRef, lines, frames, dimensions]);
 
   // Enhanced event handlers with better line interaction support
   const handleMouseDown = useCallback((e: KonvaEventObject<MouseEvent>) => {
@@ -472,11 +494,28 @@ export function useCanvasInteractions({
 
     // Enhanced touch gesture detection
     const isTouch = e.evt.type === 'touchstart' || (e.evt as any).touches;
+    // Capture stylus pressure when available
+    const getPressureScale = (evt: any) => {
+      const raw = typeof evt?.pressure === 'number' ? evt.pressure : (evt?.touches?.[0]?.force ?? 0.5);
+      const clamped = Math.max(0, Math.min(1, Number.isFinite(raw) ? raw : 0.5));
+      // Map [0,1] -> [0.6, 1.6]
+      return 0.6 + clamped;
+    };
+    pressureRef.current = getPressureScale(e.evt as any);
     if (isTouch) {
       const touches = (e.evt as any).touches || [(e.evt as any)];
       touchGestureRef.current.isTouch = true;
       touchGestureRef.current.touchStartTime = Date.now();
-      
+
+      // Three-finger tap: toggle grid quickly (mobile convenience)
+      if (touches.length === 3) {
+        touchGestureRef.current.isTap = true;
+        cancelLongPress();
+        setShowGrid(prev => !prev);
+        resetTouchGesture();
+        return;
+      }
+
       if (touches.length === 1) {
         const touch = touches[0];
         const stageBox = stage.container().getBoundingClientRect();
@@ -488,17 +527,27 @@ export function useCanvasInteractions({
         touchGestureRef.current.lastTouchPoint = point;
         touchGestureRef.current.touchMoveDistance = 0;
         touchGestureRef.current.isTap = true;
-        
         // Start long press detection for single touch
         startLongPress(point);
       } else if (touches.length === 2) {
-        // Two finger gesture - prepare for pinch zoom
-        touchGestureRef.current.isTap = false;
+        // Two-finger tap (no move): quick reset zoom
+        touchGestureRef.current.isTap = true;
         cancelLongPress();
-        handlePinchZoom(touches);
+        // Initialize pinch if movement occurs; otherwise treat as two-finger tap
+        touchGestureRef.current.pinchStart = null;
+        touchGestureRef.current.isPinching = false;
+        // Defer: if no movement within short window, reset zoom
+        const timeout = setTimeout(() => {
+          if (touchGestureRef.current.isTap && !touchGestureRef.current.isPinching) {
+            resetZoom();
+            resetTouchGesture();
+          }
+        }, 180);
+        // Store timer locally on ref to clear if movement happens
+        (touchGestureRef.current as any)._twoFingerTimer = timeout;
         return; // Don't proceed with drawing for multi-touch
       } else {
-        // More than 2 touches - cancel all gestures
+        // More than 3 touches - cancel all gestures
         resetTouchGesture();
         return;
       }
@@ -529,61 +578,12 @@ export function useCanvasInteractions({
       return;
     }
 
-    if (tool === 'frame' && isFramePlacementMode) {
-      // Delegate frame placement to external handler (e.g., preset placement logic)
+    if (tool === 'frame') {
+      // Delegate frame creation to external handler for better control
       if (onCanvasClickAction) {
         onCanvasClickAction(e);
       }
       return; // Skip internal frame-draw flow
-    }
-
-    if (tool === 'frame') {
-      const framePos = stage.getPointerPosition();
-      if (framePos) {
-        const transform = stage.getAbsoluteTransform().copy();
-        transform.invert();
-        const stagePoint = transform.point(framePos);
-        
-        if (stagePoint) {
-          frameCreationModeRef.current = {
-            isCreating: true,
-            startPoint: stagePoint,
-            currentFrame: {
-              id: `frame-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-              type: 'frame',
-              x: stagePoint.x,
-              y: stagePoint.y,
-              width: 0,
-              height: 0,
-              name: 'New Frame',
-              frameType: 'basic',
-              isCreating: true,
-              style: {
-                fill: 'rgba(255, 255, 255, 1.0)',
-                stroke: '#22c55e',
-                strokeWidth: 2,
-              },
-              metadata: {
-                labels: [],
-                tags: [],
-                status: 'draft',
-                priority: 'low',
-                comments: [],
-              },
-              hierarchy: {
-                childIds: [],
-                level: 0,
-                order: frames.length,
-              },
-              createdBy: 'current-user',
-              createdAt: Date.now(),
-              updatedAt: Date.now(),
-              version: 1,
-            },
-          };
-        }
-      }
-      return;
     }
 
     if (tool === 'text') {
@@ -634,6 +634,14 @@ export function useCanvasInteractions({
       }
       return;
     }
+
+    if (tool === 'image') {
+      // For image tool, pass the click to canvas click handler for image creation
+      if (onCanvasClickAction) {
+        onCanvasClickAction(e);
+      }
+      return;
+    }
     
     if (tool !== 'pen' && tool !== 'eraser' && tool !== 'highlighter') return;
 
@@ -648,6 +656,8 @@ export function useCanvasInteractions({
     setActiveFrameId(targetFrame?.id || null);
     setIsDrawingInFrame(!!targetFrame);
 
+    const baseWidth = tool === 'highlighter' ? strokeWidth * 2 : strokeWidth;
+    const appliedWidth = Math.max(1, Math.round(baseWidth * pressureRef.current));
     const newLine: ILine = {
       id: `line-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       points: targetFrame 
@@ -657,7 +667,7 @@ export function useCanvasInteractions({
           })()
         : [stagePos.x, stagePos.y],
       tool,
-      strokeWidth: tool === 'highlighter' ? strokeWidth * 2 : strokeWidth,
+      strokeWidth: appliedWidth,
       color,
       frameId: targetFrame?.id,
     };
@@ -676,7 +686,7 @@ export function useCanvasInteractions({
       onCanvasClickAction(e);
       return;
     }
-  }, [tool, strokeWidth, color, lines, findFrameAtPoint, handleDrawingInFrame, onRealTimeDrawingAction, frames.length, onCanvasClickAction, isFramePlacementMode]);
+  }, [tool, strokeWidth, color, lines, findFrameAtPoint, handleDrawingInFrame, onRealTimeDrawingAction, frames.length, onCanvasClickAction, isFramePlacementMode, startLongPress, cancelLongPress, resetZoom, resetTouchGesture, setShowGrid]);
 
   const handleMouseMove = useCallback((e: KonvaEventObject<MouseEvent>) => {
     const stage = e.target.getStage();
@@ -685,31 +695,47 @@ export function useCanvasInteractions({
 
     // Enhanced touch gesture handling
     const isTouch = e.evt.type === 'touchmove' || (e.evt as any).touches;
+    // Update pressure on move for stylus
+    const getPressureScale = (evt: any) => {
+      const raw = typeof evt?.pressure === 'number' ? evt.pressure : (evt?.touches?.[0]?.force ?? 0.5);
+      const clamped = Math.max(0, Math.min(1, Number.isFinite(raw) ? raw : 0.5));
+      return 0.6 + clamped;
+    };
+    pressureRef.current = getPressureScale(e.evt as any);
     if (isTouch && touchGestureRef.current.isTouch) {
       const touches = (e.evt as any).touches || [(e.evt as any)];
-      
+
       if (touches.length === 2) {
-        // Handle pinch zoom
+        // If there was a pending two-finger tap timer, cancel it because we started moving
+        const pending = (touchGestureRef.current as any)._twoFingerTimer as NodeJS.Timeout | undefined;
+        if (pending) {
+          clearTimeout(pending);
+          (touchGestureRef.current as any)._twoFingerTimer = undefined;
+        }
+        // Handle pinch zoom safely
         handlePinchZoom(touches);
+        touchGestureRef.current.isPinching = true;
+        touchGestureRef.current.isTap = false;
         return;
-      } else if (touches.length === 1 && touchGestureRef.current.touchStartPoint) {
-                 // Track movement distance for tap detection
-         const touch = touches[0];
-         const stageBox = stage?.container().getBoundingClientRect();
-         if (!stageBox) return;
-         const currentPoint = { 
-           x: touch.clientX - stageBox.left, 
-           y: touch.clientY - stageBox.top 
-         };
-        
+      }
+      // Track movement distance for tap detection
+      const touch = touches[0];
+      const stageBox = stage?.container().getBoundingClientRect();
+      if (!stageBox) return;
+      if (touchGestureRef.current.touchStartPoint) {
+        const currentPoint = { 
+          x: touch.clientX - stageBox.left, 
+          y: touch.clientY - stageBox.top 
+        };
+
         const distance = Math.sqrt(
           Math.pow(currentPoint.x - touchGestureRef.current.touchStartPoint.x, 2) +
           Math.pow(currentPoint.y - touchGestureRef.current.touchStartPoint.y, 2)
         );
-        
+
         touchGestureRef.current.touchMoveDistance = distance;
         touchGestureRef.current.lastTouchPoint = currentPoint;
-        
+
         // Cancel tap if movement exceeds threshold
         if (distance > TAP_THRESHOLD) {
           touchGestureRef.current.isTap = false;
@@ -722,33 +748,8 @@ export function useCanvasInteractions({
 
     if (isPanning.current) return;
 
-    // Handle frame creation
-    if (frameCreationModeRef.current.isCreating && frameCreationModeRef.current.startPoint && frameCreationModeRef.current.currentFrame) {
-      const transform = stage?.getAbsoluteTransform().copy();
-      if (transform) {
-        transform.invert();
-        const stagePoint = transform.point(point);
-        
-        if (stagePoint) {
-          const startX = Math.min(frameCreationModeRef.current.startPoint.x, stagePoint.x);
-          const startY = Math.min(frameCreationModeRef.current.startPoint.y, stagePoint.y);
-          const width = Math.abs(stagePoint.x - frameCreationModeRef.current.startPoint.x);
-          const height = Math.abs(stagePoint.y - frameCreationModeRef.current.startPoint.y);
-          
-          frameCreationModeRef.current = {
-            ...frameCreationModeRef.current,
-            currentFrame: {
-              ...frameCreationModeRef.current.currentFrame,
-              x: startX,
-              y: startY,
-              width: Math.max(width, 20),
-              height: Math.max(height, 20),
-            },
-          };
-        }
-      }
-      return;
-    }
+    // Frame creation is now handled externally through onCanvasClickAction
+    // No internal frame creation logic needed here
 
     if (!isDrawing) return;
 
@@ -772,6 +773,8 @@ export function useCanvasInteractions({
         const updatedLine = {
           ...lastLine,
           points: newPoints,
+          // Apply pressure-based width dynamically
+          strokeWidth: Math.max(1, Math.round((lastLine.tool === 'highlighter' ? strokeWidth * 2 : strokeWidth) * pressureRef.current)),
         };
 
         setLines(lines.map((line, i) => 
@@ -810,6 +813,7 @@ export function useCanvasInteractions({
       const updatedLine = {
         ...lastLine,
         points: newPoints,
+        strokeWidth: Math.max(1, Math.round((lastLine.tool === 'highlighter' ? strokeWidth * 2 : strokeWidth) * pressureRef.current)),
       };
 
       setLines(lines.map((line, i) => 
@@ -835,102 +839,37 @@ export function useCanvasInteractions({
     }
 
     lastPointer.current = stagePoint;
-  }, [isDrawing, lines, frames, activeFrameId, isDrawingInFrame, handleDrawingInFrame, onRealTimeLineUpdateAction, moveCursorAction]);
+  }, [isDrawing, lines, frames, activeFrameId, isDrawingInFrame, handleDrawingInFrame, onRealTimeLineUpdateAction, moveCursorAction, handlePinchZoom]);
 
   const handleMouseUp = useCallback(() => {
     // Enhanced touch gesture completion
     if (touchGestureRef.current.isTouch) {
       const touchDuration = Date.now() - touchGestureRef.current.touchStartTime;
-      
+
+      // Clear any pending two-finger timer
+      const pending = (touchGestureRef.current as any)._twoFingerTimer as NodeJS.Timeout | undefined;
+      if (pending) {
+        clearTimeout(pending);
+        (touchGestureRef.current as any)._twoFingerTimer = undefined;
+      }
+
       // Handle tap gesture
       if (touchGestureRef.current.isTap && 
           touchGestureRef.current.touchMoveDistance <= TAP_THRESHOLD &&
           touchDuration < LONG_PRESS_DURATION) {
-        console.log('Tap gesture detected');
         // Tap is handled by normal click logic
       }
-      
+
       // Handle long press completion
       if (touchGestureRef.current.isLongPress) {
-        console.log('Long press completed');
-        // Could trigger context menu or tool switch
+        // Could trigger context menu or tool switch in future
       }
-      
+
       // Reset touch gesture state
       resetTouchGesture();
     }
 
-    if (frameCreationModeRef.current.isCreating && frameCreationModeRef.current.currentFrame) {
-      const currentFrame = frameCreationModeRef.current.currentFrame;
-      
-      // Determine final frame dimensions
-      let finalWidth = currentFrame.width || 0;
-      let finalHeight = currentFrame.height || 0;
-
-      // If the user only clicked (no drag), assign sensible default size
-      if (finalWidth === 0 && finalHeight === 0) {
-        finalWidth = 300; // default width
-        finalHeight = 200; // default height
-      }
-
-      // Enforce minimum dimensions
-      finalWidth = Math.max(finalWidth, 20);
-      finalHeight = Math.max(finalHeight, 20);
-
-      if (finalWidth >= 20 && finalHeight >= 20) {
-        const newFrame: FrameElement = {
-          id: currentFrame.id || `frame-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          type: 'frame',
-          x: currentFrame.x || 0,
-          y: currentFrame.y || 0,
-          width: finalWidth,
-          height: finalHeight,
-          name: currentFrame.name || 'New Frame',
-          frameType: currentFrame.frameType || 'basic',
-          isCreating: false,
-          style: {
-            fill: 'rgba(255, 255, 255, 1.0)',
-            stroke: '#3b82f6',
-            strokeWidth: 2,
-            fillOpacity: 1,
-            strokeOpacity: 1,
-          },
-          metadata: {
-            labels: [],
-            tags: [],
-            status: 'draft',
-            priority: 'low',
-            comments: [],
-          },
-          hierarchy: {
-            childIds: [],
-            level: 0,
-            order: frames.length,
-          },
-          createdBy: 'current-user',
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-          version: 1,
-        };
-        
-        addFrame(newFrame);
-        
-        if (onFrameAddAction) {
-          onFrameAddAction(newFrame);
-        }
-        
-        if (onRealTimeFrameAction) {
-          onRealTimeFrameAction(newFrame);
-        }
-      }
-      
-      // Reset creation mode state regardless of creation success
-      frameCreationModeRef.current = {
-        isCreating: false,
-        startPoint: null,
-        currentFrame: null,
-      };
-    }
+    // Frame creation is now handled externally through onCanvasClickAction
 
     setIsDrawing(false);
     setIsDrawingInFrame(false);
@@ -939,7 +878,7 @@ export function useCanvasInteractions({
     lastUpdatePoint.current = null; // Reset for next drawing
     isPanning.current = false;
     onDrawEndAction(lines);
-  }, [lines, onDrawEndAction, addFrame, onFrameAddAction, onRealTimeFrameAction, frames.length]);
+  }, [lines, onDrawEndAction, addFrame, onFrameAddAction, onRealTimeFrameAction, frames.length, resetTouchGesture]);
 
   const handleWheel = useCallback((e: KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault();
@@ -985,7 +924,7 @@ export function useCanvasInteractions({
       case 'highlighter': return 'crosshair';
       case 'eraser': return 'cell';
       case 'sticky-note': return 'copy';
-      case 'frame': return frameCreationModeRef.current.isCreating ? 'crosshair' : 'copy';
+      case 'frame': return 'crosshair';
       default: return 'crosshair';
     }
   };
@@ -1062,7 +1001,7 @@ export function useCanvasInteractions({
     isStickyNoteDragging,
     isFrameDragging,
     showFrameAlignment,
-    frameCreationMode: frameCreationModeRef.current,
+
     activeFrameId,
     isDrawingInFrame,
     performanceMode: performanceMode.current,

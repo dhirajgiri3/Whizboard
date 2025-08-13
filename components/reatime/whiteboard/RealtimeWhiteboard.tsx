@@ -103,11 +103,11 @@ const RealtimeWhiteboard: React.FC = () => {
         setShowInteractiveHints(true);
     }, []);
 
-    // Cycle through hints continuously
+    // Rotate through hints continuously
     useEffect(() => {
         const interval = setInterval(() => {
             setHintIndex((prev) => (prev + 1) % interactiveHints.length);
-        }, 4000);
+        }, 5000);
 
         return () => clearInterval(interval);
     }, [interactiveHints.length]);
@@ -255,8 +255,7 @@ const RealtimeWhiteboard: React.FC = () => {
         setActiveTool(index);
         setSelectedElement(null);
         
-        // Track user interaction and cycle hint
-        setUserInteractions(prev => prev + 1);
+        // Cycle hint when user interacts with tools
         setHintIndex((prev) => (prev + 1) % interactiveHints.length);
         
         const selectedTool = toolbarItems[index];
@@ -285,8 +284,7 @@ const RealtimeWhiteboard: React.FC = () => {
             setSelectedElement(selectedElement === elementId ? null : elementId);
             setEditingTextElementId(null);
             
-            // Track user interaction and cycle hint
-            setUserInteractions(prev => prev + 1);
+            // Cycle hint when user selects elements
             setHintIndex((prev) => (prev + 1) % interactiveHints.length);
         },
         [selectedElement, interactiveHints.length]

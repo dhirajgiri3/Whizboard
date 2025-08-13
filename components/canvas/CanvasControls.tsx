@@ -33,11 +33,7 @@ interface CanvasControlsProps {
   isPanning: boolean;
   isStickyNoteDragging: boolean;
   isFrameDragging: boolean;
-  frameCreationMode: {
-    isCreating: boolean;
-    startPoint: { x: number; y: number } | null;
-    currentFrame: any | null;
-  };
+
   hoveredLineIndex: number | null;
   tool: Tool;
   isDrawingInFrame: boolean;
@@ -63,7 +59,7 @@ export function CanvasControls({
   isPanning,
   isStickyNoteDragging,
   isFrameDragging,
-  frameCreationMode,
+
   hoveredLineIndex,
   tool,
   isDrawingInFrame,
@@ -162,10 +158,13 @@ export function CanvasControls({
                       />
                     </button>
                     <button
-                      onClick={fitToScreen}
-                      className="flex-1 p-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 active:bg-purple-200 transition-all duration-200 text-purple-600 hover:text-purple-700 group"
+                      onClick={() => {
+                        console.log('CanvasControls fitToScreen button clicked');
+                        fitToScreen();
+                      }}
+                      className="flex-1 p-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 active:bg-purple-200 transition-all duration-200 text-purple-600 hover:text-purple-700 group disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Fit to Screen"
-                      disabled={!hasLines}
+                      disabled={false}
                     >
                       <Maximize2
                         size={16}
@@ -234,12 +233,7 @@ export function CanvasControls({
             </div>
           )}
 
-          {frameCreationMode.isCreating && (
-            <div className="bg-blue-50/90 backdrop-blur-sm text-blue-700 border border-blue-200/60 rounded-full px-4 py-2 text-xs font-medium shadow-sm flex items-center gap-2 animate-pulse">
-              <Grid size={12} />
-              Creating Frame
-            </div>
-          )}
+
 
           {hoveredLineIndex !== null && tool !== "pen" && tool !== "eraser" && tool !== "highlighter" && (
             <div className="bg-indigo-50/90 backdrop-blur-sm text-indigo-700 border border-indigo-200/60 rounded-full px-4 py-2 text-xs font-medium shadow-sm flex items-center gap-2 animate-pulse">

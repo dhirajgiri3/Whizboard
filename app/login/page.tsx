@@ -1,8 +1,8 @@
 "use client";
-import { signIn, useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useState } from "react";
 import { motion } from "framer-motion";
+import { RequireUnauth } from "@/components/auth/ProtectedRoute";
 import { 
   Shield, 
   Users, 
@@ -11,21 +11,13 @@ import {
   Lock
 } from "lucide-react";
 
-export default function LoginPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+function LoginPageContent() {
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      router.replace("/");
-    }
-  }, [status, router]);
-
-  const handleGoogleSignIn = async () => {
+    const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      await signIn("google", { callbackUrl: "/" });
+      await signIn("google", { callbackUrl: "/my-boards" });
     } catch (error) {
       console.error("Sign in error:", error);
     } finally {
@@ -253,7 +245,7 @@ export default function LoginPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
               >
-                Welcome back
+                Welcome to Whizboard
               </motion.h2>
               <motion.p 
                 className="text-white/60 text-sm"
@@ -261,7 +253,7 @@ export default function LoginPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.6 }}
               >
-                Sign in to access your workspace
+                Sign in with Google to access your workspace
               </motion.p>
             </div>
 
@@ -289,7 +281,7 @@ export default function LoginPage() {
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
               )}
-              <span className="text-base relative z-10">{isLoading ? 'Signing in...' : 'Continue with Google'}</span>
+              <span className="text-base relative z-10">{isLoading ? 'Signing in...' : 'Sign in with Google'}</span>
             </motion.button>
 
             {/* Clean Trust Indicators */}
@@ -377,5 +369,13 @@ export default function LoginPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <RequireUnauth redirectTo="/my-boards">
+      <LoginPageContent />
+    </RequireUnauth>
   );
 }

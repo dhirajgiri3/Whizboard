@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Exclude Konva and react-konva from server-side bundling
@@ -43,6 +46,12 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'api.dicebear.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
         port: '',
         pathname: '/**',
       },

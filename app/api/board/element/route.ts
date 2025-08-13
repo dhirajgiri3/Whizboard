@@ -1,120 +1,58 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/options';
 import { pubSub } from '@/lib/graphql/schema';
 import logger from '@/lib/logger/logger';
 
-interface ElementData {
+interface ElementBody {
   boardId: string;
-  action: 'add' | 'update' | 'delete';
-  element?: {
-    id: string;
-    type: 'line' | 'shape' | 'frame' | 'text';
-    data: Record<string, unknown>;
-    userId: string;
-    timestamp: number;
-  };
-  elementId?: string;
   userId: string;
-  timestamp: number;
+  userName: string;
+  element?: { id: string; type: string; data: Record<string, unknown> };
+  elementId?: string;
+  action: 'update' | 'delete' | 'add';
 }
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, error: 'Authentication required' },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     }
 
-    const body: ElementData = await request.json();
-    const { boardId, action, element, elementId, userId } = body;
+    const body: ElementBody = await request.json();
+    const { boardId, userId, userName, element, elementId, action } = body || {} as ElementBody;
 
-    // Validate required fields
-    if (!boardId || !action || !userId) {
-      return NextResponse.json(
-        { success: false, error: 'Missing required fields' },
-        { status: 400 }
-      );
+    if (!boardId || !userId || !userName || !action) {
+      return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
     }
-
-    // Verify user owns this action
     if (session.user.id !== userId) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized action' },
-        { status: 403 }
-      );
+      return NextResponse.json({ success: false, error: 'Unauthorized element event' }, { status: 403 });
     }
+
+    const timestamp = Date.now();
 
     try {
-      switch (action) {
-        case 'add':
-          if (!element) {
-            return NextResponse.json(
-              { success: false, error: 'Element data required for add action' },
-              { status: 400 }
-            );
-          }
-          
-          pubSub.publish('elementAdded', boardId, element);
-          logger.debug(`Element added by user ${userId} on board ${boardId}`);
-          break;
-
-        case 'update':
-          if (!element) {
-            return NextResponse.json(
-              { success: false, error: 'Element data required for update action' },
-              { status: 400 }
-            );
-          }
-          
-          pubSub.publish('elementUpdated', boardId, element);
-          logger.debug(`Element updated by user ${userId} on board ${boardId}`);
-          break;
-
-        case 'delete':
-          if (!elementId) {
-            return NextResponse.json(
-              { success: false, error: 'Element ID required for delete action' },
-              { status: 400 }
-            );
-          }
-          
-          pubSub.publish('elementDeleted', boardId, {
-            elementId,
-            userId,
-            timestamp: Date.now(),
-          });
-          logger.debug(`Element deleted by user ${userId} on board ${boardId}`);
-          break;
-
-        default:
-          return NextResponse.json(
-            { success: false, error: 'Invalid action' },
-            { status: 400 }
-          );
+      if (action === 'add') {
+        if (!element) return NextResponse.json({ success: false, error: 'element required for add' }, { status: 400 });
+        pubSub.publish('elementAdded', boardId, { id: element.id, type: element.type, data: element.data, userId, timestamp });
+      } else if (action === 'update') {
+        if (!element) return NextResponse.json({ success: false, error: 'element required for update' }, { status: 400 });
+        pubSub.publish('elementUpdated', boardId, { id: element.id, type: element.type, data: element.data, userId, timestamp });
+      } else if (action === 'delete') {
+        if (!elementId) return NextResponse.json({ success: false, error: 'elementId required for delete' }, { status: 400 });
+        pubSub.publish('elementDeleted', boardId, { id: elementId, userId, timestamp, type: 'element' });
       }
     } catch (error) {
-      logger.error('Error publishing element change:', error);
-      return NextResponse.json(
-        { success: false, error: 'Failed to broadcast element change' },
-        { status: 500 }
-      );
+      logger.error({ error }, 'Failed to publish element event');
+      return NextResponse.json({ success: false, error: 'Failed to broadcast element event' }, { status: 500 });
     }
 
-    return NextResponse.json({
-      success: true,
-      message: `Element ${action} broadcasted`,
-    });
-
+    return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error('Error handling element change:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    logger.error({ error }, 'Error handling element event');
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
+
+// No duplicate handlers below

@@ -5,6 +5,8 @@ import React from "react";
 export interface Cursor {
   id: string;
   name: string;
+  email?: string;
+  username?: string;
   color: string;
   x: number;
   y: number;
@@ -37,7 +39,7 @@ export interface DrawingPath {
 
 export interface CanvasElement {
   id: string;
-  type: "circle" | "rectangle" | "triangle" | "star" | "note" | "text";
+  type: "circle" | "rectangle" | "triangle" | "star" | "note" | "text" | "image";
   x: number;
   y: number;
   width?: number;
@@ -51,6 +53,11 @@ export interface CanvasElement {
   strokeWidth?: number;
   strokeColor?: string;
   timestamp: number;
+  // Image-specific properties
+  src?: string;
+  alt?: string;
+  naturalWidth?: number;
+  naturalHeight?: number;
 }
 
 export interface ColorPalette {

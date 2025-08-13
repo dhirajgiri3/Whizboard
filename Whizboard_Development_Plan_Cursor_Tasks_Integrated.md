@@ -43,7 +43,6 @@ Smooth real-time synchronization.
 Modern, intuitive UI.
 
 
-
 Stretch Goals
 
 Import functionality (images, JSON).

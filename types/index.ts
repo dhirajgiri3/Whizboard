@@ -2,12 +2,54 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  username?: string;
   avatar?: string;
   cursor?: { x: number; y: number };
   isOnline: boolean;
+  // Enhanced user presence data
+  presence?: {
+    status: 'online' | 'away' | 'busy' | 'offline';
+    lastSeen: Date;
+    currentActivity?: string;
+    isTyping?: boolean;
+    isDrawing?: boolean;
+    isSelecting?: boolean;
+    activeElementId?: string;
+    sessionDuration: number;
+    connectionQuality?: 'excellent' | 'good' | 'poor' | 'disconnected';
+  };
+  // User activity tracking
+  activity?: {
+    totalActions: number;
+    lastAction: Date;
+    actionsPerMinute: number;
+    favoriteTools: string[];
+    collaborationScore: number;
+  };
+  // User permissions and roles
+  permissions?: {
+    canEdit: boolean;
+    canInvite: boolean;
+    canDelete: boolean;
+    canExport: boolean;
+    canManageUsers: boolean;
+    role: 'owner' | 'admin' | 'editor' | 'viewer' | 'commenter';
+  };
+  // Board-specific role and permissions
+  boardRole?: 'owner' | 'admin' | 'collaborator' | 'blocked';
+  boardPermissions?: {
+    canView: boolean;
+    canEdit: boolean;
+    canComment: boolean;
+    canInvite: boolean;
+    canDelete: boolean;
+    canExport: boolean;
+    canManageUsers: boolean;
+    canManagePermissions: boolean;
+  };
 }
 
-export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame" | "highlighter" | "text" | "shapes" | "ai";
+export type Tool = "pen" | "eraser" | "select" | "sticky-note" | "frame" | "highlighter" | "text" | "shapes" | "ai" | "line" | "image";
 
 export interface DrawingElement {
   id: string;
@@ -204,6 +246,27 @@ export interface TextElement {
   version: number;
 }
 
+export interface ImageElement {
+  id: string;
+  type: 'image';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  src: string;
+  alt?: string;
+  naturalWidth?: number;
+  naturalHeight?: number;
+  opacity: number;
+  rotation: number;
+  scaleX?: number;
+  scaleY?: number;
+  createdBy: string;
+  createdAt: number;
+  updatedAt: number;
+  version: number;
+}
+
 export interface BoardAction {
   type: string;
   data: string; // JSON string of the action
@@ -222,6 +285,237 @@ export interface BoardInvitation {
   acceptedAt?: Date;
 }
 
+export interface Comment {
+  id: string;
+  elementId: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar?: string;
+  text: string;
+  createdAt: Date;
+  updatedAt: Date;
+  isResolved: boolean;
+  resolvedBy?: string;
+  resolvedAt?: Date;
+  replies: Comment[];
+  mentions: string[];
+  attachments?: Array<{
+    id: string;
+    name: string;
+    url: string;
+    type: string;
+    size: number;
+  }>;
+}
+
+export interface Annotation {
+  id: string;
+  elementId: string;
+  authorId: string;
+  authorName: string;
+  type: 'highlight' | 'underline' | 'strikethrough' | 'marker' | 'note';
+  color: string;
+  position: {
+    x: number;
+    y: number;
+    width?: number;
+    height?: number;
+  };
+  text?: string;
+  createdAt: Date;
+  isVisible: boolean;
+}
+
+export interface UserActivity {
+  id: string;
+  userId: string;
+  userName: string;
+  action: 'join' | 'leave' | 'draw' | 'text' | 'shape' | 'select' | 'move' | 'delete' | 'comment' | 'invite' | 'export' | 'import';
+  elementId?: string;
+  elementType?: string;
+  metadata?: Record<string, any>;
+  timestamp: Date;
+  sessionId: string;
+}
+
+export interface CollaborationSession {
+  id: string;
+  boardId: string;
+  startTime: Date;
+  endTime?: Date;
+  participants: Array<{
+    userId: string;
+    userName: string;
+    joinTime: Date;
+    leaveTime?: Date;
+    totalActions: number;
+    activeTime: number;
+  }>;
+  statistics: {
+    totalActions: number;
+    uniqueUsers: number;
+    averageSessionTime: number;
+    mostActiveUser: string;
+    mostUsedTool: string;
+    collaborationScore: number;
+  };
+}
+
+export interface Permission {
+  id: string;
+  userId: string;
+  boardId: string;
+  role: 'owner' | 'admin' | 'editor' | 'viewer' | 'commenter';
+  grantedBy: string;
+  grantedAt: Date;
+  expiresAt?: Date;
+  isActive: boolean;
+  permissions: {
+    canView: boolean;
+    canEdit: boolean;
+    canComment: boolean;
+    canInvite: boolean;
+    canDelete: boolean;
+    canExport: boolean;
+    canManageUsers: boolean;
+    canManagePermissions: boolean;
+  };
+}
+
+export interface AuditLog {
+  id: string;
+  boardId: string;
+  userId: string;
+  userName: string;
+  action: string;
+  resourceType: 'board' | 'element' | 'user' | 'permission' | 'comment' | 'export' | 'import';
+  resourceId?: string;
+  oldValue?: any;
+  newValue?: any;
+  metadata?: Record<string, any>;
+  timestamp: Date;
+  ipAddress?: string;
+  userAgent?: string;
+}
+
+export interface EnhancedCursor {
+  x: number;
+  y: number;
+  userId: string;
+  name: string;
+  color?: string;
+  // Enhanced cursor data
+  isActive: boolean;
+  lastActivity: Date;
+  currentTool?: string;
+  isDrawing?: boolean;
+  isTyping?: boolean;
+  isSelecting?: boolean;
+  activeElementId?: string;
+  pressure?: number; // For stylus support
+  velocity?: { x: number; y: number };
+  trail?: Array<{ x: number; y: number; timestamp: number }>;
+}
+
+export interface UserPresenceData {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  userAvatar?: string;
+  status: 'online' | 'away' | 'busy' | 'offline';
+  lastSeen: Date;
+  currentActivity?: string;
+  isTyping?: boolean;
+  isDrawing?: boolean;
+  isSelecting?: boolean;
+  activeElementId?: string;
+  sessionDuration: number;
+  connectionQuality: 'excellent' | 'good' | 'poor' | 'disconnected';
+  deviceInfo?: {
+    type: 'desktop' | 'tablet' | 'mobile';
+    browser: string;
+    os: string;
+    screenSize: { width: number; height: number };
+  };
+}
+
+export interface CollaborationMetrics {
+  boardId: string;
+  totalUsers: number;
+  activeUsers: number;
+  totalActions: number;
+  averageSessionTime: number;
+  collaborationScore: number;
+  mostActiveUser: string;
+  mostUsedTool: string;
+  lastActivity: Date;
+  realTimeSync: {
+    latency: number;
+    packetLoss: number;
+    connectionQuality: 'excellent' | 'good' | 'poor';
+  };
+}
+
+export interface ThreadedDiscussion {
+  id: string;
+  boardId: string;
+  title: string;
+  description?: string;
+  authorId: string;
+  authorName: string;
+  createdAt: Date;
+  updatedAt: Date;
+  isResolved: boolean;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  tags: string[];
+  participants: string[];
+  messages: Array<{
+    id: string;
+    authorId: string;
+    authorName: string;
+    authorAvatar?: string;
+    content: string;
+    timestamp: Date;
+    isEdited: boolean;
+    editedAt?: Date;
+    reactions: Array<{
+      type: string;
+      userId: string;
+      userName: string;
+    }>;
+    mentions: string[];
+    attachments?: Array<{
+      id: string;
+      name: string;
+      url: string;
+      type: string;
+      size: number;
+    }>;
+  }>;
+}
+
+export interface ReviewWorkflow {
+  id: string;
+  boardId: string;
+  title: string;
+  description?: string;
+  status: 'draft' | 'review' | 'approved' | 'rejected' | 'archived';
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+  dueDate?: Date;
+  reviewers: Array<{
+    userId: string;
+    userName: string;
+    status: 'pending' | 'approved' | 'rejected' | 'commented';
+    comments: string[];
+    reviewedAt?: Date;
+  }>;
+  comments: Comment[];
+  version: number;
+}
+
+// Enhanced Board interface with collaboration features
 export interface Board {
   id: string;
   name: string;
@@ -234,6 +528,30 @@ export interface Board {
   history?: BoardAction[];
   historyIndex?: number;
   pendingInvitations?: BoardInvitation[];
+  // Admin and user management
+  adminUsers?: string[]; // Array of user IDs who are admins
+  blockedUsers?: string[]; // Array of user IDs who are blocked
+  // Enhanced collaboration features
+  collaboration?: {
+    sessionId: string;
+    activeUsers: UserPresenceData[];
+    comments: Comment[];
+    annotations: Annotation[];
+    discussions: ThreadedDiscussion[];
+    reviewWorkflows: ReviewWorkflow[];
+    permissions: Permission[];
+    auditLog: AuditLog[];
+    metrics: CollaborationMetrics;
+    settings: {
+      allowComments: boolean;
+      allowAnnotations: boolean;
+      allowGuestAccess: boolean;
+      requireApproval: boolean;
+      autoSaveInterval: number;
+      maxCollaborators: number;
+      sessionTimeout: number;
+    };
+  };
 }
 
 export interface ILine {
@@ -276,8 +594,6 @@ export interface ShapeElement {
     
     // For arcs and wedges
     angle?: number;
-    innerRadius?: number;
-    outerRadius?: number;
     clockwise?: boolean;
     
     // For custom paths

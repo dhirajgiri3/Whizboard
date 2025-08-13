@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import api from '@/lib/http/axios';
 
 interface BoardMetadata {
   id: string;
@@ -13,6 +14,7 @@ interface BoardMetadata {
     name: string;
     email?: string;
     avatar?: string;
+    username?: string;
   };
   collaborators?: Array<{
     id: string;
@@ -88,13 +90,7 @@ export function BoardProvider({ children }: BoardProviderProps) {
     
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/board/${boardId}/metadata`);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch board metadata: ${response.statusText}`);
-      }
-      
-      const metadata = await response.json();
+      const { data: metadata } = await api.get(`/api/board/${boardId}/metadata`);
       setBoardMetadataState(metadata);
     } catch (error) {
       console.error('Error fetching board metadata:', error);
@@ -108,26 +104,10 @@ export function BoardProvider({ children }: BoardProviderProps) {
     if (!boardId) return;
     
     try {
-      const response = await fetch(`/api/board/${boardId}/update-timestamp`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        console.warn(`Failed to update board timestamp: ${response.statusText}`);
-        // Continue execution instead of throwing an error
-        // Just update the local timestamp
-        updateBoardUpdatedAt();
-        return;
-      }
-      
-      const result = await response.json();
-      
+      const { data: result } = await api.patch(`/api/board/${boardId}/update-timestamp`);
       // Update local state with new timestamp
-      if (result.updatedAt) {
-        updateBoardUpdatedAt(result.updatedAt);
+      if ((result as any).updatedAt) {
+        updateBoardUpdatedAt((result as any).updatedAt);
       }
     } catch (error) {
       console.error('Error updating board timestamp:', error);

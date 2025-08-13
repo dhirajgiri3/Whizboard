@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@tailwind utilities;
 
 button {
   cursor: pointer;
@@ -33,6 +32,25 @@ button {
   --error-light: #F87171;
   --info: #8B5CF6;
   --info-light: #A78BFA;
+
+  /* Theme Variables */
+  --color-primary: #3b82f6;
+  --color-secondary: #64748b;
+  --color-accent: #f59e0b;
+  --color-background: #ffffff;
+  --color-surface: #f8fafc;
+  --color-text: #1e293b;
+  --color-text-secondary: #64748b;
+  --color-border: #e2e8f0;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+
+  /* Theme Properties */
+  --border-radius: 0.375rem;
+  --spacing-scale: 1;
+  --font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-size-scale: 1;
 }
 
 @theme inline {
@@ -42,115 +60,53 @@ button {
   --font-mono: var(--font-geist-mono);
 }
 
+/* Responsive Text Utilities */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.line-clamp-4 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Design System Gradient Orbs */
-.gradient-orb-primary {
-  background: radial-gradient(ellipse 800px 600px at center, 
-    rgba(59, 130, 246, 0.15) 0%, 
-    rgba(59, 130, 246, 0.05) 40%, 
+.gradient-orb-blue {
+  background: radial-gradient(circle, 
+    rgba(37, 99, 235, 0.3) 0%, 
+    rgba(37, 99, 235, 0.08) 50%, 
     transparent 70%);
-  filter: blur(100px);
-  will-change: transform, opacity;
+  filter: blur(40px);
+  will-change: transform;
 }
 
-.gradient-orb-secondary {
-  background: radial-gradient(ellipse 600px 800px at center, 
-    rgba(139, 92, 246, 0.12) 0%, 
-    rgba(139, 92, 246, 0.03) 40%, 
-    transparent 70%);
-  filter: blur(120px);
-  will-change: transform, opacity;
-}
-
-.gradient-orb-accent {
-  background: radial-gradient(circle 400px at center, 
-    rgba(16, 185, 129, 0.08) 0%, 
-    rgba(16, 185, 129, 0.02) 50%, 
-    transparent 70%);
-  filter: blur(80px);
-  will-change: transform, opacity;
-}
-
-/* Moving Background Gradient */
-.moving-gradient {
-  background: linear-gradient(45deg, 
-    rgba(59, 130, 246, 0.03) 0%,
-    rgba(139, 92, 246, 0.02) 25%,
-    rgba(16, 185, 129, 0.01) 50%,
-    rgba(139, 92, 246, 0.02) 75%,
-    rgba(59, 130, 246, 0.03) 100%);
-  background-size: 400% 400%;
-  animation: gradient-shift 20s ease infinite;
-  will-change: background-position;
-}
-
-@keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-/* Enhanced Glass Morphism */
-.glass-ultra-minimal {
-  background: rgba(255, 255, 255, 0.01);
-  backdrop-filter: blur(16px) saturate(120%);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
-    0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  will-change: backdrop-filter, background, box-shadow;
-}
-
-.glass-subtle {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(24px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
-    0 4px 12px 0 rgba(0, 0, 0, 0.15);
-  will-change: backdrop-filter, background, box-shadow;
-}
-
-.glass-elevated {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(32px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.12),
-    0 8px 32px 0 rgba(0, 0, 0, 0.24);
-  will-change: backdrop-filter, background, box-shadow;
-}
-
-/* Sophisticated Glow Effects */
-.glow-minimal {
-  box-shadow: 0 0 24px rgba(59, 130, 246, 0.06);
-  will-change: box-shadow;
-}
-
-.glow-subtle {
-  box-shadow: 
-    0 0 32px rgba(59, 130, 246, 0.1),
-    0 0 64px rgba(59, 130, 246, 0.05);
-  will-change: box-shadow;
-}
-
-.glow-prominent {
-  box-shadow: 
-    0 0 48px rgba(59, 130, 246, 0.15),
-    0 0 96px rgba(59, 130, 246, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  will-change: box-shadow;
-}
-
-.glow-focus {
-  box-shadow: 
-    0 0 0 3px rgba(59, 130, 246, 0.12),
-    0 0 32px rgba(59, 130, 246, 0.08),
-    0 4px 16px rgba(0, 0, 0, 0.1);
-  will-change: box-shadow;
-}
-
-/* Advanced Grid & Pattern System */
-.dot-pattern-minimal {
+/* Dot Pattern */
+.dot-pattern {
   background-image: radial-gradient(
     circle at 2px 2px, 
     rgba(255, 255, 255, 0.02) 1px, 
@@ -160,98 +116,13 @@ button {
   will-change: background-image, background-size;
 }
 
-.dot-pattern-prominent {
-  background-image: radial-gradient(
-    circle at 2px 2px, 
-    rgba(255, 255, 255, 0.04) 1px, 
-    transparent 0
-  );
-  background-size: 24px 24px;
-  will-change: background-image, background-size;
-}
-
-.grid-pattern-subtle {
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
-  background-size: 48px 48px;
-  will-change: background-image, background-size;
-}
-
-.grid-pattern-prominent {
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 32px 32px;
-  will-change: background-image, background-size;
-}
-
-/* Noise Texture */
-.noise-overlay {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  opacity: 0.02;
-  mix-blend-mode: overlay;
-  will-change: background-image, opacity;
-}
-
-/* Typography Scale */
-/* Display Typography */
-.display-2xl {
-  font-size: clamp(3rem, 8vw, 5.5rem); /* 48-88px */
-  line-height: 1.05;
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  font-family: 'Cal Sans', system-ui;
-  will-change: font-size, line-height, letter-spacing;
-}
-
-.display-xl {
-  font-size: clamp(2.25rem, 6vw, 4rem); /* 36-64px */
-  line-height: 1.1;
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  font-family: 'Cal Sans', system-ui;
-  will-change: font-size, line-height, letter-spacing;
-}
-
-/* Headline Typography */
-.headline-xl {
-  font-size: clamp(2rem, 4vw, 3rem); /* 32-48px */
-  line-height: 1.15;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  will-change: font-size, line-height, letter-spacing;
-}
-
+/* Typography Classes (Only Used Ones) */
 .headline-lg {
   font-size: clamp(1.5rem, 3vw, 2.25rem); /* 24-36px */
   line-height: 1.2;
   font-weight: 600;
   letter-spacing: -0.015em;
   will-change: font-size, line-height, letter-spacing;
-}
-
-.headline-md {
-  font-size: clamp(1.25rem, 2.5vw, 1.75rem); /* 20-28px */
-  line-height: 1.25;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  will-change: font-size, line-height, letter-spacing;
-}
-
-/* Body Typography */
-.body-xl {
-  font-size: 1.125rem; /* 18px */
-  line-height: 1.7;
-  font-weight: 400;
-  will-change: font-size, line-height;
-}
-
-.body-lg {
-  font-size: 1rem; /* 16px */
-  line-height: 1.6;
-  font-weight: 400;
-  will-change: font-size, line-height;
 }
 
 .body-base {
@@ -261,328 +132,7 @@ button {
   will-change: font-size, line-height;
 }
 
-.body-sm {
-  font-size: 0.75rem; /* 12px */
-  line-height: 1.4;
-  font-weight: 500;
-  will-change: font-size, line-height;
-}
-
-/* Utility Typography */
-.caption {
-  font-size: 0.6875rem; /* 11px */
-  line-height: 1.3;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  will-change: font-size, line-height, letter-spacing;
-}
-
-.overline {
-  font-size: 0.625rem; /* 10px */
-  line-height: 1.2;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  will-change: font-size, line-height, letter-spacing;
-}
-
-/* Advanced Bento Grid Patterns */
-.bento-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  grid-auto-rows: minmax(200px, auto);
-  gap: clamp(16px, 3vw, 32px);
-  will-change: grid-template-columns, grid-template-rows, gap;
-}
-
-.bento-hero {
-  grid-column: 1 / -1;
-  grid-row: span 2;
-  min-height: 400px;
-  will-change: grid-column, grid-row, min-height;
-}
-
-.bento-feature-large {
-  grid-column: span 2;
-  grid-row: span 2;
-  min-height: 320px;
-  will-change: grid-column, grid-row, min-height;
-}
-
-.bento-feature-medium {
-  grid-column: span 1;
-  grid-row: span 2;
-  min-height: 280px;
-  will-change: grid-column, grid-row, min-height;
-}
-
-.bento-feature-small {
-  grid-column: span 1;
-  grid-row: span 1;
-  min-height: 200px;
-  will-change: grid-column, grid-row, min-height;
-}
-
-.bento-feature-wide {
-  grid-column: span 3;
-  grid-row: span 1;
-  min-height: 180px;
-  will-change: grid-column, grid-row, min-height;
-}
-
-.bento-feature-tall {
-  grid-column: span 1;
-  grid-row: span 3;
-  min-height: 440px;
-  will-change: grid-column, grid-row, min-height;
-}
-
-/* Responsive Breakpoint Adjustments for Bento Grid */
-@media (max-width: 768px) {
-  .bento-container {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-  
-  .bento-hero,
-  .bento-feature-large,
-  .bento-feature-medium,
-  .bento-feature-small,
-  .bento-feature-wide,
-  .bento-feature-tall {
-    grid-column: 1;
-    grid-row: span 1;
-    min-height: 240px;
-  }
-}
-
-/* Masonry Alternative Layout */
-.masonry-grid {
-  columns: clamp(2, calc(100vw / 320px), 4);
-  column-gap: clamp(16px, 3vw, 32px);
-  column-fill: balance;
-  will-change: columns, column-gap;
-}
-
-.masonry-item {
-  break-inside: avoid;
-  margin-bottom: clamp(16px, 3vw, 32px);
-  display: inline-block;
-  width: 100%;
-  will-change: margin-bottom, transform;
-}
-
-/* Micro-Interactions */
-/* Smooth Transitions */
-.transition-minimal {
-  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: all;
-}
-
-.transition-smooth {
-  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: all;
-}
-
-.transition-bouncy {
-  transition: all 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  will-change: all;
-}
-
-/* Hover Transformations */
-.hover-lift {
-  transform: translateY(0);
-  transition: transform 200ms ease-out;
-  will-change: transform;
-}
-
-.hover-lift:hover {
-  transform: translateY(-4px);
-}
-
-.hover-scale {
-  transform: scale(1);
-  transition: transform 200ms ease-out;
-  will-change: transform;
-}
-
-.hover-scale:hover {
-  transform: scale(1.02);
-}
-
-.hover-glow {
-  box-shadow: 0 0 0 rgba(59, 130, 246, 0);
-  transition: box-shadow 300ms ease-out;
-  will-change: box-shadow;
-}
-
-.hover-glow:hover {
-  box-shadow: 0 0 32px rgba(59, 130, 246, 0.15);
-}
-
-/* Background Animations */
-/* Floating Orbs Animation */
-@keyframes float-slow {
-  0%, 100% { 
-    transform: translate(0, 0) scale(1); 
-    opacity: 0.4;
-  }
-  33% { 
-    transform: translate(30px, -30px) scale(1.1); 
-    opacity: 0.6;
-  }
-  66% { 
-    transform: translate(-20px, 20px) scale(0.9); 
-    opacity: 0.3;
-  }
-}
-
-@keyframes float-medium {
-  0%, 100% { 
-    transform: translate(0, 0) rotate(0deg); 
-    opacity: 0.3;
-  }
-  50% { 
-    transform: translate(-40px, -20px) rotate(180deg); 
-    opacity: 0.5;
-  }
-}
-
-@keyframes float-fast {
-  0%, 100% { 
-    transform: translate(0, 0) scale(1) rotate(0deg); 
-  }
-  25% { 
-    transform: translate(20px, -40px) scale(1.05) rotate(90deg); 
-  }
-  50% { 
-    transform: translate(-30px, -20px) scale(0.95) rotate(180deg); 
-  }
-  75% { 
-    transform: translate(-10px, 30px) scale(1.02) rotate(270deg); 
-  }
-}
-
-/* Scroll-Triggered Animations */
-.parallax-slow {
-  transform: translateY(0);
-  transition: transform 0.1s linear;
-  will-change: transform;
-}
-
-.parallax-medium {
-  transform: translateY(0);
-  transition: transform 0.05s linear;
-  will-change: transform;
-}
-
-.parallax-fast {
-  transform: translateY(0);
-  transition: transform 0.02s linear;
-  will-change: transform;
-}
-
-/* Reveal Animations */
-.reveal-fade {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: opacity, transform;
-}
-
-.reveal-fade.in-view {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.reveal-scale {
-  opacity: 0;
-  transform: scale(0.9);
-  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-  will-change: opacity, transform;
-}
-
-.reveal-scale.in-view {
-  opacity: 1;
-  transform: scale(1);
-}
-
-/* Fluid Spacing Scale */
-.space-xs { margin: clamp(4px, 1vw, 8px); will-change: margin;}
-.space-sm { margin: clamp(8px, 2vw, 16px); will-change: margin;}
-.space-md { margin: clamp(16px, 4vw, 32px); will-change: margin;}
-.space-lg { margin: clamp(24px, 6vw, 48px); will-change: margin;}
-.space-xl { margin: clamp(32px, 8vw, 64px); will-change: margin;}
-.space-2xl { margin: clamp(48px, 12vw, 96px); will-change: margin;}
-.space-3xl { margin: clamp(64px, 16vw, 128px); will-change: margin;}
-.space-4xl { margin: clamp(96px, 20vw, 192px); will-change: margin;}
-
-/* Padding Variants */
-.padding-xs { padding: clamp(4px, 1vw, 8px); will-change: padding;}
-.padding-sm { padding: clamp(8px, 2vw, 16px); will-change: padding;}
-.padding-md { padding: clamp(16px, 4vw, 32px); will-change: padding;}
-.padding-lg { padding: clamp(24px, 6vw, 48px); will-change: padding;}
-.padding-xl { padding: clamp(32px, 8vw, 64px); will-change: padding;}
-.padding-2xl { padding: clamp(48px, 12vw, 96px); will-change: padding;}
-
-/* Advanced Container System */
-.container-xs { max-width: 480px; margin: 0 auto; will-change: max-width, margin;}
-.container-sm { max-width: 640px; margin: 0 auto; will-change: max-width, margin;}
-.container-md { max-width: 768px; margin: 0 auto; will-change: max-width, margin;}
-.container-lg { max-width: 1024px; margin: 0 auto; will-change: max-width, margin;}
-.container-xl { max-width: 1280px; margin: 0 auto; will-change: max-width, margin;}
-.container-2xl { max-width: 1536px; margin: 0 auto; will-change: max-width, margin;}
-.container-full { max-width: 100%; margin: 0 auto; will-change: max-width, margin;}
-
-/* Fluid Containers */
-.container-fluid {
-  width: min(90vw, 1200px);
-  margin: 0 auto;
-  will-change: width, margin;
-}
-
-.container-narrow {
-  width: min(85vw, 768px);
-  margin: 0 auto;
-  will-change: width, margin;
-}
-
-.container-wide {
-  width: min(95vw, 1400px);
-  margin: 0 auto;
-  will-change: width, margin;
-}
-
-/* Global HTML and Body Styles */
-html {
-  scroll-behavior: smooth;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body {
-  background: var(--deep-canvas);
-  color: var(--primary-text);
-  font-family: var(--font-maison-neue), sans-serif;
-  margin: 0;
-  padding: 0;
-  line-height: 1.6;
-  overflow-x: hidden; /* Prevent horizontal scroll */
-}
-
-/* General Performance Optimizations */
-* {
-  box-sizing: border-box;
-}
-
-.gpu-accelerated {
-  transform: translateZ(0);
-  will-change: transform;
-}
-
-/* From Uiverse.io by namecho */ 
+/* Switch Component */
 .switch {
  --button-width: 3.5em;
  --button-height: 2em;
@@ -637,4 +187,41 @@ body {
 
 .switch input[type="checkbox"]:checked:active + .slider::after {
  transform: translateX(calc(var(--button-width) - var(--toggle-wider) - var(--button-toggle-offset)));
+}
+
+/* Global HTML and Body Styles */
+html {
+  scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--deep-canvas);
+  color: var(--primary-text);
+  font-family: var(--font-maison-neue), sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+/* Safe area insets for mobile (Phase 4) */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+.pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+.pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* General Performance Optimizations */
+* {
+  box-sizing: border-box;
 }

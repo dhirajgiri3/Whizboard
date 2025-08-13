@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import api from '@/lib/http/axios';
 
 // Types
 interface User {
@@ -42,6 +43,7 @@ interface AppContextType {
   user: User | null;
   setUser: (user: User | null) => void;
   isAuthenticated: boolean;
+  refreshUserProfilePicture: () => Promise<void>;
   
   // Theme and preferences
   theme: AppTheme;
@@ -183,21 +185,33 @@ export function AppProvider({ children }: AppProviderProps) {
           updatedAt: new Date().toISOString(), // Always update updatedAt on session change
         };
       });
+      // After base session sync, try to load DB profile image if present
+      (async () => {
+        try {
+          const { data } = await api.get('/api/settings/account', { headers: { 'Cache-Control': 'no-store' } });
+          const dbImage = data?.user?.image || null;
+          if (dbImage) {
+            setUser(prev => prev ? { ...prev, avatar: dbImage } : prev);
+          }
+        } catch {}
+      })();
     } else if (status === "unauthenticated") {
       setUser(null);
     }
   }, [session, status]);
 
+  const refreshUserProfilePicture = useCallback(async () => {
+    try {
+      const { data } = await api.get('/api/settings/account', { headers: { 'Cache-Control': 'no-store' } });
+      const dbImage = data?.user?.image || null;
+      setUser(prev => prev ? { ...prev, avatar: dbImage || undefined } : prev);
+    } catch {}
+  }, []);
+
   const logout = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/auth/signout', {
-        method: 'POST',
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to sign out');
-      }
+      await api.post('/api/auth/signout');
       
       // Clear user and session data
       setUser(null);
@@ -220,17 +234,7 @@ export function AppProvider({ children }: AppProviderProps) {
     
     setIsLoading(true);
     try {
-      const response = await fetch('/api/settings/preferences', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newPreferences),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to update preferences');
-      }
+      await api.put('/api/settings/preferences', newPreferences);
       
       // Update local state
       setPreferences(newPreferences);
@@ -258,6 +262,7 @@ export function AppProvider({ children }: AppProviderProps) {
     user,
     setUser,
     isAuthenticated,
+    refreshUserProfilePicture,
     
     // Theme and preferences
     theme,

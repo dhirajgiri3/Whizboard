@@ -63,7 +63,7 @@ let privacyDocuments: LegalDocument[] = [
 
       ## 9. CONTACT US
 
-      If you have any questions about this Privacy Policy, please contact us at privacy@whizboard.com.
+      If you have any questions about this Privacy Policy, please contact us at Hello@cyperstudio.in.
 
       Last updated: July 01, 2024
     `,

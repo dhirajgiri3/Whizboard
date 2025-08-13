@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth/options';
 import { connectToDatabase } from '@/lib/database/mongodb';
 import { ObjectId } from 'mongodb';
 import { EmailService } from '@/lib/email/sendgrid';
@@ -8,6 +8,8 @@ import { v4 as uuidv4 } from 'uuid';
 import logger from '@/lib/logger/logger';
 import { User } from '@/types';
 import { pubSub } from '@/lib/graphql/schema';
+import { postSlackForUser } from '@/lib/integrations/slackService';
+import { connectToDatabase as _connect } from '@/lib/database/mongodb';
 
 interface BoardCollaborator {
   id: string;
@@ -41,7 +43,7 @@ export async function POST(request: NextRequest) {
     // Find the board and verify ownership
     const board = await db.collection('boards').findOne(
       { _id: new ObjectId(boardId) },
-      { projection: { name: 1, createdBy: 1, collaborators: 1 } }
+      { projection: { name: 1, createdBy: 1, collaborators: 1, adminUsers: 1, blockedUsers: 1 } }
     );
 
     if (!board) {
@@ -51,13 +53,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user is owner or collaborator
+    // Check if user is owner, admin, or collaborator
     const isOwner = board.createdBy.toString() === session.user.id;
+    const isAdmin = board.adminUsers?.includes(session.user.id) || false;
     const isCollaborator = board.collaborators?.some(
       (collab: BoardCollaborator) => collab.id === session.user.id
     );
 
-    if (!isOwner && !isCollaborator) {
+    if (!isOwner && !isAdmin && !isCollaborator) {
       return NextResponse.json(
         { error: 'Not authorized to invite collaborators to this board' },
         { status: 403 }
@@ -93,8 +96,8 @@ export async function POST(request: NextRequest) {
 
     // Generate invitation token
     const invitationToken = uuidv4();
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiration
+    // Set precise 7-day expiration (avoid DST issues)
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     // Create invitation record
     const invitation = {
@@ -114,16 +117,29 @@ export async function POST(request: NextRequest) {
       throw new Error('Failed to create invitation record');
     }
 
-    // Send invitation email
-    const emailSent = await EmailService.sendInvitationEmail({
-      boardId,
-      boardName: board.name,
-      inviterName: session.user.name || 'WhizBoard User',
-      inviterEmail: session.user.email || '',
-      inviteeEmail,
-      invitationToken,
-      message,
-    });
+    // Load inviter's email notification preferences
+    let sendInvitationEmail = true;
+    try {
+      const prefsDb = await _connect();
+      const prefsDoc = await prefsDb.collection('userSettings').findOne(
+        { userEmail: session.user.email },
+        { projection: { 'notifications.email.boardInvitations': 1 } }
+      );
+      sendInvitationEmail = prefsDoc?.notifications?.email?.boardInvitations !== false;
+    } catch {}
+
+    // Send invitation email if enabled
+    const emailSent = sendInvitationEmail
+      ? await EmailService.sendInvitationEmail({
+          boardId,
+          boardName: board.name,
+          inviterName: session.user.name || 'WhizBoard User',
+          inviterEmail: session.user.email || '',
+          inviteeEmail,
+          invitationToken,
+          message,
+        })
+      : true; // treat as success if disabled
 
     if (!emailSent) {
       // If email fails, we should clean up the invitation record
@@ -146,6 +162,53 @@ export async function POST(request: NextRequest) {
       });
     } catch (error) {
       logger.error('Failed to publish collaborator invited event:', error);
+    }
+
+    // Post Slack notification to inviter's default channel if connected and enabled
+    try {
+      // Check Slack preference
+      let slackEnabled = true;
+      try {
+        const prefsDb = await _connect();
+        const prefsDoc = await prefsDb.collection('userSettings').findOne(
+          { userEmail: session.user.email },
+          { projection: { 'notifications.slack.boardEvents': 1 } }
+        );
+        slackEnabled = prefsDoc?.notifications?.slack?.boardEvents !== false;
+      } catch {}
+
+      if (!slackEnabled) {
+        logger.info({ userEmail: session.user.email }, 'Slack boardEvents notifications disabled; skipping');
+      } else {
+      logger.info({ 
+        userEmail: session.user.email, 
+        boardName: board.name, 
+        inviteeEmail 
+      }, 'Attempting to send Slack notification for board invitation');
+      
+      const slackResult = await postSlackForUser(session.user.email!, `Invited ${inviteeEmail} to board "${board.name}".`);
+      
+      if (slackResult) {
+        logger.info({ 
+          userEmail: session.user.email, 
+          boardName: board.name, 
+          inviteeEmail 
+        }, 'Slack notification sent successfully for board invitation');
+      } else {
+        logger.warn({ 
+          userEmail: session.user.email, 
+          boardName: board.name, 
+          inviteeEmail 
+        }, 'Failed to send Slack notification for board invitation');
+      }
+      }
+    } catch (error) {
+      logger.error({ 
+        userEmail: session.user.email, 
+        boardName: board.name, 
+        inviteeEmail, 
+        error 
+      }, 'Exception occurred while sending Slack notification for board invitation');
     }
 
     return NextResponse.json({

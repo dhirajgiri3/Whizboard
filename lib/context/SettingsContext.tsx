@@ -1,83 +1,52 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import api from '@/lib/http/axios';
 import { useAppContext } from './AppContext';
 
 // Types
-interface SecuritySettings {
-  twoFactorEnabled: boolean;
-  lastPasswordChange: string | null;
-  activeSessions: Array<{
-    id: string;
-    device: string;
-    location: string;
-    lastActive: string;
-    current: boolean;
-  }>;
+// Security settings removed
+
+// Notifications
+export interface NotificationEmailPrefs {
+  boardInvitations: boolean;
+  activityUpdates: boolean;
+  weeklyDigest: boolean;
 }
 
-interface NotificationSettings {
-  email: {
-    announcements: boolean;
-    updates: boolean;
-    security: boolean;
-    mentions: boolean;
-    boardInvites: boolean;
-  };
-  inApp: {
-    mentions: boolean;
-    comments: boolean;
-    boardChanges: boolean;
-    teamEvents: boolean;
-    systemAlerts: boolean;
-  };
+export interface NotificationSlackPrefs {
+  boardEvents: boolean;
 }
 
-interface DisplaySettings {
-  theme: 'light' | 'dark' | 'system';
-  colorMode: 'default' | 'colorblind' | 'high-contrast';
-  fontSize: 'small' | 'medium' | 'large';
-  reducedMotion: boolean;
-  defaultViewMode: 'edit' | 'view' | 'present';
+export interface NotificationPreferences {
+  email: NotificationEmailPrefs;
+  slack: NotificationSlackPrefs;
 }
+
+// Display/theme settings removed
 
 interface IntegrationStatus {
   googleDrive: boolean;
   slack: boolean;
-  microsoft: boolean;
-  github: boolean;
-  figma: boolean;
 }
 
 interface SettingsContextType {
-  // Security
-  securitySettings: SecuritySettings;
-  updateSecuritySettings: (newSettings: Partial<SecuritySettings>) => Promise<boolean>;
-  enableTwoFactor: () => Promise<boolean>;
-  disableTwoFactor: () => Promise<boolean>;
-  revokeAllSessions: () => Promise<boolean>;
-  revokeSession: (sessionId: string) => Promise<boolean>;
-  changePassword: (oldPassword: string, newPassword: string) => Promise<boolean>;
-  
-  // Notifications
-  notificationSettings: NotificationSettings;
-  updateEmailNotifications: (settings: Partial<NotificationSettings['email']>) => Promise<boolean>;
-  updateInAppNotifications: (settings: Partial<NotificationSettings['inApp']>) => Promise<boolean>;
-  
-  // Display
-  displaySettings: DisplaySettings;
-  updateDisplaySettings: (settings: Partial<DisplaySettings>) => Promise<boolean>;
-  
   // Integrations
   integrations: IntegrationStatus;
   toggleIntegration: (service: keyof IntegrationStatus, enable: boolean) => Promise<boolean>;
   
+  // Notifications
+  notificationPrefs: NotificationPreferences;
+  setNotificationPrefs: (prefs: { email?: Partial<NotificationEmailPrefs>; slack?: Partial<NotificationSlackPrefs> }) => void;
+  saveNotificationPrefs: () => Promise<boolean>;
+
   // General settings
-  deleteAccount: (password: string) => Promise<boolean>;
+  deleteAccount: () => Promise<boolean>;
   exportUserData: () => Promise<string>;
   
   // State management
   isLoading: boolean;
+  isBootstrapping: boolean;
   error: string | null;
   lastUpdated: Date | null;
 }
@@ -91,46 +60,22 @@ interface SettingsProviderProps {
 export function SettingsProvider({ children }: SettingsProviderProps) {
   const { user } = useAppContext(); // Assuming useAppContext provides user information
 
-  const [securitySettings, setSecuritySettings] = useState<SecuritySettings>({
-    twoFactorEnabled: false,
-    lastPasswordChange: null,
-    activeSessions: [],
-  });
+  // Security state removed
 
-  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
-    email: {
-      announcements: true,
-      updates: true,
-      security: true,
-      mentions: true,
-      boardInvites: true,
-    },
-    inApp: {
-      mentions: true,
-      comments: true,
-      boardChanges: true,
-      teamEvents: true,
-      systemAlerts: true,
-    },
-  });
-
-  const [displaySettings, setDisplaySettings] = useState<DisplaySettings>({
-    theme: 'system',
-    colorMode: 'default',
-    fontSize: 'medium',
-    reducedMotion: false,
-    defaultViewMode: 'edit',
+  // Notifications state
+  const [notificationPrefs, setNotificationPrefsState] = useState<NotificationPreferences>({
+    email: { boardInvitations: true, activityUpdates: true, weeklyDigest: false },
+    slack: { boardEvents: true },
   });
 
   const [integrations, setIntegrations] = useState<IntegrationStatus>({
     googleDrive: false,
     slack: false,
-    microsoft: false,
-    github: false,
-    figma: false,
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isBootstrapping, setIsBootstrapping] = useState(true);
+  const [hasBootstrapped, setHasBootstrapped] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
@@ -141,33 +86,28 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
       return;
     }
 
-    setIsLoading(true);
+    // Only mark bootstrapping during the very first fetch
+    if (!hasBootstrapped) setIsBootstrapping(true);
     setError(null);
     try {
-      const [securityRes, notificationRes, displayRes, integrationsRes] = await Promise.all([
-        fetch('/api/settings/security'),
-        fetch('/api/settings/notifications'),
-        fetch('/api/settings/display'),
-        fetch('/api/settings/integrations'),
+      const [integrationsRes, notificationsRes] = await Promise.all([
+        api.get('/api/settings/integrations', { headers: { 'Cache-Control': 'no-store' } }),
+        api.get('/api/settings/notifications', { headers: { 'Cache-Control': 'no-store' } }),
       ]);
 
-      if (!securityRes.ok) throw new Error(`HTTP error! status: ${securityRes.status} from security settings`);
-      if (!notificationRes.ok) throw new Error(`HTTP error! status: ${notificationRes.status} from notification settings`);
-      if (!displayRes.ok) throw new Error(`HTTP error! status: ${displayRes.status} from display settings`);
-      if (!integrationsRes.ok) throw new Error(`HTTP error! status: ${integrationsRes.status} from integrations settings`);
-
-      setSecuritySettings(await securityRes.json());
-      setNotificationSettings(await notificationRes.json());
-      setDisplaySettings(await displayRes.json());
-      setIntegrations(await integrationsRes.json());
+      setIntegrations(integrationsRes.data);
+      setNotificationPrefsState(notificationsRes.data);
 
       setLastUpdated(new Date());
     } catch (err: any) {
       setError(err.message);
     } finally {
-      setIsLoading(false);
+      if (!hasBootstrapped) {
+        setIsBootstrapping(false);
+        setHasBootstrapped(true);
+      }
     }
-  }, [user]); // Depend on user to refetch if user changes
+  }, [user, hasBootstrapped]); // Depend on user to refetch if user changes
 
   useEffect(() => {
     if (user) { // Only fetch settings if user is available
@@ -180,16 +120,12 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: body ? JSON.stringify(body) : undefined,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
+      if (method === 'GET') await api.get(url);
+      else if (method === 'POST') await api.post(url, body ?? {});
+      else if (method === 'PUT') await api.put(url, body ?? {});
+      else if (method === 'DELETE') await api.delete(url, { data: body });
+      else if (method === 'PATCH') await api.patch(url, body ?? {});
+      else await api.request({ url, method: method as any, data: body });
       setLastUpdated(new Date());
       return true;
     } catch (err: any) {
@@ -200,81 +136,52 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     }
   }, []);
 
-  // Security Actions
-  const updateSecuritySettings = useCallback(async (newSettings: Partial<SecuritySettings>) => {
-    const success = await makeApiCall('/api/settings/security', 'PUT', newSettings);
-    if (success) setSecuritySettings(prev => ({ ...prev, ...newSettings }));
-    return success;
-  }, [makeApiCall]);
+  // Security actions removed
 
-  const enableTwoFactor = useCallback(async () => {
-    return updateSecuritySettings({ twoFactorEnabled: true });
-  }, [updateSecuritySettings]);
+  // changePassword removed for Google-only auth
 
-  const disableTwoFactor = useCallback(async () => {
-    return updateSecuritySettings({ twoFactorEnabled: false });
-  }, [updateSecuritySettings]);
+  // Notifications actions
+  const setNotificationPrefs = useCallback((prefs: { email?: Partial<NotificationEmailPrefs>; slack?: Partial<NotificationSlackPrefs> }) => {
+    setNotificationPrefsState(prev => ({
+      email: { ...prev.email, ...(prefs.email || {}) },
+      slack: { ...prev.slack, ...(prefs.slack || {}) },
+    }));
+  }, []);
 
-  const revokeAllSessions = useCallback(async () => {
-    const success = await makeApiCall('/api/settings/security/sessions/revoke-all', 'POST');
-    if (success) setSecuritySettings(prev => ({ ...prev, activeSessions: [] }));
-    return success;
-  }, [makeApiCall]);
+  const saveNotificationPrefs = useCallback(async () => {
+    return await makeApiCall('/api/settings/notifications', 'PUT', notificationPrefs);
+  }, [makeApiCall, notificationPrefs]);
 
-  const revokeSession = useCallback(async (sessionId: string) => {
-    const success = await makeApiCall(`/api/settings/security/sessions/${sessionId}`, 'DELETE');
-    if (success) setSecuritySettings(prev => ({ ...prev, activeSessions: prev.activeSessions.filter(s => s.id !== sessionId) }));
-    return success;
-  }, [makeApiCall]);
-
-  const changePassword = useCallback(async (oldPassword: string, newPassword: string) => {
-    return makeApiCall('/api/settings/security/password', 'PUT', { oldPassword, newPassword });
-  }, [makeApiCall]);
-
-  // Notification Actions
-  const updateEmailNotifications = useCallback(async (settings: Partial<NotificationSettings['email']>) => {
-    const success = await makeApiCall('/api/settings/notifications/email', 'PUT', settings);
-    if (success) setNotificationSettings(prev => ({ ...prev, email: { ...prev.email, ...settings } }));
-    return success;
-  }, [makeApiCall]);
-
-  const updateInAppNotifications = useCallback(async (settings: Partial<NotificationSettings['inApp']>) => {
-    const success = await makeApiCall('/api/settings/notifications/inapp', 'PUT', settings);
-    if (success) setNotificationSettings(prev => ({ ...prev, inApp: { ...prev.inApp, ...settings } }));
-    return success;
-  }, [makeApiCall]);
-
-  // Display Actions
-  const updateDisplaySettings = useCallback(async (settings: Partial<DisplaySettings>) => {
-    const success = await makeApiCall('/api/settings/display', 'PUT', settings);
-    if (success) setDisplaySettings(prev => ({ ...prev, ...settings }));
-    return success;
-  }, [makeApiCall]);
+  // Display/theme functionality removed
 
   // Integrations Actions
   const toggleIntegration = useCallback(async (service: keyof IntegrationStatus, enable: boolean) => {
-    const success = await makeApiCall(`/api/settings/integrations/${service}`, 'PUT', { enable });
-    if (success) setIntegrations(prev => ({ ...prev, [service]: enable }));
-    return success;
-  }, [makeApiCall]);
+    const body: Partial<IntegrationStatus> = { [service]: enable } as Partial<IntegrationStatus>;
+    const { data } = await api.put('/api/settings/integrations', body);
+    if (enable && (data as any).redirectUrl) {
+      window.location.href = (data as any).redirectUrl;
+      return true;
+    }
+    // disable path
+    setIntegrations(prev => ({ ...prev, [service]: enable }));
+    return true;
+  }, []);
 
   // General Actions
-  const deleteAccount = useCallback(async (password: string) => {
-    return makeApiCall('/api/settings/account', 'DELETE', { password });
+  const deleteAccount = useCallback(async () => {
+    return makeApiCall('/api/settings/account', 'DELETE');
   }, [makeApiCall]);
 
   const exportUserData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/settings/account/export', {
-        method: 'GET',
+      const { data } = await api.post('/api/settings/account/export', {
+        includeBoards: true,
+        includeSettings: true,
+        includeIntegrations: true,
+        includeHistory: false,
       });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json(); // Assuming the data is JSON for simplicity
       setLastUpdated(new Date());
       return JSON.stringify(data, null, 2);
     } catch (err: any) {
@@ -286,23 +193,15 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
   }, []);
 
   const contextValue = {
-    securitySettings,
-    updateSecuritySettings,
-    enableTwoFactor,
-    disableTwoFactor,
-    revokeAllSessions,
-    revokeSession,
-    changePassword,
-    notificationSettings,
-    updateEmailNotifications,
-    updateInAppNotifications,
-    displaySettings,
-    updateDisplaySettings,
     integrations,
     toggleIntegration,
+    notificationPrefs,
+    setNotificationPrefs,
+    saveNotificationPrefs,
     deleteAccount,
     exportUserData,
     isLoading,
+    isBootstrapping,
     error,
     lastUpdated,
   };

@@ -3,6 +3,8 @@
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { RequireAuth } from "@/components/auth/ProtectedRoute";
 import {
   UserPlus2,
   ExternalLink,
@@ -16,22 +18,18 @@ import {
   Folder,
   SortAsc,
   TrendingUp,
-  Calendar,
   Activity,
-  Bookmark,
-  Star,
   BarChart3,
   Zap,
   ArrowRight,
-  Sparkles,
   ChevronDown,
-  Filter,
   RefreshCw,
 } from "lucide-react";
 import InviteCollaboratorsModal from "@/components/ui/modal/InviteCollaboratorsModal";
 import { toast } from "sonner";
-import { LoadingOverlay } from "@/components/ui/Loading";
+import { LoadingOverlay } from "@/components/ui/loading/Loading";
 import CreateBoardModal from "@/components/ui/modal/CreateBoardModal";
+import SuccessModal from "@/components/ui/modal/SuccessModal";
 
 const GET_MY_BOARDS = gql`
   query GetMyBoards {
@@ -98,8 +96,12 @@ const MyBoardsPage = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortBy, setSortBy] = useState<SortBy>("updated");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [createdBoard, setCreatedBoard] = useState<{ id: string; name: string } | null>(null);
   const [showStats, setShowStats] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 12;
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -171,6 +173,20 @@ const MyBoardsPage = () => {
     return boards;
   }, [data?.myBoards, searchQuery, sortBy]);
 
+  // Reset page on search/sort change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortBy]);
+
+  const totalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(filteredAndSortedBoards.length / pageSize));
+  }, [filteredAndSortedBoards.length]);
+
+  const paginatedBoards = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredAndSortedBoards.slice(start, start + pageSize);
+  }, [filteredAndSortedBoards, currentPage]);
+
   // Board statistics
   const boardStats = useMemo(() => {
     if (!data?.myBoards) return null;
@@ -215,7 +231,9 @@ const MyBoardsPage = () => {
 
   const handleBoardCreated = useCallback(
     (board: { id: string; name: string }) => {
-      toast.success(`Board "${board.name}" created successfully!`);
+      setCreatedBoard({ id: board.id, name: board.name });
+      setShowCreateModal(false);
+      setShowSuccessModal(true);
       refetch();
     },
     [refetch]
@@ -277,46 +295,44 @@ const MyBoardsPage = () => {
   const getActivityColor = (level: string) => {
     switch (level) {
       case "high":
-        return "bg-green-100 text-green-700 border-green-200";
+        return "bg-emerald-500/10 text-emerald-300 border-emerald-500/30";
       case "medium":
-        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+        return "bg-amber-500/10 text-amber-300 border-amber-500/30";
       case "low":
-        return "bg-gray-100 text-gray-600 border-gray-200";
+        return "bg-white/5 text-white/60 border-white/10";
       default:
-        return "bg-gray-100 text-gray-600 border-gray-200";
+        return "bg-white/5 text-white/60 border-white/10";
     }
   };
 
   // Loading state
   if (loading)
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <LoadingOverlay text="Loading boards..." />
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingOverlay text="Loading boards" subtitle="Fetching your boards" variant="collaboration" theme="dark" />
       </div>
     );
 
   // Error state
   if (error)
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center bg-white rounded-2xl shadow-lg p-8 max-w-md mx-4">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Users className="w-8 h-8 text-red-600" />
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="max-w-md w-full p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-center">
+          <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-4">
+            <Users className="w-7 h-7 text-red-400" />
           </div>
-          <h3 className="text-lg font-semibold text-slate-800 mb-2">
-            Oops! Something went wrong
-          </h3>
-          <p className="text-red-600 mb-6 text-sm">{error.message}</p>
+          <h3 className="text-white text-lg font-semibold mb-2">Something went wrong</h3>
+          <p className="text-red-300/80 text-sm mb-6 break-words">{error.message}</p>
           <div className="flex gap-3 justify-center">
             <button
               onClick={() => refetch()}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
             >
               Try Again
             </button>
             <button
               onClick={() => router.push("/")}
-              className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
+              className="px-5 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white text-sm border border-white/10 transition-colors"
             >
               Go Home
             </button>
@@ -325,398 +341,428 @@ const MyBoardsPage = () => {
       </div>
     );
 
+  // Minimal, reusable UI building blocks (aligned with settings page)
+  const SectionCard = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`relative p-6 sm:p-8 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-colors backdrop-blur-sm ${className}`}
+    >
+      <div className="relative z-10">{children}</div>
+    </motion.div>
+  );
+
+  const PrimaryButton = ({ children, className = "", ...rest }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode }) => (
+    <button
+      {...rest}
+      className={`group relative overflow-hidden bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold px-5 py-3 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-black min-h-[44px] ${className}`}
+    >
+      <span className="relative z-10 flex items-center justify-center gap-2">{children}</span>
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+    </button>
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <div className="container mx-auto py-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header Section */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Folder className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-slate-800">My Boards</h1>
-                <p className="text-slate-600 mt-1">
-                  {data?.myBoards?.length || 0} board
-                  {(data?.myBoards?.length || 0) !== 1 ? "s" : ""} total
-                </p>
-              </div>
-            </div>
+    <div className="min-h-screen relative overflow-hidden bg-gray-950 pb-16 pt-32">
+      {/* Background accents aligned with settings page */}
+      <div className="absolute inset-0 grid-pattern opacity-20" />
+      <div className="absolute top-1/4 left-1/4 w-72 h-72 gradient-orb-blue" />
+      <div className="absolute bottom-1/3 right-1/4 w-60 h-60 gradient-orb-blue" />
 
-            {/* Quick Actions */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowStats(!showStats)}
-                className="px-4 py-2 bg-white text-slate-600 rounded-xl hover:bg-slate-50 transition-colors flex items-center gap-2 border border-slate-200 cursor-pointer"
-                title="View Statistics"
-              >
-                <BarChart3 className="w-4 h-4" />
-                <span className="hidden sm:inline">Stats</span>
-              </button>
-              <button
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="px-4 py-2 bg-white text-slate-600 rounded-xl hover:bg-slate-50 transition-colors flex items-center gap-2 border border-slate-200 cursor-pointer"
-                title="Refresh (Ctrl+R)"
-              >
-                <RefreshCw
-                  className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
-                />
-                <span className="hidden sm:inline">Refresh</span>
-              </button>
-            </div>
-          </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
-          {/* Statistics Panel */}
-          {showStats && boardStats && (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-blue-600" />
-                  Board Statistics
-                </h2>
+        {/* Header */}
+        <section className="pb-6" aria-labelledby="my-boards-heading" role="region">
+          <SectionCard className="mb-0">
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+              className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5"
+            >
+              <div className="flex items-start gap-4">
+                <div>
+                  <div className="inline-flex items-center gap-2 bg-white/[0.03] border border-white/[0.08] rounded-full px-3 py-1.5 backdrop-blur-sm mb-2">
+                    <Users className="h-4 w-4 text-blue-400" aria-hidden="true" />
+                    <span className="text-white/70 text-sm font-medium">Boards</span>
+                  </div>
+                  <h1 id="my-boards-heading" className="headline-lg text-white">My Boards</h1>
+                  <p className="text-white/60 text-sm">
+                    {data?.myBoards?.length || 0} total
+                    <span className="hidden md:inline"> · Manage and organize your boards</span>
+                  </p>
+                  <p className="hidden md:block text-xs text-white/50 mt-1">Tip: Press Ctrl+N to create a new board</p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <PrimaryButton onClick={() => setShowCreateModal(true)} aria-label="Create new board">
+                  <Plus className="w-4 h-4" /> New Board
+                </PrimaryButton>
                 <button
-                  onClick={() => setShowStats(false)}
-                  className="p-1 text-slate-400 hover:text-slate-600 transition-colors"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  aria-label="Refresh boards"
+                  title="Refresh (Ctrl+R)"
+                  className="px-4 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.08] disabled:opacity-50 border border-white/[0.1] text-white/80 text-sm flex items-center gap-2"
                 >
-                  <ChevronDown className="w-4 h-4" />
+                  <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                  <span className="hidden sm:inline">Refresh</span>
+                </button>
+                <button
+                  onClick={() => setShowStats(!showStats)}
+                  aria-pressed={showStats}
+                  aria-label="Toggle board statistics"
+                  title="Toggle statistics"
+                  className={`px-4 py-2 rounded-xl text-sm flex items-center gap-2 border ${showStats ? "bg-blue-600/20 text-blue-200 border-blue-500/30 hover:bg-blue-600/30" : "bg-white/[0.05] hover:bg-white/[0.08] text-white/80 border-white/[0.1]"}`}
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Stats</span>
                 </button>
               </div>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-blue-50 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Folder className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-medium text-blue-700">
-                      Total Boards
-                    </span>
+            </motion.div>
+          </SectionCard>
+        </section>
+
+        {/* Statistics Panel */}
+        <AnimatePresence>
+          {showStats && boardStats && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}>
+              <SectionCard className="mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-blue-400" /> Board Statistics
+                  </h2>
+                  <button onClick={() => setShowStats(false)} className="p-1 text-white/50 hover:text-white/80 transition-colors">
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Folder className="w-4 h-4 text-blue-400" />
+                      <span className="text-sm text-white/70">Total Boards</span>
+                    </div>
+                    <div className="text-2xl font-semibold text-white">{boardStats.total}</div>
                   </div>
-                  <div className="text-2xl font-bold text-blue-800">
-                    {boardStats.total}
+                  <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Users className="w-4 h-4 text-emerald-400" />
+                      <span className="text-sm text-white/70">Collaborators</span>
+                    </div>
+                    <div className="text-2xl font-semibold text-white">{boardStats.collaborators}</div>
+                  </div>
+                  <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Activity className="w-4 h-4 text-blue-300" />
+                      <span className="text-sm text-white/70">Active This Week</span>
+                    </div>
+                    <div className="text-2xl font-semibold text-white">{boardStats.recent}</div>
+                  </div>
+                  <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                    <div className="flex items-center gap-2 mb-1">
+                      <BarChart3 className="w-4 h-4 text-amber-300" />
+                      <span className="text-sm text-white/70">Avg. Collaborators</span>
+                    </div>
+                    <div className="text-2xl font-semibold text-white">{boardStats.average}</div>
                   </div>
                 </div>
-                <div className="bg-green-50 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Users className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-700">
-                      Collaborators
-                    </span>
-                  </div>
-                  <div className="text-2xl font-bold text-green-800">
-                    {boardStats.collaborators}
-                  </div>
-                </div>
-                <div className="bg-purple-50 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Activity className="w-4 h-4 text-purple-600" />
-                    <span className="text-sm font-medium text-purple-700">
-                      Active This Week
-                    </span>
-                  </div>
-                  <div className="text-2xl font-bold text-purple-800">
-                    {boardStats.recent}
-                  </div>
-                </div>
-                <div className="bg-orange-50 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <BarChart3 className="w-4 h-4 text-orange-600" />
-                    <span className="text-sm font-medium text-orange-700">
-                      Avg. Collaborators
-                    </span>
-                  </div>
-                  <div className="text-2xl font-bold text-orange-800">
-                    {boardStats.average}
-                  </div>
-                </div>
-              </div>
-            </div>
+              </SectionCard>
+            </motion.div>
           )}
+        </AnimatePresence>
 
-          {/* Search and Filter Bar */}
-          {data?.myBoards?.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
-              <div className="flex flex-col lg:flex-row gap-4">
-                {/* Search */}
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                  <input
-                    id="search-input"
-                    type="text"
-                    placeholder="Search boards... (Ctrl+K)"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 text-sm text-slate-600 placeholder:text-slate-400 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  />
-                </div>
-
-                {/* Sort and View Controls */}
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <SortAsc className="w-4 h-4 text-slate-500" />
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value as SortBy)}
-                      className="px-3 py-2 text-slate-500 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    >
-                      <option value="updated">Last Updated</option>
-                      <option value="created">Date Created</option>
-                      <option value="name">Name</option>
-                      <option value="collaborators">Collaborators</option>
-                    </select>
-                  </div>
-
-                  {/* View Mode Toggle */}
-                  <div className="flex bg-slate-100 rounded-lg p-1">
-                    <button
-                      onClick={() => setViewMode("grid")}
-                      className={`p-2 rounded-md transition-colors ${
-                        viewMode === "grid"
-                          ? "bg-white text-blue-600 shadow-sm"
-                          : "text-slate-500 hover:text-slate-700"
-                      }`}
-                    >
-                      <Grid3X3 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setViewMode("list")}
-                      className={`p-2 rounded-md transition-colors ${
-                        viewMode === "list"
-                          ? "bg-white text-blue-600 shadow-sm"
-                          : "text-slate-500 hover:text-slate-700"
-                      }`}
-                    >
-                      <List className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
+        {/* Search and Controls */}
+        {data?.myBoards?.length > 0 && (
+          <SectionCard className="mb-6">
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 w-5 h-5" />
+                <input
+                  id="search-input"
+                  type="text"
+                  placeholder="Search boards… (Ctrl+K)"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  autoComplete="off"
+                  className="w-full pl-10 pr-4 py-3 text-sm text-white placeholder:text-white/40 bg-white/[0.05] ring-1 ring-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-white/[0.08] transition-colors"
+                />
               </div>
-            </div>
-          )}
 
-          {/* Boards Display */}
-          {filteredAndSortedBoards.length > 0 ? (
-            <div
-              className={
-                viewMode === "grid"
-                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-                  : "space-y-4"
-              }
-            >
-              {filteredAndSortedBoards.map((board: Board) =>
-                viewMode === "grid" ? (
-                  // Grid View
-                  <div
-                    key={board.id}
-                    className="group bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-lg hover:border-blue-200 transition-all duration-200 hover:-translate-y-1"
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <SortAsc className="w-4 h-4 text-white/60" />
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as SortBy)}
+                    className="px-3 py-2 text-white/80 bg-white/[0.05] ring-1 ring-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
+                    <option value="updated" className="bg-[#111111]">Last Updated</option>
+                    <option value="created" className="bg-[#111111]">Date Created</option>
+                    <option value="name" className="bg-[#111111]">Name</option>
+                    <option value="collaborators" className="bg-[#111111]">Collaborators</option>
+                  </select>
+                </div>
+
+                <div className="flex bg-white/[0.05] ring-1 ring-white/10 rounded-lg p-1">
+                  <button
+                    onClick={() => setViewMode("grid")}
+                    className={`p-2 rounded-md transition-colors ${viewMode === "grid" ? "bg-white text-blue-600 shadow-sm" : "text-white/70 hover:text-white"}`}
+                    aria-pressed={viewMode === "grid"}
+                    aria-label="Grid view"
+                  >
+                    <Grid3X3 className={`w-4 h-4 ${viewMode === "grid" ? "text-blue-600" : ""}`} />
+                  </button>
+                  <button
+                    onClick={() => setViewMode("list")}
+                    className={`p-2 rounded-md transition-colors ${viewMode === "list" ? "bg-white text-blue-600 shadow-sm" : "text-white/70 hover:text-white"}`}
+                    aria-pressed={viewMode === "list"}
+                    aria-label="List view"
+                  >
+                    <List className={`w-4 h-4 ${viewMode === "list" ? "text-blue-600" : ""}`} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </SectionCard>
+        )}
+
+        {/* Boards List */}
+        {filteredAndSortedBoards.length > 0 ? (
+          <>
+          <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6" : "space-y-4"}>
+            {paginatedBoards.map((board: Board) =>
+              viewMode === "grid" ? (
+                <motion.div
+                  key={board.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                   whileHover={{ y: -2 }}
+                   transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+                  className="group h-full bg-white/[0.03] rounded-2xl border border-white/[0.08] p-6 hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/[0.12] flex items-center justify-center">
+                      <Folder className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className={`px-2 py-1 rounded-full text-xs font-medium border ${getActivityColor(getActivityLevel(board))}`}>
+                        {getActivityLevel(board) === "high" && <Zap className="w-3 h-3 inline mr-1" />}
+                        {getActivityLevel(board) === "medium" && <Activity className="w-3 h-3 inline mr-1" />}
+                        {getActivityLevel(board) === "low" && <Clock className="w-3 h-3 inline mr-1" />}
+                        {getActivityLevel(board)}
+                      </div>
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button className="p-1 text-white/40 hover:text-white/80 transition-colors" aria-label="More options">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <h3 className="text-lg font-semibold text-white mb-2 truncate group-hover:text-blue-400 transition-colors">{board.name}</h3>
+
+                  <div className="flex items-center gap-2 text-xs text-white/60 mb-4">
+                    <Clock className="w-3 h-3" />
+                    <span>Updated {getTimeAgo(board.updatedAt)}</span>
+                  </div>
+
+                  {board.collaborators && board.collaborators.length > 0 && (
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="flex -space-x-2">
+                        {board.collaborators.slice(0, 3).map((collaborator) => (
+                          <div
+                            key={collaborator.id}
+                            className="w-6 h-6 rounded-full bg-blue-500/40 border-2 border-white/20 text-white text-xs font-medium flex items-center justify-center"
+                            title={collaborator.name}
+                          >
+                            {collaborator.name.charAt(0).toUpperCase()}
+                          </div>
+                        ))}
+                        {board.collaborators.length > 3 && (
+                          <div className="w-6 h-6 rounded-full bg-white/10 border-2 border-white/20 text-white/70 text-xs font-medium flex items-center justify-center">
+                            +{board.collaborators.length - 3}
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-xs text-white/60">
+                        {board.collaborators.length} collaborator{board.collaborators.length !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 mt-auto">
+                    <PrimaryButton onClick={() => router.push(`/board/${board.id}`)} className="flex-1 min-h-[40px]">
+                      <ExternalLink className="w-4 h-4" />
+                      <span>Open</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </PrimaryButton>
+                    <button
+                      onClick={() => inviteToBoard(board)}
+                      className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/10 transition-colors"
+                      title="Invite collaborators"
+                    >
+                      <UserPlus2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={board.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white/[0.03] rounded-xl border border-white/[0.08] p-6 hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/[0.12] flex items-center justify-center">
                         <Folder className="w-5 h-5 text-white" />
                       </div>
-                      <div className="flex items-center gap-1">
-                        <div
-                          className={`px-2 py-1 rounded-full text-xs font-medium border ${getActivityColor(
-                            getActivityLevel(board)
-                          )}`}
-                        >
-                          {getActivityLevel(board) === "high" && (
-                            <Zap className="w-3 h-3 inline mr-1" />
-                          )}
-                          {getActivityLevel(board) === "medium" && (
-                            <Activity className="w-3 h-3 inline mr-1" />
-                          )}
-                          {getActivityLevel(board) === "low" && (
-                            <Clock className="w-3 h-3 inline mr-1" />
-                          )}
-                          {getActivityLevel(board)}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-lg font-semibold text-white">{board.name}</h3>
+                          <div className={`px-2 py-1 rounded-full text-xs font-medium border ${getActivityColor(getActivityLevel(board))}`}>
+                            {getActivityLevel(board)}
+                          </div>
                         </div>
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button className="p-1 text-slate-400 hover:text-slate-600 transition-colors">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <h3 className="text-lg font-semibold text-slate-800 mb-2 truncate group-hover:text-blue-600 transition-colors">
-                      {board.name}
-                    </h3>
-
-                    <div className="flex items-center gap-2 text-xs text-slate-500 mb-4">
-                      <Clock className="w-3 h-3" />
-                      <span>{getTimeAgo(board.updatedAt)}</span>
-                    </div>
-
-                    {board.collaborators && board.collaborators.length > 0 && (
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="flex -space-x-2">
-                          {board.collaborators
-                            .slice(0, 3)
-                            .map((collaborator, index) => (
-                              <div
-                                key={collaborator.id}
-                                className="w-6 h-6 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center text-white text-xs font-medium border-2 border-white"
-                                title={collaborator.name}
-                              >
-                                {collaborator.name.charAt(0).toUpperCase()}
-                              </div>
-                            ))}
-                          {board.collaborators.length > 3 && (
-                            <div className="w-6 h-6 bg-slate-300 rounded-full flex items-center justify-center text-slate-600 text-xs font-medium border-2 border-white">
-                              +{board.collaborators.length - 3}
+                        <div className="flex items-center gap-4 text-sm text-white/60">
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            <span>Updated {getTimeAgo(board.updatedAt)}</span>
+                          </div>
+                          {board.collaborators && board.collaborators.length > 0 && (
+                            <div className="flex items-center gap-1">
+                              <Users className="w-3 h-3" />
+                              <span>
+                                {board.collaborators.length} collaborator{board.collaborators.length !== 1 ? "s" : ""}
+                              </span>
                             </div>
                           )}
                         </div>
-                        <span className="text-xs text-slate-500">
-                          {board.collaborators.length} collaborator
-                          {board.collaborators.length !== 1 ? "s" : ""}
-                        </span>
                       </div>
-                    )}
-
-                    <div className="flex gap-2 mt-auto">
-                      <button
-                        onClick={() => router.push(`/board/${board.id}`)}
-                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-medium text-sm group cursor-pointer"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                        <span>Open</span>
-                        <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <PrimaryButton onClick={() => router.push(`/board/${board.id}`)} className="min-h-[40px]">
+                        <ExternalLink className="w-4 h-4" /> Open
+                      </PrimaryButton>
                       <button
                         onClick={() => inviteToBoard(board)}
-                        className="px-3 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center cursor-pointer"
+                        className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-white border border-white/10 transition-colors"
                         title="Invite collaborators"
                       >
                         <UserPlus2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
-                ) : (
-                  // List View
-                  <div
-                    key={board.id}
-                    className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md hover:border-blue-200 transition-all duration-200"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 flex-1">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
-                          <Folder className="w-5 h-5 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-lg font-semibold text-slate-800">
-                              {board.name}
-                            </h3>
-                            <div
-                              className={`px-2 py-1 rounded-full text-xs font-medium border ${getActivityColor(
-                                getActivityLevel(board)
-                              )}`}
-                            >
-                              {getActivityLevel(board)}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4 text-sm text-slate-500">
-                            <div className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              <span>Updated {getTimeAgo(board.updatedAt)}</span>
-                            </div>
-                            {board.collaborators &&
-                              board.collaborators.length > 0 && (
-                                <div className="flex items-center gap-1">
-                                  <Users className="w-3 h-3" />
-                                  <span>
-                                    {board.collaborators.length} collaborator
-                                    {board.collaborators.length !== 1
-                                      ? "s"
-                                      : ""}
-                                  </span>
-                                </div>
-                              )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
+                </motion.div>
+              )
+            )}
+          </div>
+          {filteredAndSortedBoards.length > pageSize && (
+            <div className="mt-6">
+              <SectionCard className="py-4">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <p className="text-sm text-white/60">
+                    Showing {Math.min((currentPage - 1) * pageSize + 1, filteredAndSortedBoards.length)} -
+                    {Math.min(currentPage * pageSize, filteredAndSortedBoards.length)} of {filteredAndSortedBoards.length}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 disabled:opacity-50 text-white border border-white/10 text-sm"
+                      aria-label="Previous page"
+                    >
+                      Prev
+                    </button>
+                    {Array.from({ length: totalPages }).map((_, i) => {
+                      const page = i + 1;
+                      const isEdge = page === 1 || page === 2 || page === totalPages - 1 || page === totalPages;
+                      const isNear = Math.abs(page - currentPage) <= 1;
+                      if (totalPages > 7 && !(isEdge || isNear)) {
+                        if (page === 3 || page === totalPages - 2) {
+                          return (
+                            <span key={`ellipsis-${page}`} className="px-2 text-white/50">…</span>
+                          );
+                        }
+                        return null;
+                      }
+                      return (
                         <button
-                          onClick={() => router.push(`/board/${board.id}`)}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium text-sm cursor-pointer"
+                          key={page}
+                          type="button"
+                          onClick={() => setCurrentPage(page)}
+                          aria-current={currentPage === page ? "page" : undefined}
+                          className={`px-3 py-2 rounded-lg text-sm border ${currentPage === page ? "bg-blue-600/20 text-blue-200 border-blue-500/30" : "bg-white/10 hover:bg-white/15 text-white border-white/10"}`}
                         >
-                          <ExternalLink className="w-4 h-4" />
-                          Open
+                          {page}
                         </button>
-                        <button
-                          onClick={() => inviteToBoard(board)}
-                          className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center cursor-pointer"
-                          title="Invite collaborators"
-                        >
-                          <UserPlus2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
+                      );
+                    })}
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 disabled:opacity-50 text-white border border-white/10 text-sm"
+                      aria-label="Next page"
+                    >
+                      Next
+                    </button>
                   </div>
-                )
-              )}
-            </div>
-          ) : data?.myBoards?.length === 0 ? (
-            // Empty state
-            <div className="text-center py-16">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Folder className="w-12 h-12 text-blue-500" />
-              </div>
-              <h3 className="text-2xl font-semibold text-slate-700 mb-3">
-                No boards yet
-              </h3>
-              <p className="text-slate-500 mb-8 max-w-md mx-auto">
-                Create your first board to start collaborating with your team
-                and bring your ideas to life.
-              </p>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 flex items-center gap-3 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 mx-auto"
-              >
-                <Plus className="w-5 h-5" />
-                Create Your First Board
-              </button>
-              <div className="mt-6 text-sm text-slate-400">
-                <p>
-                  Tip: Use{" "}
-                  <kbd className="px-2 py-1 bg-slate-100 rounded text-slate-600">
-                    Ctrl+N
-                  </kbd>{" "}
-                  to create a new board
-                </p>
-              </div>
-            </div>
-          ) : (
-            // No search results
-            <div className="text-center py-16">
-              <div className="w-24 h-24 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Search className="w-12 h-12 text-slate-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-slate-600 mb-3">
-                No boards found
-              </h3>
-              <p className="text-slate-500 mb-6">
-                Try adjusting your search terms or create a new board.
-              </p>
-              <button
-                onClick={() => setSearchQuery("")}
-                className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
-              >
-                Clear Search
-              </button>
+                </div>
+              </SectionCard>
             </div>
           )}
-        </div>
+          </>
+        ) : data?.myBoards?.length === 0 ? (
+          <SectionCard className="mt-8 text-center">
+            <div className="w-20 h-20 rounded-2xl bg-white/[0.06] border border-white/[0.12] flex items-center justify-center mx-auto mb-4">
+              <Folder className="w-10 h-10 text-white/80" />
+            </div>
+            <h3 className="text-2xl font-semibold text-white mb-2">No boards yet</h3>
+            <p className="text-white/60 mb-6 max-w-md mx-auto">Create your first board to start collaborating with your team.</p>
+            <PrimaryButton onClick={() => setShowCreateModal(true)}>
+              <Plus className="w-4 h-4" /> Create Your First Board
+            </PrimaryButton>
+            <div className="mt-4 text-sm text-white/50">
+              Tip: Use <kbd className="px-2 py-1 rounded bg-white/10 border border-white/10 text-white/70">Ctrl+N</kbd> to create a new board
+            </div>
+          </SectionCard>
+        ) : (
+          <SectionCard className="mt-8 text-center">
+            <div className="w-20 h-20 rounded-2xl bg-white/[0.06] border border-white/[0.12] flex items-center justify-center mx-auto mb-4">
+              <Search className="w-10 h-10 text-white/70" />
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-2">No boards found</h3>
+            <p className="text-white/60 mb-6">Try adjusting your search terms or create a new board.</p>
+            <button
+              onClick={() => setSearchQuery("")}
+              className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/10 transition-colors"
+            >
+              Clear Search
+            </button>
+          </SectionCard>
+        )}
 
-        {/* Create Board Modal */}
+        {/* Modals */}
         <CreateBoardModal
           isOpen={showCreateModal}
           onCloseAction={() => setShowCreateModal(false)}
           onSuccessAction={handleBoardCreated}
         />
-
-        {/* Invite Collaborators Modal */}
+        <SuccessModal
+          isOpen={showSuccessModal}
+          onCloseAction={() => {
+            setShowSuccessModal(false);
+            setCreatedBoard(null);
+          }}
+          title="Board Created"
+          message="Your board has been created successfully. You can start working on it now."
+          boardId={createdBoard?.id}
+          boardName={createdBoard?.name}
+        />
         {selectedBoard && (
           <InviteCollaboratorsModal
             isOpen={showInviteModal}
@@ -733,4 +779,10 @@ const MyBoardsPage = () => {
   );
 };
 
-export default MyBoardsPage;
+export default function MyBoardsPageWrapper() {
+  return (
+    <RequireAuth>
+      <MyBoardsPage />
+    </RequireAuth>
+  );
+}
