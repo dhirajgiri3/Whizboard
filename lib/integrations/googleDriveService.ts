@@ -3,6 +3,7 @@ import logger from '@/lib/logger/logger';
 import { google } from 'googleapis';
 import { Readable } from 'stream';
 import axios from 'axios';
+import '@/lib/env';
 
 export interface GoogleDriveFile {
   id: string;

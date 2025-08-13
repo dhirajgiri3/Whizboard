@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { integrationsConfig, getAppBaseUrl } from '@/lib/config/integrations';
 import { attachStateCookie, createOAuthState } from '@/lib/utils/oauthState';
+import '@/lib/env';
 
 export async function GET() {
   const session = await getServerSession(authOptions);

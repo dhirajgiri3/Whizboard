@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { pubSub } from '../../../../lib/graphql/schema';
+import '@/lib/env';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import '@/lib/env';
 
 export interface AuthenticatedUser {
   id: string;

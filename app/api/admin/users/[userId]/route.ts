@@ -10,6 +10,7 @@ import {
   invalidateUserSessions 
 } from '@/lib/auth/session-management';
 import { ObjectId } from 'mongodb';
+import '@/lib/env';
 
 /**
  * Admin endpoint for user management

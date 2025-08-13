@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { getDefaultSlackChannelForEmail, getSlackBotTokenForEmail, postSlackMessage } from '@/lib/integrations/slackService';
+import '@/lib/env';
 
 function getAppOrigin(request: NextRequest): string {
   // Prefer explicit public URL if configured

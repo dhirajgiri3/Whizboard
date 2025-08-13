@@ -3,6 +3,7 @@ import { createYoga } from 'graphql-yoga';
 import { createPubSub } from 'graphql-yoga';
 import { schema } from '@/lib/graphql/schema';
 import logger from '@/lib/logger/logger';
+import '@/lib/env';
 
 // Create pubsub instance for real-time subscriptions
 const pubsub = createPubSub();

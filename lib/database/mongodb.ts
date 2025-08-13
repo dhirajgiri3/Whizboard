@@ -1,8 +1,6 @@
 import { MongoClient } from 'mongodb';
 import logger from '../logger/logger';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import '../env';
 
 if (!process.env.MONGODB_URI) {
   throw new Error('Invalid/Missing environment variable: "MONGODB_URI"');

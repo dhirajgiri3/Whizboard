@@ -3,6 +3,7 @@ import { schema, pubSub } from '@/lib/graphql/schema';
 import { decode } from 'next-auth/jwt';
 import { authOptions } from '@/lib/auth/options';
 import axios from 'axios';
+import '@/lib/env';
 
 const yoga = createYoga({
   schema,

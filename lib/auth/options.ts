@@ -4,6 +4,7 @@ import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
 import clientPromise from '@/lib/database/mongodb';
 import { currentSecurityConfig } from '@/lib/config/security';
 import { generateUniqueUsername } from '@/lib/utils/usernameGenerator';
+import '@/lib/env';
 
 export const authOptions: AuthOptions = {
   providers: [

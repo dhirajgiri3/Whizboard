@@ -1,3 +1,5 @@
+import '@/lib/env';
+
 function resolveBaseUrl(): string {
   const fromEnv = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || 'http://localhost:3000';
   // If value already starts with http(s), return as-is

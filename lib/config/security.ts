@@ -1,3 +1,5 @@
+import '@/lib/env';
+
 export interface SecurityConfig {
   // Authentication settings
   auth: {

@@ -1,5 +1,8 @@
+import 'dotenv/config';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Dotenv is preloaded for all Node server runtimes
   eslint: {
     ignoreDuringBuilds: true,
   },

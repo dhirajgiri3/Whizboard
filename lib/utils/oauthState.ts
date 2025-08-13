@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import '@/lib/env';
 import { NextResponse, NextRequest } from 'next/server';
 import { getAppBaseUrl } from '@/lib/config/integrations';
 import logger from '@/lib/logger/logger';

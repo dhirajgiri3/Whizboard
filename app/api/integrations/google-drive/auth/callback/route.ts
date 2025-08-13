@@ -3,6 +3,7 @@ import { integrationsConfig, getAppBaseUrl } from '@/lib/config/integrations';
 import { upsertToken } from '@/lib/integrations/tokenStore';
 import { readAndClearStateCookie } from '@/lib/utils/oauthState';
 import axios from 'axios';
+import '@/lib/env';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);

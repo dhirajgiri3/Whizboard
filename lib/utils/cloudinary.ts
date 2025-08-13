@@ -1,4 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
+import '@/lib/env';
 
 // Configure via CLOUDINARY_URL env automatically; fallback to explicit config if needed
 // Example CLOUDINARY_URL: cloudinary://<api_key>:<api_secret>@<cloud_name>
