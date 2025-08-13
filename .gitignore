@@ -50,3 +50,5 @@ Whizboard_Development_Plan_Cursor_Tasks_Integrated.md
 scripts/test-*.js
 scripts/create-test-*.js
 scripts/check-*.js
+
+__tests__
