@@ -102,21 +102,36 @@ export const authOptions: AuthOptions = {
           
           // If user doesn't exist in database, invalidate session
           if (!user) {
-            console.log(`[SECURITY] User ${session.user.email} not found in database, invalidating session`);
-            return null; // This will force logout
+            console.log(`[SECURITY] User ${session.user.email} not found in database, marking session invalid`);
+            (session as any).security = {
+              ...(session as any).security,
+              userExists: false,
+              invalidReason: 'USER_NOT_FOUND',
+            };
+            return session;
           }
           
           // Check if user is active/not banned
           if (user.status === 'banned' || user.status === 'suspended') {
-            console.log(`[SECURITY] User ${session.user.email} is ${user.status}, invalidating session`);
-            return null; // This will force logout
+            console.log(`[SECURITY] User ${session.user.email} is ${user.status}, marking session invalid`);
+            (session as any).security = {
+              ...(session as any).security,
+              userExists: true,
+              invalidReason: user.status.toUpperCase(),
+            };
+            return session;
           }
 
           // Invalidate session if tokenVersion has changed
           const tokenVersionFromDb = (user as any).tokenVersion ?? 0;
           if (typeof (token as any).tokenVersion === 'number' && (token as any).tokenVersion < tokenVersionFromDb) {
-            console.log(`[SECURITY] Token version outdated for ${session.user.email}, invalidating session`);
-            return null;
+            console.log(`[SECURITY] Token version outdated for ${session.user.email}, marking session invalid`);
+            (session as any).security = {
+              ...(session as any).security,
+              userExists: true,
+              invalidReason: 'TOKEN_VERSION_OUTDATED',
+            };
+            return session;
           }
           
           (session.user as any).id = (token as any).sub;
@@ -209,9 +224,6 @@ export const authOptions: AuthOptions = {
         }
       }
     },
-    async linkAccount({ user, account }) {
-      console.log(`[SECURITY] Account linked: ${user.email} to ${account?.provider}`);
-    },
     async createUser({ user }) {
       console.log(`[SECURITY] New user created: ${user.email}`);
       
@@ -250,9 +262,7 @@ export const authOptions: AuthOptions = {
     async signOut({ session }) {
       console.log(`[SECURITY] User signed out: ${session?.user?.email}`);
     },
-    async linkAccount({ user, account }) {
-      console.log(`[SECURITY] Account linked: ${user.email} to ${account?.provider}`);
-    },
+    // Note: linkAccount is already handled above
     async session({ session }) {
       console.log(`[SECURITY] Session accessed: ${session?.user?.email}`);
     },

@@ -19,7 +19,8 @@ export function createCSRFProtection(config: CSRFConfig) {
   } = config;
 
   return async function csrfProtection(req: NextRequest) {
-    const { pathname, method } = req.nextUrl;
+    const { pathname } = req.nextUrl;
+    const method = req.method;
     
     // Skip CSRF check for excluded paths
     if (excludePaths.some(path => pathname.startsWith(path))) {

@@ -39,9 +39,9 @@ export async function authenticateRequest(
     const user: AuthenticatedUser = {
       id: token.sub!,
       email: token.email || '',
-      name: token.name,
-      emailVerified: token.emailVerified,
-      provider: token.provider
+      name: token.name || undefined,
+      emailVerified: (token as any).emailVerified as boolean | undefined,
+      provider: (token as any).provider as string | undefined
     };
 
     // Check email verification if required

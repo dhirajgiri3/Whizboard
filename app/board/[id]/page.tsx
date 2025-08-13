@@ -1,5 +1,5 @@
 import React from 'react'
-import BoardPage from './components/BoardPage'
+import BoardPage from '@/app/board/[id]/components/BoardPage'
 import { RequireAuth } from '@/components/auth/ProtectedRoute'
 
 function page() {

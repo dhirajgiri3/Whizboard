@@ -37,8 +37,8 @@ export interface LayoutPreferences {
 
 class ThemeManager {
   private themes: Map<string, Theme> = new Map();
-  private currentTheme: Theme;
-  private layoutPreferences: LayoutPreferences;
+  private currentTheme!: Theme;
+  private layoutPreferences!: LayoutPreferences;
   private subscribers: Set<(theme: Theme) => void> = new Set();
 
   constructor() {
@@ -376,50 +376,58 @@ let _themeManager: ThemeManager | null = null;
 
 export const getThemeManager = (): ThemeManager => {
   if (typeof window === 'undefined') {
-    // Return a mock manager for SSR
-    return {
-      getCurrentTheme: () => ({
-        id: 'default-light',
-        name: 'Default Light',
-        type: 'light',
-        colorPalette: {
+    // Return a minimal subclass instance for SSR to satisfy type requirements
+    class SSRThemeManager extends ThemeManager {
+      constructor() {
+        super();
+      }
+      public override getCurrentTheme(): Theme {
+        return {
           id: 'default-light',
           name: 'Default Light',
-          primary: '#3b82f6',
-          secondary: '#64748b',
-          accent: '#f59e0b',
-          background: '#ffffff',
-          surface: '#f8fafc',
-          text: '#1e293b',
-          textSecondary: '#64748b',
-          border: '#e2e8f0',
-          success: '#10b981',
-          warning: '#f59e0b',
-          error: '#ef4444',
-        },
-        borderRadius: 'md',
-        spacing: 'comfortable',
-        fontFamily: 'sans',
-        fontSize: 'medium',
-      }),
-      getAvailableThemes: () => [],
-      setTheme: () => {},
-      createCustomTheme: () => '',
-      updateTheme: () => {},
-      getLayoutPreferences: () => ({
-        sidebarPosition: 'left',
-        sidebarWidth: 280,
-        toolbarPosition: 'top',
-        showGrid: true,
-        showRulers: false,
-        snapToGrid: false,
-        gridSize: 20,
-      }),
-      updateLayoutPreferences: () => {},
-      subscribe: () => () => {},
-      exportTheme: () => '',
-      importTheme: () => null,
-    } as ThemeManager;
+          type: 'light',
+          colorPalette: {
+            id: 'default-light',
+            name: 'Default Light',
+            primary: '#3b82f6',
+            secondary: '#64748b',
+            accent: '#f59e0b',
+            background: '#ffffff',
+            surface: '#f8fafc',
+            text: '#1e293b',
+            textSecondary: '#64748b',
+            border: '#e2e8f0',
+            success: '#10b981',
+            warning: '#f59e0b',
+            error: '#ef4444',
+          },
+          borderRadius: 'md',
+          spacing: 'comfortable',
+          fontFamily: 'sans',
+          fontSize: 'medium',
+        };
+      }
+      public override getAvailableThemes(): Theme[] { return []; }
+      public override setTheme(_: string): void {}
+      public override createCustomTheme(_: Omit<Theme, 'id'>): string { return ''; }
+      public override updateTheme(_: string, __: Partial<Theme>): void {}
+      public override getLayoutPreferences(): LayoutPreferences {
+        return {
+          sidebarPosition: 'left',
+          sidebarWidth: 280,
+          toolbarPosition: 'top',
+          showGrid: true,
+          showRulers: false,
+          snapToGrid: false,
+          gridSize: 20,
+        };
+      }
+      public override updateLayoutPreferences(_: Partial<LayoutPreferences>): void {}
+      public override subscribe(_: (theme: Theme) => void): () => void { return () => {}; }
+      public override exportTheme(_: string): string { return ''; }
+      public override importTheme(_: string): string | null { return null; }
+    }
+    return new SSRThemeManager();
   }
   
   if (!_themeManager) {

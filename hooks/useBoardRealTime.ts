@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { Dispatch, SetStateAction } from "react";
 import { ILine, StickyNoteElement, FrameElement, TextElement, ShapeElement } from "@/types";
-import useRealTimeCollaboration from "./useRealTimeCollaboration";
+import { useRealTimeCollaboration } from "./useRealTimeCollaboration";
 
 interface UseBoardRealTimeProps {
   boardId: string;

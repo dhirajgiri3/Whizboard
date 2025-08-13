@@ -43,20 +43,22 @@ export const ThemeCustomizer = ({ isOpen, onClose }: ThemeCustomizerProps) => {
   };
 
   const handleColorChange = (colorKey: keyof ColorPalette, value: string) => {
-    const updatedPalette = { ...customPalette, [colorKey]: value };
+    if (!customPalette || !currentTheme) return;
+    const updatedPalette: ColorPalette = { ...customPalette, [colorKey]: value } as ColorPalette;
     setCustomPalette(updatedPalette);
-    
-    const updatedTheme = { ...currentTheme, colorPalette: updatedPalette };
+    const updatedTheme: Theme = { ...currentTheme, colorPalette: updatedPalette } as Theme;
     getThemeManager().updateTheme(currentTheme.id, updatedTheme);
   };
 
   const handleLayoutChange = (key: keyof LayoutPreferences, value: any) => {
-    const updatedLayout = { ...layoutPreferences, [key]: value };
+    if (!layoutPreferences) return;
+    const updatedLayout: LayoutPreferences = { ...layoutPreferences, [key]: value } as LayoutPreferences;
     setLayoutPreferences(updatedLayout);
     getThemeManager().updateLayoutPreferences(updatedLayout);
   };
 
   const exportCurrentTheme = () => {
+    if (!currentTheme) return;
     const themeData = getThemeManager().exportTheme(currentTheme.id);
     const blob = new Blob([themeData], { type: 'application/json' });
     const url = URL.createObjectURL(blob);

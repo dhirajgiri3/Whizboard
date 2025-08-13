@@ -91,7 +91,8 @@ export function createRateLimiter(config: RateLimitConfig) {
 
 function getIdentifier(req: NextRequest): string {
   // Use IP address as primary identifier
-  const ip = req.ip || req.headers.get('x-forwarded-for') || 'unknown';
+  const forwarded = req.headers.get('x-forwarded-for');
+  const ip = (forwarded ? forwarded.split(',')[0].trim() : undefined) || req.headers.get('x-real-ip') || 'unknown';
   
   // For authenticated users, include user ID for more granular control
   const authHeader = req.headers.get('authorization');

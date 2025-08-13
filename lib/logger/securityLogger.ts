@@ -276,7 +276,7 @@ class SecurityLogger {
       this.events
         .filter(event => event.severity === 'HIGH' || event.severity === 'CRITICAL')
         .map(event => event.ipAddress)
-        .filter(Boolean)
+        .filter((ip): ip is string => typeof ip === 'string' && ip.length > 0)
     ));
 
     const rateLimitViolations = this.events.filter(event => 

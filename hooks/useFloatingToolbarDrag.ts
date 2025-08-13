@@ -312,6 +312,9 @@ export function useFloatingToolbarDrag({
     
     // Refs
     toolbarRef,
+    // Backwards compatibility for older components expecting `dragRef`
+    // Alias `dragRef` to `toolbarRef` so existing usages continue to work
+    dragRef: toolbarRef,
     dragHandleRef,
     eyeButtonRef,
     

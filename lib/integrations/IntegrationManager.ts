@@ -367,25 +367,12 @@ let _integrationManager: IntegrationManager | null = null;
 export const getIntegrationManager = (): IntegrationManager => {
   if (typeof window === 'undefined') {
     // Return a mock manager for SSR
-    return {
-      getIntegrations: () => [],
-      getCustomIntegrations: () => [],
-      getIntegration: () => undefined,
-      updateIntegration: () => {},
-      connectSlack: async () => false,
-      connectGoogleWorkspace: async () => false,
-      connectMicrosoftTeams: async () => false,
-      disconnectIntegration: () => {},
-      sendSlackNotification: async () => false,
-      syncToGoogleDrive: async () => false,
-      sendTeamsNotification: async () => false,
-      addCustomIntegration: () => '',
-      updateCustomIntegration: () => {},
-      removeCustomIntegration: () => {},
-      triggerCustomIntegration: async () => false,
-      getIntegrationStatus: () => undefined,
-      isIntegrationEnabled: () => false,
-    } as IntegrationManager;
+    return new (class extends IntegrationManager {
+      constructor() {
+        super();
+      }
+      // Override any methods that would touch browser APIs if needed
+    })();
   }
   
   if (!_integrationManager) {

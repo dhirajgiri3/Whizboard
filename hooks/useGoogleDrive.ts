@@ -80,7 +80,8 @@ export function useGoogleDrive() {
     } catch (error) {
       console.error('Error listing files:', error);
       // Don't show duplicate toast if already shown above
-      if (!error.message?.includes('Google Drive API not enabled') && !error.message?.includes('Google Drive not connected')) {
+      const message = error instanceof Error ? error.message : '';
+      if (!message.includes('Google Drive API not enabled') && !message.includes('Google Drive not connected')) {
         toast.error('Failed to load Google Drive files');
       }
       return [];
@@ -259,11 +260,15 @@ export function useGoogleDrive() {
   ): Promise<{ success: boolean; fileId?: string; error?: string; googleDriveUrl?: string }> => {
     setIsLoading(true);
     try {
-      const params = new URLSearchParams({
-        format,
-        saveToGoogleDrive: 'true',
-        ...options,
-      });
+      const params = new URLSearchParams();
+      params.set('format', format);
+      params.set('saveToGoogleDrive', 'true');
+      if (options.resolution) params.set('resolution', options.resolution);
+      if (options.background) params.set('background', options.background);
+      if (options.area) params.set('area', options.area);
+      if (options.quality) params.set('quality', options.quality);
+      if (typeof options.includeMetadata === 'boolean') params.set('includeMetadata', String(options.includeMetadata));
+      if (typeof options.compression === 'boolean') params.set('compression', String(options.compression));
 
       if (options.folderId) {
         params.append('googleDriveFolderId', options.folderId);

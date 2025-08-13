@@ -20,6 +20,7 @@ interface BoardMetadata {
     id: string;
     name: string;
     email: string;
+    username?: string;
     avatar?: string;
     isOnline: boolean;
     joinedAt?: string;
@@ -31,6 +32,7 @@ interface Collaborator {
   id: string;
   name: string;
   email: string;
+  username?: string;
   avatar?: string;
   isOnline: boolean;
   joinedAt?: string;
