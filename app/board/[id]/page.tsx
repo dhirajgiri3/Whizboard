@@ -1,8 +1,8 @@
 import React from 'react'
-import BoardPage from './components/BoardPage'
+import BoardPage from '@/app/board/[id]/page/BoardPage'
 import { RequireAuth } from '@/components/auth/ProtectedRoute'
 
-function page() {
+function Board() {
   return (
     <RequireAuth>
       <div className="relative">
@@ -12,4 +12,4 @@ function page() {
   )
 }
 
-export default page
+export default Board
