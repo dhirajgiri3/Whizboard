@@ -70,24 +70,34 @@ const WhiteboardHeader: React.FC<WhiteboardHeaderProps> = ({
                 .filter((c) => c.isActive)
                 .slice(0, isMobile ? 2 : 3)
                 .map((user) => (
-                  <UserLink
-                    key={user.id}
-                    user={{
-                      id: user.id,
-                      name: user.name,
-                      email: user.email || '',
-                      username: user.username,
-                      image: user.avatar
-                    }}
-                    size="sm"
-                    variant="compact"
-                    showAvatar={true}
-                    showEmail={false}
-                    className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-white shadow-sm"
-                  />
+                  <div key={user.id} className="relative">
+                    {user.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={user.name}
+                        className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-white shadow-sm object-cover"
+                        onError={(e) => {
+                          // Fallback to initials if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const fallback = target.nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div 
+                      className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-white shadow-sm flex items-center justify-center text-xs font-semibold text-white"
+                      style={{ 
+                        backgroundColor: user.color || '#3b82f6',
+                        display: user.avatar ? 'none' : 'flex'
+                      }}
+                    >
+                      {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                    </div>
+                  </div>
                 ))}
               {collaborators.filter((c) => c.isActive).length > (isMobile ? 2 : 3) && (
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-white bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-medium">
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-white bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-medium shadow-sm">
                   +{collaborators.filter((c) => c.isActive).length - (isMobile ? 2 : 3)}
                 </div>
               )}

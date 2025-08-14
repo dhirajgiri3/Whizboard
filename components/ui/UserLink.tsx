@@ -68,9 +68,9 @@ const UserLink = ({
   };
 
   const variantClasses = {
-    default: 'flex items-center gap-2 hover:bg-white/[0.05] rounded-lg px-2 py-1 transition-colors',
-    compact: 'flex items-center gap-1 hover:bg-white/[0.05] rounded px-1 py-0.5 transition-colors',
-    detailed: 'flex items-center gap-3 hover:bg-white/[0.05] rounded-xl p-3 transition-colors'
+    default: 'flex items-center gap-2 hover:bg-gray-50 rounded-lg px-2 py-1 transition-colors',
+    compact: 'flex items-center gap-1 hover:bg-gray-50 rounded px-1 py-0.5 transition-colors',
+    detailed: 'flex items-center gap-3 hover:bg-gray-50 rounded-xl p-3 transition-colors'
   };
 
   const avatarColor = getAvatarColor(user.email);
@@ -101,11 +101,11 @@ const UserLink = ({
           </div>
         )}
         <div className="flex flex-col">
-          <span className={`font-medium text-white ${sizeClasses[size].text}`}>
+          <span className={`font-medium text-gray-700 ${sizeClasses[size].text}`}>
             {user.name}
           </span>
           {showEmail && (
-            <span className="text-white/60 text-xs">{user.email}</span>
+            <span className="text-gray-500 text-xs">{user.email}</span>
           )}
         </div>
       </div>
@@ -139,13 +139,13 @@ const UserLink = ({
       
       <div className="flex flex-col">
         <div className="flex items-center gap-1">
-          <span className={`font-medium text-white ${sizeClasses[size].text}`}>
+          <span className={`font-medium text-gray-700 ${sizeClasses[size].text}`}>
             {user.name}
           </span>
-          <ExternalLink className={`text-white/40 ${sizeClasses[size].icon}`} />
+          <ExternalLink className={`text-gray-400 ${sizeClasses[size].icon}`} />
         </div>
         {showEmail && (
-          <span className="text-white/60 text-xs">@{user.username}</span>
+          <span className="text-gray-500 text-xs">@{user.username}</span>
         )}
       </div>
     </Link>
