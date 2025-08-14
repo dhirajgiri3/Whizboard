@@ -632,12 +632,14 @@ export default function FileManagerModal({ isOpen, onClose, onImageSelect }: Fil
     )
   );
 
-  // Debug logging to identify empty keys
-  if (process.env.NODE_ENV === 'development') {
-    console.log('allTags:', allTags);
-    console.log('allTypes:', allTypes);
-    console.log('files:', files);
-  }
+  // Debug logging to identify empty keys - only log when data changes
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('allTags:', allTags);
+      console.log('allTypes:', allTypes);
+      console.log('files:', files);
+    }
+  }, [allTags, allTypes, files]);
 
   // Ensure we have valid data before rendering
   const validAllTags = allTags.filter(tag => tag && tag.trim() !== '');

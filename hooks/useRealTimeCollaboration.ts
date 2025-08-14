@@ -101,10 +101,10 @@ export function useRealTimeCollaboration({
   const pendingDrawingUpdateRef = useRef<DrawingLineData | null>(null);
   const lastDrawingUpdateRef = useRef<number>(0);
   
-  // Constants for throttling
-  // Lower throttle to improve perceived real-time streaming of strokes (~60fps -> ~16ms)
-  const DRAWING_UPDATE_THROTTLE_MS = 20;
-  const CURSOR_THROTTLE_MS = 50; // Keep existing cursor throttle
+  // Constants for throttling - Optimized for performance
+  const DRAWING_UPDATE_THROTTLE_MS = 100; // Increased to reduce API calls
+  const CURSOR_THROTTLE_MS = 200; // Increased to reduce cursor updates
+  const PRESENCE_UPDATE_THROTTLE_MS = 10000; // Increased to reduce presence updates
 
   // State for user presence and activity
   const [userPresence, setUserPresence] = useState<UserPresenceData | null>(null);
@@ -572,8 +572,8 @@ export function useRealTimeCollaboration({
     onElementAdded,
     onElementUpdated,
     onElementDeleted,
-    onUserPresenceUpdate,
-    cursors // Include cursors in dependency array for onCursorMove
+    onUserPresenceUpdate
+    // Removed cursors from dependency array to prevent infinite loops
   ]);
 
   handleRealTimeEventRef.current = handleRealTimeEvent;
@@ -631,7 +631,7 @@ export function useRealTimeCollaboration({
       eventSourceRef.current?.close();
       setIsConnected(false);
     };
-  }, [boardId, userId, updateAndBroadcastPresence]);
+  }, [boardId, userId]); // Removed updateAndBroadcastPresence from dependencies to prevent infinite re-renders
 
   // Join/Leave board API calls (stable)
   const joinBoard = useCallback(() => {
@@ -723,7 +723,7 @@ export function useRealTimeCollaboration({
       window.removeEventListener('keydown', handleUserActivity);
       window.removeEventListener('click', handleUserActivity);
     };
-  }, [isConnected, updateAndBroadcastPresence, userPresence]);
+  }, [isConnected]); // Removed updateAndBroadcastPresence and userPresence from dependencies to prevent infinite re-renders
 
   // Broadcast cursor movement with enhanced data
   const broadcastCursorMovement = useCallback((x: number, y: number, currentTool?: string, isDrawing?: boolean, isSelecting?: boolean, activeElementId?: string, pressure?: number) => {

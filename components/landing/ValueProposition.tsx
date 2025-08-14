@@ -37,6 +37,7 @@ import {
   Lock
 } from "lucide-react";
 import SectionHeader from "@/components/ui/header/SectionHeader";
+import DemoVideoModal from "@/components/ui/modal/DemoVideoModal";
 
 // Enhanced scrollbar styles with performant CSS animation and smoother fades
 const enhancedScrollbarStyles = `
@@ -220,6 +221,8 @@ const ValueProposition = () => {
       }
     }
   };
+
+  const [isDemoOpen, setIsDemoOpen] = React.useState(false);
 
   return (
     <>
@@ -755,13 +758,22 @@ const ValueProposition = () => {
                   className="text-white/80 hover:text-white font-medium px-10 py-4 transition-colors duration-300"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
+                  onClick={() => setIsDemoOpen(true)}
                 >
                   <span className="flex items-center gap-2 text-lg">
                     <Play className="w-5 h-5" />
-                    <span>Watch 2-Min Demo</span>
+                    <span>Watch 3-Min Demo</span>
                   </span>
                 </motion.button>
               </motion.div>
+
+              <DemoVideoModal
+                isOpen={isDemoOpen}
+                onClose={() => setIsDemoOpen(false)}
+                videoUrl="https://res.cloudinary.com/dgak25skk/video/upload/v1755180328/whizboard-3_qyofjn.mp4"
+                title="Watch 3‑Min Demo"
+                description="See how Whizboard enables fluid realtime collaboration."
+              />
 
               {/* Minimal Trust Indicators */}
               <motion.div

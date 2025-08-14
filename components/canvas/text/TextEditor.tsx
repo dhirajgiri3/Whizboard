@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { TextElement } from '@/types';
 import { cn, createDefaultTextFormatting, mergeTextFormatting } from '@/lib/utils/utils';
 import { 
@@ -43,14 +43,17 @@ const TextEditor: React.FC<TextEditorProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
   const [showToolbar, setShowToolbar] = useState(false);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isUpdatingRef = useRef<boolean>(false);
 
-  // Calculate position and size based on stage transform
-  const editorPosition = {
+  // Calculate position and size based on stage transform - memoized to prevent re-renders
+  const editorPosition = useMemo(() => ({
     x: ((textElement?.x || 0) * stageScale) + stagePosition.x,
     y: ((textElement?.y || 0) * stageScale) + stagePosition.y,
     width: Math.max((textElement?.width || 100) * stageScale, 120),
     height: Math.max((textElement?.height || 50) * stageScale, 40),
-  };
+  }), [textElement?.x, textElement?.y, textElement?.width, textElement?.height, stageScale, stagePosition.x, stagePosition.y]);
 
   // Auto-resize textarea
   const adjustHeight = useCallback(() => {
@@ -61,45 +64,52 @@ const TextEditor: React.FC<TextEditorProps> = ({
     const scrollHeight = textarea.scrollHeight;
     const minHeight = Math.max((textElement.height || 50) * stageScale, 40);
     textarea.style.height = `${Math.max(scrollHeight, minHeight)}px`;
+  }, [textElement?.height, stageScale]); // More specific dependencies to prevent unnecessary re-renders
 
-    // Update element height if needed
-    const currentHeight = textElement.height || 50;
-    const newHeight = Math.max(scrollHeight / stageScale, currentHeight);
-    if (Math.abs(newHeight - currentHeight) > 5) {
+  // Debounced text update to prevent excessive updates
+  const updateTextDebounced = useCallback((newText: string) => {
+    if (!textElement || !isFocused || isUpdatingRef.current) return;
+    
+    // Clear any existing debounce timeout
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    
+    // Set a new debounce timeout
+    debounceRef.current = setTimeout(() => {
+      if (isUpdatingRef.current) return; // Double-check to prevent concurrent updates
+      
+      isUpdatingRef.current = true;
       const updatedElement: TextElement = {
         ...textElement,
-        height: newHeight,
+        text: newText,
         updatedAt: Date.now(),
         version: (textElement.version || 0) + 1,
       };
       onUpdateAction(updatedElement);
-    }
-  }, [textElement, stageScale, onUpdateAction]);
-
-  // Debounced text update to prevent excessive updates
-  const updateTextDebounced = useCallback((newText: string) => {
-    if (!textElement) return;
-    
-    const updatedElement: TextElement = {
-      ...textElement,
-      text: newText,
-      updatedAt: Date.now(),
-      version: (textElement.version || 0) + 1,
-    };
-    onUpdateAction(updatedElement);
-  }, [textElement, onUpdateAction]);
+      
+      // Reset the flag after a short delay
+      setTimeout(() => {
+        isUpdatingRef.current = false;
+      }, 100);
+    }, 1000); // Increased to 1000ms debounce delay
+  }, [textElement, onUpdateAction, isFocused]);
 
   // Handle text change
   const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
     setText(newText);
-    adjustHeight();
+    
+    // Only call adjustHeight if the text actually changed significantly
+    if (Math.abs(newText.length - (textElement?.text?.length || 0)) > 10) {
+      adjustHeight();
+    }
     
     // Only update if not composing (for better IME support)
     if (!isComposing) {
       updateTextDebounced(newText);
     }
-  }, [adjustHeight, updateTextDebounced, isComposing]);
+  }, [adjustHeight, updateTextDebounced, isComposing]); // Removed textElement?.text from dependencies to prevent cursor reset
 
   // Handle composition events for better IME support
   const handleCompositionStart = useCallback(() => {
@@ -115,8 +125,9 @@ const TextEditor: React.FC<TextEditorProps> = ({
 
   // Format update handler
   const updateFormatting = useCallback((updates: Partial<TextElement['formatting']>) => {
-    if (!textElement) return;
+    if (!textElement || !isFocused || isUpdatingRef.current) return;
 
+    isUpdatingRef.current = true;
     const updatedElement: TextElement = {
       ...textElement,
       formatting: mergeTextFormatting(textElement.formatting, updates),
@@ -124,7 +135,12 @@ const TextEditor: React.FC<TextEditorProps> = ({
       version: (textElement.version || 0) + 1,
     };
     onUpdateAction(updatedElement);
-  }, [textElement, onUpdateAction]);
+    
+    // Reset the flag after a short delay
+    setTimeout(() => {
+      isUpdatingRef.current = false;
+    }, 100);
+  }, [textElement, onUpdateAction, isFocused]);
 
   // Handle keyboard shortcuts and prevent conflicts
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -198,11 +214,23 @@ const TextEditor: React.FC<TextEditorProps> = ({
         textarea.selectionStart = textarea.selectionEnd = start + 2;
       }, 0);
     }
-  }, [textElement, updateFormatting, onFinishEditingAction, text, updateTextDebounced]);
+  }, [textElement, updateFormatting, updateTextDebounced, onFinishEditingAction]); // Removed text from dependencies to prevent cursor reset
 
   // Handle key up to prevent propagation
   const handleKeyUp = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     e.stopPropagation();
+    e.preventDefault();
+  }, []);
+
+  // Handle mouse events to prevent canvas interactions
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+  }, []);
+
+  const handleMouseUp = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
   }, []);
 
   // Handle blur (finish editing when clicking outside)
@@ -213,17 +241,43 @@ const TextEditor: React.FC<TextEditorProps> = ({
       return; // Don't finish editing if focusing within our container
     }
 
+    // Check if we're focusing on a toolbar button
+    if (relatedTarget && relatedTarget.closest('[data-text-toolbar]')) {
+      return; // Don't finish editing if focusing on toolbar
+    }
+
+    // Check if we're focusing on any text editor related element
+    if (relatedTarget && (
+      relatedTarget.closest('[data-text-editor]') ||
+      relatedTarget.closest('[data-text-toolbar]') ||
+      relatedTarget.closest('.text-editor-container')
+    )) {
+      return; // Don't finish editing if focusing on text editor elements
+    }
+
     setIsFocused(false);
     setShowToolbar(false);
-    // Small delay to allow for toolbar interactions
-    setTimeout(() => {
+
+    // Clear any existing blur timeout
+    if (blurTimeoutRef.current) {
+      clearTimeout(blurTimeoutRef.current);
+    }
+
+    // Use a longer delay to allow for toolbar interactions and prevent premature closing
+    blurTimeoutRef.current = setTimeout(() => {
       onFinishEditingAction();
-    }, 150);
+    }, 300); // Increased delay to prevent premature closing
   }, [onFinishEditingAction]);
 
   // Focus and select text when becoming visible
   useEffect(() => {
     if (isVisible && textareaRef.current) {
+      // Clear any existing blur timeout when becoming visible
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+        blurTimeoutRef.current = null;
+      }
+      
       // Small delay to ensure proper rendering
       setTimeout(() => {
         if (textareaRef.current) {
@@ -233,15 +287,30 @@ const TextEditor: React.FC<TextEditorProps> = ({
           }
           setIsFocused(true);
           setShowToolbar(true);
-          adjustHeight();
+          
+          // Call adjustHeight directly without dependency
+          const textarea = textareaRef.current;
+          if (textarea && textElement) {
+            textarea.style.height = 'auto';
+            const scrollHeight = textarea.scrollHeight;
+            const minHeight = Math.max((textElement.height || 50) * stageScale, 40);
+            textarea.style.height = `${Math.max(scrollHeight, minHeight)}px`;
+          }
+          
+          // Ensure focus is maintained
+          setTimeout(() => {
+            if (textareaRef.current && document.activeElement !== textareaRef.current) {
+              textareaRef.current.focus();
+            }
+          }, 50);
         }
-      }, 50);
+      }, 100); // Increased delay for better reliability
     }
-  }, [isVisible, adjustHeight, textElement?.text]);
+  }, [isVisible, textElement?.text, stageScale]); // Removed adjustHeight from dependencies
 
   // Update text when textElement changes externally
   useEffect(() => {
-    if (textElement?.text !== text && !isFocused && textElement) {
+    if (textElement?.text !== text && !isFocused && textElement && !isUpdatingRef.current) {
       setText(textElement.text);
     }
   }, [textElement?.text, text, isFocused]);
@@ -286,33 +355,70 @@ const TextEditor: React.FC<TextEditorProps> = ({
       backgroundColor: formatting.highlight ? formatting.highlightColor : 'transparent',
       opacity: style.opacity,
     };
-  }, [textElement, stageScale]);
+  }, [textElement?.formatting, textElement?.style, stageScale]); // More specific dependencies to prevent unnecessary re-renders
 
   // Prevent all mouse events from propagating to canvas
   const handleMouseEvent = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
   }, []);
 
-  // Finish editing handler
-  const handleFinish = useCallback(() => {
-    onFinishEditingAction();
-  }, [onFinishEditingAction]);
+  // Handle clicks on the editor container to prevent canvas interactions
+  const handleContainerClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    // Ensure the textarea maintains focus
+    if (textareaRef.current && document.activeElement !== textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, []);
+
+  // Handle focus to prevent cursor reset
+  const handleFocus = useCallback(() => {
+    setIsFocused(true);
+    setShowToolbar(true);
+    // Clear any pending blur timeout when focusing
+    if (blurTimeoutRef.current) {
+      clearTimeout(blurTimeoutRef.current);
+      blurTimeoutRef.current = null;
+    }
+    // Prevent any other focus events from interfering
+    setTimeout(() => {
+      if (textareaRef.current && document.activeElement !== textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    }, 10);
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+      }
+      isUpdatingRef.current = false;
+    };
+  }, []);
 
   if (!isVisible) return null;
 
   return (
     <div
       ref={containerRef}
-      className="fixed z-[9999] pointer-events-auto"
+      className="fixed z-[9999] pointer-events-auto text-editor-container"
+      data-text-editor="true"
       style={{
         left: `${editorPosition.x}px`,
         top: `${editorPosition.y}px`,
         width: `${editorPosition.width}px`,
         minHeight: `${editorPosition.height}px`,
       }}
-      onMouseDown={handleMouseEvent}
-      onMouseUp={handleMouseEvent}
-      onClick={handleMouseEvent}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onClick={handleContainerClick}
       onDoubleClick={handleMouseEvent}
     >
       {/* Modern editing container */}
@@ -335,10 +441,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
           onKeyDown={handleKeyDown}
           onKeyUp={handleKeyUp}
           onBlur={handleBlur}
-          onFocus={() => {
-            setIsFocused(true);
-            setShowToolbar(true);
-          }}
+          onFocus={handleFocus}
           placeholder="Start typing..."
           className={cn(
             "relative w-full bg-transparent border-none outline-none resize-none",
@@ -364,7 +467,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
 
         {/* Floating Toolbar */}
         {showToolbar && (
-          <div className="absolute -top-16 left-0 right-0 flex justify-center">
+          <div className="absolute -top-16 left-0 right-0 flex justify-center" data-text-toolbar>
             <div className="bg-white/98 backdrop-blur-xl border border-gray-300/80 rounded-xl shadow-2xl px-3 py-2 flex items-center space-x-1 ring-1 ring-black/5">
               {/* Font Size Controls */}
               <div className="flex items-center space-x-1 pr-2 border-r border-gray-300/60">
@@ -372,6 +475,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
                   onClick={() => updateFormatting({ fontSize: Math.max(8, (textElement?.formatting?.fontSize || 16) - 2) })}
                   className="p-1.5 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-700 hover:text-gray-900"
                   title="Decrease font size"
+                  data-text-toolbar
                 >
                   <Minus size={14} />
                 </button>
@@ -382,6 +486,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
                   onClick={() => updateFormatting({ fontSize: Math.min(72, (textElement?.formatting?.fontSize || 16) + 2) })}
                   className="p-1.5 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-700 hover:text-gray-900"
                   title="Increase font size"
+                  data-text-toolbar
                 >
                   <Plus size={14} />
                 </button>
@@ -397,6 +502,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
                     : "hover:bg-gray-100 active:bg-gray-200 text-gray-700 hover:text-gray-900"
                 )}
                 title="Bold (Ctrl+B)"
+                data-text-toolbar
               >
                 <Bold size={14} />
               </button>
@@ -410,6 +516,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
                     : "hover:bg-gray-100 active:bg-gray-200 text-gray-700 hover:text-gray-900"
                 )}
                 title="Italic (Ctrl+I)"
+                data-text-toolbar
               >
                 <Italic size={14} />
               </button>
@@ -423,6 +530,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
                     : "hover:bg-gray-100 active:bg-gray-200 text-gray-700 hover:text-gray-900"
                 )}
                 title="Underline (Ctrl+U)"
+                data-text-toolbar
               >
                 <Underline size={14} />
               </button>
@@ -440,6 +548,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
                         : "hover:bg-gray-100 active:bg-gray-200 text-gray-700 hover:text-gray-900"
                     )}
                     title={`Align ${align}`}
+                    data-text-toolbar
                   >
                     {align === 'left' && <AlignLeft size={14} />}
                     {align === 'center' && <AlignCenter size={14} />}
@@ -457,6 +566,7 @@ const TextEditor: React.FC<TextEditorProps> = ({
                     onChange={(e) => updateFormatting({ color: e.target.value })}
                     className="w-6 h-6 rounded border border-gray-300 cursor-pointer shadow-sm"
                     title="Text color"
+                    data-text-toolbar
                   />
                   <div 
                     className="absolute inset-0 rounded border border-gray-300 pointer-events-none ring-1 ring-black/10"
@@ -468,9 +578,10 @@ const TextEditor: React.FC<TextEditorProps> = ({
               {/* Action Buttons */}
               <div className="flex items-center space-x-1 pl-2 border-l border-gray-300/60">
                 <button
-                  onClick={handleFinish}
+                  onClick={onFinishEditingAction}
                   className="p-1.5 rounded-lg bg-green-500 text-white hover:bg-green-600 active:bg-green-700 transition-colors shadow-sm"
                   title="Finish editing (Esc)"
+                  data-text-toolbar
                 >
                   <Check size={14} />
                 </button>

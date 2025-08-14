@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform, Variants } from "framer-motion";
 import { ArrowRight, Play, Users, Star, Zap, Hand } from "lucide-react";
 import RealtimeWhiteboard from "@/components/reatime/whiteboard/RealtimeWhiteboard";
+import DemoVideoModal from "@/components/ui/modal/DemoVideoModal";
 
 /**
  * Enhanced hero section with sophisticated responsive design and optimized performance
@@ -17,6 +18,7 @@ const Hero = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [showInteractivePrompt, setShowInteractivePrompt] = useState(false);
   const [interactionCount, setInteractionCount] = useState(0);
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -430,9 +432,10 @@ const Hero = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="group relative bg-white/[0.04] backdrop-blur-sm border border-white/[0.08] text-white px-6 py-4 sm:px-8 sm:py-4 rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 hover:bg-white/[0.08] hover:border-white/[0.15] w-full sm:w-auto min-w-[200px] min-h-[44px] flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black"
+                onClick={(e) => { e.preventDefault(); setIsDemoOpen(true); }}
               >
                 <Play className="w-4 h-4 transition-transform group-hover:scale-110" />
-                <span>See demo</span>
+                <span>See 3-Min Demo</span>
               </motion.a>
             </motion.div>
 
@@ -516,6 +519,14 @@ const Hero = () => {
           </motion.div>
         </div>
       </main>
+
+      <DemoVideoModal
+        isOpen={isDemoOpen}
+        onClose={() => setIsDemoOpen(false)}
+        videoUrl="https://res.cloudinary.com/dgak25skk/video/upload/v1755180328/whizboard-3_qyofjn.mp4"
+        title="Watch 3‑Min Demo"
+        description="See the whiteboard in action from the hero section."
+      />
     </div>
   );
 };

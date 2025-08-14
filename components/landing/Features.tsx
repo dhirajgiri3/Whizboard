@@ -2,6 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { 
   PenTool, 
   Users, 
@@ -26,6 +27,7 @@ import {
   Award
 } from "lucide-react";
 import SectionHeader from "@/components/ui/header/SectionHeader";
+import DemoVideoModal from "@/components/ui/modal/DemoVideoModal";
 
 const Features = () => {
   // Unified reveal-on-scroll animation (first time only)
@@ -164,6 +166,8 @@ const Features = () => {
 
   const hoverLift = { y: -8, transition: { duration: 0.25, ease: "easeOut" as const } } as const;
 
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
+
   return (
     <section className="relative py-12 sm:py-16 lg:py-20 bg-[#0A0A0B] overflow-hidden">
       {/* Background Elements */}
@@ -288,15 +292,23 @@ const Features = () => {
                   </div>
                 </div>
                 
-                <motion.a
-                  href={features[0].demo}
+                <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
+                  onClick={() => setIsDemoOpen(true)}
                   className="inline-flex items-center space-x-2 text-blue-400 font-medium hover:text-blue-300 transition-colors group/link self-start focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-black"
                 >
                   <Play className="h-4 w-4 group-hover/link:translate-x-1 transition-transform" />
-                  <span>Watch Demo</span>
-                </motion.a>
+                  <span>Watch 3-Min Demo</span>
+                </motion.button>
+
+                <DemoVideoModal
+                  isOpen={isDemoOpen}
+                  onClose={() => setIsDemoOpen(false)}
+                  videoUrl="https://res.cloudinary.com/dgak25skk/video/upload/v1755180328/whizboard-3_qyofjn.mp4"
+                  title="Watch 3‑Min Demo"
+                  description="Explore how the features come together in the whiteboard."
+                />
               </div>
             </motion.div>
 

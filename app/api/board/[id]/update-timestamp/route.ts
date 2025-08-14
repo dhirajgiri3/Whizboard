@@ -35,7 +35,6 @@ export async function PATCH(
       { _id: new ObjectId(id) },
       { projection: { createdBy: 1, isPublic: 1 } }
     );
-
     if (!board) {
       return NextResponse.json(
         { error: 'Board not found' },
@@ -78,6 +77,10 @@ export async function PATCH(
 
   } catch (error) {
     console.error('Error updating board timestamp:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return NextResponse.json(
       { error: 'Failed to update board timestamp' },
       { status: 500 }

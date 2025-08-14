@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import {
   Star,
   Quote,
@@ -25,6 +25,7 @@ import {
   Crown,
 } from "lucide-react";
 import SectionHeader from "@/components/ui/header/SectionHeader";
+import DemoVideoModal from "@/components/ui/modal/DemoVideoModal";
 
 // CSS animations for testimonials
 const testimonialStyles = `
@@ -53,6 +54,7 @@ const testimonialStyles = `
 const SocialProof = () => {
   const ref = useRef<HTMLElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-10% 0px" });
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
 
   const testimonials = [
     {
@@ -293,7 +295,7 @@ const SocialProof = () => {
                 {metrics.map((metric, index) => (
                   <motion.div
                     key={index}
-                    className="group relative"
+                    className="group relative h-full"
                     variants={itemVariants}
                     whileHover={{
                       y: -4,
@@ -301,11 +303,11 @@ const SocialProof = () => {
                       transition: { duration: 0.3, ease: "easeOut" },
                     }}
                   >
-                    <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.06] rounded-2xl p-6 hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-300 overflow-hidden">
+                    <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.06] rounded-2xl p-6 hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-300 overflow-hidden h-full flex flex-col">
                       {/* Subtle hover glow */}
                       <div className="absolute inset-0 bg-gradient-to-br from-blue-600/3 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
 
-                      <div className="relative z-10 text-center flex flex-col items-center gap-4">
+                      <div className="relative z-10 text-center flex flex-col items-center gap-4 flex-grow">
                         <motion.div
                           className="flex items-center justify-center w-12 h-12 rounded-lg bg-white/[0.04] border border-white/[0.06] group-hover:bg-white/[0.06] group-hover:border-white/[0.08] transition-all duration-300"
                           whileHover={{ scale: 1.05 }}
@@ -333,7 +335,7 @@ const SocialProof = () => {
                           )}
                         </motion.div>
 
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-2 flex-grow justify-center">
                           <motion.div
                             className="text-3xl font-bold text-white"
                             whileHover={{ scale: 1.02 }}
@@ -529,7 +531,7 @@ const SocialProof = () => {
                   <motion.div
                     key={index}
                     variants={itemVariants}
-                    className="group relative"
+                    className="group relative h-full"
                     whileHover={{
                       y: -10,
                       scale: 1.05,
@@ -540,7 +542,7 @@ const SocialProof = () => {
                     style={{ perspective: "1200px" }}
                   >
                     <div
-                      className={`relative bg-white/[0.03] backdrop-blur-xl border ${badge.color} rounded-2xl p-8 hover:bg-white/[0.05] hover:border-opacity-70 transition-all duration-500 overflow-hidden shadow-lg shadow-black/5 group-hover:shadow-xl group-hover:shadow-black/10`}
+                      className={`relative bg-white/[0.03] backdrop-blur-xl border ${badge.color} rounded-2xl p-8 hover:bg-white/[0.05] hover:border-opacity-70 transition-all duration-500 overflow-hidden shadow-lg shadow-black/5 group-hover:shadow-xl group-hover:shadow-black/10 h-full flex flex-col`}
                     >
                       {/* Enhanced hover glow effect */}
                       <div
@@ -550,7 +552,7 @@ const SocialProof = () => {
                       {/* Subtle pattern overlay */}
                       <div className="absolute inset-0 opacity-20 mix-blend-overlay pointer-events-none bg-[url('/grid-pattern-dark.svg')]"></div>
 
-                      <div className="relative z-10 text-center flex flex-col items-center gap-5">
+                      <div className="relative z-10 text-center flex flex-col items-center gap-5 flex-grow">
                         <div className="relative">
                           {/* Glow effect behind icon */}
                           <div
@@ -599,7 +601,7 @@ const SocialProof = () => {
                           </motion.div>
                         </div>
 
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-2 flex-grow justify-center">
                           <motion.div
                             className="text-lg font-semibold text-white/90 group-hover:text-white transition-colors duration-300"
                             whileHover={{ scale: 1.02 }}
@@ -865,13 +867,22 @@ const SocialProof = () => {
                     className="text-white/80 hover:text-white font-medium px-10 py-4 transition-colors duration-300"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
+                    onClick={() => setIsDemoOpen(true)}
                   >
                     <span className="flex items-center gap-2 text-lg">
                       <Play className="w-5 h-5" />
-                      <span>See 2-Min Demo</span>
+                      <span>See 3-Min Demo</span>
                     </span>
                   </motion.button>
                 </motion.div>
+
+                <DemoVideoModal
+                  isOpen={isDemoOpen}
+                  onClose={() => setIsDemoOpen(false)}
+                  videoUrl="https://res.cloudinary.com/dgak25skk/video/upload/v1755180328/whizboard-3_qyofjn.mp4"
+                  title="Watch 3‑Min Demo"
+                  description="Experience Whizboard's realtime collaboration in action."
+                />
 
                 {/* Minimal Trust Indicators */}
                 <motion.div variants={itemVariants} className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16 text-white/50 text-sm">

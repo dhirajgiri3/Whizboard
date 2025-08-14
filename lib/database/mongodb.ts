@@ -33,10 +33,8 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export async function connectToDatabase() {
-  logger.debug('Connecting to database...');
   const mongoClient = await clientPromise;
   const db = mongoClient.db(process.env.DB_NAME || 'cyperboard');
-  logger.info('Successfully connected to database.');
   return db;
 }
 

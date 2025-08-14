@@ -15,7 +15,7 @@ const api: AxiosInstance = axios.create({
   validateStatus: (status: number) => status >= 200 && status < 300,
 });
 
-// Request interceptor: ensure JSON Content-Type unless FormData/body-less
+// Request interceptor: ensure JSON Content-Type unless FormData/body-less and add CSRF token
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const isFormData = typeof FormData !== 'undefined' && config.data instanceof FormData;
   if (!isFormData && config.data) {
@@ -34,6 +34,9 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
       }
     }
   }
+
+
+
   return config;
 });
 

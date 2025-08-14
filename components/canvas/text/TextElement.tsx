@@ -393,15 +393,24 @@ const TextElement: React.FC<TextElementProps> = ({
     e.evt?.stopPropagation();
     e.evt?.stopImmediatePropagation();
     
+    // Prevent rapid double-click issues
+    if (isEditing) {
+      return; // Already editing, don't do anything
+    }
+    
     // Ensure we can start editing
-    if (!isEditing && !interactionState.isDragging && !interactionState.isTransforming) {
-      // First select the element, then start editing
+    if (!interactionState.isDragging && !interactionState.isTransforming) {
+      // First select the element
       onSelectAction(textElement.id);
       
-      // Small delay to ensure selection state is updated
+      // Use a longer delay to ensure selection state is properly updated
+      // and prevent race conditions with other event handlers
       setTimeout(() => {
-        onStartEditAction(textElement.id);
-      }, 10);
+        // Double-check that we're still not editing and not dragging/transforming
+        if (!isEditing && !interactionState.isDragging && !interactionState.isTransforming) {
+          onStartEditAction(textElement.id);
+        }
+      }, 100); // Increased delay for better reliability
     }
   }, [onStartEditAction, onSelectAction, textElement.id, isEditing, interactionState]);
 
@@ -685,6 +694,8 @@ const TextElement: React.FC<TextElementProps> = ({
           onClick={handleClick}
           onTap={handleClick}
           onDblClick={handleDoubleClick}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
         />
 
         {/* Background */}

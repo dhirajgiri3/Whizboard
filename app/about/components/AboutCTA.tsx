@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Zap, ArrowRight, Play, CheckCircle, Shield, Rocket } from "lucide-react";
 import Link from "next/link";
+import DemoVideoModal from "@/components/ui/modal/DemoVideoModal";
 
 const AboutCTA = () => {
   const containerVariants = {
@@ -20,6 +21,8 @@ const AboutCTA = () => {
     hidden: { opacity: 0, y: 60 },
     visible: { opacity: 1, y: 0 }
   };
+
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
 
   return (
     <section className="relative py-24 overflow-hidden">
@@ -206,12 +209,21 @@ const AboutCTA = () => {
                 whileTap={{ scale: 0.98 }}
                 variants={itemVariants}
                 transition={{ duration: 0.6, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                onClick={() => setIsDemoOpen(true)}
               >
                 <span className="flex items-center gap-2 text-lg">
                   <Play className="w-5 h-5" />
-                  <span>See 2-Min Demo</span>
+                  <span>See 3-Min Demo</span>
                 </span>
               </motion.button>
+
+              <DemoVideoModal
+                isOpen={isDemoOpen}
+                onClose={() => setIsDemoOpen(false)}
+                videoUrl="https://res.cloudinary.com/dgak25skk/video/upload/v1755180328/whizboard-3_qyofjn.mp4"
+                title="Watch 3‑Min Demo"
+                description="A quick tour of Whizboard's whiteboard and features."
+              />
             </motion.div>
 
             {/* Minimal Trust Indicators */}

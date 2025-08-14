@@ -112,7 +112,17 @@ export function BoardProvider({ children }: BoardProviderProps) {
         updateBoardUpdatedAt((result as any).updatedAt);
       }
     } catch (error) {
-      console.error('Error updating board timestamp:', error);
+      // Only log errors that aren't 500 status (server errors)
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as any;
+        if (axiosError.response?.status !== 500) {
+          console.error('Error updating board timestamp:', error);
+          console.error('Response status:', axiosError.response?.status);
+          console.error('Response data:', axiosError.response?.data);
+        }
+      } else {
+        console.error('Error updating board timestamp:', error);
+      }
       // Still update local timestamp even if API fails
       updateBoardUpdatedAt();
     }

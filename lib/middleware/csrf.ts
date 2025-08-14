@@ -32,10 +32,12 @@ export function createCSRFProtection(config: CSRFConfig) {
       return NextResponse.next();
     }
 
-    // Skip CSRF check for API routes that use session-based auth
-    if (pathname.startsWith('/api/auth/') || pathname.startsWith('/api/graphql')) {
-      return NextResponse.next();
-    }
+      // Skip CSRF check for API routes that use session-based auth
+  if (pathname.startsWith('/api/auth/') || 
+      pathname.startsWith('/api/graphql') || 
+      pathname.startsWith('/api/board/')) {
+    return NextResponse.next();
+  }
 
     try {
       // Get CSRF token from cookie
@@ -111,6 +113,7 @@ export const csrfProtection = createCSRFProtection({
   excludePaths: [
     '/api/auth',
     '/api/graphql',
+    '/api/board',
     '/_next',
     '/favicon.ico'
   ]

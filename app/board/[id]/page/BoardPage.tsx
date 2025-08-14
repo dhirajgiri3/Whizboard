@@ -30,7 +30,9 @@ import {
   BoardProvider,
   useBoardContext,
 } from "@/lib/context/BoardContext";
+import { OptimizedBoardProvider, useOptimizedBoardContext } from "@/lib/context/OptimizedBoardContext";
 import { useRealTimeCollaboration } from "@/hooks/useRealTimeCollaboration";
+
 import {
   StickyNoteElement,
   FrameElement,
@@ -185,7 +187,9 @@ export default function BoardPage() {
 
   return (
     <BoardProvider>
-      <BoardPageContent />
+      <OptimizedBoardProvider>
+        <BoardPageContent />
+      </OptimizedBoardProvider>
     </BoardProvider>
   );
 }
@@ -200,6 +204,14 @@ function BoardPageContent() {
     updateBoardTimestamp,
     fetchBoardMetadata,
   } = useBoardContext();
+  
+  const {
+    optimizedUpdateTimestamp,
+    debouncedUpdateTimestamp,
+    throttledUpdateTimestamp,
+  } = useOptimizedBoardContext();
+
+
 
   // State declarations instead of useBoardState hook
   const [lines, setLines] = useState<ILine[]>([]);
@@ -239,7 +251,7 @@ function BoardPageContent() {
   } | null>(null);
   const [isOwner, setIsOwner] = useState(false);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
-  const [currentStickyNoteColor, setCurrentStickyNoteColor] = useState(
+  const [currentStickyNoteColor, setCurrentStickyNoteColor] = useState(() => 
     getRandomStickyNoteColor()
   );
   
@@ -282,6 +294,34 @@ function BoardPageContent() {
 
   // Derived responsive state
   const isSmallScreen = isMobile || isTablet;
+
+  // Prevent tool switching when editing text
+  const setToolAction = useCallback((newTool: Tool) => {
+    if (editingTextElement) {
+      console.log('Tool switching prevented while editing text');
+      return; // Don't allow tool switching while editing text
+    }
+    
+    // Clear any existing editing state when switching tools
+    if (editingTextElement) {
+      setEditingTextElement(null);
+    }
+    
+    // Clear pending states when switching tools to prevent conflicts
+    if (pendingFramePreset || isFramePlacementMode) {
+      setPendingFramePreset(null);
+      setIsFramePlacementMode(false);
+      document.body.style.cursor = "default";
+    }
+    
+    if (pendingShapeType || pendingShapeProps) {
+      setPendingShapeType(null);
+      setPendingShapeProps(null);
+      document.body.style.cursor = "default";
+    }
+    
+    setTool(newTool);
+  }, [editingTextElement, pendingFramePreset, isFramePlacementMode, pendingShapeType, pendingShapeProps]);
 
   // Admin functionality
   const {
@@ -331,7 +371,7 @@ function BoardPageContent() {
 
     document.addEventListener("touchend", handleTouchEnd, { passive: false });
     return () => document.removeEventListener("touchend", handleTouchEnd);
-  }, [lastTouchEnd]);
+  }, []); // Removed lastTouchEnd from dependencies to prevent infinite re-renders
 
   // Calculate canUndo and canRedo based on current state
   const canUndo = history.length > 0 && historyIndex >= 0;
@@ -612,7 +652,10 @@ function BoardPageContent() {
   // Add drag timeout reference
   const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  logger.info({ boardId }, "BoardPage loading");
+  // Log board loading only once when component mounts
+  useEffect(() => {
+    logger.info({ boardId }, "BoardPage loading");
+  }, [boardId]);
 
   const {
     data: initialData,
@@ -644,7 +687,24 @@ function BoardPageContent() {
     if (initialData?.getBoard && session?.user?.email) {
       setIsOwner(initialData.getBoard.createdBy === session.user.id);
     }
-      }, [initialData?.getBoard, session?.user?.email, setIsOwner]);
+  }, [initialData?.getBoard, session?.user?.email]); // Removed setIsOwner from dependencies
+
+  // Memoized callbacks for real-time collaboration to prevent infinite re-renders
+  const onBoardUpdate = useCallback((elements: any[]) => {
+    setLines(
+      elements.map((el) => ({
+        id: el.id,
+        points: (el.data.points as number[]) || [],
+        tool: (el.data.tool as Tool) || "pen",
+        strokeWidth: (el.data.strokeWidth as number) || 3,
+        color: (el.data.color as string) || "#000000",
+      }))
+    );
+  }, []);
+
+  const onCursorMove = useCallback((cursors: any) => {
+    setCursors(cursors);
+  }, []);
 
   // Setup real-time collaboration
   const {
@@ -668,21 +728,9 @@ function BoardPageContent() {
     userId: session?.user?.id || "unknown",
     userName: session?.user?.name || "Unknown User",
     isOwner,
-    onBoardUpdate: (elements) => {
-      setLines(
-        elements.map((el) => ({
-          id: el.id,
-          points: (el.data.points as number[]) || [],
-          tool: (el.data.tool as Tool) || "pen",
-          strokeWidth: (el.data.strokeWidth as number) || 3,
-          color: (el.data.color as string) || "#000000",
-        }))
-      );
-    },
-    onCursorMove: (cursors) => {
-      setCursors(cursors);
-    },
-    onElementAdded: (element) => {
+    onBoardUpdate,
+    onCursorMove,
+    onElementAdded: useCallback((element: any) => {
       if (element.type === "text") {
         // Handle text element added
         const newTextElement: TextElement = {
@@ -710,8 +758,8 @@ function BoardPageContent() {
         };
         setLines((prev) => [...prev, newLine]);
       }
-    },
-    onElementUpdated: (element) => {
+    }, []),
+    onElementUpdated: useCallback((element: any) => {
       if (element.type === "text") {
         // Handle text element updated
         const updatedTextElement: TextElement = {
@@ -754,15 +802,15 @@ function BoardPageContent() {
           return [...prev, updatedLine];
         });
       }
-    },
-    onElementDeleted: (elementId) => {
+    }, []),
+    onElementDeleted: useCallback((elementId: string) => {
       setLines((prev) => prev.filter((line) => line.id !== elementId));
       setTextElements((prev) => prev.filter((text) => text.id !== elementId));
       setShapes((prev) => prev.filter((shape) => shape.id !== elementId));
-    },
-    onUserPresenceUpdate: (presenceData) => {
+    }, []),
+    onUserPresenceUpdate: useCallback((presenceData: any) => {
       setUserPresenceData(prev => ({ ...prev, [presenceData.userId]: presenceData }));
-    }
+    }, [])
   });
 
   const [cursors, setCursors] = useState<Record<string, EnhancedCursor>>({});
@@ -1096,7 +1144,8 @@ function BoardPageContent() {
       setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
       
       try {
-        await updateBoardTimestamp(boardId);
+        // Use optimized timestamp update for better performance
+        optimizedUpdateTimestamp(boardId);
       } catch (timestampError) {
         logger.warn({ timestampError }, "Failed to update board timestamp");
       }
@@ -1166,7 +1215,8 @@ function BoardPageContent() {
       setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
       
       try {
-        await updateBoardTimestamp(boardId);
+        // Use debounced timestamp update for better performance
+        debouncedUpdateTimestamp(boardId);
       } catch (timestampError) {
         logger.warn({ timestampError }, "Failed to update board timestamp in handleErase");
       }
@@ -1203,7 +1253,8 @@ function BoardPageContent() {
             setStickyNotes(stickyNoteElements);
             setHistory(data.addBoardAction.history || []);
             setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
-            updateBoardTimestamp(boardId);
+            // Use debounced timestamp update to prevent excessive API calls
+            debouncedUpdateTimestamp(boardId);
           }
         } catch (err) {
           logger.error({ err }, "Failed to add sticky note");
@@ -1213,7 +1264,7 @@ function BoardPageContent() {
     [
       boardId,
       addBoardAction,
-      updateBoardTimestamp,
+      debouncedUpdateTimestamp,
       setStickyNotes,
       setHistory,
       setHistoryIndex,
@@ -1245,14 +1296,15 @@ function BoardPageContent() {
                 typeof el.data === "string" ? JSON.parse(el.data) : el.data
               );
             setStickyNotes(stickyNoteElements);
-            updateBoardTimestamp(boardId);
+            // Use debounced timestamp update to prevent excessive API calls
+            debouncedUpdateTimestamp(boardId);
           }
         } catch (err) {
           logger.error({ err }, "Failed to update sticky note");
         }
       }
     },
-    [boardId, addBoardAction, updateBoardTimestamp, setStickyNotes]
+    [boardId, addBoardAction, debouncedUpdateTimestamp, setStickyNotes]
   );
 
   const handleStickyNoteDelete = useCallback(
@@ -1294,7 +1346,8 @@ function BoardPageContent() {
           setStickyNotes(stickyNoteElements);
           setHistory(data.addBoardAction.history || []);
           setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
-          updateBoardTimestamp(boardId);
+          // Use debounced timestamp update to prevent excessive API calls
+          debouncedUpdateTimestamp(boardId);
           setSelectedStickyNote(null);
           logger.debug(
             { deletedId: stickyNoteId },
@@ -1311,7 +1364,7 @@ function BoardPageContent() {
     [
       boardId,
       addBoardAction,
-      updateBoardTimestamp,
+      debouncedUpdateTimestamp,
       setStickyNotes,
       setHistory,
       setHistoryIndex,
@@ -1355,7 +1408,8 @@ function BoardPageContent() {
             });
             setHistory(data.addBoardAction.history || []);
             setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
-            updateBoardTimestamp(boardId);
+            // Use debounced timestamp update to prevent excessive API calls
+            debouncedUpdateTimestamp(boardId);
           }
         } catch (err) {
           logger.error({ err }, "Failed to add frame");
@@ -1365,7 +1419,7 @@ function BoardPageContent() {
     [
       boardId,
       addBoardAction,
-      updateBoardTimestamp,
+      debouncedUpdateTimestamp,
       setFrames,
       setHistory,
       setHistoryIndex,
@@ -1407,7 +1461,8 @@ function BoardPageContent() {
                 typeof el.data === "string" ? JSON.parse(el.data) : el.data
               );
             setFrames(frameElements);
-            updateBoardTimestamp(boardId);
+            // Use debounced timestamp update to prevent excessive API calls
+            debouncedUpdateTimestamp(boardId);
           }
         } catch (err) {
           logger.error(
@@ -1425,7 +1480,7 @@ function BoardPageContent() {
         }
       }
     },
-    [boardId, addBoardAction, updateBoardTimestamp, setFrames]
+    [boardId, addBoardAction, debouncedUpdateTimestamp, setFrames]
   );
 
   const handleFrameDelete = useCallback(
@@ -1749,7 +1804,8 @@ function BoardPageContent() {
             setTextElements(textElementElements);
             setHistory(data.addBoardAction.history || []);
             setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
-            updateBoardTimestamp(boardId);
+            // Use debounced timestamp update to prevent excessive API calls
+            debouncedUpdateTimestamp(boardId);
 
             // Broadcast text element creation for real-time collaboration
             if (broadcastTextElementCreate) {
@@ -1764,7 +1820,7 @@ function BoardPageContent() {
     [
       boardId,
       addBoardAction,
-      updateBoardTimestamp,
+      debouncedUpdateTimestamp,
       setTextElements,
       setHistory,
       setHistoryIndex,
@@ -1797,7 +1853,8 @@ function BoardPageContent() {
                 typeof el.data === "string" ? JSON.parse(el.data) : el.data
               );
             setTextElements(textElementElements);
-            updateBoardTimestamp(boardId);
+            // Use debounced timestamp update to prevent excessive API calls
+            debouncedUpdateTimestamp(boardId);
 
             // Broadcast text element update for real-time collaboration
             if (broadcastTextElementUpdate) {
@@ -1812,7 +1869,7 @@ function BoardPageContent() {
     [
       boardId,
       addBoardAction,
-      updateBoardTimestamp,
+      debouncedUpdateTimestamp,
       setTextElements,
       broadcastTextElementUpdate,
     ]
@@ -1854,12 +1911,13 @@ function BoardPageContent() {
             .map((el: { data: string }) =>
               typeof el.data === "string" ? JSON.parse(el.data) : el.data
             );
-          setTextElements(textElementElements);
-          setHistory(data.addBoardAction.history || []);
-          setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
-          updateBoardTimestamp(boardId);
-          setSelectedTextElement(null);
-          setEditingTextElement(null);
+                      setTextElements(textElementElements);
+            setHistory(data.addBoardAction.history || []);
+            setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
+            // Use debounced timestamp update to prevent excessive API calls
+            debouncedUpdateTimestamp(boardId);
+            setSelectedTextElement(null);
+            setEditingTextElement(null);
 
           // Broadcast text element deletion for real-time collaboration
           if (broadcastTextElementDelete) {
@@ -1881,7 +1939,7 @@ function BoardPageContent() {
     [
       boardId,
       addBoardAction,
-      updateBoardTimestamp,
+      debouncedUpdateTimestamp,
       setTextElements,
       setHistory,
       setHistoryIndex,
@@ -1902,13 +1960,19 @@ function BoardPageContent() {
 
   const handleTextElementStartEdit = useCallback(
     (textElement: TextElement) => {
-      setEditingTextElement(textElement);
-      setSelectedTextElement(textElement.id);
+      // Clear any existing editing state first
+      setEditingTextElement(null);
+      
+      // Use a longer delay to ensure state is cleared before setting new editing state
+      setTimeout(() => {
+        setEditingTextElement(textElement);
+        setSelectedTextElement(textElement.id);
 
-      // Broadcast text element edit start for real-time collaboration
-      if (broadcastTextElementEditStart) {
-        broadcastTextElementEditStart(textElement.id);
-      }
+        // Broadcast text element edit start for real-time collaboration
+        if (broadcastTextElementEditStart) {
+          broadcastTextElementEditStart(textElement.id);
+        }
+      }, 50); // Increased delay for better state management
     },
     [
       setEditingTextElement,
@@ -1919,6 +1983,8 @@ function BoardPageContent() {
 
   const handleTextElementFinishEdit = useCallback(() => {
     const currentEditingId = editingTextElement?.id;
+    
+    // Clear editing state immediately
     setEditingTextElement(null);
 
     // Broadcast text element edit finish for real-time collaboration
@@ -1959,7 +2025,8 @@ function BoardPageContent() {
             setShapes(shapeElements);
             setHistory(data.addBoardAction.history || []);
             setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
-            updateBoardTimestamp(boardId);
+            // Use debounced timestamp update to prevent excessive API calls
+            debouncedUpdateTimestamp(boardId);
 
             // Broadcast shape creation for real-time collaboration
             if (broadcastShapeElementCreate) {
@@ -1974,7 +2041,7 @@ function BoardPageContent() {
     [
       boardId,
       addBoardAction,
-      updateBoardTimestamp,
+      debouncedUpdateTimestamp,
       setShapes,
       setHistory,
       setHistoryIndex,
@@ -2022,7 +2089,8 @@ function BoardPageContent() {
                 typeof el.data === "string" ? JSON.parse(el.data) : el.data
               );
             setShapes(shapeElements);
-            updateBoardTimestamp(boardId);
+            // Use debounced timestamp update to prevent excessive API calls
+            debouncedUpdateTimestamp(boardId);
           }
         } catch (err) {
           logger.error(
@@ -2043,7 +2111,7 @@ function BoardPageContent() {
     [
       boardId,
       addBoardAction,
-      updateBoardTimestamp,
+      debouncedUpdateTimestamp,
       setShapes,
       broadcastShapeElementUpdate,
     ]
@@ -3124,6 +3192,11 @@ function BoardPageContent() {
   // Enhanced keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
+      // Don't handle keyboard shortcuts when editing text
+      if (editingTextElement) {
+        return;
+      }
+      
       if (e.ctrlKey || e.metaKey) {
         switch (e.key) {
           case "z":
@@ -3178,31 +3251,35 @@ function BoardPageContent() {
         case "v":
           if (e.metaKey) {
             e.preventDefault();
-            setTool("select");
+            setToolAction("select");
           }
           break;
         case "p":
           if (e.metaKey) {
             e.preventDefault();
-            setTool("pen");
+            setToolAction("pen");
           }
           break;
         case "e":
           if (e.metaKey) {
             e.preventDefault();
-            setTool("eraser");
+            setToolAction("eraser");
           }
           break;
         case "s":
           if (e.metaKey && e.shiftKey) {
             e.preventDefault();
-            setTool("sticky-note");
+            setToolAction("sticky-note");
           }
           break;
         case "t":
+        case "T":
           if (e.metaKey) {
             e.preventDefault();
-            setTool("text");
+            // Only allow text tool switching if not currently editing text
+            if (!editingTextElement) {
+              setToolAction("text");
+            }
           }
           break;
         case "c":
@@ -3318,7 +3395,7 @@ function BoardPageContent() {
     tool,
     currentStickyNoteColor,
     colorPicker,
-    setTool,
+    setToolAction,
     setShowGrid,
     setIsSidebarOpen,
     setIsCollaborationOpen,
@@ -3331,6 +3408,7 @@ function BoardPageContent() {
     setSelectedShape,
     setSelectedShapes,
     setSelectedImageElement,
+    editingTextElement,
   ]);
 
   const handleClearCanvas = async () => {
@@ -3477,11 +3555,23 @@ function BoardPageContent() {
           updatedAt: Date.now(),
         };
 
+        // Add the text element first
         handleTextElementAdd(newText);
-        // Enter edit mode immediately after a small delay to ensure the element is created
+        
+        // Enter edit mode after a longer delay to ensure the element is fully created and rendered
         setTimeout(() => {
-          handleTextElementStartEdit(newText);
-        }, 100);
+          // Double-check that the element was added successfully
+          const addedElement = textElements.find(el => el.id === newText.id) || newText;
+          handleTextElementStartEdit(addedElement);
+        }, 400); // Increased delay for better reliability
+        
+        // Also try to enter edit mode after the state has been updated
+        setTimeout(() => {
+          const updatedElement = textElements.find(el => el.id === newText.id);
+          if (updatedElement && !editingTextElement) {
+            handleTextElementStartEdit(updatedElement);
+          }
+        }, 600);
         return;
       }
 
@@ -3507,11 +3597,12 @@ function BoardPageContent() {
       currentStickyNoteColor,
       handleStickyNoteAdd,
       setSelectedStickyNote,
-      setTool,
+      setToolAction,
       session?.user?.email,
       handleTextElementAdd,
       handleTextElementStartEdit,
       setShowGoogleDrivePickerModal,
+      textElements,
     ]
   );
 
@@ -3608,7 +3699,7 @@ function BoardPageContent() {
             {/* Main Toolbar */}
             <MainToolbar
               tool={tool}
-              setToolAction={setTool}
+              setToolAction={setToolAction}
               undoAction={handleUndo}
               redoAction={handleRedo}
               canUndo={canUndo}
@@ -3680,7 +3771,7 @@ function BoardPageContent() {
                 </div>
                 <MainToolbar
                   tool={tool}
-                  setToolAction={setTool}
+                  setToolAction={setToolAction}
                   undoAction={handleUndo}
                   redoAction={handleRedo}
                   canUndo={canUndo}
@@ -3796,7 +3887,7 @@ function BoardPageContent() {
               onImageElementDragStartAction={handleImageElementDragStart}
               onImageElementDragEndAction={handleImageElementDragEnd}
               onCanvasClickAction={handleCanvasClick}
-              onToolChangeAction={setTool}
+              onToolChangeAction={setToolAction}
               cursors={realTimeCursors}
               moveCursorAction={broadcastCursorMovement}
               isFramePlacementMode={isFramePlacementMode}
@@ -4102,7 +4193,7 @@ function BoardPageContent() {
         <div className={`px-4 ${isMobile ? "py-2" : "py-3"}`}>
           <MainToolbar
             tool={tool}
-            setToolAction={setTool}
+            setToolAction={setToolAction}
             undoAction={handleUndo}
             redoAction={handleRedo}
             canUndo={canUndo}
@@ -4228,8 +4319,8 @@ function BoardPageContent() {
             isMobile={isMobile}
             isTablet={isTablet}
             isVisible={true} // TextEditor should be visible when editing
-            stageScale={stageRef.current?.scaleX() || 1}
-            stagePosition={stageRef.current?.position() || { x: 0, y: 0 }}
+            stageScale={currentZoom / 100} // Use memoized zoom value instead of inline calculation
+            stagePosition={{ x: 0, y: 0 }} // Simplified position to prevent infinite re-renders
           />
         </div>
       )}

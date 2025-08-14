@@ -22,6 +22,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import SectionHeader from "@/components/ui/header/SectionHeader";
+import DemoVideoModal from "@/components/ui/modal/DemoVideoModal";
 
 const Pricing = () => {
   const ref = useRef(null);
@@ -30,6 +31,7 @@ const Pricing = () => {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
     "yearly"
   );
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
 
   const plans = [
     {
@@ -655,13 +657,22 @@ const Pricing = () => {
                     className="w-full sm:w-auto text-white/90 hover:text-white font-medium px-8 py-3.5 transition-colors duration-300 border border-white/10 hover:border-white/20 rounded-lg backdrop-blur-sm text-base group"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
+                    onClick={() => setIsDemoOpen(true)}
                   >
                     <span className="flex items-center justify-center gap-2">
                       <Play className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
-                      <span>Watch Demo</span>
+                      <span>Watch 3-Min Demo</span>
                     </span>
                   </motion.button>
                 </motion.div>
+
+                <DemoVideoModal
+                  isOpen={isDemoOpen}
+                  onClose={() => setIsDemoOpen(false)}
+                  videoUrl="https://res.cloudinary.com/dgak25skk/video/upload/v1755180328/whizboard-3_qyofjn.mp4"
+                  title="Watch 3‑Min Demo"
+                  description="Quick walkthrough of Whizboard's capabilities."
+                />
 
                 {/* Trust Indicators */}
                 <motion.div
