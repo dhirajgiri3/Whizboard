@@ -63,9 +63,9 @@ const Pricing = () => {
     },
     {
       name: "Pro",
-      description: "Advanced features for teams — subscriptions coming soon",
-      price: { monthly: 12, yearly: 10 },
-      originalPrice: { monthly: 15, yearly: 12 },
+      description: "Advanced features for teams — launching soon",
+      price: { monthly: null, yearly: null },
+      originalPrice: { monthly: null, yearly: null },
       features: [
         "Advanced drawing tools with pressure sensitivity",
         "All premium frame templates (mobile, desktop, social media)",
@@ -79,8 +79,8 @@ const Pricing = () => {
         "Advanced security & compliance",
         "Presentation & whiteboarding mode",
       ],
-      cta: "Coming Soon",
-      href: "#",
+      cta: "Join Waitlist",
+      href: "/waitlist",
       popular: false,
       icon: Crown,
       iconColor: "text-blue-400",

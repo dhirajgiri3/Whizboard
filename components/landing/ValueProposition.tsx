@@ -334,7 +334,7 @@ const ValueProposition = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             viewport={{ once: true }}
-            className="flex flex-col gap-12 lg:gap-16"
+            className="flex flex-col gap-10 pt-10"
           >
             <div className="text-center flex flex-col gap-6 lg:gap-8">
               <motion.div
@@ -495,7 +495,7 @@ const ValueProposition = () => {
                     }}>
                   </div>
 
-                  {/* Enhanced Header */}
+                  {/*Header */}
                   <div className="relative z-10 flex items-center mb-8">
                     <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mr-6 border border-blue-500/20 group-hover:scale-105 transition-transform duration-300">
                       <CheckCircle2 className="w-8 h-8 text-blue-400" />
@@ -563,7 +563,7 @@ const ValueProposition = () => {
             initial="hidden"
             whileInView="visible"
             viewport={viewportOptions}
-            className="text-center flex flex-col gap-12 sm:gap-16"
+            className="text-center flex flex-col gap-12 sm:gap-16 pt-12 pb-12"
           >
             {/* Redesigned Header - Everything You Need to Succeed */}
             <SectionHeader

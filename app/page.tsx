@@ -59,7 +59,8 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "your-google-verification-code",
+    // Remove placeholder - add actual verification code when available
+    // google: "your-google-verification-code",
   },
   // Add JSON-LD structured data
   other: {

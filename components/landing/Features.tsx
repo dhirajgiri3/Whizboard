@@ -43,11 +43,11 @@ const Features = () => {
       gradient: "from-blue-600/20 to-blue-500/20",
       accent: "blue",
       details: [
-        "Professional pen tools with pressure sensitivity",
-        "Highlighter and marker options",
-        "Customizable brush sizes and styles",
+        "Professional pen tools with customizable options",
+        "Highlighter and marker tools",
+        "Adjustable brush sizes and styles",
         "Eraser with precision control",
-        "Undo/redo with unlimited history"
+        "Undo/redo functionality"
       ],
       demo: "#",
       stats: { users: "—", rating: "—", time: "—" }
@@ -62,10 +62,10 @@ const Features = () => {
       accent: "blue",
       details: [
         "Live cursor tracking for all participants",
-        "Instant sync across all devices",
-        "Zero-conflict editing with operational transformation",
+        "Real-time sync across all devices",
+        "Conflict-free editing with operational transformation",
         "Real-time notifications and presence indicators",
-        "Role-based permissions and access control"
+        "Basic permissions and access control"
       ],
       demo: "#",
       stats: { users: "—", rating: "—", time: "Real-time" }
@@ -79,10 +79,10 @@ const Features = () => {
       gradient: "from-blue-600/20 to-blue-500/20",
       accent: "blue",
       details: [
-        "Infinite zoom and pan capabilities",
+        "Smooth zoom and pan capabilities",
         "Layer management and organization",
-        "Presentation mode for client meetings",
-        "Auto-save with version history",
+        "Presentation mode for meetings",
+        "Auto-save functionality",
         "Grid and snap-to-grid functionality"
       ],
       demo: "#",
@@ -101,7 +101,7 @@ const Features = () => {
         "Mobile-optimized touch interface",
         "Keyboard shortcuts for power users",
         "Touch gestures for tablets and phones",
-        "Offline mode with sync when reconnected"
+        "Cross-platform compatibility"
       ],
       demo: "#",
       stats: { users: "—", rating: "—", time: "Any device" }
@@ -118,8 +118,8 @@ const Features = () => {
         "Secure authentication",
         "Data handling best practices",
         "Google OAuth integration",
-        "Role-based access control",
-        "Audit logs and activity tracking"
+        "Basic access control",
+        "Activity tracking"
       ],
       demo: "#",
       stats: { users: "—", rating: "—", time: "High availability" }

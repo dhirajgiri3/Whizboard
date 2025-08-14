@@ -15,6 +15,10 @@ import {
   Cloud,
   RefreshCw,
   HardDrive,
+  FileText,
+  Settings,
+  Clock,
+  Activity,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import BackButton from '@/components/ui/BackButton';
@@ -26,7 +30,13 @@ interface StorageInfo {
   total: number;
   boards: number;
   files: number;
-  lastBackup?: Date | string;
+  lastBackup?: Date | string | null;
+  breakdown?: {
+    boards: number;
+    files: number;
+    settings: number;
+    cache: number;
+  };
 }
 
 interface DataExportOptions {
@@ -49,12 +59,21 @@ export default function AdvancedSettingsPage() {
 
   // Data management states
   const [storageInfo, setStorageInfo] = useState<StorageInfo>({
-    used: 2.4 * 1024 * 1024 * 1024, // 2.4 GB in bytes
+    used: 0,
     total: 10 * 1024 * 1024 * 1024, // 10 GB in bytes
-    boards: 24,
-    files: 156,
-    lastBackup: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    boards: 0,
+    files: 0,
+    lastBackup: null,
+    breakdown: {
+      boards: 0,
+      files: 0,
+      settings: 0,
+      cache: 0,
+    }
   });
+
+  const [isLoadingStorage, setIsLoadingStorage] = useState(true);
+  const [storageError, setStorageError] = useState<string | null>(null);
 
   const [exportOptions, setExportOptions] = useState<DataExportOptions>({
     includeBoards: true,
@@ -71,19 +90,32 @@ export default function AdvancedSettingsPage() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const loadStorageInfo = useCallback(async () => {
+    if (status === 'loading' || !session) return;
+    
     try {
+      setIsLoadingStorage(true);
+      setStorageError(null);
       console.log('Loading storage info, session status:', status, 'session:', !!session);
       const { data } = await api.get('/api/settings/storage');
       setStorageInfo(data);
     } catch (error) {
       console.error('Error loading storage info:', error);
+      setStorageError('Failed to load storage information');
+      toast.error('Failed to load storage information');
+    } finally {
+      setIsLoadingStorage(false);
     }
   }, [status, session]);
 
   useEffect(() => {
     setIsMounted(true);
-    loadStorageInfo();
-  }, [loadStorageInfo]);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && status !== 'loading') {
+      loadStorageInfo();
+    }
+  }, [isMounted, status, loadStorageInfo]);
 
   const formatLastSync = (timestamp: number) => {
     const now = Date.now();
@@ -99,7 +131,9 @@ export default function AdvancedSettingsPage() {
   };
 
   const formatStorageSize = (bytes: number) => {
-    const sizes = ['B', 'KB', 'MB', 'GB'];
+    if (bytes === 0) return '0 B';
+    
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
     let size = bytes;
     let unitIndex = 0;
 
@@ -112,7 +146,14 @@ export default function AdvancedSettingsPage() {
   };
 
   const getStoragePercentage = () => {
+    if (storageInfo.total === 0) return 0;
     return Math.round((storageInfo.used / storageInfo.total) * 100);
+  };
+
+  const getStorageColor = (percentage: number) => {
+    if (percentage < 70) return 'bg-blue-600';
+    if (percentage < 90) return 'bg-yellow-500';
+    return 'bg-red-500';
   };
 
   const handleExportData = async () => {
@@ -179,12 +220,19 @@ export default function AdvancedSettingsPage() {
         total: 10 * 1024 * 1024 * 1024,
         boards: 0,
         files: 0,
-        lastBackup: undefined,
+        lastBackup: null,
+        breakdown: {
+          boards: 0,
+          files: 0,
+          settings: 0,
+          cache: 0,
+        }
       });
 
       setShowClearConfirm(false);
-    } catch {
-      /* silent */
+      toast.success('All data cleared successfully');
+    } catch (error) {
+      toast.error('Failed to clear data');
     } finally {
       setIsClearing(false);
     }
@@ -330,8 +378,6 @@ export default function AdvancedSettingsPage() {
               </div>
             </SectionCard>
 
-
-
             {/* Data Management */}
             <SectionCard>
               <div className="flex items-center gap-3 mb-6">
@@ -347,25 +393,76 @@ export default function AdvancedSettingsPage() {
               <div className="space-y-4">
                 {/* Storage Info */}
                 <div className="p-4 bg-white/[0.02] border border-white/[0.05] rounded-xl">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <HardDrive className="w-4 h-4 text-white/60" />
-                      <span className="text-sm text-white/70">Storage Used</span>
+                  {isLoadingStorage ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loading size="sm" variant="dots" text="Loading storage info..." tone="dark" />
                     </div>
-                    <span className="text-sm text-white/70">
-                      {formatStorageSize(storageInfo.used)} / {formatStorageSize(storageInfo.total)}
-                    </span>
-                  </div>
-                  <div className="w-full bg-white/[0.05] rounded-full h-2 mb-3">
-                    <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${getStoragePercentage()}%` }} />
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-white/60">
-                    <span>{storageInfo.boards} boards</span>
-                    <span>{storageInfo.files} files</span>
-                    {storageInfo.lastBackup && (
-                      <span>Backup: {formatLastSync(new Date(storageInfo.lastBackup).getTime())}</span>
-                    )}
-                  </div>
+                  ) : storageError ? (
+                    <div className="flex items-center gap-3 text-red-400">
+                      <AlertCircle className="w-5 h-5" />
+                      <span className="text-sm">{storageError}</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <HardDrive className="w-4 h-4 text-white/60" />
+                          <span className="text-sm text-white/70">Storage Used</span>
+                        </div>
+                        <span className="text-sm text-white/70">
+                          {formatStorageSize(storageInfo.used)} / {formatStorageSize(storageInfo.total)}
+                        </span>
+                      </div>
+                      
+                      {/* Usage Progress Bar */}
+                      <div className="w-full bg-white/[0.05] rounded-full h-3 mb-4 relative overflow-hidden">
+                        <div 
+                          className={`h-3 rounded-full transition-all duration-500 ${getStorageColor(getStoragePercentage())}`}
+                          style={{ width: `${getStoragePercentage()}%` }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse" />
+                      </div>
+                      
+                      {/* Storage Breakdown */}
+                      {storageInfo.breakdown && (
+                        <div className="space-y-2 mb-3">
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2">
+                              <FileText className="w-3 h-3 text-blue-400" />
+                              <span className="text-white/60">Boards</span>
+                            </div>
+                            <span className="text-white/70">{formatStorageSize(storageInfo.breakdown.boards)}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2">
+                              <Upload className="w-3 h-3 text-green-400" />
+                              <span className="text-white/60">Files</span>
+                            </div>
+                            <span className="text-white/70">{formatStorageSize(storageInfo.breakdown.files)}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2">
+                              <Settings className="w-3 h-3 text-purple-400" />
+                              <span className="text-white/60">Settings</span>
+                            </div>
+                            <span className="text-white/70">{formatStorageSize(storageInfo.breakdown.settings)}</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Summary Stats */}
+                      <div className="flex items-center justify-between text-xs text-white/60 border-t border-white/[0.05] pt-3">
+                        <div className="flex items-center gap-4">
+                          <span>{storageInfo.boards} boards</span>
+                          <span>{storageInfo.files} files</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Activity className="w-3 h-3" />
+                          <span>{getStoragePercentage()}% used</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Actions */}

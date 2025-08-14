@@ -119,13 +119,33 @@ const InteractiveCard = ({
   variants?: any;
 }) => {
   const prefersReducedMotion = useReducedMotion();
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const spotlight = useTransform([mx, my], ([x, y]) => `radial-gradient(280px at ${x}px ${y}px, rgba(59,130,246,0.15), transparent 60%)`);
+
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    mx.set(e.clientX - rect.left);
+    my.set(e.clientY - rect.top);
+  };
+
   return (
     <motion.div
       variants={variants}
       whileHover={prefersReducedMotion ? undefined : { y: -2 }}
       transition={{ type: "spring", stiffness: 200, damping: 22 }}
+      onPointerMove={prefersReducedMotion ? undefined : onPointerMove}
       className={`relative p-6 sm:p-8 rounded-3xl bg-black/[0.1] border border-white/[0.07] overflow-hidden transition-colors duration-300 backdrop-blur-sm ${className}`}
     >
+      {/* Spotlight effect that follows mouse */}
+      {!prefersReducedMotion && (
+        <motion.div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none rounded-3xl"
+          style={{ backgroundImage: spotlight }}
+        />
+      )}
+      
       <motion.div
         aria-hidden
         initial={{ opacity: 0 }}
@@ -168,16 +188,6 @@ const LogoBadge = ({ src, label }: { src: string; label: string }) => (
 
 const Integrations = () => {
   const prefersReducedMotion = useReducedMotion();
-
-  const mx = useMotionValue(300);
-  const my = useMotionValue(160);
-  const spotlight = useTransform([mx, my], ([x, y]) => `radial-gradient(280px at ${x}px ${y}px, rgba(59,130,246,0.08), transparent 60%)`);
-
-  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    mx.set(e.clientX - rect.left);
-    my.set(e.clientY - rect.top);
-  };
   
   return (
     <section className="section-padding max-w-7xl mx-auto pb-20">
@@ -187,16 +197,10 @@ const Integrations = () => {
           title="Work seamlessly with Slack and Google Drive"
           subtitle="Keep conversations flowing in Slack and keep files organized in Drive—without leaving Whizboard."
         />
-        <div className="relative mt-12 lg:mt-16" onPointerMove={prefersReducedMotion ? undefined : onPointerMove}>
+        <div className="relative mt-12 lg:mt-16">
           {/* Background grid and orbs */}
           <div className="absolute inset-0 grid-pattern opacity-20 pointer-events-none" />
-          {!prefersReducedMotion && (
-            <motion.div
-              aria-hidden
-              className="absolute inset-0 pointer-events-none"
-              style={{ backgroundImage: spotlight }}
-            />
-          )}
+          
           <motion.div
             variants={prefersReducedMotion ? undefined : glowVariants}
             initial="initial"
@@ -270,7 +274,7 @@ const Integrations = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                   <Bullet>Post updates to channels with one click</Bullet>
-                  <Bullet>Share exports (PNG, PDF, JSON) directly to Slack</Bullet>
+                  <Bullet>Share PNG exports directly to Slack</Bullet>
                   <Bullet>Use simple slash commands for quick actions</Bullet>
                   <Bullet>Auto-join channels when needed to deliver messages</Bullet>
                 </div>
@@ -329,7 +333,7 @@ const Integrations = () => {
                   <Bullet>Export boards to a selected Drive folder</Bullet>
                   <Bullet>Import images and assets from Drive into boards</Bullet>
                   <Bullet>Manage files and folders from Whizboard</Bullet>
-                  <Bullet>Least-privilege access by default with Drive file scope</Bullet>
+                  <Bullet>Secure access with Drive file scope</Bullet>
                 </div>
 
                 {/* Animated file tiles */}
@@ -426,6 +430,6 @@ const Integrations = () => {
       </div>
     </section>
   );
-};
+}
 
 export default Integrations;

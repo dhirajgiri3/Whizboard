@@ -61,15 +61,15 @@ const FAQ = () => {
       category: "performance",
       icon: Zap,
       iconColor: "text-blue-400",
-      highlight: "Sub-50ms latency"
+      highlight: "Optimized performance"
     },
     {
       question: "Can I export my work to other formats?",
-      answer: "Yes! Export to PNG, SVG, PDF, and more. Pro plans include advanced export options and custom branding capabilities.",
+      answer: "Yes! Export to PNG format. Advanced export options and custom branding will be available with Pro plans.",
       category: "export",
       icon: Globe,
       iconColor: "text-blue-400",
-      highlight: "Multiple formats"
+      highlight: "PNG export"
     },
     {
       question: "Is there a mobile app?",
@@ -81,15 +81,15 @@ const FAQ = () => {
     },
     {
       question: "What happens if I lose my internet connection?",
-      answer: "Work requires a connection today. Offline support is planned for a future release.",
+      answer: "Work requires an internet connection. Offline support is planned for a future release.",
       category: "offline",
       icon: Zap,
       iconColor: "text-blue-400",
-      highlight: "Offline support"
+      highlight: "Online required"
     },
     {
       question: "Can I use my own domain and branding?",
-      answer: "Enterprise plans include custom domain support and white-label branding options. Make Whizboard your own with your company's look and feel.",
+      answer: "Enterprise plans will include custom domain support and white-label branding options. Make Whizboard your own with your company's look and feel.",
       category: "branding",
       icon: Shield,
       iconColor: "text-blue-400",
@@ -101,7 +101,7 @@ const FAQ = () => {
       category: "support",
       icon: HelpCircle,
       iconColor: "text-blue-400",
-      highlight: "24/7 support"
+      highlight: "Email support"
     }
   ];
 
