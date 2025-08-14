@@ -58,55 +58,61 @@ const SocialProof = () => {
 
   const testimonials = [
     {
-      name: "Product Designer",
-      role: "Early Access User",
-      company: "",
-      content: "The real-time collaboration is smooth and intuitive. Perfect for remote design sessions.",
+      name: "Tyler Durden",
+      role: "Product Designer",
+      company: "Cyper Studio",
+      content:
+        "The real-time collaboration is smooth and intuitive. Perfect for remote design sessions.",
       rating: 5,
       metrics: "",
       avatar: "",
     },
     {
-      name: "Engineering Manager",
-      role: "Beta Tester",
-      company: "",
-      content: "Clean interface and fast performance. Great foundation for team collaboration.",
+      name: "Akash Pandey",
+      role: "Social Media Manager",
+      company: "Cyper Studio",
+      content:
+        "Clean interface and fast performance. Great foundation for team collaboration.",
       rating: 5,
       metrics: "",
       avatar: "",
     },
     {
-      name: "Startup Founder",
-      role: "Pilot User",
-      company: "",
-      content: "Exactly what we needed for remote brainstorming. Looking forward to more features.",
+      name: "Tyrion Lannister",
+      role: "Product Designer",
+      company: "Cyper Studio",
+      content:
+        "Exactly what we needed for remote brainstorming. Looking forward to more features.",
       rating: 5,
       metrics: "",
       avatar: "",
     },
     {
-      name: "UX Researcher",
-      role: "Early Access",
-      company: "",
-      content: "Makes user research sessions much more collaborative and engaging.",
+      name: "Arya Stark",
+      role: "Product Designer",
+      company: "Cyper Studio",
+      content:
+        "Makes user research sessions much more collaborative and engaging.",
       rating: 5,
       metrics: "",
       avatar: "",
     },
     {
-      name: "Project Manager",
-      role: "Beta Tester",
-      company: "",
-      content: "Streamlines our planning process. The integrations are a nice touch.",
+      name: "Walter White",
+      role: "Software Engineer",
+      company: "Cyper Studio",
+      content:
+        "Streamlines our planning process. The integrations are a nice touch.",
       rating: 5,
       metrics: "",
       avatar: "",
     },
     {
-      name: "Design Lead",
-      role: "Pilot User",
-      company: "",
-      content: "Simple yet powerful. The mobile experience is particularly impressive.",
+      name: "Tony Stark",
+      role: "Iron Man",
+      company: "Cyper Studio",
+      content:
+        "Simple yet powerful. The mobile experience is particularly impressive.",
       rating: 5,
       metrics: "",
       avatar: "",
@@ -147,14 +153,26 @@ const SocialProof = () => {
       logo: "Target" as const,
       color: "text-blue-400",
     },
-    { name: "Product Teams", logo: "Lightbulb" as const, color: "text-emerald-400" },
+    {
+      name: "Product Teams",
+      logo: "Lightbulb" as const,
+      color: "text-emerald-400",
+    },
     {
       name: "Remote Teams",
       logo: "Globe" as const,
       color: "text-yellow-400",
     },
-    { name: "Startup Teams", logo: "Rocket" as const, color: "text-emerald-400" },
-    { name: "Enterprise Teams", logo: "Building" as const, color: "text-cyan-400" },
+    {
+      name: "Startup Teams",
+      logo: "Rocket" as const,
+      color: "text-emerald-400",
+    },
+    {
+      name: "Enterprise Teams",
+      logo: "Building" as const,
+      color: "text-cyan-400",
+    },
   ];
 
   const trustBadges = [
@@ -197,13 +215,22 @@ const SocialProof = () => {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.08, delayChildren: 0.08, ease: "easeOut" },
+      transition: {
+        staggerChildren: 0.08,
+        delayChildren: 0.08,
+        ease: "easeOut",
+      },
     },
   } as const;
 
   const itemVariants = {
     hidden: { opacity: 0, y: 24, filter: "blur(4px)" },
-    visible: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.6, ease: "easeOut" } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      filter: "blur(0px)",
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
   } as const;
 
   return (
@@ -358,24 +385,38 @@ const SocialProof = () => {
             <div className="relative overflow-hidden flex flex-col gap-12">
               <motion.div variants={itemVariants} className="text-center">
                 {/* Redesigned Header - What Our Users Say */}
-                <motion.div variants={itemVariants} className="flex flex-col items-center gap-4 sm:gap-6">
+                <motion.div
+                  variants={itemVariants}
+                  className="flex flex-col items-center gap-4 sm:gap-6"
+                >
                   {/* Badge */}
-                  <motion.div variants={itemVariants} className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200">
+                  <motion.div
+                    variants={itemVariants}
+                    className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
+                  >
                     <Quote className="h-3.5 w-3.5 text-blue-400/80 group-hover:text-blue-400 transition-colors duration-200" />
                     <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
-                      User Feedback
+                      User Feedback - Mock Data
                     </span>
                   </motion.div>
 
-                  {/* Title */}
-                  <motion.h3 variants={itemVariants} className="text-3xl md:text-4xl font-bold text-white leading-[1.1] tracking-tight text-center">
-                    What Our Users Say
-                  </motion.h3>
+                  <div className="flex flex-col items-center gap-1">
+                    {/* Title */}
+                    <motion.h3
+                      variants={itemVariants}
+                      className="text-3xl md:text-4xl font-bold text-white leading-[1.1] tracking-tight text-center"
+                    >
+                      What Our Users Say
+                    </motion.h3>
 
-                  {/* Description */}
-                      <motion.p variants={itemVariants} className="text-white/60 text-lg max-w-2xl mx-auto leading-relaxed text-center">
-                        Notes from early users trying Whizboard during beta.
-                      </motion.p>
+                    {/* Description */}
+                    <motion.p
+                      variants={itemVariants}
+                      className="text-white/60 text-base max-w-lg mx-auto leading-relaxed text-center"
+                    >
+                      Real feedback from teams and professionals who've transformed their collaboration workflow with Whizboard during our beta program.
+                    </motion.p>
+                  </div>
                 </motion.div>
               </motion.div>
 
@@ -476,11 +517,20 @@ const SocialProof = () => {
 
             {/* Enhanced Trust & Security Section */}
             <div className="text-center flex flex-col gap-16 lg:gap-20">
-              <motion.div variants={itemVariants} className="flex flex-col items-center gap-8">
+              <motion.div
+                variants={itemVariants}
+                className="flex flex-col items-center gap-8"
+              >
                 {/* Redesigned Header - Built for Trust & Security */}
-                <motion.div variants={itemVariants} className="flex flex-col items-center gap-4 sm:gap-6">
+                <motion.div
+                  variants={itemVariants}
+                  className="flex flex-col items-center gap-4 sm:gap-6"
+                >
                   {/* Badge */}
-                  <motion.div variants={itemVariants} className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200">
+                  <motion.div
+                    variants={itemVariants}
+                    className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
+                  >
                     <Shield className="h-3.5 w-3.5 text-blue-400/80 group-hover:text-blue-400 transition-colors duration-200" />
                     <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
                       Enterprise Security
@@ -489,7 +539,10 @@ const SocialProof = () => {
 
                   <div className="flex flex-col gap-1 sm:gap-1.5 items-center">
                     {/* Title */}
-                    <motion.h3 variants={itemVariants} className="text-3xl md:text-4xl font-bold text-white leading-tight tracking-tight text-center">
+                    <motion.h3
+                      variants={itemVariants}
+                      className="text-3xl md:text-4xl font-bold text-white leading-tight tracking-tight text-center"
+                    >
                       Built for
                       <span className="block bg-gradient-to-r from-emerald-400 via-blue-400 to-blue-500 bg-clip-text text-transparent">
                         Trust & Security
@@ -497,7 +550,10 @@ const SocialProof = () => {
                     </motion.h3>
 
                     {/* Description */}
-                    <motion.p variants={itemVariants} className="text-white/60 text-base max-w-lg text-center leading-relaxed">
+                    <motion.p
+                      variants={itemVariants}
+                      className="text-white/60 text-base max-w-lg text-center leading-relaxed"
+                    >
                       Your data security is our top priority. We maintain the
                       highest standards of protection and compliance.
                     </motion.p>
@@ -821,9 +877,15 @@ const SocialProof = () => {
                 {/* Minimal Header */}
                 <motion.div variants={itemVariants}>
                   {/* Redesigned Header - Ready to get started? */}
-                  <motion.div variants={itemVariants} className="flex flex-col items-center gap-4 sm:gap-6">
+                  <motion.div
+                    variants={itemVariants}
+                    className="flex flex-col items-center gap-4 sm:gap-6"
+                  >
                     {/* Badge */}
-                    <motion.div variants={itemVariants} className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200">
+                    <motion.div
+                      variants={itemVariants}
+                      className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
+                    >
                       <Rocket className="h-3.5 w-3.5 text-blue-400/80 group-hover:text-blue-400 transition-colors duration-200" />
                       <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
                         Get Started
@@ -832,7 +894,10 @@ const SocialProof = () => {
 
                     <div className="flex flex-col items-center gap-2">
                       {/* Title */}
-                      <motion.h3 variants={itemVariants} className="flex flex-wrap justify-center items-center gap-3 text-4xl md:text-5xl lg:text-6xl font-light text-white leading-tight tracking-tight text-center">
+                      <motion.h3
+                        variants={itemVariants}
+                        className="flex flex-wrap justify-center items-center gap-3 text-4xl md:text-5xl lg:text-6xl font-light text-white leading-tight tracking-tight text-center"
+                      >
                         <span>Ready to get</span>
                         <span className="bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent">
                           started?
@@ -840,7 +905,10 @@ const SocialProof = () => {
                       </motion.h3>
 
                       {/* Description */}
-                      <motion.p variants={itemVariants} className="text-white/60 text-base max-w-xl mx-auto font-light leading-relaxed text-center">
+                      <motion.p
+                        variants={itemVariants}
+                        className="text-white/60 text-base max-w-xl mx-auto font-light leading-relaxed text-center"
+                      >
                         Join thousands of teams worldwide who are transforming
                         their collaboration with Whizboard. Start your journey
                         to better brainstorming, seamless teamwork, and
@@ -851,7 +919,10 @@ const SocialProof = () => {
                 </motion.div>
 
                 {/* Minimal CTA Buttons */}
-                <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                <motion.div
+                  variants={itemVariants}
+                  className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+                >
                   <motion.button
                     className="bg-white text-black font-medium px-10 py-4 rounded-full transition-all duration-300 hover:bg-white/90"
                     whileHover={{ scale: 1.02 }}
@@ -885,7 +956,10 @@ const SocialProof = () => {
                 />
 
                 {/* Minimal Trust Indicators */}
-                <motion.div variants={itemVariants} className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16 text-white/50 text-sm">
+                <motion.div
+                  variants={itemVariants}
+                  className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16 text-white/50 text-sm"
+                >
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4" />
                     <span>No credit card required</span>

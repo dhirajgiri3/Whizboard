@@ -34,7 +34,7 @@ import {
   Clock,
   X,
   Star,
-  Lock
+  Lock,
 } from "lucide-react";
 import SectionHeader from "@/components/ui/header/SectionHeader";
 import DemoVideoModal from "@/components/ui/modal/DemoVideoModal";
@@ -118,85 +118,211 @@ const ValueProposition = () => {
 
   // Enhanced traditional approach items with professional icons
   const traditionalItems = [
-    { text: "Multiple disconnected tools", icon: Link, description: "Switching between apps constantly", severity: "high" },
-    { text: "Complex setup and learning curve", icon: BookOpen, description: "Weeks of training required", severity: "high" },
-    { text: "Limited real-time collaboration", icon: UserCheck, description: "Delayed team updates", severity: "medium" },
-    { text: "Version control nightmares", icon: FolderOpen, description: "Lost work and conflicts", severity: "high" },
-    { text: "Expensive licensing per user", icon: DollarSign, description: "High monthly costs", severity: "medium" },
-    { text: "Poor mobile experience", icon: Mobile, description: "Limited functionality", severity: "medium" },
-    { text: "No cloud synchronization", icon: Cloud, description: "Work stuck on devices", severity: "high" },
-    { text: "Outdated user interface", icon: Monitor, description: "Clunky and slow", severity: "medium" },
-    { text: "Limited integration options", icon: Link, description: "Isolated from other tools", severity: "medium" },
-    { text: "Poor customer support", icon: HelpCircle, description: "Slow response times", severity: "high" },
-          { text: "No real-time insights", icon: TrendingUp, description: "Missing visibility", severity: "medium" },
-    { text: "Security vulnerabilities", icon: Shield, description: "Outdated protocols", severity: "high" }
+    {
+      text: "Multiple disconnected tools",
+      icon: Link,
+      description: "Switching between apps constantly",
+      severity: "high",
+    },
+    {
+      text: "Complex setup and learning curve",
+      icon: BookOpen,
+      description: "Weeks of training required",
+      severity: "high",
+    },
+    {
+      text: "Limited real-time collaboration",
+      icon: UserCheck,
+      description: "Delayed team updates",
+      severity: "medium",
+    },
+    {
+      text: "Version control nightmares",
+      icon: FolderOpen,
+      description: "Lost work and conflicts",
+      severity: "high",
+    },
+    {
+      text: "Expensive licensing per user",
+      icon: DollarSign,
+      description: "High monthly costs",
+      severity: "medium",
+    },
+    {
+      text: "Poor mobile experience",
+      icon: Mobile,
+      description: "Limited functionality",
+      severity: "medium",
+    },
+    {
+      text: "No cloud synchronization",
+      icon: Cloud,
+      description: "Work stuck on devices",
+      severity: "high",
+    },
+    {
+      text: "Outdated user interface",
+      icon: Monitor,
+      description: "Clunky and slow",
+      severity: "medium",
+    },
+    {
+      text: "Limited integration options",
+      icon: Link,
+      description: "Isolated from other tools",
+      severity: "medium",
+    },
+    {
+      text: "Poor customer support",
+      icon: HelpCircle,
+      description: "Slow response times",
+      severity: "high",
+    },
+    {
+      text: "No real-time insights",
+      icon: TrendingUp,
+      description: "Missing visibility",
+      severity: "medium",
+    },
+    {
+      text: "Security vulnerabilities",
+      icon: Shield,
+      description: "Outdated protocols",
+      severity: "high",
+    },
   ];
 
   // Enhanced Whizboard solution items with professional icons
   const whizboardItems = [
-    { text: "All-in-one collaborative platform", icon: Rocket, description: "Everything you need in one place", benefit: "high" },
-    { text: "Intuitive design, instant productivity", icon: Lightning, description: "Zero learning curve", benefit: "high" },
-    { text: "Real-time collaboration built-in", icon: RefreshCw, description: "Live updates and cursors", benefit: "high" },
-    { text: "Automatic saving and sync", icon: Save, description: "Never lose your work", benefit: "high" },
-    { text: "Free forever plan available", icon: Gift, description: "Start using immediately", benefit: "medium" },
-    { text: "Perfect on any device", icon: Mobile, description: "Responsive design", benefit: "high" },
-    { text: "Cloud-first architecture", icon: Cloud, description: "Access from anywhere", benefit: "high" },
-    { text: "Modern, fast interface", icon: Monitor, description: "Smooth performance", benefit: "high" },
-    { text: "Rich integration ecosystem", icon: Link, description: "Connects with your tools", benefit: "medium" },
-    { text: "24/7 customer support", icon: HelpCircle, description: "Always here to help", benefit: "high" },
-          { text: "Advanced collaboration insights", icon: TrendingUp, description: "Deep visibility", benefit: "medium" },
-    { text: "Enterprise-grade security", icon: Shield, description: "SOC 2 compliant", benefit: "high" }
+    {
+      text: "All-in-one collaborative platform",
+      icon: Rocket,
+      description: "Everything you need in one place",
+      benefit: "high",
+    },
+    {
+      text: "Intuitive design, instant productivity",
+      icon: Lightning,
+      description: "Zero learning curve",
+      benefit: "high",
+    },
+    {
+      text: "Real-time collaboration built-in",
+      icon: RefreshCw,
+      description: "Live updates and cursors",
+      benefit: "high",
+    },
+    {
+      text: "Automatic saving and sync",
+      icon: Save,
+      description: "Never lose your work",
+      benefit: "high",
+    },
+    {
+      text: "Free forever plan available",
+      icon: Gift,
+      description: "Start using immediately",
+      benefit: "medium",
+    },
+    {
+      text: "Perfect on any device",
+      icon: Mobile,
+      description: "Responsive design",
+      benefit: "high",
+    },
+    {
+      text: "Cloud-first architecture",
+      icon: Cloud,
+      description: "Access from anywhere",
+      benefit: "high",
+    },
+    {
+      text: "Modern, fast interface",
+      icon: Monitor,
+      description: "Smooth performance",
+      benefit: "high",
+    },
+    {
+      text: "Rich integration ecosystem",
+      icon: Link,
+      description: "Connects with your tools",
+      benefit: "medium",
+    },
+    {
+      text: "24/7 customer support",
+      icon: HelpCircle,
+      description: "Always here to help",
+      benefit: "high",
+    },
+    {
+      text: "Advanced collaboration insights",
+      icon: TrendingUp,
+      description: "Deep visibility",
+      benefit: "medium",
+    },
+    {
+      text: "Enterprise-grade security",
+      icon: Shield,
+      description: "SOC 2 compliant",
+      benefit: "high",
+    },
   ];
 
   const benefits = [
     {
       icon: Target,
       title: "Precision Drawing",
-      description: "Professional drawing tools with accurate controls for detailed designs and diagrams.",
+      description:
+        "Professional drawing tools with accurate controls for detailed designs and diagrams.",
       metric: "Accurate controls",
       stats: "Easy to iterate",
       iconColor: "text-blue-400",
-      gradient: "from-blue-600/10 to-blue-400/5"
+      gradient: "from-blue-600/10 to-blue-400/5",
     },
     {
       icon: Users,
       title: "Real-time Collaboration",
-      description: "Work together with live cursors, instant updates, and team presence indicators.",
+      description:
+        "Work together with live cursors, instant updates, and team presence indicators.",
       metric: "Live cursors",
       stats: "Instant sync",
       iconColor: "text-emerald-400",
-      gradient: "from-emerald-600/10 to-emerald-400/5"
+      gradient: "from-emerald-600/10 to-emerald-400/5",
     },
     {
       icon: Zap,
       title: "Lightning Fast Performance",
-      description: "Optimized performance for smooth drawing, even with complex boards.",
+      description:
+        "Optimized performance for smooth drawing, even with complex boards.",
       metric: "Smooth rendering",
       stats: "Fast loading",
       iconColor: "text-amber-400",
-      gradient: "from-amber-600/10 to-amber-400/5"
-    }
+      gradient: "from-amber-600/10 to-amber-400/5",
+    },
   ];
 
   const features = [
     {
       icon: Clock,
       title: "Instant Access",
-      description: "No downloads, no installations. Start collaborating in seconds with any modern browser.",
-      highlight: "Zero Setup"
+      description:
+        "No downloads, no installations. Start collaborating in seconds with any modern browser.",
+      highlight: "Zero Setup",
     },
     {
       icon: Lock,
       title: "Bank-Level Security",
-      description: "Secure authentication and data handling with sensible defaults.",
-      highlight: "Secure by design"
+      description:
+        "Secure authentication and data handling with sensible defaults.",
+      highlight: "Secure by design",
     },
     {
       icon: Target,
       title: "AI-Powered Features",
-      description: "Smart shape recognition, auto-formatting, and intelligent collaboration suggestions.",
-      highlight: "Coming Soon"
-    }
+      description:
+        "Smart shape recognition, auto-formatting, and intelligent collaboration suggestions.",
+      highlight: "Coming Soon",
+    },
   ];
 
   const containerVariants: Variants = {
@@ -205,9 +331,9 @@ const ValueProposition = () => {
       opacity: 1,
       transition: {
         staggerChildren: 0.2,
-        delayChildren: 0.1
-      }
-    }
+        delayChildren: 0.1,
+      },
+    },
   };
 
   const itemVariants: Variants = {
@@ -217,9 +343,9 @@ const ValueProposition = () => {
       y: 0,
       transition: {
         duration: 0.6,
-        ease: [0.22, 1, 0.36, 1]
-      }
-    }
+        ease: [0.22, 1, 0.36, 1],
+      },
+    },
   };
 
   const [isDemoOpen, setIsDemoOpen] = React.useState(false);
@@ -233,25 +359,33 @@ const ValueProposition = () => {
           <div
             className="absolute inset-0 opacity-[0.015] dot-pattern"
             style={{
-              backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.1) 1px, transparent 0)',
-              backgroundSize: '40px 40px',
+              backgroundImage:
+                "radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.1) 1px, transparent 0)",
+              backgroundSize: "40px 40px",
             }}
           />
           <motion.div
             className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full filter blur-[60px] opacity-40"
             style={{
-              background: 'radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 70%)'
+              background:
+                "radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 70%)",
             }}
             animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.6, 0.4] }}
-            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
           />
           <motion.div
             className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full filter blur-[80px] opacity-20"
             style={{
-              background: 'radial-gradient(circle, rgba(107, 114, 128, 0.2) 0%, rgba(107, 114, 128, 0.05) 50%, transparent 70%)'
+              background:
+                "radial-gradient(circle, rgba(107, 114, 128, 0.2) 0%, rgba(107, 114, 128, 0.05) 50%, transparent 70%)",
             }}
             animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.4, 0.2] }}
-            transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2,
+            }}
           />
         </div>
 
@@ -267,15 +401,10 @@ const ValueProposition = () => {
             <SectionHeader
               badge={{
                 icon: Rocket,
-                text: "Why Choose Whizboard"
+                text: "Why Choose Whizboard",
               }}
               title="Transform Ideas Into Actionable Plans"
               description="Stop struggling with scattered thoughts and chaotic brainstorms. Our professional-grade collaborative whiteboard transforms creative chaos into organized, actionable outcomes."
-              useCases={[
-                "Streamline brainstorming sessions",
-                "Enhance remote team collaboration",
-                "Accelerate project planning and execution"
-              ]}
               disableAnimation={true}
             />
           </motion.div>
@@ -297,15 +426,35 @@ const ValueProposition = () => {
               >
                 <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-6 sm:p-8 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-500 overflow-hidden h-full">
                   {/* Gradient Orb Background */}
-                  <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[40px] group-hover:scale-110 transition-transform duration-500 ${benefit.gradient.includes('amber') ? 'bg-amber-600/20' : benefit.gradient.includes('blue') ? 'bg-blue-600/20' : 'bg-emerald-600/20'}`}></div>
+                  <div
+                    className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[40px] group-hover:scale-110 transition-transform duration-500 ${
+                      benefit.gradient.includes("amber")
+                        ? "bg-amber-600/20"
+                        : benefit.gradient.includes("blue")
+                        ? "bg-blue-600/20"
+                        : "bg-emerald-600/20"
+                    }`}
+                  ></div>
 
                   {/* Content */}
                   <div className="relative z-10 flex flex-col h-full">
                     <div className="flex items-center justify-between mb-4 sm:mb-6">
-                      <div className={`inline-flex p-3 sm:p-4 rounded-xl border group-hover:scale-105 transition-all duration-300 ${benefit.gradient.includes('amber') ? 'bg-amber-600/10 border-amber-600/20 group-hover:bg-amber-600/15' : benefit.gradient.includes('blue') ? 'bg-blue-600/10 border-blue-600/20 group-hover:bg-blue-600/15' : 'bg-emerald-600/10 border-emerald-600/20 group-hover:bg-emerald-600/15'}`}>
-                        <benefit.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${benefit.iconColor}`} />
+                      <div
+                        className={`inline-flex p-3 sm:p-4 rounded-xl border group-hover:scale-105 transition-all duration-300 ${
+                          benefit.gradient.includes("amber")
+                            ? "bg-amber-600/10 border-amber-600/20 group-hover:bg-amber-600/15"
+                            : benefit.gradient.includes("blue")
+                            ? "bg-blue-600/10 border-blue-600/20 group-hover:bg-blue-600/15"
+                            : "bg-emerald-600/10 border-emerald-600/20 group-hover:bg-emerald-600/15"
+                        }`}
+                      >
+                        <benefit.icon
+                          className={`h-5 w-5 sm:h-6 sm:w-6 ${benefit.iconColor}`}
+                        />
                       </div>
-                      <span className={`text-xs font-medium bg-white/[0.05] px-2 sm:px-3 py-1 rounded-full ${benefit.iconColor}`}>
+                      <span
+                        className={`text-xs font-medium bg-white/[0.05] px-2 sm:px-3 py-1 rounded-full ${benefit.iconColor}`}
+                      >
                         {benefit.stats}
                       </span>
                     </div>
@@ -316,7 +465,11 @@ const ValueProposition = () => {
                       {benefit.description}
                     </p>
                     <div className="flex items-center justify-between mt-auto">
-                      <span className={`font-medium text-sm ${benefit.iconColor}`}>{benefit.metric}</span>
+                      <span
+                        className={`font-medium text-sm ${benefit.iconColor}`}
+                      >
+                        {benefit.metric}
+                      </span>
                       <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
                     </div>
                   </div>
@@ -358,30 +511,33 @@ const ValueProposition = () => {
                   </span>
                 </motion.div>
 
-                {/* Title */}
-                <motion.h2
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
-                  viewport={{ once: true }}
-                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-[1.1] tracking-tight text-center"
-                >
-                  Why Teams Choose{" "}
-                  <span className="bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent">
-                    Whizboard
-                  </span>
-                </motion.h2>
+                <div className="flex flex-col items-center gap-1">
+                  {/* Title */}
+                  <motion.h2
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                    viewport={{ once: true }}
+                    className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-[1.1] tracking-tight text-center"
+                  >
+                    Why Teams Choose{" "}
+                    <span className="bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent">
+                      Whizboard
+                    </span>
+                  </motion.h2>
 
-                {/* Description */}
-                <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.3 }}
-                  viewport={{ once: true }}
-                  className="text-white/70 max-w-xl leading-[1.6] text-sm sm:text-base text-center"
-                >
-                  See the difference between traditional tools and our modern approach to collaborative whiteboarding.
-                </motion.p>
+                  {/* Description */}
+                  <motion.p
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.3 }}
+                    viewport={{ once: true }}
+                    className="text-white/70 max-w-xl leading-[1.6] text-sm sm:text-base text-center"
+                  >
+                    See the difference between traditional tools and our modern
+                    approach to collaborative whiteboarding.
+                  </motion.p>
+                </div>
               </motion.div>
             </div>
 
@@ -397,11 +553,13 @@ const ValueProposition = () => {
               >
                 <div className="relative h-full bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-3xl p-8 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-500 overflow-hidden">
                   {/* Subtle Gradient Orb Background */}
-                  <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full filter blur-[60px] opacity-20 group-hover:scale-110 transition-transform duration-500"
+                  <div
+                    className="absolute -top-20 -right-20 w-40 h-40 rounded-full filter blur-[60px] opacity-20 group-hover:scale-110 transition-transform duration-500"
                     style={{
-                      background: 'radial-gradient(circle, rgba(220, 38, 38, 0.3) 0%, rgba(220, 38, 38, 0.1) 50%, transparent 70%)'
-                    }}>
-                  </div>
+                      background:
+                        "radial-gradient(circle, rgba(220, 38, 38, 0.3) 0%, rgba(220, 38, 38, 0.1) 50%, transparent 70%)",
+                    }}
+                  ></div>
 
                   {/* Enhanced Header */}
                   <div className="relative z-10 flex items-center mb-8">
@@ -412,10 +570,14 @@ const ValueProposition = () => {
                       <h3 className="text-2xl font-bold text-white mb-2">
                         Traditional Approach
                       </h3>
-                      <p className="text-white/60 text-sm font-medium">Outdated, fragmented tools</p>
+                      <p className="text-white/60 text-sm font-medium">
+                        Outdated, fragmented tools
+                      </p>
                       <div className="flex items-center space-x-2 mt-2">
                         <div className="w-2 h-2 bg-red-400 rounded-full"></div>
-                        <span className="text-red-400/80 text-xs font-medium">Inefficient workflow</span>
+                        <span className="text-red-400/80 text-xs font-medium">
+                          Inefficient workflow
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -424,30 +586,49 @@ const ValueProposition = () => {
                   <div className="relative z-10 h-80 overflow-hidden rounded-2xl">
                     <div className="scroll-content space-y-3 pb-4 animate-scroll-up">
                       {/* Duplicate items for seamless loop (original + clone) */}
-                      {[...traditionalItems, ...traditionalItems].map((item, index) => (
-                        <div
-                          key={index}
-                          className={`flex items-center space-x-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] transition-all duration-200 group/item ${item.severity === 'high' ? 'border-red-500/20 hover:border-red-500/30' :
-                            item.severity === 'medium' ? 'border-orange-500/20 hover:border-orange-500/30' :
-                              'border-yellow-500/20 hover:border-yellow-500/30'
+                      {[...traditionalItems, ...traditionalItems].map(
+                        (item, index) => (
+                          <div
+                            key={index}
+                            className={`flex items-center space-x-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] transition-all duration-200 group/item ${
+                              item.severity === "high"
+                                ? "border-red-500/20 hover:border-red-500/30"
+                                : item.severity === "medium"
+                                ? "border-orange-500/20 hover:border-orange-500/30"
+                                : "border-yellow-500/20 hover:border-yellow-500/30"
                             }`}
-                        >
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center group-hover/item:scale-110 transition-transform duration-200 ${item.severity === 'high' ? 'bg-red-500/10 border border-red-500/20' :
-                            item.severity === 'medium' ? 'bg-orange-500/10 border border-orange-500/20' :
-                              'bg-yellow-500/10 border border-yellow-500/20'
-                            }`}>
-                            <item.icon className={`w-5 h-5 ${item.severity === 'high' ? 'text-red-400' :
-                              item.severity === 'medium' ? 'text-orange-400' :
-                                'text-yellow-400'
-                              }`} />
+                          >
+                            <div
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center group-hover/item:scale-110 transition-transform duration-200 ${
+                                item.severity === "high"
+                                  ? "bg-red-500/10 border border-red-500/20"
+                                  : item.severity === "medium"
+                                  ? "bg-orange-500/10 border border-orange-500/20"
+                                  : "bg-yellow-500/10 border border-yellow-500/20"
+                              }`}
+                            >
+                              <item.icon
+                                className={`w-5 h-5 ${
+                                  item.severity === "high"
+                                    ? "text-red-400"
+                                    : item.severity === "medium"
+                                    ? "text-orange-400"
+                                    : "text-yellow-400"
+                                }`}
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <div className="text-white/90 text-sm font-medium">
+                                {item.text}
+                              </div>
+                              <div className="text-white/50 text-xs">
+                                {item.description}
+                              </div>
+                            </div>
+                            <X className="w-4 h-4 text-red-400 flex-shrink-0" />
                           </div>
-                          <div className="flex-1">
-                            <div className="text-white/90 text-sm font-medium">{item.text}</div>
-                            <div className="text-white/50 text-xs">{item.description}</div>
-                          </div>
-                          <X className="w-4 h-4 text-red-400 flex-shrink-0" />
-                        </div>
-                      ))}
+                        )
+                      )}
                     </div>
 
                     {/* Enhanced Fade Overlays */}
@@ -489,11 +670,13 @@ const ValueProposition = () => {
               >
                 <div className="relative h-full bg-white/[0.02] backdrop-blur-sm border border-blue-500/20 rounded-3xl p-8 hover:bg-white/[0.04] hover:border-blue-500/30 transition-all duration-500 overflow-hidden">
                   {/* Subtle Gradient Orb Background */}
-                  <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full filter blur-[60px] opacity-20 group-hover:scale-110 transition-transform duration-500"
+                  <div
+                    className="absolute -top-20 -right-20 w-40 h-40 rounded-full filter blur-[60px] opacity-20 group-hover:scale-110 transition-transform duration-500"
                     style={{
-                      background: 'radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 70%)'
-                    }}>
-                  </div>
+                      background:
+                        "radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 70%)",
+                    }}
+                  ></div>
 
                   {/*Header */}
                   <div className="relative z-10 flex items-center mb-8">
@@ -504,10 +687,14 @@ const ValueProposition = () => {
                       <h3 className="text-2xl font-bold text-white mb-2">
                         Whizboard Solution
                       </h3>
-                      <p className="text-blue-400/80 text-sm font-medium">Modern, unified platform</p>
+                      <p className="text-blue-400/80 text-sm font-medium">
+                        Modern, unified platform
+                      </p>
                       <div className="flex items-center space-x-2 mt-2">
                         <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                        <span className="text-blue-400/80 text-xs font-medium">Streamlined workflow</span>
+                        <span className="text-blue-400/80 text-xs font-medium">
+                          Streamlined workflow
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -516,30 +703,49 @@ const ValueProposition = () => {
                   <div className="relative z-10 h-80 overflow-hidden">
                     <div className="scroll-content space-y-3 pb-4 animate-scroll-up">
                       {/* Duplicate items for seamless loop (original + clone) */}
-                      {[...whizboardItems, ...whizboardItems].map((item, index) => (
-                        <div
-                          key={index}
-                          className={`flex items-center space-x-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] transition-all duration-200 group/item ${item.benefit === 'high' ? 'border-emerald-500/20 hover:border-emerald-500/30' :
-                            item.benefit === 'medium' ? 'border-blue-500/20 hover:border-blue-500/30' :
-                              'border-cyan-500/20 hover:border-cyan-500/30'
+                      {[...whizboardItems, ...whizboardItems].map(
+                        (item, index) => (
+                          <div
+                            key={index}
+                            className={`flex items-center space-x-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] transition-all duration-200 group/item ${
+                              item.benefit === "high"
+                                ? "border-emerald-500/20 hover:border-emerald-500/30"
+                                : item.benefit === "medium"
+                                ? "border-blue-500/20 hover:border-blue-500/30"
+                                : "border-cyan-500/20 hover:border-cyan-500/30"
                             }`}
-                        >
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center group-hover/item:scale-110 transition-transform duration-200 ${item.benefit === 'high' ? 'bg-emerald-500/10 border border-emerald-500/20' :
-                            item.benefit === 'medium' ? 'bg-blue-500/10 border border-blue-500/20' :
-                              'bg-cyan-500/10 border border-cyan-500/20'
-                            }`}>
-                            <item.icon className={`w-5 h-5 ${item.benefit === 'high' ? 'text-emerald-400' :
-                              item.benefit === 'medium' ? 'text-blue-400' :
-                                'text-cyan-400'
-                              }`} />
+                          >
+                            <div
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center group-hover/item:scale-110 transition-transform duration-200 ${
+                                item.benefit === "high"
+                                  ? "bg-emerald-500/10 border border-emerald-500/20"
+                                  : item.benefit === "medium"
+                                  ? "bg-blue-500/10 border border-blue-500/20"
+                                  : "bg-cyan-500/10 border border-cyan-500/20"
+                              }`}
+                            >
+                              <item.icon
+                                className={`w-5 h-5 ${
+                                  item.benefit === "high"
+                                    ? "text-emerald-400"
+                                    : item.benefit === "medium"
+                                    ? "text-blue-400"
+                                    : "text-cyan-400"
+                                }`}
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <div className="text-white/90 text-sm font-medium">
+                                {item.text}
+                              </div>
+                              <div className="text-white/50 text-xs">
+                                {item.description}
+                              </div>
+                            </div>
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                           </div>
-                          <div className="flex-1">
-                            <div className="text-white/90 text-sm font-medium">{item.text}</div>
-                            <div className="text-white/50 text-xs">{item.description}</div>
-                          </div>
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                        </div>
-                      ))}
+                        )
+                      )}
                     </div>
 
                     {/* Enhanced Fade Overlays */}
@@ -569,14 +775,14 @@ const ValueProposition = () => {
             <SectionHeader
               badge={{
                 icon: Rocket,
-                text: "Complete Toolkit"
+                text: "Complete Toolkit",
               }}
               title="Everything You Need to Succeed"
               description="Professional-grade features designed for modern teams and workflows"
               useCases={[
                 "Rapidly iterate on designs and ideas",
                 "Simplify complex project planning",
-                "Facilitate engaging remote workshops"
+                "Facilitate engaging remote workshops",
               ]}
               disableAnimation={true}
             />
@@ -629,7 +835,7 @@ const ValueProposition = () => {
           >
             {/* Enhanced Dynamic Background with Emerald Gradients */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A0B]/90 via-emerald-600/30 to-[#0F0F10]/90 backdrop-blur-3xl rounded-[2rem]" />
-            
+
             {/* Enhanced Animated Background Elements with Emerald Glow */}
             <div className="absolute inset-0 overflow-hidden rounded-[2rem]">
               <motion.div
@@ -638,12 +844,12 @@ const ValueProposition = () => {
                   scale: [1, 1.25, 1],
                   rotate: [0, 180, 360],
                   x: [0, 40, 0],
-                  y: [0, -25, 0]
+                  y: [0, -25, 0],
                 }}
                 transition={{
                   duration: 18,
                   repeat: Infinity,
-                  ease: "easeInOut"
+                  ease: "easeInOut",
                 }}
               />
               <motion.div
@@ -652,12 +858,12 @@ const ValueProposition = () => {
                   scale: [1.15, 1, 1.15],
                   rotate: [360, 180, 0],
                   x: [0, -25, 0],
-                  y: [0, 35, 0]
+                  y: [0, 35, 0],
                 }}
                 transition={{
                   duration: 15,
                   repeat: Infinity,
-                  ease: "easeInOut"
+                  ease: "easeInOut",
                 }}
               />
             </div>
@@ -693,41 +899,43 @@ const ValueProposition = () => {
                   </motion.div>
 
                   <div className="flex flex-col items-center gap-2">
+                    {/* Title */}
+                    <motion.h3
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: 0.2 }}
+                      viewport={{ once: true }}
+                      className="flex flex-wrap justify-center items-center gap-3 text-4xl md:text-5xl lg:text-6xl font-light text-white leading-tight tracking-tight text-center"
+                    >
+                      <span>Get Started</span>
+                      <span className="bg-gradient-to-r from-emerald-400 to-emerald-500 bg-clip-text text-transparent">
+                        Free
+                      </span>
+                    </motion.h3>
 
-                  {/* Title */}
-                  <motion.h3
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                    viewport={{ once: true }}
-                    className="flex flex-wrap justify-center items-center gap-3 text-4xl md:text-5xl lg:text-6xl font-light text-white leading-tight tracking-tight text-center"
-                  >
-                    <span>Get Started</span>
-                    <span className="bg-gradient-to-r from-emerald-400 to-emerald-500 bg-clip-text text-transparent">Free</span>
-                  </motion.h3>
-
-                  {/* Description */}
-                  <motion.p
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.3 }}
-                    viewport={{ once: true }}
-                    className="text-white/60 text-base max-w-xl mx-auto font-light leading-relaxed text-center"
-                  >
-                    Create and collaborate for free during early access. No credit card required.
-                  </motion.p>
+                    {/* Description */}
+                    <motion.p
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: 0.3 }}
+                      viewport={{ once: true }}
+                      className="text-white/60 text-base max-w-xl mx-auto font-light leading-relaxed text-center"
+                    >
+                      Create and collaborate for free during early access. No
+                      credit card required.
+                    </motion.p>
                   </div>
                 </motion.div>
               </motion.div>
 
               {/* Minimal CTA with Whiteboard Comparison */}
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
-                  viewport={viewportOptions}
-                  transition={{ delay: 0.4, duration: 0.6 }}
-                  className="flex flex-col sm:flex-row gap-6 justify-center items-center"
-                >
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                viewport={viewportOptions}
+                transition={{ delay: 0.4, duration: 0.6 }}
+                className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+              >
                 <motion.button
                   className="bg-white text-black font-medium px-10 py-4 rounded-full transition-all duration-300 hover:bg-white/90"
                   whileHover={{ scale: 1.02 }}
