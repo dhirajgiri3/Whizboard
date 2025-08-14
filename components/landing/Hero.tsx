@@ -355,7 +355,7 @@ const Hero = () => {
                 animate={{ opacity: [0.8, 1, 0.8] }}
                 transition={{ duration: 4, repeat: Infinity }}
               >
-                Join 10,000+ teams
+                Join our early access
               </motion.span>
             </motion.div>
 
@@ -432,7 +432,7 @@ const Hero = () => {
                 className="group relative bg-white/[0.04] backdrop-blur-sm border border-white/[0.08] text-white px-6 py-4 sm:px-8 sm:py-4 rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 hover:bg-white/[0.08] hover:border-white/[0.15] w-full sm:w-auto min-w-[200px] min-h-[44px] flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black"
               >
                 <Play className="w-4 h-4 transition-transform group-hover:scale-110" />
-                <span>See 2-Min Demo</span>
+                <span>See demo</span>
               </motion.a>
             </motion.div>
 
@@ -447,9 +447,7 @@ const Hero = () => {
             >
               <div className="flex items-center gap-2">
                 <Star className="h-4 w-4 sm:h-5 sm:w-5 fill-white text-white drop-shadow-sm" />
-                <span className="font-medium">
-                  4.9/5 rating from 10K+ users
-                </span>
+                <span className="font-medium">Loved by early adopters</span>
               </div>
               <div className="hidden sm:block h-5 w-px bg-white/30" />
               <div className="flex items-center gap-2">
@@ -459,7 +457,7 @@ const Hero = () => {
               <div className="hidden sm:block h-5 w-px bg-white/30" />
               <div className="flex items-center gap-2">
                 <Zap className="h-4 w-4 sm:h-5 sm:w-5 drop-shadow-sm" />
-                <span className="font-medium">Setup in 30 seconds</span>
+                <span className="font-medium">Quick setup</span>
               </div>
             </motion.div>
           </motion.div>

@@ -56,89 +56,83 @@ const SocialProof = () => {
 
   const testimonials = [
     {
-      name: "Sarah Chen",
-      role: "Product Manager",
-      company: "TechFlow",
-      content:
-        "Whizboard transformed how our team collaborates. The intuitive interface and powerful features have increased our productivity by 40%.",
+      name: "Early User",
+      role: "Beta tester",
+      company: "",
+      content: "The interface is intuitive and collaboration feels smooth.",
       rating: 5,
-      metrics: "Increased productivity by 40%",
-      avatar: "/avatars/sarah.jpg",
+      metrics: "",
+      avatar: "",
     },
     {
-      name: "Marcus Rodriguez",
-      role: "Design Lead",
-      company: "CreativeStudio",
-      content:
-        "The real-time collaboration features are game-changing. Our design process has never been smoother or more efficient.",
+      name: "Design Lead",
+      role: "Early access",
+      company: "",
+      content: "Real-time features are easy to use and promising.",
       rating: 5,
-      metrics: "Streamlined design process",
-      avatar: "/avatars/marcus.jpg",
+      metrics: "",
+      avatar: "",
     },
     {
-      name: "Emily Watson",
-      role: "Engineering Manager",
-      company: "DevCorp",
-      content:
-        "Whizboard&apos;s integration capabilities saved us countless hours. It&apos;s become an essential part of our development workflow.",
+      name: "Engineering Manager",
+      role: "Pilot user",
+      company: "",
+      content: "Integrations are straightforward. Great start for a v1.",
       rating: 5,
-      metrics: "Saved countless hours",
-      avatar: "/avatars/emily.jpg",
+      metrics: "",
+      avatar: "",
     },
     {
-      name: "David Kim",
-      role: "Startup Founder",
-      company: "InnovateLab",
-      content:
-        "As a growing startup, Whizboard scales perfectly with our needs. The pricing is fair and the features are enterprise-grade.",
+      name: "Startup Founder",
+      role: "Pilot user",
+      company: "",
+      content: "Promising for growing teams. Looking forward to more.",
       rating: 5,
-      metrics: "Scalable for growth",
-      avatar: "/avatars/david.jpg",
+      metrics: "",
+      avatar: "",
     },
     {
-      name: "Lisa Thompson",
-      role: "Marketing Director",
-      company: "BrandForge",
-      content:
-        "The collaboration features give us visibility we never had before. Our team planning is now seamless and efficient.",
+      name: "Marketing Lead",
+      role: "Early access",
+      company: "",
+      content: "Helps plan sessions more clearly.",
       rating: 5,
-      metrics: "Data-driven campaign planning",
-      avatar: "/avatars/lisa.jpg",
+      metrics: "",
+      avatar: "",
     },
     {
-      name: "Alex Johnson",
-      role: "Operations Head",
-      company: "LogiFlow",
-      content:
-        "Whizboard streamlined our entire operations workflow. The automation features alone have saved us 20+ hours per week.",
+      name: "Operations Lead",
+      role: "Beta tester",
+      company: "",
+      content: "Clean UI and simple to adopt.",
       rating: 5,
-      metrics: "Saved 20+ hours/week",
-      avatar: "/avatars/alex.jpg",
+      metrics: "",
+      avatar: "",
     },
   ];
 
   const metrics = [
     {
-      value: "150K+",
-      label: "Active Users",
+      value: "Fast",
+      label: "Real-time collaboration",
       icon: "Users" as const,
       iconColor: "text-blue-400",
     },
     {
-      value: "99.9%",
-      label: "Uptime",
+      value: "Secure",
+      label: "Privacy-first",
       icon: "TrendingUp" as const,
       iconColor: "text-emerald-400",
     },
     {
-      value: "4.9/5",
-      label: "User Rating",
+      value: "Simple",
+      label: "Intuitive UI",
       icon: "Star" as const,
       iconColor: "text-yellow-400",
     },
     {
-      value: "<2min",
-      label: "Setup Time",
+      value: "No install",
+      label: "Start in browser",
       icon: "Clock" as const,
       iconColor: "text-blue-400",
     },
@@ -163,15 +157,15 @@ const SocialProof = () => {
 
   const trustBadges = [
     {
-      title: "SOC 2 Certified",
-      description: "Enterprise security standards",
+      title: "Best Practices",
+      description: "Secure by design",
       icon: "Shield" as const,
       gradient: "from-blue-500/20 to-cyan-500/20",
       iconColor: "text-blue-400",
       color: "border-blue-500/30",
     },
     {
-      title: "GDPR Compliant",
+      title: "Privacy Respect",
       description: "Data protection & privacy",
       icon: "CheckCircle" as const,
       gradient: "from-emerald-400/20 to-emerald-600/20",
@@ -179,16 +173,16 @@ const SocialProof = () => {
       color: "border-emerald-500/30",
     },
     {
-      title: "99.9% Uptime",
-      description: "Reliable & always available",
+      title: "Reliability",
+      description: "Built for uptime",
       icon: "TrendingUp" as const,
       gradient: "from-gray-500/20 to-blue-400/20",
       iconColor: "text-blue-400",
       color: "border-blue-500/30",
     },
     {
-      title: "24/7 Support",
-      description: "Expert help when you need it",
+      title: "Helpful Support",
+      description: "We respond during business hours",
       icon: "Heart" as const,
       gradient: "from-red-600/20 to-gray-500/20",
       iconColor: "text-red-600",
@@ -268,24 +262,24 @@ const SocialProof = () => {
               <SectionHeader
                 badge={{
                   icon: TrendingUp,
-                  text: "Trusted by Thousands",
+                  text: "Why teams try Whizboard",
                 }}
-                title="Numbers That Speak Volumes"
-                description="Join a thriving community of professionals who've transformed their workflow with Whizboard. Experience unparalleled productivity gains and see why teams across industries trust us to deliver exceptional results, day after day."
+                title="Built for collaborative teams"
+                description="We’re launching soon. Here’s what early users like about Whizboard."
                 stats={[
                   {
                     icon: Users,
-                    text: "150k+ active users",
+                    text: "Real-time collaboration",
                     color: "text-blue-400",
                   },
                   {
                     icon: Star,
-                    text: "4.9/5 rating",
+                    text: "Simple, clean UI",
                     color: "text-yellow-400",
                   },
                   {
                     icon: Award,
-                    text: "Industry leader",
+                    text: "Modern stack",
                     color: "text-emerald-400",
                   },
                 ]}
@@ -377,10 +371,9 @@ const SocialProof = () => {
                   </motion.h3>
 
                   {/* Description */}
-                  <motion.p variants={itemVariants} className="text-white/60 text-lg max-w-2xl mx-auto leading-relaxed text-center">
-                    Real feedback from real users who&apos;ve transformed their
-                    workflow with Whizboard.
-                  </motion.p>
+                      <motion.p variants={itemVariants} className="text-white/60 text-lg max-w-2xl mx-auto leading-relaxed text-center">
+                        Notes from early users trying Whizboard during beta.
+                      </motion.p>
                 </motion.div>
               </motion.div>
 

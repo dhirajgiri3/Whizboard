@@ -260,7 +260,7 @@ const RealtimeWhiteboard: React.FC = () => {
         
         const selectedTool = toolbarItems[index];
         if (selectedTool) {
-            if (index === 9) {
+            if (index === 10) {
                 setShowColorPicker(true);
                 setShowToolInstruction(false);
             } else {
@@ -292,16 +292,16 @@ const RealtimeWhiteboard: React.FC = () => {
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            const shortcuts = ["p", "c", "r", "t", "s", "n", "x", "h", "e", "o"];
+            const shortcuts = ["p", "c", "r", "t", "s", "n", "x", "i", "h", "e", "o"];
             const index = shortcuts.indexOf(e.key.toLowerCase());
             if (index !== -1) {
-                setActiveTool(index);
+                handleToolSelect(index);
             }
         };
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, []);
+    }, [handleToolSelect]);
 
     return (
           <div className="relative w-full max-w-7xl mx-auto px-2 sm:px-3 lg:px-4 xl:px-6 canvas-container" 

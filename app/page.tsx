@@ -7,6 +7,7 @@ import Pricing from "../components/landing/Pricing";
 import FAQ from "../components/landing/FAQ";
 import Footer from "../components/layout/footer/Footer";
 import SmoothScrollProvider from "../components/landing/SmoothScrollProvider";
+import Integrations from "../components/landing/Integrations";
 
 export const metadata: Metadata = {
   title: "Whizboard - Real-Time Collaborative Whiteboard for Modern Teams",
@@ -87,6 +88,7 @@ export default function HomePage() {
           <ValueProposition />
           <SocialProof />
           <Features />
+          <Integrations />
           <Pricing />
           <FAQ />
         </main>

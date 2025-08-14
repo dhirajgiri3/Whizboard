@@ -25,7 +25,7 @@ const FAQ = () => {
   const faqs = [
     {
       question: "Can multiple people edit simultaneously without conflicts?",
-      answer: "Yes! Advanced operational transformation ensures smooth collaboration with unlimited concurrent users and live cursor visibility. Our technology prevents conflicts and maintains data integrity even with dozens of simultaneous editors.",
+      answer: "Yes. Real-time sync and presence help teams collaborate smoothly with live cursors and updates.",
       category: "collaboration",
       icon: Users,
       iconColor: "text-blue-400",
@@ -41,7 +41,7 @@ const FAQ = () => {
     },
     {
       question: "How secure is our project data?",
-      answer: "Enterprise-grade security with SOC 2 compliance, end-to-end encryption, and secure cloud storage using financial-institution standards. Your data is protected with the same level of security used by banks.",
+      answer: "We follow security best practices, use trusted authentication, and handle data carefully. More compliance options are on our roadmap.",
       category: "security",
       icon: Shield,
       iconColor: "text-blue-400",
@@ -49,7 +49,7 @@ const FAQ = () => {
     },
     {
       question: "Integration with existing tools?",
-      answer: "Native integrations with Slack, Microsoft Teams, Google Workspace, plus powerful API for custom workflow integrations. Connect Whizboard to your existing tools seamlessly.",
+      answer: "Native integrations with Slack and Google Workspace are available. More integrations and APIs are on our roadmap.",
       category: "integrations",
       icon: Globe,
       iconColor: "text-blue-400",
@@ -57,7 +57,7 @@ const FAQ = () => {
     },
     {
       question: "What's the performance like with large teams?",
-      answer: "Lightning-fast performance with sub-50ms latency even with 100+ simultaneous users. Our optimized architecture scales effortlessly to handle enterprise teams.",
+      answer: "Optimized for smooth real-time collaboration. Performance may vary based on network and board complexity.",
       category: "performance",
       icon: Zap,
       iconColor: "text-blue-400",
@@ -81,7 +81,7 @@ const FAQ = () => {
     },
     {
       question: "What happens if I lose my internet connection?",
-      answer: "Offline mode allows you to continue working, and changes sync automatically when you reconnect. Never lose your work due to connectivity issues.",
+      answer: "Work requires a connection today. Offline support is planned for a future release.",
       category: "offline",
       icon: Zap,
       iconColor: "text-blue-400",
@@ -97,7 +97,7 @@ const FAQ = () => {
     },
     {
       question: "How do I get support?",
-      answer: "Free plans include email support, while Pro and Enterprise plans include priority support, dedicated success managers, and training sessions.",
+      answer: "Email support during business hours for free plans. Priority and dedicated support will be available with paid plans as they launch.",
       category: "support",
       icon: HelpCircle,
       iconColor: "text-blue-400",
@@ -253,7 +253,7 @@ const FAQ = () => {
               placeholder="Search frequently asked questions..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/30 transition-all duration-300 backdrop-blur-sm hover:bg-white/[0.05] hover:border-white/[0.12]"
+              className="w-full pl-12 pr-4 py-4 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all duration-300 backdrop-blur-sm hover:bg-white/[0.05] hover:border-white/[0.12]"
               aria-label="Search FAQ questions"
             />
           </motion.div>
@@ -264,7 +264,7 @@ const FAQ = () => {
               <button
                 key={category.value}
                 onClick={() => setActiveCategory(category.value)}
-                className={`px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-black ${
+                className={`px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black ${
                   activeCategory === category.value
                     ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25 border border-blue-500/30'
                     : 'bg-white/[0.03] text-white/70 hover:bg-white/[0.08] hover:text-white border border-white/[0.08] hover:border-white/[0.15]'
@@ -305,7 +305,7 @@ const FAQ = () => {
                 <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl overflow-hidden hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-500 group-hover:scale-[1.01]">
                   <button
                     onClick={() => toggleItem(index)}
-                    className="w-full px-6 sm:px-8 py-4 sm:py-6 text-left flex items-center justify-between group-hover:bg-white/[0.02] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-black"
+                    className="w-full px-6 sm:px-8 py-4 sm:py-6 text-left flex items-center justify-between group-hover:bg-white/[0.02] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black"
                     aria-expanded={openItems.includes(index)}
                     aria-controls={`faq-answer-${index}`}
                   >
@@ -396,7 +396,7 @@ const FAQ = () => {
                       setSearchQuery('');
                       setActiveCategory('all');
                     }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 border border-blue-500/30 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-black"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 border border-blue-500/30 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black"
                   >
                     Clear Filters
                   </button>

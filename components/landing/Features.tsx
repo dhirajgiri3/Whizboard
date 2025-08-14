@@ -47,8 +47,8 @@ const Features = () => {
         "Eraser with precision control",
         "Undo/redo with unlimited history"
       ],
-      demo: "https://example.com/drawing-demo",
-      stats: { users: "50k+", rating: "4.9", time: "2x faster" }
+      demo: "#",
+      stats: { users: "—", rating: "—", time: "—" }
     },
     {
       id: 1,
@@ -65,8 +65,8 @@ const Features = () => {
         "Real-time notifications and presence indicators",
         "Role-based permissions and access control"
       ],
-      demo: "https://example.com/collaboration-demo",
-      stats: { users: "25k+", rating: "4.8", time: "Real-time" }
+      demo: "#",
+      stats: { users: "—", rating: "—", time: "Real-time" }
     },
     {
       id: 2,
@@ -83,8 +83,8 @@ const Features = () => {
         "Auto-save with version history",
         "Grid and snap-to-grid functionality"
       ],
-      demo: "https://example.com/canvas-demo",
-      stats: { users: "30k+", rating: "4.7", time: "Unlimited" }
+      demo: "#",
+      stats: { users: "—", rating: "—", time: "Unlimited" }
     },
     {
       id: 3,
@@ -101,8 +101,8 @@ const Features = () => {
         "Touch gestures for tablets and phones",
         "Offline mode with sync when reconnected"
       ],
-      demo: "https://example.com/platform-demo",
-      stats: { users: "40k+", rating: "4.9", time: "Any device" }
+      demo: "#",
+      stats: { users: "—", rating: "—", time: "Any device" }
     },
     {
       id: 4,
@@ -113,14 +113,14 @@ const Features = () => {
       gradient: "from-blue-600/20 to-blue-500/20",
       accent: "blue",
       details: [
-        "SOC 2 Type II compliance",
-        "End-to-end encryption",
+        "Secure authentication",
+        "Data handling best practices",
         "Google OAuth integration",
         "Role-based access control",
         "Audit logs and activity tracking"
       ],
-      demo: "https://example.com/security-demo",
-      stats: { users: "15k+", rating: "4.9", time: "99.9% uptime" }
+      demo: "#",
+      stats: { users: "—", rating: "—", time: "High availability" }
     }
   ];
 
@@ -214,10 +214,10 @@ const Features = () => {
           }}
           title="Complete Professional Toolkit"
           description="Everything you need to create, collaborate, and bring your ideas to life"
-          stats={[
-            { icon: Users, text: "150k+ users worldwide", color: "text-blue-400" },
-            { icon: Star, text: "4.9/5 rating", color: "text-yellow-400" },
-            { icon: Award, text: "Enterprise ready", color: "text-emerald-400" }
+           stats={[
+            { icon: Users, text: "Real-time collaboration", color: "text-blue-400" },
+            { icon: Star, text: "Simple, clean UI", color: "text-yellow-400" },
+            { icon: Award, text: "Modern stack", color: "text-emerald-400" }
           ]}
           disableAnimation={true}
         />
@@ -524,12 +524,12 @@ const Features = () => {
             whileHover={hoverLift}
             className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] backdrop-blur-sm hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300 flex flex-col space-y-3"
           >
-            <div className="text-2xl font-semibold text-white">5.2k</div>
-            <div className="text-white/60 text-sm">Active Users</div>
-            <div className="flex items-center text-emerald-400 text-xs">
-              <TrendingUp className="w-3 h-3 mr-1" />
-              +12% from last month
-            </div>
+             <div className="text-2xl font-semibold text-white">Fast</div>
+             <div className="text-white/60 text-sm">Real-time collaboration</div>
+             <div className="flex items-center text-emerald-400 text-xs">
+               <TrendingUp className="w-3 h-3 mr-1" />
+               Built for teams
+             </div>
           </motion.div>
 
           <motion.div
@@ -537,12 +537,12 @@ const Features = () => {
             whileHover={hoverLift}
             className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] backdrop-blur-sm hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300 flex flex-col space-y-3"
           >
-            <div className="text-2xl font-semibold text-white">99.9%</div>
-            <div className="text-white/60 text-sm">Uptime</div>
-            <div className="flex items-center text-emerald-400 text-xs">
-              <CheckCircle className="w-3 h-3 mr-1" />
-              Enterprise reliability
-            </div>
+             <div className="text-2xl font-semibold text-white">Secure</div>
+             <div className="text-white/60 text-sm">Privacy-first</div>
+             <div className="flex items-center text-emerald-400 text-xs">
+               <CheckCircle className="w-3 h-3 mr-1" />
+               Thoughtful defaults
+             </div>
           </motion.div>
 
           <motion.div
@@ -550,12 +550,12 @@ const Features = () => {
             whileHover={hoverLift}
             className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] backdrop-blur-sm hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300 flex flex-col space-y-3"
           >
-            <div className="text-2xl font-semibold text-white">24/7</div>
-            <div className="text-white/60 text-sm">Support</div>
-            <div className="flex items-center text-blue-400 text-xs">
-              <Users className="w-3 h-3 mr-1" />
-              Expert assistance
-            </div>
+             <div className="text-2xl font-semibold text-white">Helpful</div>
+             <div className="text-white/60 text-sm">Support</div>
+             <div className="flex items-center text-blue-400 text-xs">
+               <Users className="w-3 h-3 mr-1" />
+               Business hours
+             </div>
           </motion.div>
         </motion.div>
       </div>

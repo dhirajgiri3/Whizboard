@@ -151,27 +151,27 @@ const ValueProposition = () => {
     {
       icon: Target,
       title: "Precision Drawing",
-      description: "Professional-grade drawing tools with pixel-perfect accuracy for detailed designs and technical diagrams. Boost design accuracy by 30% and reduce revision cycles.",
-      metric: "99.9% Accuracy",
-      stats: "50k+ drawings daily",
+      description: "Professional drawing tools with accurate controls for detailed designs and diagrams.",
+      metric: "Accurate controls",
+      stats: "Easy to iterate",
       iconColor: "text-blue-400",
       gradient: "from-blue-600/10 to-blue-400/5"
     },
     {
       icon: Users,
       title: "Real-time Collaboration",
-      description: "Work together seamlessly with live cursors, instant updates, and team presence indicators. Improve team productivity by 40% and decision-making speed.",
-      metric: "<50ms Latency",
-      stats: "150k+ active users",
+      description: "Work together with live cursors, instant updates, and team presence indicators.",
+      metric: "Live cursors",
+      stats: "Instant sync",
       iconColor: "text-emerald-400",
       gradient: "from-emerald-600/10 to-emerald-400/5"
     },
     {
       icon: Zap,
       title: "Lightning Fast Performance",
-      description: "Optimized performance ensures smooth drawing even with complex diagrams and large teams. Experience 2x faster loading and zero lag.",
-      metric: "60fps Rendering",
-      stats: "2x faster loading",
+      description: "Optimized performance for smooth drawing, even with complex boards.",
+      metric: "Smooth rendering",
+      stats: "Fast loading",
       iconColor: "text-amber-400",
       gradient: "from-amber-600/10 to-amber-400/5"
     }
@@ -187,8 +187,8 @@ const ValueProposition = () => {
     {
       icon: Lock,
       title: "Bank-Level Security",
-      description: "End-to-end encryption, secure cloud storage, and enterprise compliance standards.",
-      highlight: "256-bit Encryption"
+      description: "Secure authentication and data handling with sensible defaults.",
+      highlight: "Secure by design"
     },
     {
       icon: Target,
@@ -685,7 +685,7 @@ const ValueProposition = () => {
                   >
                     <Zap className="h-3.5 w-3.5 text-emerald-400/80 group-hover:text-emerald-400 transition-colors duration-200" />
                     <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
-                      Limited Time Offer
+                      Early Access
                     </span>
                   </motion.div>
 
@@ -699,10 +699,8 @@ const ValueProposition = () => {
                     viewport={{ once: true }}
                     className="flex flex-wrap justify-center items-center gap-3 text-4xl md:text-5xl lg:text-6xl font-light text-white leading-tight tracking-tight text-center"
                   >
-                    <span>Get 10 Whiteboards</span>
-                    <span className="bg-gradient-to-r from-emerald-400 to-emerald-500 bg-clip-text text-transparent">
-                      Absolutely Free
-                    </span>
+                    <span>Get Started</span>
+                    <span className="bg-gradient-to-r from-emerald-400 to-emerald-500 bg-clip-text text-transparent">Free</span>
                   </motion.h3>
 
                   {/* Description */}
@@ -713,8 +711,7 @@ const ValueProposition = () => {
                     viewport={{ once: true }}
                     className="text-white/60 text-base max-w-xl mx-auto font-light leading-relaxed text-center"
                   >
-                    Normally, new users get only 3 free whiteboards. But for a limited time, 
-                    we're giving you 10 whiteboards to explore everything Whizboard has to offer.
+                    Create and collaborate for free during early access. No credit card required.
                   </motion.p>
                   </div>
                 </motion.div>
@@ -739,17 +736,10 @@ const ValueProposition = () => {
                   </span>
                 </motion.button>
 
-                {/* Whiteboard Comparison - Positioned on the right */}
-                <div className="flex items-center gap-4 text-white/60 text-sm">
-                  <div className="text-center">
-                    <div className="text-white/40 line-through">3 Whiteboards</div>
-                    <div className="text-white/60 text-xs">Usually</div>
-                  </div>
+                {/* Supportive note */}
+                <div className="flex items-center gap-2 text-white/60 text-sm">
                   <ArrowRight className="w-4 h-4 text-emerald-400" />
-                  <div className="text-center">
-                    <div className="text-white font-medium">10 Whiteboards</div>
-                    <div className="text-emerald-400 text-xs font-medium">Limited Time</div>
-                  </div>
+                  <span>No credit card required</span>
                 </div>
               </motion.div>
 

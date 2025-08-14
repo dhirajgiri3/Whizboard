@@ -34,11 +34,11 @@ const Pricing = () => {
   const plans = [
     {
       name: "Free",
-      description: "Great for individuals and small teams",
-      price: { monthly: 1, yearly: 0 },
+      description: "Create and collaborate on up to 5 whiteboards. Limited-time offer.",
+      price: { monthly: 0, yearly: 0 },
       originalPrice: { monthly: 0, yearly: 0 },
       features: [
-        "3 collaborative boards",
+        "Up to 5 whiteboards",
         "Real-time drawing and collaboration tools",
         "Basic shapes and text elements",
         "Sticky notes and frames",
@@ -61,7 +61,7 @@ const Pricing = () => {
     },
     {
       name: "Pro",
-      description: "Ideal for growing teams and professionals",
+      description: "Advanced features for teams — subscriptions coming soon",
       price: { monthly: 12, yearly: 10 },
       originalPrice: { monthly: 15, yearly: 12 },
       features: [
@@ -77,15 +77,16 @@ const Pricing = () => {
         "Advanced security & compliance",
         "Presentation & whiteboarding mode",
       ],
-      cta: "Start Free Trial",
-      href: "/login",
-      popular: true,
+      cta: "Coming Soon",
+      href: "#",
+      popular: false,
       icon: Crown,
       iconColor: "text-blue-400",
-      badge: "Most Popular",
-      badgeColor: "bg-blue-500/10 text-blue-400",
-      savings: { monthly: 3, yearly: 24 },
-      highlight: true,
+      badge: "Coming Soon",
+      badgeColor: "bg-orange-500/10 text-orange-400",
+      savings: null,
+      highlight: false,
+      comingSoon: true,
     },
     {
       name: "Enterprise",
@@ -98,7 +99,7 @@ const Pricing = () => {
         "Dedicated customer success manager",
         "Custom integrations & API access",
         "Unlimited team members & boards",
-        "Advanced compliance features (SOC2, GDPR)",
+        "Compliance features (SOC2, GDPR)",
         "Custom contract terms & SLA guarantees",
         "On-premise deployment options",
         "Advanced role-based permissions",
@@ -271,12 +272,12 @@ const Pricing = () => {
               icon: Rocket,
               text: "Pricing",
             }}
-            title="Choose Your Perfect Plan"
-            description="Start free and scale as you grow. No hidden fees, no surprises. Cancel anytime with our 30-day money-back guarantee."
+            title="Subscriptions Coming Soon"
+            description="For now, create and collaborate on up to 5 whiteboards for free — limited offer."
             stats={[
               {
                 icon: Shield,
-                text: "30-day money back",
+                text: "No credit card required",
                 color: "text-emerald-400",
               },
               { icon: Zap, text: "Instant activation", color: "text-blue-400" },
@@ -292,79 +293,20 @@ const Pricing = () => {
           transition={{ delay: 0.12, duration: prefersReducedMotion ? 0 : 0.5 }}
           className="flex flex-col items-center gap-6 mb-16"
         >
-          {/* Savings Banner */}
+          {/* Informational Banner */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="relative overflow-hidden bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-emerald-500/10 border border-emerald-500/20 rounded-xl px-6 py-3 backdrop-blur-sm"
+            className="relative overflow-hidden bg-gradient-to-r from-blue-500/10 via-emerald-500/10 to-blue-500/10 border border-white/10 rounded-xl px-6 py-4 backdrop-blur-sm"
           >
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-blue-500/5 to-emerald-500/5"
-              animate={{
-                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-            <div className="relative flex items-center justify-center">
-              <span className="text-emerald-400 font-medium text-sm">
-                Save up to 17% with yearly billing
+            <div className="relative flex items-center justify-center gap-2">
+              <Clock className="h-4 w-4 text-orange-400" />
+              <span className="text-white/80 text-sm">
+                Subscriptions are coming soon. For now, create and work with up to 5 whiteboards for free — limited offer.
               </span>
             </div>
           </motion.div>
-
-          {/* Toggle Controls */}
-          <div className="flex items-center justify-center gap-4">
-            <button
-              onClick={() => setBillingCycle("monthly")}
-              className={`text-sm font-medium transition-all duration-300 px-4 py-2 rounded-lg ${
-                billingCycle === "monthly"
-                  ? "text-white bg-white/5 border border-white/10"
-                  : "text-white/60 hover:text-white/80"
-              }`}
-            >
-              Monthly
-            </button>
-
-            <div className="relative">
-              <label className="switch">
-                <input
-                  type="checkbox"
-                  checked={billingCycle === "yearly"}
-                  onChange={() =>
-                    setBillingCycle(
-                      billingCycle === "monthly" ? "yearly" : "monthly"
-                    )
-                  }
-                />
-                <span className="slider"></span>
-              </label>
-            </div>
-
-            <button
-              onClick={() => setBillingCycle("yearly")}
-              className={`flex items-center gap-2 text-sm font-medium transition-all duration-300 px-4 py-2 rounded-lg ${
-                billingCycle === "yearly"
-                  ? "text-white bg-white/5 border border-white/10"
-                  : "text-white/60 hover:text-white/80"
-              }`}
-            >
-              <span>Yearly</span>
-              <motion.span
-                className="text-xs text-emerald-400 font-medium bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20"
-                initial={{ scale: 0.9, opacity: 0.8 }}
-                animate={{ scale: 1, opacity: 1 }}
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
-              >
-                Save 17%
-              </motion.span>
-            </button>
-          </div>
         </motion.div>
 
         {/* Pricing Cards Section */}
@@ -446,7 +388,13 @@ const Pricing = () => {
                   </div>
 
                   {/* Pricing */}
-                  {plan.price[billingCycle] !== null ? (
+                  {plan.comingSoon ? (
+                    <div className="text-center mb-8">
+                      <span className="text-sm text-orange-400 bg-orange-400/10 px-3 py-1 rounded-full inline-block border border-orange-400/20">
+                        Coming Soon
+                      </span>
+                    </div>
+                  ) : plan.price[billingCycle] !== null ? (
                     <div className="text-center mb-8">
                       <div className="flex items-baseline justify-center gap-2 mb-3">
                         {plan.originalPrice[billingCycle] !== null &&
@@ -487,33 +435,6 @@ const Pricing = () => {
                             Save ${plan.savings[billingCycle]}/user/year
                           </motion.div>
                         )}
-
-                      {plan.popular && (
-                        <motion.div
-                          className="text-sm text-orange-400 bg-orange-400/10 px-3 py-1 rounded-full inline-block border border-orange-400/20 mt-2"
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.4, duration: 0.3 }}
-                        >
-                          ⚡ Limited Time: Free Pro Trial
-                        </motion.div>
-                      )}
-
-                      {billingCycle === "yearly" &&
-                        plan.price.monthly &&
-                        plan.price.monthly > 0 &&
-                        plan.price.yearly > 0 && (
-                          <div className="text-sm text-white/60 mt-2">
-                            Billed annually (${plan.price.yearly * 12}
-                            /user/year)
-                          </div>
-                        )}
-                      {billingCycle === "yearly" &&
-                        plan.price.yearly === 0 && (
-                          <div className="text-sm text-white/60 mt-2">
-                            No credit card required
-                          </div>
-                        )}
                     </div>
                   ) : (
                     <div className="text-center mb-8">
@@ -528,19 +449,22 @@ const Pricing = () => {
 
                   {/* CTA Button */}
                   <motion.a
-                    href={plan.href}
+                    href={plan.comingSoon ? "#" : plan.href}
+                    aria-disabled={plan.comingSoon}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className={`group/btn block w-full text-center py-3 px-6 rounded-lg font-medium transition-all duration-300 mb-8 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black ${
                       plan.popular
                         ? "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white border border-blue-500/30 shadow-lg shadow-blue-500/10 focus:ring-blue-500/50"
                         : "bg-white/[0.04] border border-white/[0.08] text-white/90 hover:bg-white/[0.08] hover:border-white/[0.12] hover:text-white backdrop-blur-sm focus:ring-white/20"
-                    }`}
+                    } ${plan.comingSoon ? "opacity-60 cursor-not-allowed pointer-events-none" : ""}`}
                   >
                     <span className="flex items-center justify-center gap-2">
                       <span>
-                        {plan.name === "Free"
-                          ? "Get Started → No Credit Card"
+                        {plan.comingSoon
+                          ? "Coming Soon"
+                          : plan.name === "Free"
+                          ? "Get Started — No Credit Card"
                           : plan.name === "Pro"
                           ? "Start Free Trial"
                           : "Contact Sales Team"}
@@ -615,8 +539,8 @@ const Pricing = () => {
                   icon: Shield,
                   text: "Enterprise Ready",
                 }}
-                title="Enterprise Grade Security & Compliance"
-                description="Built for teams that need advanced security, compliance, and dedicated support. Trusted by Fortune 500 companies worldwide."
+             title="Enterprise Security & Compliance"
+             description="Built for teams that need advanced security, compliance, and dedicated support."
                 disableAnimation={true}
               />
             </motion.div>
@@ -749,7 +673,7 @@ const Pricing = () => {
                 >
                   <div className="flex items-center gap-1.5 group hover:text-white/80 transition-colors duration-200">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform duration-200" />
-                    <span>30-day money back</span>
+                    <span>No credit card required</span>
                   </div>
                   <div className="flex items-center gap-1.5 group hover:text-white/80 transition-colors duration-200">
                     <Shield className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform duration-200" />
