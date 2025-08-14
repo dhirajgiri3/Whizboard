@@ -43,11 +43,11 @@ const Features = () => {
       gradient: "from-blue-600/20 to-blue-500/20",
       accent: "blue",
       details: [
-        "Professional pen tools with customizable options",
-        "Highlighter and marker tools",
-        "Adjustable brush sizes and styles",
+        "Professional pen tools with pressure sensitivity",
+        "Highlighter and marker options",
+        "Customizable brush sizes and styles",
         "Eraser with precision control",
-        "Undo/redo functionality"
+        "Undo/redo with unlimited history"
       ],
       demo: "#",
       stats: { users: "—", rating: "—", time: "—" }
@@ -79,10 +79,10 @@ const Features = () => {
       gradient: "from-blue-600/20 to-blue-500/20",
       accent: "blue",
       details: [
-        "Smooth zoom and pan capabilities",
+        "Infinite zoom and pan capabilities",
         "Layer management and organization",
-        "Presentation mode for meetings",
-        "Auto-save functionality",
+        "Presentation mode for client meetings",
+        "Auto-save with version history",
         "Grid and snap-to-grid functionality"
       ],
       demo: "#",

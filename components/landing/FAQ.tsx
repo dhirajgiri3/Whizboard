@@ -61,15 +61,15 @@ const FAQ = () => {
       category: "performance",
       icon: Zap,
       iconColor: "text-blue-400",
-      highlight: "Optimized performance"
+      highlight: "Sub-50ms latency"
     },
     {
       question: "Can I export my work to other formats?",
-      answer: "Yes! Export to PNG format. Advanced export options and custom branding will be available with Pro plans.",
+      answer: "Yes! Export to PNG, SVG, PDF, and more. Pro plans include advanced export options and custom branding capabilities.",
       category: "export",
       icon: Globe,
       iconColor: "text-blue-400",
-      highlight: "PNG export"
+      highlight: "Multiple formats"
     },
     {
       question: "Is there a mobile app?",

@@ -274,7 +274,7 @@ const Integrations = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                   <Bullet>Post updates to channels with one click</Bullet>
-                  <Bullet>Share PNG exports directly to Slack</Bullet>
+                  <Bullet>Share exports (PNG, PDF, JSON) directly to Slack</Bullet>
                   <Bullet>Use simple slash commands for quick actions</Bullet>
                   <Bullet>Auto-join channels when needed to deliver messages</Bullet>
                 </div>

@@ -402,7 +402,7 @@ const Hero = () => {
                 transition={{ delay: 0.25 }}
                 className="max-w-lg md:max-w-xl text-sm sm:text-base lg:text-lg text-white/80 leading-[1.6] font-light px-4 sm:px-0"
               >
-                Create, collaborate, and bring your ideas to life with an
+                Create, collaborate, and bring your ideas to life with the most
                 intuitive whiteboard experience. From concept to completion, all
                 in real-time.
               </motion.p>
