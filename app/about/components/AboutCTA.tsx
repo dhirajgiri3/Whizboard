@@ -204,7 +204,7 @@ const AboutCTA = () => {
                   theme="about"
                   className="px-12 py-5 rounded-full"
                 >
-                  {LANDING_CONTENT.ctaButtons.free}
+                  {LANDING_CONTENT.ctaButtons.about}
                 </CTAButton>
               </motion.div>
 
@@ -220,7 +220,7 @@ const AboutCTA = () => {
                   theme="about"
                   className="px-12 py-5"
                 >
-                  {LANDING_CONTENT.ctaButtons.secondary}
+                  {LANDING_CONTENT.ctaButtons.seeDemo}
                 </CTAButton>
               </motion.div>
             </motion.div>

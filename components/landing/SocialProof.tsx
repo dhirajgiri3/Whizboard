@@ -414,9 +414,9 @@ const SocialProof = () => {
                           </div>
 
                           {/* Enhanced floating particles effect */}
-                          <div className="absolute top-4 right-4 w-1 h-1 bg-blue-400/50 rounded-full opacity-0 group-hover/card:opacity-100 transition-opacity duration-1000 animate-pulse"></div>
+                          <div className="absolute top-4 right-4 w-1 h-1 bg-blue-400/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 animate-pulse"></div>
                           <div
-                            className="absolute bottom-4 left-4 w-0.5 h-0.5 bg-purple-400/50 rounded-full opacity-0 group-hover/card:opacity-100 transition-opacity duration-1200 animate-pulse"
+                            className="absolute bottom-4 left-4 w-0.5 h-0.5 bg-purple-400/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1200 animate-pulse"
                             style={{ animationDelay: "0.5s" }}
                           ></div>
                         </motion.div>
@@ -731,7 +731,7 @@ const SocialProof = () => {
                     theme="social-proof"
                     className="px-12 py-5 rounded-full"
                   >
-                    {LANDING_CONTENT.ctaButtons.free}
+                    {LANDING_CONTENT.ctaButtons.social}
                   </CTAButton>
 
                   <CTAButton
@@ -742,7 +742,7 @@ const SocialProof = () => {
                     theme="social-proof"
                     className="px-12 py-5"
                   >
-                    {LANDING_CONTENT.ctaButtons.secondary}
+                    {LANDING_CONTENT.ctaButtons.seeDemo}
                   </CTAButton>
                 </motion.div>
 

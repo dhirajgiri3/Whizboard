@@ -431,19 +431,6 @@ const FAQ = () => {
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </motion.div>
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Link
-                    href="/help"
-                    className="group inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white/[0.08] border border-white/[0.12] text-white rounded-lg font-medium hover:bg-white/[0.12] hover:border-white/[0.16] transition-all duration-300 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black"
-                  >
-                    <BookOpen className="w-4 h-4" />
-                    Browse Documentation
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </Link>
-                </motion.div>
               </div>
             </div>
           </div>

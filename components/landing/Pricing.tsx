@@ -158,7 +158,7 @@ const Pricing = () => {
   return (
     <section
       ref={ref}
-      className="relative py-16 sm:py-20 lg:py-24 overflow-hidden"
+      className="relative pt-16 sm:pt-20 pb-8 overflow-hidden"
       style={{
         background:
           "linear-gradient(135deg, #0A0A0B 0%, #0F0F10 25%, #141416 50%, #1A1A1C 75%, #0A0A0B 100%)",
@@ -236,7 +236,7 @@ const Pricing = () => {
         {/* Header Section */}
         <motion.div
           variants={itemVariants}
-          className="text-center mb-16"
+          className="text-center mb-8"
         >
           <SectionHeader
             badge={{
@@ -283,7 +283,7 @@ const Pricing = () => {
         {/* Pricing Cards Section */}
         <motion.div
           variants={containerVariants}
-          className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-20"
+          className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16"
         >
           {plans.map((plan, index) => (
             <motion.div
@@ -520,7 +520,7 @@ const Pricing = () => {
             <motion.div
               variants={itemVariants}
               transition={{ delay: 0.4, duration: prefersReducedMotion ? 0 : 0.5 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6"
             >
               {enterpriseFeatures.map((feature, index) => (
                 <motion.div
@@ -618,7 +618,7 @@ const Pricing = () => {
                     theme="pricing"
                     className="w-full sm:w-auto px-10 py-4 rounded-lg"
                   >
-                    {LANDING_CONTENT.ctaButtons.free}
+                    {LANDING_CONTENT.ctaButtons.pricing}
                   </CTAButton>
 
                   <CTAButton
@@ -629,7 +629,7 @@ const Pricing = () => {
                     theme="pricing"
                     className="w-full sm:w-auto px-10 py-4 rounded-lg"
                   >
-                    {LANDING_CONTENT.ctaButtons.secondary}
+                    {LANDING_CONTENT.ctaButtons.seeDemo}
                   </CTAButton>
                 </motion.div>
 

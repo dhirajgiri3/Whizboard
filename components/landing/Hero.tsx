@@ -430,7 +430,7 @@ const Hero = () => {
                 theme="hero"
                 className="w-full sm:w-auto min-w-[220px] min-h-[48px]"
               >
-                {LANDING_CONTENT.ctaButtons.primary}
+                {LANDING_CONTENT.ctaButtons.hero}
               </CTAButton>
 
               <CTAButton
@@ -441,7 +441,7 @@ const Hero = () => {
                 theme="hero"
                 className="w-full sm:w-auto min-w-[220px] min-h-[48px]"
               >
-                {LANDING_CONTENT.ctaButtons.secondary}
+                {LANDING_CONTENT.ctaButtons.seeDemo}
               </CTAButton>
             </motion.div>
 

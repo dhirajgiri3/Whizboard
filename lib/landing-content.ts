@@ -41,6 +41,39 @@ export const LANDING_CONTENT = {
     secondary: "Watch 3-Min Demo", 
     free: "Start Building Free",
     claim: "Claim 5 Free Whiteboards",
+    // New contextual CTAs
+    hero: "Start Creating Now",
+    features: "Try Drawing Tools",
+    collaboration: "Start Collaborating",
+    pricing: "Begin Free Trial",
+    social: "Join Early Access",
+    about: "Explore Whizboard",
+    integrations: "Connect Your Tools",
+    valueProp: "Transform Your Workflow",
+    // Alternative CTAs
+    explore: "Explore Features",
+    learn: "Learn More",
+    seeDemo: "See It in Action",
+    tryFree: "Try for Free",
+    getAccess: "Get Early Access",
+    startTrial: "Start Free Trial",
+    contactSales: "Talk to Sales",
+    viewPricing: "View Pricing",
+    // Context-specific CTAs
+    forTeams: "For Teams",
+    forDesigners: "For Designers",
+    forDevelopers: "For Developers",
+    forProduct: "For Product Teams",
+    enterprise: "Enterprise",
+    // Action-oriented CTAs
+    createBoard: "Create Your First Board",
+    inviteTeam: "Invite Your Team",
+    uploadDesign: "Upload Your Design",
+    exportWork: "Export Your Work",
+    // Urgency CTAs
+    limitedTime: "Limited Time Offer",
+    earlyBird: "Early Bird Access",
+    betaAccess: "Join Beta",
   },
 
   // Feature descriptions - unique for each context

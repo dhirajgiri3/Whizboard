@@ -879,7 +879,7 @@ const ValueProposition = () => {
                   theme="value-prop"
                   className="px-12 py-5 rounded-full"
                 >
-                  {LANDING_CONTENT.ctaButtons.claim}
+                  {LANDING_CONTENT.ctaButtons.valueProp}
                 </CTAButton>
 
                 {/* Supportive note */}
@@ -897,6 +897,7 @@ const ValueProposition = () => {
                 transition={{ delay: 0.5, duration: 0.6 }}
                 className="flex justify-center"
               >
+
                 <CTAButton
                   variant="ghost"
                   size="lg"
@@ -905,7 +906,7 @@ const ValueProposition = () => {
                   theme="value-prop"
                   className="px-12"
                 >
-                  {LANDING_CONTENT.ctaButtons.secondary}
+                  {LANDING_CONTENT.ctaButtons.seeDemo}
                 </CTAButton>
               </motion.div>
 

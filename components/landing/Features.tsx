@@ -358,7 +358,27 @@ const Features = () => {
                   theme="features"
                   className="inline-flex items-center space-x-2 self-start mt-4"
                 >
-                  {LANDING_CONTENT.ctaButtons.secondary}
+                  {LANDING_CONTENT.ctaButtons.features}
+                </CTAButton>
+
+                <CTAButton
+                  href="/login"
+                  variant="primary"
+                  size="sm"
+                  theme="features"
+                  className="inline-flex items-center space-x-2 self-start mt-3"
+                >
+                  {LANDING_CONTENT.ctaButtons.createBoard}
+                </CTAButton>
+
+                <CTAButton
+                  href="/login"
+                  variant="ghost"
+                  size="sm"
+                  theme="features"
+                  className="inline-flex items-center space-x-2 self-start mt-2"
+                >
+                  {LANDING_CONTENT.ctaButtons.forDesigners}
                 </CTAButton>
               </div>
             </motion.div>

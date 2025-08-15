@@ -17,6 +17,7 @@ import {
   Link2,
 } from "lucide-react";
 import SectionHeader from "@/components/ui/header/SectionHeader";
+import { LANDING_CONTENT } from "@/lib/landing-content";
 
 const easeCubic: Easing = [0.4, 0, 0.2, 1];
 
@@ -313,11 +314,11 @@ const Integrations = () => {
                   <CTA href="/login" ariaLabel="Connect Slack">
                     <span className="inline-flex items-center gap-2">
                       <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                      Connect Slack
+                      {LANDING_CONTENT.ctaButtons.integrations}
                     </span>
                   </CTA>
                   <CTA href="/help" variant="ghost" ariaLabel="Learn more about Slack integration">
-                    Learn more
+                    {LANDING_CONTENT.ctaButtons.learn}
                   </CTA>
                 </div>
               </div>
@@ -377,11 +378,11 @@ const Integrations = () => {
                   <CTA href="/login" ariaLabel="Connect Google Drive">
                     <span className="inline-flex items-center gap-2">
                       <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                      Connect Google Drive
+                      {LANDING_CONTENT.ctaButtons.integrations}
                     </span>
                   </CTA>
                   <CTA href="/help" variant="ghost" ariaLabel="Open Google Drive dashboard">
-                    Learn more
+                    {LANDING_CONTENT.ctaButtons.learn}
                   </CTA>
                 </div>
               </div>
