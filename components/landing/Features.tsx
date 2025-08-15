@@ -531,7 +531,7 @@ const Features = () => {
           initial="hidden"
           whileInView="visible"
           viewport={viewportOnce}
-          className="flex flex-col gap-6 sm:gap-8 mt-12"
+          className="flex flex-col gap-6 sm:gap-8 mt-8"
         >
           {/* Redesigned Header - Professional Drawing Tools */}
           <motion.div

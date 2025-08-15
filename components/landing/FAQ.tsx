@@ -423,7 +423,7 @@ const FAQ = () => {
                   whileTap={{ scale: 0.98 }}
                 >
                   <Link
-                    href="help"
+                    href="/help"
                     className="group inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white/[0.08] border border-white/[0.12] text-white rounded-lg font-medium hover:bg-white/[0.12] hover:border-white/[0.16] transition-all duration-300 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black"
                   >
                     <MessageCircle className="w-4 h-4" />
@@ -436,7 +436,7 @@ const FAQ = () => {
                   whileTap={{ scale: 0.98 }}
                 >
                   <Link
-                    href="/docs"
+                    href="/help"
                     className="group inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white/[0.08] border border-white/[0.12] text-white rounded-lg font-medium hover:bg-white/[0.12] hover:border-white/[0.16] transition-all duration-300 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black"
                   >
                     <BookOpen className="w-4 h-4" />

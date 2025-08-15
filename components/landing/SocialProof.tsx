@@ -725,6 +725,7 @@ const SocialProof = () => {
                   className="flex flex-col sm:flex-row gap-8 justify-center items-center"
                 >
                   <CTAButton
+                    href="/login"
                     variant="white"
                     size="lg"
                     theme="social-proof"

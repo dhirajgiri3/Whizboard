@@ -310,13 +310,13 @@ const Integrations = () => {
                 </div>
 
                 <div className="mt-auto flex flex-wrap items-center gap-3">
-                  <CTA href="/api/integrations/slack/auth/start" ariaLabel="Connect Slack">
+                  <CTA href="/login" ariaLabel="Connect Slack">
                     <span className="inline-flex items-center gap-2">
                       <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                       Connect Slack
                     </span>
                   </CTA>
-                  <CTA href="/settings" variant="ghost" ariaLabel="Learn more about Slack integration">
+                  <CTA href="/help" variant="ghost" ariaLabel="Learn more about Slack integration">
                     Learn more
                   </CTA>
                 </div>
@@ -374,14 +374,14 @@ const Integrations = () => {
                 </div>
 
                 <div className="mt-auto flex flex-wrap items-center gap-3">
-                  <CTA href="/api/integrations/google-drive/auth/start" ariaLabel="Connect Google Drive">
+                  <CTA href="/login" ariaLabel="Connect Google Drive">
                     <span className="inline-flex items-center gap-2">
                       <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                       Connect Google Drive
                     </span>
                   </CTA>
-                  <CTA href="/google-drive" variant="ghost" ariaLabel="Open Google Drive dashboard">
-                    Open Drive dashboard
+                  <CTA href="/help" variant="ghost" ariaLabel="Open Google Drive dashboard">
+                    Learn more
                   </CTA>
                 </div>
               </div>

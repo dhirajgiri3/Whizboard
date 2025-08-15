@@ -435,10 +435,10 @@ const Pricing = () => {
                         {plan.comingSoon
                           ? "Coming Soon"
                           : plan.name === "Free"
-                          ? "Get Started — No Credit Card"
+                          ? "Get Started Free"
                           : plan.name === "Pro"
-                          ? "Start Free Trial"
-                          : "Contact Sales Team"}
+                          ? "Join Waitlist"
+                          : "Contact Sales"}
                       </span>
                       <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
                     </span>
@@ -612,6 +612,7 @@ const Pricing = () => {
                   className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-10"
                 >
                   <CTAButton
+                    href="/login"
                     variant="primary"
                     size="lg"
                     theme="pricing"

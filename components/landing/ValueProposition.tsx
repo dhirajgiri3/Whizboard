@@ -873,6 +873,7 @@ const ValueProposition = () => {
                 className="flex flex-col sm:flex-row gap-8 justify-center items-center"
               >
                 <CTAButton
+                  href="/login"
                   variant="white"
                   size="lg"
                   theme="value-prop"
@@ -894,7 +895,7 @@ const ValueProposition = () => {
                 whileInView={{ y: 0, opacity: 1 }}
                 viewport={viewportOptions}
                 transition={{ delay: 0.5, duration: 0.6 }}
-                className="flex justify-center mt-4"
+                className="flex justify-center"
               >
                 <CTAButton
                   variant="ghost"
@@ -902,7 +903,7 @@ const ValueProposition = () => {
                   icon="play"
                   onClick={openDemo}
                   theme="value-prop"
-                  className="px-12 py-5"
+                  className="px-12"
                 >
                   {LANDING_CONTENT.ctaButtons.secondary}
                 </CTAButton>
@@ -914,7 +915,7 @@ const ValueProposition = () => {
                 whileInView={{ opacity: 1 }}
                 viewport={viewportOptions}
                 transition={{ delay: 0.6, duration: 0.6 }}
-                className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-20 mt-8"
+                className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-20"
               >
                 <TrustIndicators />
               </motion.div>
