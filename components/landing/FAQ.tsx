@@ -2,9 +2,9 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import { 
-  ChevronDown, 
-  Search, 
+import {
+  ChevronDown,
+  Search,
   HelpCircle,
   Users,
   Shield,
@@ -14,119 +14,47 @@ import {
   MessageCircle,
   BookOpen,
   Clock,
-  CheckCircle
+  CheckCircle,
 } from "lucide-react";
+import Link from "next/link";
 import SectionHeader from "@/components/ui/header/SectionHeader";
+import { LANDING_CONTENT } from "@/lib/landing-content";
 
 const FAQ = () => {
   const [openItems, setOpenItems] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const faqs = [
-    {
-      question: "Can multiple people edit simultaneously without conflicts?",
-      answer: "Yes. Real-time sync and presence help teams collaborate smoothly with live cursors and updates.",
-      category: "collaboration",
-      icon: Users,
-      iconColor: "text-blue-400",
-      highlight: "Real-time collaboration"
-    },
-    {
-      question: "Any software to install?",
-      answer: "No downloads required. Runs entirely in your browser with full functionality across Chrome, Safari, Firefox, and Edge. Just open the website and start collaborating immediately.",
-      category: "setup",
-      icon: Globe,
-      iconColor: "text-blue-400",
-      highlight: "Zero installation"
-    },
-    {
-      question: "How secure is our project data?",
-      answer: "We follow security best practices, use trusted authentication, and handle data carefully. More compliance options are on our roadmap.",
-      category: "security",
-      icon: Shield,
-      iconColor: "text-blue-400",
-      highlight: "Bank-level security"
-    },
-    {
-      question: "Integration with existing tools?",
-      answer: "Native integrations with Slack and Google Workspace are available. More integrations and APIs are on our roadmap.",
-      category: "integrations",
-      icon: Globe,
-      iconColor: "text-blue-400",
-      highlight: "Seamless integrations"
-    },
-    {
-      question: "What's the performance like with large teams?",
-      answer: "Optimized for smooth real-time collaboration. Performance may vary based on network and board complexity.",
-      category: "performance",
-      icon: Zap,
-      iconColor: "text-blue-400",
-      highlight: "Sub-50ms latency"
-    },
-    {
-      question: "Can I export my work to other formats?",
-      answer: "Yes! Export to PNG, SVG, PDF, and more. Pro plans include advanced export options and custom branding capabilities.",
-      category: "export",
-      icon: Globe,
-      iconColor: "text-blue-400",
-      highlight: "Multiple formats"
-    },
-    {
-      question: "Is there a mobile app?",
-      answer: "No app needed! Whizboard works perfectly on mobile browsers with touch-optimized interface. Full functionality across all devices without downloads.",
-      category: "mobile",
-      icon: Globe,
-      iconColor: "text-blue-400",
-      highlight: "Mobile optimized"
-    },
-    {
-      question: "What happens if I lose my internet connection?",
-      answer: "Work requires an internet connection. Offline support is planned for a future release.",
-      category: "offline",
-      icon: Zap,
-      iconColor: "text-blue-400",
-      highlight: "Online required"
-    },
-    {
-      question: "Can I use my own domain and branding?",
-      answer: "Enterprise plans will include custom domain support and white-label branding options. Make Whizboard your own with your company's look and feel.",
-      category: "branding",
-      icon: Shield,
-      iconColor: "text-blue-400",
-      highlight: "Custom branding"
-    },
-    {
-      question: "How do I get support?",
-      answer: "Email support during business hours for free plans. Priority and dedicated support will be available with paid plans as they launch.",
-      category: "support",
-      icon: HelpCircle,
-      iconColor: "text-blue-400",
-      highlight: "Email support"
-    }
-  ];
+  const faqs = LANDING_CONTENT.faqs.map(faq => ({
+    ...faq,
+    icon: faq.icon === "Users" ? Users : 
+          faq.icon === "Globe" ? Globe : 
+          faq.icon === "Shield" ? Shield : 
+          faq.icon === "Zap" ? Zap : 
+          faq.icon === "HelpCircle" ? HelpCircle : Users,
+  }));
 
   const categories = [
     { name: "All", value: "all" },
     { name: "Collaboration", value: "collaboration" },
     { name: "Security", value: "security" },
     { name: "Performance", value: "performance" },
-    { name: "Setup", value: "setup" }
+    { name: "Setup", value: "setup" },
   ];
 
   const [activeCategory, setActiveCategory] = useState("all");
 
-  const filteredFaqs = faqs.filter(faq => {
-    const matchesSearch = faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = activeCategory === "all" || faq.category === activeCategory;
+  const filteredFaqs = faqs.filter((faq) => {
+    const matchesSearch =
+      faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      activeCategory === "all" || faq.category === activeCategory;
     return matchesSearch && matchesCategory;
   });
 
   const toggleItem = (index: number) => {
-    setOpenItems(prev => 
-      prev.includes(index) 
-        ? prev.filter(i => i !== index)
-        : [...prev, index]
+    setOpenItems((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
     );
   };
 
@@ -136,9 +64,9 @@ const FAQ = () => {
       opacity: 1,
       transition: {
         staggerChildren: 0.1,
-        delayChildren: 0.1
-      }
-    }
+        delayChildren: 0.1,
+      },
+    },
   };
 
   const itemVariants = {
@@ -148,9 +76,9 @@ const FAQ = () => {
       y: 0,
       transition: {
         duration: 0.5,
-        ease: [0.22, 1, 0.36, 1] as [number, number, number, number]
-      }
-    }
+        ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
+      },
+    },
   };
 
   const viewportSettings = { once: true, margin: "-100px" } as const;
@@ -161,55 +89,58 @@ const FAQ = () => {
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/3 via-transparent to-gray-600/2"></div>
         <div className="absolute inset-0 bg-[url('/grid-pattern-dark.svg')] opacity-30"></div>
-        <motion.div 
+        <motion.div
           className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-[80px]"
           style={{
-            background: 'radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 70%)'
+            background:
+              "radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 70%)",
           }}
           animate={{
             scale: [1, 1.1, 1],
-            opacity: [0.4, 0.6, 0.4]
+            opacity: [0.4, 0.6, 0.4],
           }}
           transition={{
             duration: 8,
             repeat: Infinity,
-            ease: "easeInOut"
+            ease: "easeInOut",
           }}
         />
-        <motion.div 
+        <motion.div
           className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-[60px]"
           style={{
-            background: 'radial-gradient(circle, rgba(107, 114, 128, 0.2) 0%, rgba(107, 114, 128, 0.05) 50%, transparent 70%)'
+            background:
+              "radial-gradient(circle, rgba(107, 114, 128, 0.2) 0%, rgba(107, 114, 128, 0.05) 50%, transparent 70%)",
           }}
           animate={{
             scale: [1, 1.1, 1],
-            opacity: [0.2, 0.4, 0.2]
+            opacity: [0.2, 0.4, 0.2],
           }}
           transition={{
             duration: 8,
             repeat: Infinity,
             ease: "easeInOut",
-            delay: 2
+            delay: 2,
           }}
         />
-        <motion.div 
+        <motion.div
           className="absolute top-3/4 left-1/3 w-64 h-64 rounded-full blur-[40px]"
           style={{
-            background: 'radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%)'
+            background:
+              "radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%)",
           }}
           animate={{
             scale: [1, 1.1, 1],
-            opacity: [0.2, 0.3, 0.2]
+            opacity: [0.2, 0.3, 0.2],
           }}
           transition={{
             duration: 8,
             repeat: Infinity,
             ease: "easeInOut",
-            delay: 4
+            delay: 4,
           }}
         />
       </div>
-      
+
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-6 sm:gap-8">
         {/* Header */}
         <motion.div
@@ -223,14 +154,26 @@ const FAQ = () => {
             <SectionHeader
               badge={{
                 icon: HelpCircle,
-                text: "FAQ"
+                text: "FAQ",
               }}
               title="Frequently Asked Questions"
               description="Everything you need to know about our platform. Can't find the answer you're looking for?"
               stats={[
-                { icon: MessageCircle, text: "24/7 support", color: "text-blue-400" },
-                { icon: BookOpen, text: "Comprehensive docs", color: "text-emerald-400" },
-                { icon: Clock, text: "Quick responses", color: "text-yellow-400" }
+                {
+                  icon: MessageCircle,
+                  text: "24/7 support",
+                  color: "text-blue-400",
+                },
+                {
+                  icon: BookOpen,
+                  text: "Comprehensive docs",
+                  color: "text-emerald-400",
+                },
+                {
+                  icon: Clock,
+                  text: "Quick responses",
+                  color: "text-yellow-400",
+                },
               ]}
               disableAnimation={true}
             />
@@ -259,15 +202,18 @@ const FAQ = () => {
           </motion.div>
 
           {/* Category Filters */}
-          <motion.div variants={itemVariants} className="flex flex-wrap gap-3 sm:gap-4 justify-center">
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-wrap gap-3 sm:gap-4 justify-center"
+          >
             {categories.map((category) => (
               <button
                 key={category.value}
                 onClick={() => setActiveCategory(category.value)}
                 className={`px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black ${
                   activeCategory === category.value
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25 border border-blue-500/30'
-                    : 'bg-white/[0.03] text-white/70 hover:bg-white/[0.08] hover:text-white border border-white/[0.08] hover:border-white/[0.15]'
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25 border border-blue-500/30"
+                    : "bg-white/[0.03] text-white/70 hover:bg-white/[0.08] hover:text-white border border-white/[0.08] hover:border-white/[0.15]"
                 }`}
                 aria-label={`Filter by ${category.name} category`}
               >
@@ -294,10 +240,11 @@ const FAQ = () => {
               >
                 {/* Gradient Orb Background */}
                 <div className="absolute inset-0 rounded-2xl overflow-hidden">
-                  <motion.div 
+                  <motion.div
                     className="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[40px] opacity-0 group-hover:opacity-20 transition-opacity duration-500"
                     style={{
-                      background: 'radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 70%)'
+                      background:
+                        "radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, rgba(37, 99, 235, 0.1) 50%, transparent 70%)",
                     }}
                   />
                 </div>
@@ -311,7 +258,9 @@ const FAQ = () => {
                   >
                     <div className="flex items-start gap-3 sm:gap-4">
                       <div className="p-2 sm:p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-black/20">
-                        <faq.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${faq.iconColor}`} />
+                        <faq.icon
+                          className={`h-4 w-4 sm:h-5 sm:w-5 ${faq.iconColor}`}
+                        />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
@@ -334,7 +283,7 @@ const FAQ = () => {
                       <ChevronDown className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400 group-hover:text-blue-300 transition-colors" />
                     </motion.div>
                   </button>
-                  
+
                   <AnimatePresence>
                     {openItems.includes(index) && (
                       <motion.div
@@ -366,19 +315,20 @@ const FAQ = () => {
               <div className="relative bg-white/[0.02] border border-white/[0.08] rounded-2xl p-8 sm:p-12 backdrop-blur-sm overflow-hidden">
                 {/* Background Orb */}
                 <div className="absolute inset-0">
-                  <motion.div 
+                  <motion.div
                     className="absolute top-1/2 left-1/2 w-40 h-40 rounded-full blur-[60px] transform -translate-x-1/2 -translate-y-1/2"
                     style={{
-                      background: 'radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%)'
+                      background:
+                        "radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%)",
                     }}
                     animate={{
                       scale: [1, 1.1, 1],
-                      opacity: [0.2, 0.3, 0.2]
+                      opacity: [0.2, 0.3, 0.2],
                     }}
                     transition={{
                       duration: 4,
                       repeat: Infinity,
-                      ease: "easeInOut"
+                      ease: "easeInOut",
                     }}
                   />
                 </div>
@@ -387,14 +337,17 @@ const FAQ = () => {
                   <div className="w-16 h-16 bg-blue-500/10 border border-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Search className="h-8 w-8 text-blue-400" />
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-4">No Results Found</h3>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-4">
+                    No Results Found
+                  </h3>
                   <p className="text-white/60 mb-6 max-w-md mx-auto leading-[1.6]">
-                    We couldn't find any FAQs matching your search. Try different keywords or browse our categories.
+                    We couldn't find any FAQs matching your search. Try
+                    different keywords or browse our categories.
                   </p>
                   <button
                     onClick={() => {
-                      setSearchQuery('');
-                      setActiveCategory('all');
+                      setSearchQuery("");
+                      setActiveCategory("all");
                     }}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 border border-blue-500/30 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black"
                   >
@@ -417,23 +370,24 @@ const FAQ = () => {
           <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-3xl p-8 sm:p-12 overflow-hidden">
             {/* Background Elements */}
             <div className="absolute inset-0">
-              <motion.div 
+              <motion.div
                 className="absolute top-1/2 left-1/2 w-96 h-96 rounded-full blur-[100px] transform -translate-x-1/2 -translate-y-1/2"
                 style={{
-                  background: 'radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%)'
+                  background:
+                    "radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%)",
                 }}
                 animate={{
                   scale: [1, 1.1, 1],
-                  opacity: [0.15, 0.25, 0.15]
+                  opacity: [0.15, 0.25, 0.15],
                 }}
                 transition={{
                   duration: 8,
                   repeat: Infinity,
-                  ease: "easeInOut"
+                  ease: "easeInOut",
                 }}
               />
             </div>
-            
+
             <div className="relative z-10">
               {/* Redesigned Header - Still have questions? */}
               <div className="flex flex-col items-center gap-3 sm:gap-4">
@@ -447,7 +401,7 @@ const FAQ = () => {
                     Need Help?
                   </span>
                 </motion.div>
-                
+
                 <motion.h3
                   variants={itemVariants}
                   className="text-2xl sm:text-3xl md:text-4xl font-bold text-white leading-[1.1] tracking-tight text-center"
@@ -458,31 +412,38 @@ const FAQ = () => {
                   variants={itemVariants}
                   className="text-sm sm:text-base text-white/80 max-w-2xl mx-auto leading-[1.6] text-center"
                 >
-                  Can't find the answer you're looking for? Our support team is here to help.
+                  Can't find the answer you're looking for? Our support team is
+                  here to help.
                 </motion.p>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6 sm:mt-8">
-                <motion.a
-                  href="#contact"
+                <motion.div
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="group inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white/[0.08] border border-white/[0.12] text-white rounded-lg font-medium hover:bg-white/[0.12] hover:border-white/[0.16] transition-all duration-300 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black"
                 >
-                  <MessageCircle className="w-4 h-4" />
-                  Get Expert Help
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </motion.a>
-                <motion.a
-                  href="/docs"
+                  <Link
+                    href="help"
+                    className="group inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white/[0.08] border border-white/[0.12] text-white rounded-lg font-medium hover:bg-white/[0.12] hover:border-white/[0.16] transition-all duration-300 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    Get Expert Help
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </motion.div>
+                <motion.div
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="group inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white/[0.04] border border-white/[0.08] text-white/90 hover:text-white hover:bg-white/[0.08] hover:border-white/[0.12] transition-all duration-300 font-medium rounded-lg backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black"
                 >
-                  <BookOpen className="w-4 h-4" />
-                  Browse Documentation
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </motion.a>
+                  <Link
+                    href="/docs"
+                    className="group inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white/[0.08] border border-white/[0.12] text-white rounded-lg font-medium hover:bg-white/[0.12] hover:border-white/[0.16] transition-all duration-300 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black"
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    Browse Documentation
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </motion.div>
               </div>
             </div>
           </div>

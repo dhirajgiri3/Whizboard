@@ -6,7 +6,6 @@ import {
   Zap,
   Users,
   Shield,
-  ArrowRight,
   CheckCircle,
   Link,
   BookOpen,
@@ -24,20 +23,21 @@ import {
   CheckCircle2,
   Cloud,
   HelpCircle,
-  Play,
   ChevronDown,
-  ChevronUp,
-  ArrowUpRight,
-  Calendar,
-  Clock as TimeIcon,
   Target,
   Clock,
   X,
   Star,
   Lock,
+  ArrowRight,
+  Play,
 } from "lucide-react";
 import SectionHeader from "@/components/ui/header/SectionHeader";
-import DemoVideoModal from "@/components/ui/modal/DemoVideoModal";
+import { useDemoModal } from "@/components/ui/modal/DemoModalProvider";
+import CTAButton from "@/components/ui/buttons/CTAButton";
+import TrustIndicators from "@/components/ui/TrustIndicators";
+import FeatureCard from "@/components/ui/cards/FeatureCard";
+import { LANDING_CONTENT } from "@/lib/landing-content";
 
 // Enhanced scrollbar styles with performant CSS animation and smoother fades
 const enhancedScrollbarStyles = `
@@ -348,7 +348,7 @@ const ValueProposition = () => {
     },
   };
 
-  const [isDemoOpen, setIsDemoOpen] = React.useState(false);
+  const { openDemo } = useDemoModal();
 
   return (
     <>
@@ -389,7 +389,7 @@ const ValueProposition = () => {
           />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-8 lg:gap-12">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-0">
           {/* Main Value Proposition */}
           <motion.div
             variants={containerVariants}
@@ -415,68 +415,22 @@ const ValueProposition = () => {
             initial="hidden"
             whileInView="visible"
             viewport={viewportOptions}
-            className="grid md:grid-cols-3 gap-6 lg:gap-8"
+            className="grid md:grid-cols-3 gap-8 lg:gap-10 mt-8"
           >
             {benefits.map((benefit, index) => (
               <motion.div
                 key={index}
                 variants={itemVariants}
-                className="group relative"
-                whileHover={{ y: -8 }}
               >
-                <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-6 sm:p-8 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-500 overflow-hidden h-full">
-                  {/* Gradient Orb Background */}
-                  <div
-                    className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[40px] group-hover:scale-110 transition-transform duration-500 ${
-                      benefit.gradient.includes("amber")
-                        ? "bg-amber-600/20"
-                        : benefit.gradient.includes("blue")
-                        ? "bg-blue-600/20"
-                        : "bg-emerald-600/20"
-                    }`}
-                  ></div>
-
-                  {/* Content */}
-                  <div className="relative z-10 flex flex-col h-full">
-                    <div className="flex items-center justify-between mb-4 sm:mb-6">
-                      <div
-                        className={`inline-flex p-3 sm:p-4 rounded-xl border group-hover:scale-105 transition-all duration-300 ${
-                          benefit.gradient.includes("amber")
-                            ? "bg-amber-600/10 border-amber-600/20 group-hover:bg-amber-600/15"
-                            : benefit.gradient.includes("blue")
-                            ? "bg-blue-600/10 border-blue-600/20 group-hover:bg-blue-600/15"
-                            : "bg-emerald-600/10 border-emerald-600/20 group-hover:bg-emerald-600/15"
-                        }`}
-                      >
-                        <benefit.icon
-                          className={`h-5 w-5 sm:h-6 sm:w-6 ${benefit.iconColor}`}
-                        />
-                      </div>
-                      <span
-                        className={`text-xs font-medium bg-white/[0.05] px-2 sm:px-3 py-1 rounded-full ${benefit.iconColor}`}
-                      >
-                        {benefit.stats}
-                      </span>
-                    </div>
-                    <h3 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4 group-hover:text-white transition-colors">
-                      {benefit.title}
-                    </h3>
-                    <p className="text-white/70 leading-[1.6] group-hover:text-white/80 transition-colors mb-4 sm:mb-6 flex-grow">
-                      {benefit.description}
-                    </p>
-                    <div className="flex items-center justify-between mt-auto">
-                      <span
-                        className={`font-medium text-sm ${benefit.iconColor}`}
-                      >
-                        {benefit.metric}
-                      </span>
-                      <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
-                    </div>
-                  </div>
-
-                  {/* Hover effect border */}
-                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-500/10 to-gray-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl"></div>
-                </div>
+                <FeatureCard
+                  icon={benefit.icon}
+                  title={benefit.title}
+                  description={benefit.description}
+                  gradient={benefit.gradient}
+                  iconColor={benefit.iconColor}
+                  stats={{ time: benefit.stats }}
+                  size="lg"
+                />
               </motion.div>
             ))}
           </motion.div>
@@ -487,7 +441,7 @@ const ValueProposition = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             viewport={{ once: true }}
-            className="flex flex-col gap-10 pt-10"
+            className="flex flex-col gap-10 pt-20"
           >
             <div className="text-center flex flex-col gap-6 lg:gap-8">
               <motion.div
@@ -763,15 +717,14 @@ const ValueProposition = () => {
             </div>
           </motion.section>
 
-          {/* Feature Highlights */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
             viewport={viewportOptions}
-            className="text-center flex flex-col gap-12 sm:gap-16 pt-12 pb-12"
+            className="text-center flex flex-col gap-8 pt-24 pb-6"
           >
-            {/* Redesigned Header - Everything You Need to Succeed */}
+            {/* Redesigned Header */}
             <SectionHeader
               badge={{
                 icon: Rocket,
@@ -795,43 +748,27 @@ const ValueProposition = () => {
                 <motion.div
                   key={index}
                   variants={itemVariants}
-                  className="group relative"
                 >
-                  <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] rounded-xl p-8 hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-300 text-center overflow-hidden h-full">
-                    {/* Background glow */}
-                    <div className="absolute inset-0 bg-blue-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                    <div className="relative z-10 flex flex-col h-full">
-                      <div className="inline-flex w-12 h-12 rounded-lg bg-white/[0.05] border border-white/[0.1] items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-300 mx-auto">
-                        <feature.icon className="h-6 w-6 text-blue-400" />
-                      </div>
-
-                      <div className="flex flex-col items-center mb-4">
-                        <h4 className="text-lg font-semibold text-white mb-2">
-                          {feature.title}
-                        </h4>
-                        <span className="text-xs font-medium text-blue-400 bg-blue-400/10 px-3 py-1 rounded-full">
-                          {feature.highlight}
-                        </span>
-                      </div>
-
-                      <p className="text-white/70 leading-relaxed text-sm group-hover:text-white/80 transition-colors flex-grow">
-                        {feature.description}
-                      </p>
-                    </div>
-                  </div>
+                  <FeatureCard
+                    icon={feature.icon}
+                    title={feature.title}
+                    description={feature.description}
+                    size="md"
+                    variant="centered"
+                    className="text-center"
+                  />
                 </motion.div>
               ))}
             </motion.div>
           </motion.div>
 
-          {/* Minimalistic CTA Section - Clean & Neat Design */}
+          {/* Minimalistic CTA Section */}
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={viewportOptions}
             transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
-            className="relative overflow-hidden h-[80vh] flex items-center justify-center"
+            className="relative overflow-hidden h-[80vh] flex items-center justify-center mt-4"
           >
             {/* Enhanced Dynamic Background with Emerald Gradients */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A0B]/90 via-emerald-600/30 to-[#0F0F10]/90 backdrop-blur-3xl rounded-[2rem]" />
@@ -876,7 +813,6 @@ const ValueProposition = () => {
                 viewport={viewportOptions}
                 transition={{ delay: 0.3, duration: 0.6 }}
               >
-                {/* Redesigned Header */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -934,18 +870,16 @@ const ValueProposition = () => {
                 whileInView={{ y: 0, opacity: 1 }}
                 viewport={viewportOptions}
                 transition={{ delay: 0.4, duration: 0.6 }}
-                className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+                className="flex flex-col sm:flex-row gap-8 justify-center items-center"
               >
-                <motion.button
-                  className="bg-white text-black font-medium px-10 py-4 rounded-full transition-all duration-300 hover:bg-white/90"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                <CTAButton
+                  variant="white"
+                  size="lg"
+                  theme="value-prop"
+                  className="px-12 py-5 rounded-full"
                 >
-                  <span className="flex items-center gap-2 text-lg">
-                    <span>Claim 10 Free Whiteboards</span>
-                    <ArrowRight className="w-5 h-5" />
-                  </span>
-                </motion.button>
+                  {LANDING_CONTENT.ctaButtons.claim}
+                </CTAButton>
 
                 {/* Supportive note */}
                 <div className="flex items-center gap-2 text-white/60 text-sm">
@@ -960,28 +894,19 @@ const ValueProposition = () => {
                 whileInView={{ y: 0, opacity: 1 }}
                 viewport={viewportOptions}
                 transition={{ delay: 0.5, duration: 0.6 }}
-                className="flex justify-center"
+                className="flex justify-center mt-4"
               >
-                <motion.button
-                  className="text-white/80 hover:text-white font-medium px-10 py-4 transition-colors duration-300"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setIsDemoOpen(true)}
+                <CTAButton
+                  variant="ghost"
+                  size="lg"
+                  icon="play"
+                  onClick={openDemo}
+                  theme="value-prop"
+                  className="px-12 py-5"
                 >
-                  <span className="flex items-center gap-2 text-lg">
-                    <Play className="w-5 h-5" />
-                    <span>Watch 3-Min Demo</span>
-                  </span>
-                </motion.button>
+                  {LANDING_CONTENT.ctaButtons.secondary}
+                </CTAButton>
               </motion.div>
-
-              <DemoVideoModal
-                isOpen={isDemoOpen}
-                onClose={() => setIsDemoOpen(false)}
-                videoUrl="https://res.cloudinary.com/dgak25skk/video/upload/v1755180328/whizboard-3_qyofjn.mp4"
-                title="Watch 3‑Min Demo"
-                description="See how Whizboard enables fluid realtime collaboration."
-              />
 
               {/* Minimal Trust Indicators */}
               <motion.div
@@ -989,20 +914,9 @@ const ValueProposition = () => {
                 whileInView={{ opacity: 1 }}
                 viewport={viewportOptions}
                 transition={{ delay: 0.6, duration: 0.6 }}
-                className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16 text-white/50 text-sm"
+                className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-20 mt-8"
               >
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4" />
-                  <span>No credit card required</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4" />
-                  <span>Bank-level security</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4" />
-                  <span>Setup in 30 seconds</span>
-                </div>
+                <TrustIndicators />
               </motion.div>
             </div>
           </motion.div>

@@ -1,14 +1,21 @@
-import SchemaBuilder from '@pothos/core';
-import RelayPlugin from '@pothos/plugin-relay';
-import { createPubSub, YogaInitialContext } from 'graphql-yoga';
-import { User, Board, DrawingElement, BoardInvitation, ShapeElement, UserPresenceData } from '@/types';
-import { v4 as uuidv4 } from 'uuid';
-import { postSlackForUser } from '@/lib/integrations/slackService';
-import { connectToDatabase } from '../database/mongodb';
-import { ObjectId } from 'mongodb';
-import logger from '../logger/logger';
-import { Session } from 'next-auth';
-import { EmailService } from '../email/sendgrid';
+import SchemaBuilder from "@pothos/core";
+import RelayPlugin from "@pothos/plugin-relay";
+import { createPubSub, YogaInitialContext } from "graphql-yoga";
+import {
+  User,
+  Board,
+  DrawingElement,
+  BoardInvitation,
+  ShapeElement,
+  UserPresenceData,
+} from "@/types";
+import { v4 as uuidv4 } from "uuid";
+import { postSlackForUser } from "@/lib/integrations/slackService";
+import { connectToDatabase } from "../database/mongodb";
+import { ObjectId } from "mongodb";
+import logger from "../logger/logger";
+import { Session } from "next-auth";
+import { EmailService } from "../email/sendgrid";
 
 interface DrawingLineData {
   id: string;
@@ -32,7 +39,7 @@ interface TextEventPayload {
   userName: string;
   textElement: {
     id: string;
-    type: 'text';
+    type: "text";
     x: number;
     y: number;
     width: number;
@@ -57,7 +64,7 @@ interface ShapeEventPayload {
   userName: string;
   shapeElement: {
     id: string;
-    type: 'shape';
+    type: "shape";
     x: number;
     y: number;
     width: number;
@@ -90,25 +97,97 @@ export const pubSub = createPubSub<{
   boardUpdates: [boardId: string, payload: Board];
   userJoined: [boardId: string, payload: User];
   userLeft: [boardId: string, payload: { id: string }];
-  cursorMovement: [boardId: string, payload: { x: number; y: number; userId: string; name: string }];
-  collaboratorInvited: [boardId: string, payload: { boardId: string; inviteeEmail: string; inviterName: string }];
-  collaboratorJoined: [boardId: string, payload: { boardId: string; collaborator: User; boardName: string }];
-  invitationStatusChanged: [boardId: string, payload: { invitationId: string; status: string; email: string }];
+  cursorMovement: [
+    boardId: string,
+    payload: { x: number; y: number; userId: string; name: string }
+  ];
+  collaboratorInvited: [
+    boardId: string,
+    payload: { boardId: string; inviteeEmail: string; inviterName: string }
+  ];
+  collaboratorJoined: [
+    boardId: string,
+    payload: { boardId: string; collaborator: User; boardName: string }
+  ];
+  invitationStatusChanged: [
+    boardId: string,
+    payload: { invitationId: string; status: string; email: string }
+  ];
   drawingStarted: [boardId: string, payload: DrawingEventPayload];
   drawingUpdated: [boardId: string, payload: DrawingEventPayload];
   drawingCompleted: [boardId: string, payload: DrawingEventPayload];
-  elementAdded: [boardId: string, payload: { id: string; type: string; data: Record<string, unknown>; userId: string; timestamp: number }];
-  elementUpdated: [boardId: string, payload: { id: string; type: string; data: Record<string, unknown>; userId: string; timestamp: number }];
-  userPresenceUpdate: [boardId: string, payload: { userId: string; presence: UserPresenceData }];
-  elementDeleted: [boardId: string, payload: { id: string; userId: string; timestamp: number; type: string }];
+  elementAdded: [
+    boardId: string,
+    payload: {
+      id: string;
+      type: string;
+      data: Record<string, unknown>;
+      userId: string;
+      timestamp: number;
+    }
+  ];
+  elementUpdated: [
+    boardId: string,
+    payload: {
+      id: string;
+      type: string;
+      data: Record<string, unknown>;
+      userId: string;
+      timestamp: number;
+    }
+  ];
+  userPresenceUpdate: [
+    boardId: string,
+    payload: { userId: string; presence: UserPresenceData }
+  ];
+  elementDeleted: [
+    boardId: string,
+    payload: { id: string; userId: string; timestamp: number; type: string }
+  ];
   textElementAdded: [boardId: string, payload: TextEventPayload];
   textElementUpdated: [boardId: string, payload: TextEventPayload];
-  textElementDeleted: [boardId: string, payload: { boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }];
-  textElementEditingStarted: [boardId: string, payload: { boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }];
-  textElementEditingFinished: [boardId: string, payload: { boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }];
+  textElementDeleted: [
+    boardId: string,
+    payload: {
+      boardId: string;
+      userId: string;
+      userName: string;
+      textElementId: string;
+      timestamp: number;
+    }
+  ];
+  textElementEditingStarted: [
+    boardId: string,
+    payload: {
+      boardId: string;
+      userId: string;
+      userName: string;
+      textElementId: string;
+      timestamp: number;
+    }
+  ];
+  textElementEditingFinished: [
+    boardId: string,
+    payload: {
+      boardId: string;
+      userId: string;
+      userName: string;
+      textElementId: string;
+      timestamp: number;
+    }
+  ];
   shapeElementCreated: [boardId: string, payload: ShapeEventPayload];
   shapeElementUpdated: [boardId: string, payload: ShapeEventPayload];
-  shapeElementDeleted: [boardId: string, payload: { boardId: string; userId: string; userName: string; shapeElementId: string; timestamp: number }];
+  shapeElementDeleted: [
+    boardId: string,
+    payload: {
+      boardId: string;
+      userId: string;
+      userName: string;
+      shapeElementId: string;
+      timestamp: number;
+    }
+  ];
   shapeElementTransformed: [boardId: string, payload: ShapeEventPayload];
 }>();
 
@@ -119,7 +198,7 @@ interface Context extends YogaInitialContext {
 
 // Internal types for MongoDB documents
 // BoardDocument represents the structure as stored in MongoDB
-interface BoardDocument extends Omit<Board, 'id' | 'createdBy' | 'elements'> {
+interface BoardDocument extends Omit<Board, "id" | "createdBy" | "elements"> {
   _id: ObjectId;
   createdBy: ObjectId; // Stored as ObjectId in MongoDB
   elements: DrawingElementDocument[];
@@ -128,14 +207,14 @@ interface BoardDocument extends Omit<Board, 'id' | 'createdBy' | 'elements'> {
 }
 
 // DrawingElementDocument represents the structure of DrawingElement as stored in MongoDB subdocuments
-interface DrawingElementDocument extends Omit<DrawingElement, 'id'> {
+interface DrawingElementDocument extends Omit<DrawingElement, "id"> {
   _id?: ObjectId; // MongoDB might not have _id for subdocuments, or it might be string for some reason
   id: string; // Add id back to DrawingElementDocument
 }
 
 const builder = new SchemaBuilder<{
-  Objects: { 
-    User: User; 
+  Objects: {
+    User: User;
     Board: Board; // GraphQL exposed type
     DrawingElement: DrawingElement; // GraphQL exposed type
     BoardAction: BoardAction;
@@ -145,15 +224,15 @@ const builder = new SchemaBuilder<{
   plugins: [RelayPlugin],
 });
 
-const UserRef = builder.objectRef<User>('User');
-const DrawingElementRef = builder.objectRef<DrawingElement>('DrawingElement');
-const BoardRef = builder.objectRef<Board>('Board');
-const BoardActionRef = builder.objectRef<BoardAction>('BoardAction');
+const UserRef = builder.objectRef<User>("User");
+const DrawingElementRef = builder.objectRef<DrawingElement>("DrawingElement");
+const BoardRef = builder.objectRef<Board>("Board");
+const BoardActionRef = builder.objectRef<BoardAction>("BoardAction");
 
 builder.queryType({
   fields: (t) => ({
     hello: t.string({
-      resolve: () => 'world',
+      resolve: () => "world",
     }),
     getBoard: t.field({
       type: BoardRef,
@@ -161,48 +240,123 @@ builder.queryType({
         id: t.arg.string({ required: true }),
       },
       resolve: async (_, { id }) => {
-        logger.debug({ id }, 'getBoard query received');
+        logger.debug({ id }, "getBoard query received");
         const db = await connectToDatabase();
-        const board = await db.collection<BoardDocument>('boards').findOne({ _id: new ObjectId(id) });
+        const board = await db
+          .collection<BoardDocument>("boards")
+          .findOne({ _id: new ObjectId(id) });
 
         if (!board) {
-          logger.error({ id }, 'Board not found');
+          logger.error({ id }, "Board not found");
           throw new Error(`Board with id ${id} not found`);
         }
-        
-        logger.info({ boardId: board._id }, 'Board retrieved successfully');
+
+        logger.info({ boardId: board._id }, "Board retrieved successfully");
         // Convert BoardDocument to Board for GraphQL response
         return {
           ...board,
           id: board._id.toString(),
           createdBy: board.createdBy.toString(),
-          elements: board.elements.map(el => ({ ...el, id: el._id?.toString() || uuidv4() })),
+          elements: board.elements.map((el) => ({
+            ...el,
+            id: el._id?.toString() || uuidv4(),
+          })),
         };
       },
     }),
     myBoards: t.field({
-        type: [BoardRef],
-        resolve: async (_, __, { session }) => {
-            logger.debug({ session: !!session, userId: session?.user?.id }, 'myBoards resolver called');
-            
-            if (!session?.user?.id) {
-                logger.warn('No session or user ID found in myBoards resolver');
-                throw new Error('You must be logged in to view your boards.');
-            }
-            
-            const db = await connectToDatabase();
-            const boards = await db.collection<BoardDocument>('boards').find({ createdBy: new ObjectId(session.user.id) }).toArray();
-            
-            logger.debug({ boardCount: boards.length, userId: session.user.id }, 'Found boards for user');
-            
-            return boards.map(board => ({
-              ...board,
-              id: board._id.toString(),
-              createdBy: board.createdBy.toString(),
-              elements: board.elements.map(el => ({ ...el, id: el._id?.toString() || uuidv4() })),
-            }));
+      type: [BoardRef],
+      resolve: async (_, __, { session }) => {
+        logger.debug(
+          { session: !!session, userId: session?.user?.id },
+          "myBoards resolver called"
+        );
+
+        if (!session?.user?.id) {
+          logger.warn("No session or user ID found in myBoards resolver");
+          throw new Error("You must be logged in to view your boards.");
         }
-    })
+
+        const db = await connectToDatabase();
+        const boards = await db
+          .collection<BoardDocument>("boards")
+          .find({ createdBy: new ObjectId(session.user.id) })
+          .toArray();
+
+        logger.debug(
+          { boardCount: boards.length, userId: session.user.id },
+          "Found boards for user"
+        );
+
+        return boards.map((board) => ({
+          ...board,
+          id: board._id.toString(),
+          createdBy: board.createdBy.toString(),
+          elements: board.elements.map((el) => ({
+            ...el,
+            id: el._id?.toString() || uuidv4(),
+          })),
+        }));
+      },
+    }),
+    myBoardUsage: t.field({
+      type: builder
+        .objectRef<{
+          currentBoardCount: number;
+          plan: string;
+          boardLimit: number;
+          canCreateMore: boolean;
+          usagePercentage: number;
+        }>("BoardUsage")
+        .implement({
+          fields: (t) => ({
+            currentBoardCount: t.exposeInt("currentBoardCount"),
+            plan: t.exposeString("plan"),
+            boardLimit: t.exposeInt("boardLimit"),
+            canCreateMore: t.exposeBoolean("canCreateMore"),
+            usagePercentage: t.exposeFloat("usagePercentage"),
+          }),
+        }),
+      resolve: async (_, __, { session }) => {
+        if (!session?.user?.id) {
+          throw new Error("Authentication required");
+        }
+
+        const db = await connectToDatabase();
+        const userBoardCount = await db
+          .collection<BoardDocument>("boards")
+          .countDocuments({
+            createdBy: new ObjectId(session.user.id),
+          });
+
+        // Currently all users are on free plan
+        const plan = "free";
+        const boardLimit = 5; // Free plan limit
+        const canCreateMore = userBoardCount < boardLimit;
+        const usagePercentage = (userBoardCount / boardLimit) * 100;
+
+        logger.debug(
+          {
+            userId: session.user.id,
+            userEmail: session.user.email,
+            currentBoardCount: userBoardCount,
+            plan,
+            boardLimit,
+            canCreateMore,
+            usagePercentage,
+          },
+          "Board usage information retrieved"
+        );
+
+        return {
+          currentBoardCount: userBoardCount,
+          plan,
+          boardLimit,
+          canCreateMore,
+          usagePercentage,
+        };
+      },
+    }),
   }),
 });
 
@@ -214,135 +368,218 @@ builder.mutationType({
         name: t.arg.string({ required: true }),
       },
       resolve: async (_, { name }, { session }) => {
-        logger.debug({ name }, 'createBoard mutation received');
+        logger.debug({ name }, "createBoard mutation received");
         if (!session?.user?.id) {
-            throw new Error('Authentication required');
+          throw new Error("Authentication required");
         }
+
         const db = await connectToDatabase();
-        const newBoardDocument: Omit<BoardDocument, '_id'> = {
-            name,
-            elements: [],
-            collaborators: [],
-            adminUsers: [], // Initialize empty admin users array
-            blockedUsers: [], // Initialize empty blocked users array
+
+        // PRICING MODEL: Check user's current board count to enforce pricing limits
+        // Free plan users are limited to 5 boards maximum
+        // This ensures compliance with the pricing model defined in Pricing.tsx
+        const userBoardCount = await db
+          .collection<BoardDocument>("boards")
+          .countDocuments({
             createdBy: new ObjectId(session.user.id),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            isPublic: true,
+          });
+
+        // Free plan limit: maximum 5 boards
+        const FREE_PLAN_BOARD_LIMIT = 5;
+
+        if (userBoardCount >= FREE_PLAN_BOARD_LIMIT) {
+          logger.warn(
+            {
+              userId: session.user.id,
+              userEmail: session.user.email,
+              currentBoardCount: userBoardCount,
+              limit: FREE_PLAN_BOARD_LIMIT,
+            },
+            "User attempted to exceed free plan board limit"
+          );
+
+          throw new Error(
+            `You've reached the maximum number of boards (${FREE_PLAN_BOARD_LIMIT}) for the free plan. Upgrade to Pro to create unlimited boards.`
+          );
+        }
+
+        const newBoardDocument: Omit<BoardDocument, "_id"> = {
+          name,
+          elements: [],
+          collaborators: [],
+          adminUsers: [], // Initialize empty admin users array
+          blockedUsers: [], // Initialize empty blocked users array
+          createdBy: new ObjectId(session.user.id),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isPublic: true,
         };
-        const result = await db.collection<BoardDocument>('boards').insertOne(newBoardDocument as any);
-        logger.info({ boardId: result.insertedId }, 'New board created');
+        const result = await db
+          .collection<BoardDocument>("boards")
+          .insertOne(newBoardDocument as any);
+        logger.info({ boardId: result.insertedId }, "New board created");
+
+        // Log board creation for analytics
+        logger.info(
+          {
+            userId: session.user.id,
+            userEmail: session.user.email,
+            boardId: result.insertedId.toString(),
+            boardName: name,
+            userBoardCount: userBoardCount + 1,
+            plan: "free", // Currently all users are on free plan
+          },
+          "Board created successfully"
+        );
+
         // Slack notification (best-effort) honoring preferences
         try {
           // Check Slack preference
           let slackEnabled = true;
           try {
             const db2 = await connectToDatabase();
-            const prefsDoc = await db2.collection('userSettings').findOne(
-              { userEmail: session.user.email },
-              { projection: { 'notifications.slack.boardEvents': 1 } }
-            );
-            slackEnabled = prefsDoc?.notifications?.slack?.boardEvents !== false;
+            const prefsDoc = await db2
+              .collection("userSettings")
+              .findOne(
+                { userEmail: session.user.email },
+                { projection: { "notifications.slack.boardEvents": 1 } }
+              );
+            slackEnabled =
+              prefsDoc?.notifications?.slack?.boardEvents !== false;
           } catch {}
 
           if (slackEnabled) {
-            logger.info({ 
-              userEmail: session.user.email, 
-              boardName: name, 
-              boardId: result.insertedId.toString() 
-            }, 'Attempting to send Slack notification for board creation');
-            
-            const slackResult = await postSlackForUser(session.user.email!, `Created a new board "${name}".`);
-            
+            logger.info(
+              {
+                userEmail: session.user.email,
+                boardName: name,
+                boardId: result.insertedId.toString(),
+              },
+              "Attempting to send Slack notification for board creation"
+            );
+
+            const slackResult = await postSlackForUser(
+              session.user.email!,
+              `Created a new board "${name}".`
+            );
+
             if (slackResult) {
-              logger.info({ 
-                userEmail: session.user.email, 
-                boardName: name, 
-                boardId: result.insertedId.toString() 
-              }, 'Slack notification sent successfully for board creation');
+              logger.info(
+                {
+                  userEmail: session.user.email,
+                  boardName: name,
+                  boardId: result.insertedId.toString(),
+                },
+                "Slack notification sent successfully for board creation"
+              );
             } else {
-              logger.warn({ 
-                userEmail: session.user.email, 
-                boardName: name, 
-                boardId: result.insertedId.toString() 
-              }, 'Failed to send Slack notification for board creation');
+              logger.warn(
+                {
+                  userEmail: session.user.email,
+                  boardName: name,
+                  boardId: result.insertedId.toString(),
+                },
+                "Failed to send Slack notification for board creation"
+              );
             }
           } else {
-            logger.info({ userEmail: session.user.email }, 'Slack boardEvents notifications disabled; skipping');
+            logger.info(
+              { userEmail: session.user.email },
+              "Slack boardEvents notifications disabled; skipping"
+            );
           }
         } catch (error) {
-          logger.error({ 
-            userEmail: session.user.email, 
-            boardName: name, 
-            boardId: result.insertedId.toString(), 
-            error 
-          }, 'Exception occurred while sending Slack notification for board creation');
+          logger.error(
+            {
+              userEmail: session.user.email,
+              boardName: name,
+              boardId: result.insertedId.toString(),
+              error,
+            },
+            "Exception occurred while sending Slack notification for board creation"
+          );
         }
         // Convert to Board for GraphQL response
-        return { 
-          ...newBoardDocument, 
-          id: result.insertedId.toString(), 
+        return {
+          ...newBoardDocument,
+          id: result.insertedId.toString(),
           _id: result.insertedId, // Add _id back for internal consistency if needed
           createdBy: newBoardDocument.createdBy.toString(),
-          elements: newBoardDocument.elements.map(el => ({ ...el, id: el._id?.toString() || uuidv4() })),
+          elements: newBoardDocument.elements.map((el) => ({
+            ...el,
+            id: el._id?.toString() || uuidv4(),
+          })),
         };
       },
     }),
     updateBoard: t.field({
-        type: BoardRef,
-        args: {
-            id: t.arg.string({ required: true }),
-            name: t.arg.string({ required: true }),
-        },
-        resolve: async (_, { id, name }, { session }) => {
-            if (!session?.user?.id) {
-                throw new Error('Authentication required');
-            }
-            const db = await connectToDatabase();
-            const board = await db.collection<BoardDocument>('boards').findOne({ _id: new ObjectId(id) });
-            if (!board) {
-                throw new Error('Board not found');
-            }
-            if (board.createdBy.toString() !== session.user.id) {
-                throw new Error('You are not authorized to update this board');
-            }
-            await db.collection<BoardDocument>('boards').updateOne(
-                { _id: new ObjectId(id) },
-                { $set: { name, updatedAt: new Date() } }
-            );
-            const updatedBoard = await db.collection<BoardDocument>('boards').findOne({ _id: new ObjectId(id) });
-            if (!updatedBoard) {
-                throw new Error('Board not found after update');
-            }
-            // Convert to Board for GraphQL response
-            return { 
-              ...updatedBoard, 
-              id: updatedBoard._id.toString(), 
-              createdBy: updatedBoard.createdBy.toString(),
-              elements: updatedBoard.elements.map(el => ({ ...el, id: el._id?.toString() || uuidv4() })),
-            }; 
+      type: BoardRef,
+      args: {
+        id: t.arg.string({ required: true }),
+        name: t.arg.string({ required: true }),
+      },
+      resolve: async (_, { id, name }, { session }) => {
+        if (!session?.user?.id) {
+          throw new Error("Authentication required");
         }
+        const db = await connectToDatabase();
+        const board = await db
+          .collection<BoardDocument>("boards")
+          .findOne({ _id: new ObjectId(id) });
+        if (!board) {
+          throw new Error("Board not found");
+        }
+        if (board.createdBy.toString() !== session.user.id) {
+          throw new Error("You are not authorized to update this board");
+        }
+        await db
+          .collection<BoardDocument>("boards")
+          .updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { name, updatedAt: new Date() } }
+          );
+        const updatedBoard = await db
+          .collection<BoardDocument>("boards")
+          .findOne({ _id: new ObjectId(id) });
+        if (!updatedBoard) {
+          throw new Error("Board not found after update");
+        }
+        // Convert to Board for GraphQL response
+        return {
+          ...updatedBoard,
+          id: updatedBoard._id.toString(),
+          createdBy: updatedBoard.createdBy.toString(),
+          elements: updatedBoard.elements.map((el) => ({
+            ...el,
+            id: el._id?.toString() || uuidv4(),
+          })),
+        };
+      },
     }),
     deleteBoard: t.field({
-        type: 'String',
-        args: {
-            id: t.arg.string({ required: true }),
-        },
-        resolve: async (_, { id }, { session }) => {
-            if (!session?.user?.id) {
-                throw new Error('Authentication required');
-            }
-            const db = await connectToDatabase();
-            const board = await db.collection<BoardDocument>('boards').findOne({ _id: new ObjectId(id) });
-            if (!board) {
-                throw new Error('Board not found');
-            }
-            if (board.createdBy.toString() !== session.user.id) {
-                throw new Error('You are not authorized to delete this board');
-            }
-            await db.collection<BoardDocument>('boards').deleteOne({ _id: new ObjectId(id) });
-            return id;
+      type: "String",
+      args: {
+        id: t.arg.string({ required: true }),
+      },
+      resolve: async (_, { id }, { session }) => {
+        if (!session?.user?.id) {
+          throw new Error("Authentication required");
         }
+        const db = await connectToDatabase();
+        const board = await db
+          .collection<BoardDocument>("boards")
+          .findOne({ _id: new ObjectId(id) });
+        if (!board) {
+          throw new Error("Board not found");
+        }
+        if (board.createdBy.toString() !== session.user.id) {
+          throw new Error("You are not authorized to delete this board");
+        }
+        await db
+          .collection<BoardDocument>("boards")
+          .deleteOne({ _id: new ObjectId(id) });
+        return id;
+      },
     }),
     addElement: t.field({
       type: DrawingElementRef,
@@ -352,50 +589,66 @@ builder.mutationType({
         data: t.arg.string({ required: true }),
       },
       resolve: async (_, { boardId, type, data }, { session }) => {
-        logger.debug({ boardId, type }, 'addElement mutation received');
+        logger.debug({ boardId, type }, "addElement mutation received");
         if (!session?.user?.id) {
-            throw new Error('Authentication required');
+          throw new Error("Authentication required");
         }
         const db = await connectToDatabase();
         const parsedData = JSON.parse(data);
-        
+
         const newElement: DrawingElement = {
           id: uuidv4(),
           type: parsedData.tool || parsedData.type, // Use parsedData.type as fallback
           data: parsedData,
-          style: { stroke: parsedData.color, strokeWidth: parsedData.strokeWidth },
+          style: {
+            stroke: parsedData.color,
+            strokeWidth: parsedData.strokeWidth,
+          },
           createdBy: session.user.id,
           createdAt: new Date(),
           updatedAt: new Date(),
         };
 
-        const result = await db.collection<BoardDocument>('boards').updateOne(
-            { _id: new ObjectId(boardId) },
-            { 
-                $push: { elements: { ...newElement, _id: new ObjectId(newElement.id) } as DrawingElementDocument }, 
-                $set: { updatedAt: new Date() }
-            }
+        const result = await db.collection<BoardDocument>("boards").updateOne(
+          { _id: new ObjectId(boardId) },
+          {
+            $push: {
+              elements: {
+                ...newElement,
+                _id: new ObjectId(newElement.id),
+              } as DrawingElementDocument,
+            },
+            $set: { updatedAt: new Date() },
+          }
         );
 
         if (result.modifiedCount === 0) {
-            logger.error({ boardId }, 'Failed to add element to board');
-            throw new Error('Could not add element to board');
+          logger.error({ boardId }, "Failed to add element to board");
+          throw new Error("Could not add element to board");
         }
 
-        const updatedBoard = await db.collection<BoardDocument>('boards').findOne({ _id: new ObjectId(boardId) });
-        
+        const updatedBoard = await db
+          .collection<BoardDocument>("boards")
+          .findOne({ _id: new ObjectId(boardId) });
+
         if (updatedBoard) {
-            logger.info({ boardId }, 'Publishing board update');
-            const boardForPublish: Board = { 
-              ...updatedBoard, 
-              id: updatedBoard._id.toString(), 
-              createdBy: updatedBoard.createdBy.toString(),
-              elements: updatedBoard.elements.map(el => ({ ...el, id: el._id?.toString() || uuidv4() })),
-            }; 
-            pubSub.publish('boardUpdates', boardId, boardForPublish);
+          logger.info({ boardId }, "Publishing board update");
+          const boardForPublish: Board = {
+            ...updatedBoard,
+            id: updatedBoard._id.toString(),
+            createdBy: updatedBoard.createdBy.toString(),
+            elements: updatedBoard.elements.map((el) => ({
+              ...el,
+              id: el._id?.toString() || uuidv4(),
+            })),
+          };
+          pubSub.publish("boardUpdates", boardId, boardForPublish);
         }
 
-        logger.info({ elementId: newElement.id, boardId }, 'Element added successfully');
+        logger.info(
+          { elementId: newElement.id, boardId },
+          "Element added successfully"
+        );
         return newElement;
       },
     }),
@@ -406,28 +659,33 @@ builder.mutationType({
         name: t.arg.string({ required: true }),
       },
       resolve: (_, { boardId, name }) => {
-        logger.debug({ boardId, name }, 'joinBoard mutation received');
-        const user: User = { id: uuidv4(), name, email: `${name}@example.com`, isOnline: true };
-        logger.info({ userId: user.id, boardId }, 'User joining board');
-        pubSub.publish('userJoined', boardId, user);
+        logger.debug({ boardId, name }, "joinBoard mutation received");
+        const user: User = {
+          id: uuidv4(),
+          name,
+          email: `${name}@example.com`,
+          isOnline: true,
+        };
+        logger.info({ userId: user.id, boardId }, "User joining board");
+        pubSub.publish("userJoined", boardId, user);
         return user;
       },
     }),
     leaveBoard: t.field({
-      type: 'String', // Returns the ID of the user who left
+      type: "String", // Returns the ID of the user who left
       args: {
         boardId: t.arg.string({ required: true }),
         userId: t.arg.string({ required: true }),
       },
       resolve: (_, { boardId, userId }) => {
-        logger.debug({ boardId, userId }, 'leaveBoard mutation received');
-        logger.info({ userId, boardId }, 'User leaving board');
-        pubSub.publish('userLeft', boardId, { id: userId });
+        logger.debug({ boardId, userId }, "leaveBoard mutation received");
+        logger.info({ userId, boardId }, "User leaving board");
+        pubSub.publish("userLeft", boardId, { id: userId });
         return userId;
       },
     }),
     moveCursor: t.field({
-      type: 'Boolean',
+      type: "Boolean",
       args: {
         boardId: t.arg.string({ required: true }),
         userId: t.arg.string({ required: true }),
@@ -437,8 +695,8 @@ builder.mutationType({
       },
       resolve: (_, { boardId, userId, name, x, y }) => {
         // This resolver is very high frequency, so we use trace level
-        logger.trace({ boardId, userId, x, y }, 'moveCursor mutation received');
-        pubSub.publish('cursorMovement', boardId, { userId, name, x, y });
+        logger.trace({ boardId, userId, x, y }, "moveCursor mutation received");
+        pubSub.publish("cursorMovement", boardId, { userId, name, x, y });
         return true;
       },
     }),
@@ -449,26 +707,34 @@ builder.mutationType({
         action: t.arg.string({ required: true }),
       },
       resolve: async (_, { boardId, action }, { session, pubSub }) => {
-        logger.debug({ boardId, session: !!session, userId: session?.user?.id }, 'addBoardAction resolver called');
-        
+        logger.debug(
+          { boardId, session: !!session, userId: session?.user?.id },
+          "addBoardAction resolver called"
+        );
+
         if (!session?.user?.id) {
-          logger.warn('No session or user ID found in addBoardAction resolver');
-          throw new Error('Authentication required');
+          logger.warn("No session or user ID found in addBoardAction resolver");
+          throw new Error("Authentication required");
         }
         const db = await connectToDatabase();
-        const board = await db.collection<BoardDocument>('boards').findOne({ _id: new ObjectId(boardId) });
-        if (!board) throw new Error('Board not found');
+        const board = await db
+          .collection<BoardDocument>("boards")
+          .findOne({ _id: new ObjectId(boardId) });
+        if (!board) throw new Error("Board not found");
 
         // Remove redos if not at end
         let history = board.history || [];
-        let historyIndex = typeof board.historyIndex === 'number' ? board.historyIndex : history.length - 1;
+        let historyIndex =
+          typeof board.historyIndex === "number"
+            ? board.historyIndex
+            : history.length - 1;
         history = history.slice(0, historyIndex + 1);
         // Add new action
         const parsedAction = JSON.parse(action);
-        const newAction = { 
+        const newAction = {
           type: parsedAction.type,
           data: parsedAction.data,
-          timestamp: new Date().toISOString() 
+          timestamp: new Date().toISOString(),
         };
         history.push(newAction);
         historyIndex = history.length - 1;
@@ -477,7 +743,7 @@ builder.mutationType({
         let elements: DrawingElement[] = [];
         for (let i = 0; i <= historyIndex; i++) {
           const act = history[i];
-          if (act.type === 'add') {
+          if (act.type === "add") {
             const parsed = JSON.parse(act.data);
             elements.push({
               id: parsed.id || uuidv4(),
@@ -488,61 +754,78 @@ builder.mutationType({
               createdAt: new Date(),
               updatedAt: new Date(),
             });
-          } else if (act.type === 'update') {
+          } else if (act.type === "update") {
             const parsed = JSON.parse(act.data);
-            const elementIndex = elements.findIndex(el => el.id === parsed.id);
+            const elementIndex = elements.findIndex(
+              (el) => el.id === parsed.id
+            );
             if (elementIndex >= 0) {
               // Update existing element
               elements[elementIndex] = {
                 ...elements[elementIndex],
                 type: parsed.tool || parsed.type,
                 data: parsed,
-                style: { stroke: parsed.color, strokeWidth: parsed.strokeWidth },
+                style: {
+                  stroke: parsed.color,
+                  strokeWidth: parsed.strokeWidth,
+                },
                 updatedAt: new Date(),
               };
             }
-          } else if (act.type === 'remove') {
+          } else if (act.type === "remove") {
             const removeId = JSON.parse(act.data).id;
-            elements = elements.filter(el => el.id !== removeId);
-          } else if (act.type === 'clear') {
+            elements = elements.filter((el) => el.id !== removeId);
+          } else if (act.type === "clear") {
             elements = [];
           }
         }
 
-        await db.collection<BoardDocument>('boards').updateOne(
+        await db.collection<BoardDocument>("boards").updateOne(
           { _id: new ObjectId(boardId) },
           {
             $set: {
               history,
               historyIndex,
-              elements: elements.map(el => {
-                const isValidObjectId = el.id && /^[0-9a-fA-F]{24}$/.test(el.id);
-                logger.debug({ elementId: el.id, isValidObjectId }, 'Processing element for storage in addBoardAction');
+              elements: elements.map((el) => {
+                const isValidObjectId =
+                  el.id && /^[0-9a-fA-F]{24}$/.test(el.id);
+                logger.debug(
+                  { elementId: el.id, isValidObjectId },
+                  "Processing element for storage in addBoardAction"
+                );
                 return {
-                  ...el, 
-                  _id: isValidObjectId ? new ObjectId(el.id) : undefined 
+                  ...el,
+                  _id: isValidObjectId ? new ObjectId(el.id) : undefined,
                 };
               }) as DrawingElementDocument[], // Map to DrawingElementDocument for storage
               updatedAt: new Date(),
             },
           }
         );
-        const updatedBoard = await db.collection<BoardDocument>('boards').findOne({ _id: new ObjectId(boardId) });
+        const updatedBoard = await db
+          .collection<BoardDocument>("boards")
+          .findOne({ _id: new ObjectId(boardId) });
         if (updatedBoard) {
-          const boardForPublish: Board = { 
-            ...updatedBoard, 
-            id: updatedBoard._id.toString(), 
+          const boardForPublish: Board = {
+            ...updatedBoard,
+            id: updatedBoard._id.toString(),
             createdBy: updatedBoard.createdBy.toString(),
-            elements: updatedBoard.elements.map(el => ({ ...el, id: el._id?.toString() || uuidv4() })),
+            elements: updatedBoard.elements.map((el) => ({
+              ...el,
+              id: el._id?.toString() || uuidv4(),
+            })),
           };
-          pubSub.publish('boardUpdates', boardId, boardForPublish);
+          pubSub.publish("boardUpdates", boardId, boardForPublish);
         }
-        return { 
-          ...updatedBoard!, 
-          id: updatedBoard!._id.toString(), 
+        return {
+          ...updatedBoard!,
+          id: updatedBoard!._id.toString(),
           createdBy: updatedBoard!.createdBy.toString(),
-          elements: updatedBoard!.elements.map(el => ({ ...el, id: el._id?.toString() || uuidv4() }))
-        }; 
+          elements: updatedBoard!.elements.map((el) => ({
+            ...el,
+            id: el._id?.toString() || uuidv4(),
+          })),
+        };
       },
     }),
     undoBoardAction: t.field({
@@ -551,96 +834,124 @@ builder.mutationType({
         boardId: t.arg.string({ required: true }),
       },
       resolve: async (_, { boardId }, { session, pubSub }) => {
-        if (!session?.user?.id) throw new Error('Authentication required');
+        if (!session?.user?.id) throw new Error("Authentication required");
         const db = await connectToDatabase();
-        const board = await db.collection<BoardDocument>('boards').findOne({ _id: new ObjectId(boardId) });
-        if (!board) throw new Error('Board not found');
+        const board = await db
+          .collection<BoardDocument>("boards")
+          .findOne({ _id: new ObjectId(boardId) });
+        if (!board) throw new Error("Board not found");
         const history = board.history || [];
-        let historyIndex = typeof board.historyIndex === 'number' ? board.historyIndex : history.length - 1;
-        
+        let historyIndex =
+          typeof board.historyIndex === "number"
+            ? board.historyIndex
+            : history.length - 1;
+
         // Check if undo is possible - can't undo if no history or already at beginning
         if (history.length === 0 || historyIndex < 0) {
-          return { 
-            ...board, 
-            id: board._id.toString(), 
+          return {
+            ...board,
+            id: board._id.toString(),
             createdBy: board.createdBy.toString(),
-            elements: board.elements.map(el => ({ ...el, id: el._id?.toString() || uuidv4() })),
-          }; 
+            elements: board.elements.map((el) => ({
+              ...el,
+              id: el._id?.toString() || uuidv4(),
+            })),
+          };
         }
-        
+
         historyIndex--;
         // Recompute elements up to historyIndex
         let elements: DrawingElement[] = [];
-        
+
         // If historyIndex is -1, we're at the beginning (empty canvas)
         if (historyIndex >= 0) {
           for (let i = 0; i <= historyIndex; i++) {
             const act = history[i];
-            if (act.type === 'add') {
+            if (act.type === "add") {
               const parsed = JSON.parse(act.data);
               elements.push({
                 id: parsed.id || uuidv4(),
                 type: parsed.tool || parsed.type,
                 data: parsed,
-                style: { stroke: parsed.color, strokeWidth: parsed.strokeWidth },
+                style: {
+                  stroke: parsed.color,
+                  strokeWidth: parsed.strokeWidth,
+                },
                 createdBy: session.user.id,
                 createdAt: new Date(),
                 updatedAt: new Date(),
               });
-            } else if (act.type === 'update') {
+            } else if (act.type === "update") {
               const parsed = JSON.parse(act.data);
-              const elementIndex = elements.findIndex(el => el.id === parsed.id);
+              const elementIndex = elements.findIndex(
+                (el) => el.id === parsed.id
+              );
               if (elementIndex >= 0) {
                 // Update existing element
                 elements[elementIndex] = {
                   ...elements[elementIndex],
                   type: parsed.tool || parsed.type,
                   data: parsed,
-                  style: { stroke: parsed.color, strokeWidth: parsed.strokeWidth },
+                  style: {
+                    stroke: parsed.color,
+                    strokeWidth: parsed.strokeWidth,
+                  },
                   updatedAt: new Date(),
                 };
               }
-            } else if (act.type === 'remove') {
+            } else if (act.type === "remove") {
               const removeId = JSON.parse(act.data).id;
-              elements = elements.filter(el => el.id !== removeId);
-            } else if (act.type === 'clear') {
+              elements = elements.filter((el) => el.id !== removeId);
+            } else if (act.type === "clear") {
               elements = [];
             }
           }
         }
-        
-        await db.collection<BoardDocument>('boards').updateOne(
+
+        await db.collection<BoardDocument>("boards").updateOne(
           { _id: new ObjectId(boardId) },
           {
             $set: {
               historyIndex,
-              elements: elements.map(el => {
-                const isValidObjectId = el.id && /^[0-9a-fA-F]{24}$/.test(el.id);
-                logger.debug({ elementId: el.id, isValidObjectId }, 'Processing element for storage in undoBoardAction');
+              elements: elements.map((el) => {
+                const isValidObjectId =
+                  el.id && /^[0-9a-fA-F]{24}$/.test(el.id);
+                logger.debug(
+                  { elementId: el.id, isValidObjectId },
+                  "Processing element for storage in undoBoardAction"
+                );
                 return {
-                  ...el, 
-                  _id: isValidObjectId ? new ObjectId(el.id) : undefined 
+                  ...el,
+                  _id: isValidObjectId ? new ObjectId(el.id) : undefined,
                 };
               }) as DrawingElementDocument[], // Map to DrawingElementDocument for storage
               updatedAt: new Date(),
             },
           }
         );
-        const updatedBoard = await db.collection<BoardDocument>('boards').findOne({ _id: new ObjectId(boardId) });
+        const updatedBoard = await db
+          .collection<BoardDocument>("boards")
+          .findOne({ _id: new ObjectId(boardId) });
         if (updatedBoard) {
-          pubSub.publish('boardUpdates', boardId, { 
-            ...updatedBoard, 
-            id: updatedBoard._id.toString(), 
+          pubSub.publish("boardUpdates", boardId, {
+            ...updatedBoard,
+            id: updatedBoard._id.toString(),
             createdBy: updatedBoard.createdBy.toString(),
-            elements: updatedBoard.elements.map(el => ({ ...el, id: el._id?.toString() || uuidv4() })),
+            elements: updatedBoard.elements.map((el) => ({
+              ...el,
+              id: el._id?.toString() || uuidv4(),
+            })),
           });
         }
-        return { 
-          ...updatedBoard!, 
-          id: updatedBoard!._id.toString(), 
+        return {
+          ...updatedBoard!,
+          id: updatedBoard!._id.toString(),
           createdBy: updatedBoard!.createdBy.toString(),
-          elements: updatedBoard!.elements.map(el => ({ ...el, id: el._id?.toString() || uuidv4() }))
-        }; 
+          elements: updatedBoard!.elements.map((el) => ({
+            ...el,
+            id: el._id?.toString() || uuidv4(),
+          })),
+        };
       },
     }),
     redoBoardAction: t.field({
@@ -649,29 +960,37 @@ builder.mutationType({
         boardId: t.arg.string({ required: true }),
       },
       resolve: async (_, { boardId }, { session, pubSub }) => {
-        if (!session?.user?.id) throw new Error('Authentication required');
+        if (!session?.user?.id) throw new Error("Authentication required");
         const db = await connectToDatabase();
-        const board = await db.collection<BoardDocument>('boards').findOne({ _id: new ObjectId(boardId) });
-        if (!board) throw new Error('Board not found');
+        const board = await db
+          .collection<BoardDocument>("boards")
+          .findOne({ _id: new ObjectId(boardId) });
+        if (!board) throw new Error("Board not found");
         const history = board.history || [];
-        let historyIndex = typeof board.historyIndex === 'number' ? board.historyIndex : history.length - 1;
-        
+        let historyIndex =
+          typeof board.historyIndex === "number"
+            ? board.historyIndex
+            : history.length - 1;
+
         // Check if redo is possible (not at the end)
         if (history.length === 0 || historyIndex >= history.length - 1) {
-          return { 
-            ...board, 
-            id: board._id.toString(), 
+          return {
+            ...board,
+            id: board._id.toString(),
             createdBy: board.createdBy.toString(),
-            elements: board.elements.map(el => ({ ...el, id: el._id?.toString() || uuidv4() })),
-          }; 
+            elements: board.elements.map((el) => ({
+              ...el,
+              id: el._id?.toString() || uuidv4(),
+            })),
+          };
         }
-        
+
         historyIndex++;
         // Recompute elements up to historyIndex
         let elements: DrawingElement[] = [];
         for (let i = 0; i <= historyIndex; i++) {
           const act = history[i];
-          if (act.type === 'add') {
+          if (act.type === "add") {
             const parsed = JSON.parse(act.data);
             elements.push({
               id: parsed.id || uuidv4(),
@@ -682,58 +1001,75 @@ builder.mutationType({
               createdAt: new Date(),
               updatedAt: new Date(),
             });
-          } else if (act.type === 'update') {
+          } else if (act.type === "update") {
             const parsed = JSON.parse(act.data);
-            const elementIndex = elements.findIndex(el => el.id === parsed.id);
+            const elementIndex = elements.findIndex(
+              (el) => el.id === parsed.id
+            );
             if (elementIndex >= 0) {
               // Update existing element
               elements[elementIndex] = {
                 ...elements[elementIndex],
                 type: parsed.tool || parsed.type,
                 data: parsed,
-                style: { stroke: parsed.color, strokeWidth: parsed.strokeWidth },
+                style: {
+                  stroke: parsed.color,
+                  strokeWidth: parsed.strokeWidth,
+                },
                 updatedAt: new Date(),
               };
             }
-          } else if (act.type === 'remove') {
+          } else if (act.type === "remove") {
             const removeId = JSON.parse(act.data).id;
-            elements = elements.filter(el => el.id !== removeId);
-          } else if (act.type === 'clear') {
+            elements = elements.filter((el) => el.id !== removeId);
+          } else if (act.type === "clear") {
             elements = [];
           }
         }
-        await db.collection<BoardDocument>('boards').updateOne(
+        await db.collection<BoardDocument>("boards").updateOne(
           { _id: new ObjectId(boardId) },
           {
             $set: {
               historyIndex,
-              elements: elements.map(el => {
-                const isValidObjectId = el.id && /^[0-9a-fA-F]{24}$/.test(el.id);
-                logger.debug({ elementId: el.id, isValidObjectId }, 'Processing element for storage in redoBoardAction');
+              elements: elements.map((el) => {
+                const isValidObjectId =
+                  el.id && /^[0-9a-fA-F]{24}$/.test(el.id);
+                logger.debug(
+                  { elementId: el.id, isValidObjectId },
+                  "Processing element for storage in redoBoardAction"
+                );
                 return {
-                  ...el, 
-                  _id: isValidObjectId ? new ObjectId(el.id) : undefined 
+                  ...el,
+                  _id: isValidObjectId ? new ObjectId(el.id) : undefined,
                 };
               }) as DrawingElementDocument[], // Map to DrawingElementDocument for storage
               updatedAt: new Date(),
             },
           }
         );
-        const updatedBoard = await db.collection<BoardDocument>('boards').findOne({ _id: new ObjectId(boardId) });
+        const updatedBoard = await db
+          .collection<BoardDocument>("boards")
+          .findOne({ _id: new ObjectId(boardId) });
         if (updatedBoard) {
-          pubSub.publish('boardUpdates', boardId, { 
-            ...updatedBoard, 
-            id: updatedBoard._id.toString(), 
+          pubSub.publish("boardUpdates", boardId, {
+            ...updatedBoard,
+            id: updatedBoard._id.toString(),
             createdBy: updatedBoard.createdBy.toString(),
-            elements: updatedBoard.elements.map(el => ({ ...el, id: el._id?.toString() || uuidv4() })),
+            elements: updatedBoard.elements.map((el) => ({
+              ...el,
+              id: el._id?.toString() || uuidv4(),
+            })),
           });
         }
-        return { 
-          ...updatedBoard!, 
-          id: updatedBoard!._id.toString(), 
+        return {
+          ...updatedBoard!,
+          id: updatedBoard!._id.toString(),
           createdBy: updatedBoard!.createdBy.toString(),
-          elements: updatedBoard!.elements.map(el => ({ ...el, id: el._id?.toString() || uuidv4() }))
-        }; 
+          elements: updatedBoard!.elements.map((el) => ({
+            ...el,
+            id: el._id?.toString() || uuidv4(),
+          })),
+        };
       },
     }),
   }),
@@ -741,9 +1077,9 @@ builder.mutationType({
 
 builder.objectType(UserRef, {
   fields: (t) => ({
-    id: t.exposeString('id'),
-    name: t.exposeString('name'),
-    email: t.exposeString('email'),
+    id: t.exposeString("id"),
+    name: t.exposeString("name"),
+    email: t.exposeString("email"),
     avatar: t.string({
       resolve: (user) => user.avatar || null,
       nullable: true,
@@ -756,8 +1092,8 @@ builder.objectType(UserRef, {
 
 builder.objectType(DrawingElementRef, {
   fields: (t) => ({
-    id: t.exposeString('id'), // Expose id directly since DrawingElementDocument now has it
-    type: t.exposeString('type'),
+    id: t.exposeString("id"), // Expose id directly since DrawingElementDocument now has it
+    type: t.exposeString("type"),
     data: t.string({
       resolve: (el) => JSON.stringify(el.data),
     }),
@@ -778,9 +1114,9 @@ builder.objectType(DrawingElementRef, {
 
 builder.objectType(BoardRef, {
   fields: (t) => ({
-    id: t.exposeString('id'), // Expose id directly
-    name: t.exposeString('name'),
-    isPublic: t.exposeBoolean('isPublic'),
+    id: t.exposeString("id"), // Expose id directly
+    name: t.exposeString("name"),
+    isPublic: t.exposeBoolean("isPublic"),
     createdAt: t.string({
       resolve: (board) => board.createdAt.toISOString(),
     }),
@@ -792,55 +1128,66 @@ builder.objectType(BoardRef, {
     }),
     elements: t.field({
       type: [DrawingElementRef],
-      resolve: (board) => board.elements.map(el => ({ ...el, id: el.id || (el as any)._id?.toString() || uuidv4() }) as DrawingElement),
+      resolve: (board) =>
+        board.elements.map(
+          (el) =>
+            ({
+              ...el,
+              id: el.id || (el as any)._id?.toString() || uuidv4(),
+            } as DrawingElement)
+        ),
     }),
     collaborators: t.field({
       type: [UserRef],
       resolve: (board) => board.collaborators,
     }),
     adminUsers: t.field({
-      type: ['String'],
+      type: ["String"],
       resolve: (board) => board.adminUsers || [],
       nullable: true,
     }),
     blockedUsers: t.field({
-      type: ['String'],
+      type: ["String"],
       resolve: (board) => board.blockedUsers || [],
       nullable: true,
     }),
     history: t.field({
       type: [BoardActionRef],
-      resolve: (board) => (board.history || []).map(h => ({
-        type: h.type,
-        data: h.data,
-        timestamp: h.timestamp
-      })),
+      resolve: (board) =>
+        (board.history || []).map((h) => ({
+          type: h.type,
+          data: h.data,
+          timestamp: h.timestamp,
+        })),
     }),
     historyIndex: t.int({
       resolve: (board) => board.historyIndex ?? 0,
     }),
     pendingInvitations: t.field({
-      type: [builder.objectRef<BoardInvitation>('BoardInvitation').implement({
-        fields: (t) => ({
-          id: t.exposeString('id'),
-          boardId: t.exposeString('boardId'),
-          inviterUserId: t.exposeString('inviterUserId'),
-          inviteeEmail: t.exposeString('inviteeEmail'),
-          invitationToken: t.exposeString('invitationToken'),
-          status: t.exposeString('status'),
-          message: t.exposeString('message', { nullable: true }),
-          createdAt: t.string({
-            resolve: (inv) => inv.createdAt.toISOString(),
-          }),
-          expiresAt: t.string({
-            resolve: (inv) => inv.expiresAt.toISOString(),
-          }),
-          acceptedAt: t.string({
-            resolve: (inv) => inv.acceptedAt ? inv.acceptedAt.toISOString() : null,
-            nullable: true,
+      type: [
+        builder.objectRef<BoardInvitation>("BoardInvitation").implement({
+          fields: (t) => ({
+            id: t.exposeString("id"),
+            boardId: t.exposeString("boardId"),
+            inviterUserId: t.exposeString("inviterUserId"),
+            inviteeEmail: t.exposeString("inviteeEmail"),
+            invitationToken: t.exposeString("invitationToken"),
+            status: t.exposeString("status"),
+            message: t.exposeString("message", { nullable: true }),
+            createdAt: t.string({
+              resolve: (inv) => inv.createdAt.toISOString(),
+            }),
+            expiresAt: t.string({
+              resolve: (inv) => inv.expiresAt.toISOString(),
+            }),
+            acceptedAt: t.string({
+              resolve: (inv) =>
+                inv.acceptedAt ? inv.acceptedAt.toISOString() : null,
+              nullable: true,
+            }),
           }),
         }),
-      })],
+      ],
       resolve: (board) => board.pendingInvitations || [],
       nullable: true,
     }),
@@ -849,116 +1196,125 @@ builder.objectType(BoardRef, {
 
 builder.objectType(BoardActionRef, {
   fields: (t) => ({
-    type: t.exposeString('type'),
-    data: t.exposeString('data'),
-    timestamp: t.exposeString('timestamp'),
+    type: t.exposeString("type"),
+    data: t.exposeString("data"),
+    timestamp: t.exposeString("timestamp"),
   }),
 });
 
 // Define DrawingLineData object type
-const DrawingLineDataRef = builder.objectRef<DrawingLineData>('DrawingLineData');
+const DrawingLineDataRef =
+  builder.objectRef<DrawingLineData>("DrawingLineData");
 builder.objectType(DrawingLineDataRef, {
   fields: (t) => ({
-    id: t.exposeString('id'),
+    id: t.exposeString("id"),
     points: t.field({
-      type: ['Float'],
+      type: ["Float"],
       resolve: (line) => line.points,
     }),
-    tool: t.exposeString('tool'),
-    color: t.exposeString('color'),
-    strokeWidth: t.exposeFloat('strokeWidth'),
+    tool: t.exposeString("tool"),
+    color: t.exposeString("color"),
+    strokeWidth: t.exposeFloat("strokeWidth"),
   }),
 });
 
 // Define DrawingEventPayload object type
-const DrawingEventPayloadRef = builder.objectRef<DrawingEventPayload>('DrawingEventPayload');
+const DrawingEventPayloadRef = builder.objectRef<DrawingEventPayload>(
+  "DrawingEventPayload"
+);
 builder.objectType(DrawingEventPayloadRef, {
   fields: (t) => ({
-    boardId: t.exposeString('boardId'),
-    userId: t.exposeString('userId'),
-    userName: t.exposeString('userName'),
+    boardId: t.exposeString("boardId"),
+    userId: t.exposeString("userId"),
+    userName: t.exposeString("userName"),
     line: t.field({
       type: DrawingLineDataRef,
       resolve: (payload) => payload.line,
     }),
-    timestamp: t.exposeFloat('timestamp'),
+    timestamp: t.exposeFloat("timestamp"),
   }),
 });
 
 // Define TextEventPayload object type
-const TextEventPayloadRef = builder.objectRef<TextEventPayload>('TextEventPayload');
+const TextEventPayloadRef =
+  builder.objectRef<TextEventPayload>("TextEventPayload");
 builder.objectType(TextEventPayloadRef, {
   fields: (t) => ({
-    boardId: t.exposeString('boardId'),
-    userId: t.exposeString('userId'),
-    userName: t.exposeString('userName'),
-    timestamp: t.exposeFloat('timestamp'),
+    boardId: t.exposeString("boardId"),
+    userId: t.exposeString("userId"),
+    userName: t.exposeString("userName"),
+    timestamp: t.exposeFloat("timestamp"),
     textElement: t.field({
-      type: builder.objectRef<TextEventPayload['textElement']>('TextElement').implement({
-        fields: (t) => ({
-          id: t.exposeString('id'),
-          type: t.exposeString('type'),
-          x: t.exposeFloat('x'),
-          y: t.exposeFloat('y'),
-          width: t.exposeFloat('width'),
-          height: t.exposeFloat('height'),
-          text: t.exposeString('text'),
-          formatting: t.string({
-            resolve: (el) => JSON.stringify(el.formatting),
+      type: builder
+        .objectRef<TextEventPayload["textElement"]>("TextElement")
+        .implement({
+          fields: (t) => ({
+            id: t.exposeString("id"),
+            type: t.exposeString("type"),
+            x: t.exposeFloat("x"),
+            y: t.exposeFloat("y"),
+            width: t.exposeFloat("width"),
+            height: t.exposeFloat("height"),
+            text: t.exposeString("text"),
+            formatting: t.string({
+              resolve: (el) => JSON.stringify(el.formatting),
+            }),
+            style: t.string({
+              resolve: (el) => JSON.stringify(el.style),
+            }),
+            rotation: t.exposeFloat("rotation"),
+            isEditing: t.exposeBoolean("isEditing"),
+            isSelected: t.exposeBoolean("isSelected"),
+            createdBy: t.exposeString("createdBy"),
+            createdAt: t.exposeFloat("createdAt"),
+            updatedAt: t.exposeFloat("updatedAt"),
+            version: t.exposeFloat("version"),
           }),
-          style: t.string({
-            resolve: (el) => JSON.stringify(el.style),
-          }),
-          rotation: t.exposeFloat('rotation'),
-          isEditing: t.exposeBoolean('isEditing'),
-          isSelected: t.exposeBoolean('isSelected'),
-          createdBy: t.exposeString('createdBy'),
-          createdAt: t.exposeFloat('createdAt'),
-          updatedAt: t.exposeFloat('updatedAt'),
-          version: t.exposeFloat('version'),
         }),
-      }),
       resolve: (payload) => payload.textElement,
     }),
   }),
 });
 
-const ShapeEventPayloadRef = builder.objectRef<ShapeEventPayload>('ShapeEventPayload');
+const ShapeEventPayloadRef =
+  builder.objectRef<ShapeEventPayload>("ShapeEventPayload");
 builder.objectType(ShapeEventPayloadRef, {
   fields: (t) => ({
-    boardId: t.exposeString('boardId'),
-    userId: t.exposeString('userId'),
-    userName: t.exposeString('userName'),
-    timestamp: t.exposeFloat('timestamp'),
+    boardId: t.exposeString("boardId"),
+    userId: t.exposeString("userId"),
+    userName: t.exposeString("userName"),
+    timestamp: t.exposeFloat("timestamp"),
     shapeElement: t.field({
-      type: builder.objectRef<ShapeEventPayload['shapeElement']>('ShapeElement').implement({
-        fields: (t) => ({
-          id: t.exposeString('id'),
-          type: t.exposeString('type'),
-          x: t.exposeFloat('x'),
-          y: t.exposeFloat('y'),
-          width: t.exposeFloat('width'),
-          height: t.exposeFloat('height'),
-          rotation: t.exposeFloat('rotation'),
-          shapeType: t.exposeString('shapeType'),
-          shapeData: t.string({
-            resolve: (el) => JSON.stringify(el.shapeData),
+      type: builder
+        .objectRef<ShapeEventPayload["shapeElement"]>("ShapeElement")
+        .implement({
+          fields: (t) => ({
+            id: t.exposeString("id"),
+            type: t.exposeString("type"),
+            x: t.exposeFloat("x"),
+            y: t.exposeFloat("y"),
+            width: t.exposeFloat("width"),
+            height: t.exposeFloat("height"),
+            rotation: t.exposeFloat("rotation"),
+            shapeType: t.exposeString("shapeType"),
+            shapeData: t.string({
+              resolve: (el) => JSON.stringify(el.shapeData),
+            }),
+            style: t.string({
+              resolve: (el) => JSON.stringify(el.style),
+            }),
+            draggable: t.exposeBoolean("draggable"),
+            resizable: t.exposeBoolean("resizable"),
+            rotatable: t.exposeBoolean("rotatable"),
+            selectable: t.exposeBoolean("selectable"),
+            locked: t.exposeBoolean("locked"),
+            zIndex: t.exposeInt("zIndex"),
+            createdBy: t.exposeString("createdBy"),
+            createdAt: t.exposeFloat("createdAt"),
+            updatedAt: t.exposeFloat("updatedAt"),
+            version: t.exposeFloat("version"),
           }),
-          style: t.string({
-            resolve: (el) => JSON.stringify(el.style),
-          }),
-          draggable: t.exposeBoolean('draggable'),
-          resizable: t.exposeBoolean('resizable'),
-          rotatable: t.exposeBoolean('rotatable'),
-          selectable: t.exposeBoolean('selectable'),
-          locked: t.exposeBoolean('locked'),
-          zIndex: t.exposeInt('zIndex'),
-          createdBy: t.exposeString('createdBy'),
-          createdAt: t.exposeFloat('createdAt'),
-          updatedAt: t.exposeFloat('updatedAt'),
-          version: t.exposeFloat('version'),
         }),
-      }),
       resolve: (payload) => payload.shapeElement,
     }),
   }),
@@ -971,7 +1327,7 @@ builder.subscriptionType({
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('boardUpdates', boardId),
+      subscribe: (_, { boardId }) => pubSub.subscribe("boardUpdates", boardId),
       resolve: (payload: Board) => payload,
     }),
     userJoined: t.field({
@@ -979,85 +1335,125 @@ builder.subscriptionType({
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('userJoined', boardId),
+      subscribe: (_, { boardId }) => pubSub.subscribe("userJoined", boardId),
       resolve: (payload: User) => payload,
     }),
     userLeft: t.field({
-      type: builder.objectRef<{ id: string }>('UserLeft').implement({
-        fields: (t) => ({ id: t.exposeString('id') }),
+      type: builder.objectRef<{ id: string }>("UserLeft").implement({
+        fields: (t) => ({ id: t.exposeString("id") }),
       }),
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('userLeft', boardId),
+      subscribe: (_, { boardId }) => pubSub.subscribe("userLeft", boardId),
       resolve: (payload: { id: string }) => payload,
     }),
     cursorMovement: t.field({
-      type: builder.objectRef<{ x: number; y: number, userId: string; name: string }>('Cursor').implement({
-        fields: (t) => ({
-          x: t.exposeInt('x'),
-          y: t.exposeInt('y'),
-          userId: t.exposeString('userId'),
-          name: t.exposeString('name'),
+      type: builder
+        .objectRef<{ x: number; y: number; userId: string; name: string }>(
+          "Cursor"
+        )
+        .implement({
+          fields: (t) => ({
+            x: t.exposeInt("x"),
+            y: t.exposeInt("y"),
+            userId: t.exposeString("userId"),
+            name: t.exposeString("name"),
+          }),
         }),
-      }),
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('cursorMovement', boardId),
-      resolve: (payload: { x: number; y: number; userId: string; name: string }) => payload,
+      subscribe: (_, { boardId }) =>
+        pubSub.subscribe("cursorMovement", boardId),
+      resolve: (payload: {
+        x: number;
+        y: number;
+        userId: string;
+        name: string;
+      }) => payload,
     }),
     collaboratorInvited: t.field({
-      type: builder.objectRef<{ boardId: string; inviteeEmail: string; inviterName: string }>('CollaboratorInvitedPayload').implement({
-        fields: (t) => ({
-          boardId: t.exposeString('boardId'),
-          inviteeEmail: t.exposeString('inviteeEmail'),
-          inviterName: t.exposeString('inviterName'),
+      type: builder
+        .objectRef<{
+          boardId: string;
+          inviteeEmail: string;
+          inviterName: string;
+        }>("CollaboratorInvitedPayload")
+        .implement({
+          fields: (t) => ({
+            boardId: t.exposeString("boardId"),
+            inviteeEmail: t.exposeString("inviteeEmail"),
+            inviterName: t.exposeString("inviterName"),
+          }),
         }),
-      }),
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('collaboratorInvited', boardId),
-      resolve: (payload: { boardId: string; inviteeEmail: string; inviterName: string }) => payload,
+      subscribe: (_, { boardId }) =>
+        pubSub.subscribe("collaboratorInvited", boardId),
+      resolve: (payload: {
+        boardId: string;
+        inviteeEmail: string;
+        inviterName: string;
+      }) => payload,
     }),
     collaboratorJoined: t.field({
-      type: builder.objectRef<{ boardId: string; collaborator: User; boardName: string }>('CollaboratorJoinedPayload').implement({
-        fields: (t) => ({
-          boardId: t.exposeString('boardId'),
-          collaborator: t.field({
-            type: UserRef,
-            resolve: (payload) => payload.collaborator,
+      type: builder
+        .objectRef<{ boardId: string; collaborator: User; boardName: string }>(
+          "CollaboratorJoinedPayload"
+        )
+        .implement({
+          fields: (t) => ({
+            boardId: t.exposeString("boardId"),
+            collaborator: t.field({
+              type: UserRef,
+              resolve: (payload) => payload.collaborator,
+            }),
+            boardName: t.exposeString("boardName"),
           }),
-          boardName: t.exposeString('boardName'),
         }),
-      }),
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('collaboratorJoined', boardId),
-      resolve: (payload: { boardId: string; collaborator: User; boardName: string }) => payload,
+      subscribe: (_, { boardId }) =>
+        pubSub.subscribe("collaboratorJoined", boardId),
+      resolve: (payload: {
+        boardId: string;
+        collaborator: User;
+        boardName: string;
+      }) => payload,
     }),
     invitationStatusChanged: t.field({
-      type: builder.objectRef<{ invitationId: string; status: string; email: string }>('InvitationStatusChangedPayload').implement({
-        fields: (t) => ({
-          invitationId: t.exposeString('invitationId'),
-          status: t.exposeString('status'),
-          email: t.exposeString('email'),
+      type: builder
+        .objectRef<{ invitationId: string; status: string; email: string }>(
+          "InvitationStatusChangedPayload"
+        )
+        .implement({
+          fields: (t) => ({
+            invitationId: t.exposeString("invitationId"),
+            status: t.exposeString("status"),
+            email: t.exposeString("email"),
+          }),
         }),
-      }),
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('invitationStatusChanged', boardId),
-      resolve: (payload: { invitationId: string; status: string; email: string }) => payload,
+      subscribe: (_, { boardId }) =>
+        pubSub.subscribe("invitationStatusChanged", boardId),
+      resolve: (payload: {
+        invitationId: string;
+        status: string;
+        email: string;
+      }) => payload,
     }),
     drawingStarted: t.field({
       type: DrawingEventPayloadRef,
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('drawingStarted', boardId),
+      subscribe: (_, { boardId }) =>
+        pubSub.subscribe("drawingStarted", boardId),
       resolve: (payload: DrawingEventPayload) => payload,
     }),
     drawingUpdated: t.field({
@@ -1065,7 +1461,8 @@ builder.subscriptionType({
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('drawingUpdated', boardId),
+      subscribe: (_, { boardId }) =>
+        pubSub.subscribe("drawingUpdated", boardId),
       resolve: (payload: DrawingEventPayload) => payload,
     }),
     drawingCompleted: t.field({
@@ -1073,7 +1470,8 @@ builder.subscriptionType({
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('drawingCompleted', boardId),
+      subscribe: (_, { boardId }) =>
+        pubSub.subscribe("drawingCompleted", boardId),
       resolve: (payload: DrawingEventPayload) => payload,
     }),
     textElementAdded: t.field({
@@ -1081,7 +1479,8 @@ builder.subscriptionType({
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('textElementAdded', boardId),
+      subscribe: (_, { boardId }) =>
+        pubSub.subscribe("textElementAdded", boardId),
       resolve: (payload: TextEventPayload) => payload,
     }),
     textElementUpdated: t.field({
@@ -1089,63 +1488,110 @@ builder.subscriptionType({
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('textElementUpdated', boardId),
+      subscribe: (_, { boardId }) =>
+        pubSub.subscribe("textElementUpdated", boardId),
       resolve: (payload: TextEventPayload) => payload,
     }),
     textElementDeleted: t.field({
-      type: builder.objectRef<{ boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }>('TextElementDeleted').implement({
-        fields: (t) => ({
-          boardId: t.exposeString('boardId'),
-          userId: t.exposeString('userId'),
-          userName: t.exposeString('userName'),
-          textElementId: t.exposeString('textElementId'),
-          timestamp: t.exposeFloat('timestamp'),
+      type: builder
+        .objectRef<{
+          boardId: string;
+          userId: string;
+          userName: string;
+          textElementId: string;
+          timestamp: number;
+        }>("TextElementDeleted")
+        .implement({
+          fields: (t) => ({
+            boardId: t.exposeString("boardId"),
+            userId: t.exposeString("userId"),
+            userName: t.exposeString("userName"),
+            textElementId: t.exposeString("textElementId"),
+            timestamp: t.exposeFloat("timestamp"),
+          }),
         }),
-      }),
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('textElementDeleted', boardId),
-      resolve: (payload: { boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }) => payload,
+      subscribe: (_, { boardId }) =>
+        pubSub.subscribe("textElementDeleted", boardId),
+      resolve: (payload: {
+        boardId: string;
+        userId: string;
+        userName: string;
+        textElementId: string;
+        timestamp: number;
+      }) => payload,
     }),
     textElementEditingStarted: t.field({
-      type: builder.objectRef<{ boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }>('TextElementEditingStarted').implement({
-        fields: (t) => ({
-          boardId: t.exposeString('boardId'),
-          userId: t.exposeString('userId'),
-          userName: t.exposeString('userName'),
-          textElementId: t.exposeString('textElementId'),
-          timestamp: t.exposeFloat('timestamp'),
+      type: builder
+        .objectRef<{
+          boardId: string;
+          userId: string;
+          userName: string;
+          textElementId: string;
+          timestamp: number;
+        }>("TextElementEditingStarted")
+        .implement({
+          fields: (t) => ({
+            boardId: t.exposeString("boardId"),
+            userId: t.exposeString("userId"),
+            userName: t.exposeString("userName"),
+            textElementId: t.exposeString("textElementId"),
+            timestamp: t.exposeFloat("timestamp"),
+          }),
         }),
-      }),
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('textElementEditingStarted', boardId),
-      resolve: (payload: { boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }) => payload,
+      subscribe: (_, { boardId }) =>
+        pubSub.subscribe("textElementEditingStarted", boardId),
+      resolve: (payload: {
+        boardId: string;
+        userId: string;
+        userName: string;
+        textElementId: string;
+        timestamp: number;
+      }) => payload,
     }),
     textElementEditingFinished: t.field({
-      type: builder.objectRef<{ boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }>('TextElementEditingFinished').implement({
-        fields: (t) => ({
-          boardId: t.exposeString('boardId'),
-          userId: t.exposeString('userId'),
-          userName: t.exposeString('userName'),
-          textElementId: t.exposeString('textElementId'),
-          timestamp: t.exposeFloat('timestamp'),
+      type: builder
+        .objectRef<{
+          boardId: string;
+          userId: string;
+          userName: string;
+          textElementId: string;
+          timestamp: number;
+        }>("TextElementEditingFinished")
+        .implement({
+          fields: (t) => ({
+            boardId: t.exposeString("boardId"),
+            userId: t.exposeString("userId"),
+            userName: t.exposeString("userName"),
+            textElementId: t.exposeString("textElementId"),
+            timestamp: t.exposeFloat("timestamp"),
+          }),
         }),
-      }),
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('textElementEditingFinished', boardId),
-      resolve: (payload: { boardId: string; userId: string; userName: string; textElementId: string; timestamp: number }) => payload,
+      subscribe: (_, { boardId }) =>
+        pubSub.subscribe("textElementEditingFinished", boardId),
+      resolve: (payload: {
+        boardId: string;
+        userId: string;
+        userName: string;
+        textElementId: string;
+        timestamp: number;
+      }) => payload,
     }),
     shapeElementCreated: t.field({
       type: ShapeEventPayloadRef,
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('shapeElementCreated', boardId),
+      subscribe: (_, { boardId }) =>
+        pubSub.subscribe("shapeElementCreated", boardId),
       resolve: (payload: ShapeEventPayload) => payload,
     }),
     shapeElementUpdated: t.field({
@@ -1153,31 +1599,48 @@ builder.subscriptionType({
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('shapeElementUpdated', boardId),
+      subscribe: (_, { boardId }) =>
+        pubSub.subscribe("shapeElementUpdated", boardId),
       resolve: (payload: ShapeEventPayload) => payload,
     }),
     shapeElementDeleted: t.field({
-      type: builder.objectRef<{ boardId: string; userId: string; userName: string; shapeElementId: string; timestamp: number }>('ShapeElementDeleted').implement({
-        fields: (t) => ({
-          boardId: t.exposeString('boardId'),
-          userId: t.exposeString('userId'),
-          userName: t.exposeString('userName'),
-          shapeElementId: t.exposeString('shapeElementId'),
-          timestamp: t.exposeFloat('timestamp'),
+      type: builder
+        .objectRef<{
+          boardId: string;
+          userId: string;
+          userName: string;
+          shapeElementId: string;
+          timestamp: number;
+        }>("ShapeElementDeleted")
+        .implement({
+          fields: (t) => ({
+            boardId: t.exposeString("boardId"),
+            userId: t.exposeString("userId"),
+            userName: t.exposeString("userName"),
+            shapeElementId: t.exposeString("shapeElementId"),
+            timestamp: t.exposeFloat("timestamp"),
+          }),
         }),
-      }),
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('shapeElementDeleted', boardId),
-      resolve: (payload: { boardId: string; userId: string; userName: string; shapeElementId: string; timestamp: number }) => payload,
+      subscribe: (_, { boardId }) =>
+        pubSub.subscribe("shapeElementDeleted", boardId),
+      resolve: (payload: {
+        boardId: string;
+        userId: string;
+        userName: string;
+        shapeElementId: string;
+        timestamp: number;
+      }) => payload,
     }),
     shapeElementTransformed: t.field({
       type: ShapeEventPayloadRef,
       args: {
         boardId: t.arg.string({ required: true }),
       },
-      subscribe: (_, { boardId }) => pubSub.subscribe('shapeElementTransformed', boardId),
+      subscribe: (_, { boardId }) =>
+        pubSub.subscribe("shapeElementTransformed", boardId),
       resolve: (payload: ShapeEventPayload) => payload,
     }),
   }),

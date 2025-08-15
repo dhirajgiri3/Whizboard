@@ -25,7 +25,10 @@ import {
   Crown,
 } from "lucide-react";
 import SectionHeader from "@/components/ui/header/SectionHeader";
-import DemoVideoModal from "@/components/ui/modal/DemoVideoModal";
+import { useDemoModal } from "@/components/ui/modal/DemoModalProvider";
+import CTAButton from "@/components/ui/buttons/CTAButton";
+import TrustIndicators from "@/components/ui/TrustIndicators";
+import { LANDING_CONTENT } from "@/lib/landing-content";
 
 // CSS animations for testimonials
 const testimonialStyles = `
@@ -54,97 +57,11 @@ const testimonialStyles = `
 const SocialProof = () => {
   const ref = useRef<HTMLElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-10% 0px" });
-  const [isDemoOpen, setIsDemoOpen] = useState(false);
+  const { openDemo } = useDemoModal();
 
-  const testimonials = [
-    {
-      name: "Tyler Durden",
-      role: "Product Designer",
-      company: "Cyper Studio",
-      content:
-        "The real-time collaboration is smooth and intuitive. Perfect for remote design sessions.",
-      rating: 5,
-      metrics: "",
-      avatar: "",
-    },
-    {
-      name: "Akash Pandey",
-      role: "Social Media Manager",
-      company: "Cyper Studio",
-      content:
-        "Clean interface and fast performance. Great foundation for team collaboration.",
-      rating: 5,
-      metrics: "",
-      avatar: "",
-    },
-    {
-      name: "Tyrion Lannister",
-      role: "Product Designer",
-      company: "Cyper Studio",
-      content:
-        "Exactly what we needed for remote brainstorming. Looking forward to more features.",
-      rating: 5,
-      metrics: "",
-      avatar: "",
-    },
-    {
-      name: "Arya Stark",
-      role: "Product Designer",
-      company: "Cyper Studio",
-      content:
-        "Makes user research sessions much more collaborative and engaging.",
-      rating: 5,
-      metrics: "",
-      avatar: "",
-    },
-    {
-      name: "Walter White",
-      role: "Software Engineer",
-      company: "Cyper Studio",
-      content:
-        "Streamlines our planning process. The integrations are a nice touch.",
-      rating: 5,
-      metrics: "",
-      avatar: "",
-    },
-    {
-      name: "Tony Stark",
-      role: "Iron Man",
-      company: "Cyper Studio",
-      content:
-        "Simple yet powerful. The mobile experience is particularly impressive.",
-      rating: 5,
-      metrics: "",
-      avatar: "",
-    },
-  ];
+  const testimonials = LANDING_CONTENT.socialProof.testimonials;
 
-  const metrics = [
-    {
-      value: "Fast",
-      label: "Real-time collaboration",
-      icon: "Users" as const,
-      iconColor: "text-blue-400",
-    },
-    {
-      value: "Secure",
-      label: "Privacy-first",
-      icon: "TrendingUp" as const,
-      iconColor: "text-emerald-400",
-    },
-    {
-      value: "Simple",
-      label: "Intuitive UI",
-      icon: "Star" as const,
-      iconColor: "text-yellow-400",
-    },
-    {
-      value: "No install",
-      label: "Start in browser",
-      icon: "Clock" as const,
-      iconColor: "text-blue-400",
-    },
-  ];
+  const metrics = LANDING_CONTENT.socialProof.metrics;
 
   const companies = [
     { name: "Design Teams", logo: "Palette" as const, color: "text-blue-400" },
@@ -287,7 +204,7 @@ const SocialProof = () => {
             className="flex flex-col gap-16 lg:gap-20"
           >
             {/* Enhanced Floating Metrics Cards */}
-            <div className="text-center flex flex-col gap-12 lg:gap-16">
+            <div className="text-center flex flex-col gap-8">
               <SectionHeader
                 badge={{
                   icon: TrendingUp,
@@ -493,12 +410,7 @@ const SocialProof = () => {
                                 </div>
                               </div>
                             </div>
-                            {testimonial.metrics && (
-                              <p className="text-white/70 text-xs mt-2">
-                                <TrendingUp className="w-3 h-3 inline-block mr-1 text-emerald-400" />
-                                {testimonial.metrics}
-                              </p>
-                            )}
+
                           </div>
 
                           {/* Enhanced floating particles effect */}
@@ -516,7 +428,7 @@ const SocialProof = () => {
             </div>
 
             {/* Enhanced Trust & Security Section */}
-            <div className="text-center flex flex-col gap-16 lg:gap-20">
+            <div className="text-center flex flex-col gap-8">
               <motion.div
                 variants={itemVariants}
                 className="flex flex-col items-center gap-8"
@@ -723,117 +635,6 @@ const SocialProof = () => {
               </div>
             </div>
 
-            {/* Enhanced Companies Showcase */}
-            {/* <div className="text-center flex flex-col gap-16 lg:gap-20">
-              <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                animate={
-                  isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }
-                }
-                transition={{ delay: 0.8, duration: 0.8, ease: "easeOut" }}
-                className="flex flex-col items-center gap-8"
-              >
-                <SectionHeader
-                  badge={{
-                    icon: Globe,
-                    text: "Trusted Globally",
-                  }}
-                  title="Powering Innovation at Leading Companies"
-                  description="From startups to Fortune 500 companies, teams worldwide choose Whizboard for their most important collaborations."
-                  useCases={[
-                    "Streamlining cross-functional team projects",
-                    "Accelerating product design and development cycles",
-                    "Facilitating global remote workshops and brainstorming",
-                  ]}
-                  disableAnimation={true}
-                />
-              </motion.div>
-
-              <div className="relative">
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                  <motion.div
-                    className="absolute top-1/2 left-1/2 w-96 h-96 gradient-orb-blue transform -translate-x-1/2 -translate-y-1/2"
-                    animate={{
-                      scale: [1, 1.1, 1],
-                      opacity: [0.4, 0.6, 0.4],
-                    }}
-                    transition={{
-                      duration: 8,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 sm:gap-8">
-                  {companies.map((company, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={
-                        isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
-                      }
-                      transition={{
-                        delay: 0.9 + index * 0.1,
-                        duration: 0.6,
-                        ease: "easeOut",
-                      }}
-                      className="group relative"
-                      whileHover={{
-                        y: -8,
-                        transition: { duration: 0.3, ease: "easeOut" },
-                      }}
-                    >
-                      <div className="relative bg-white/[0.02] backdrop-blur-sm border border-white/[0.05] rounded-2xl p-6 hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300 overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
-
-                        <div className="relative z-10 flex flex-col items-center gap-3">
-                          <motion.div
-                            className="p-3 rounded-xl bg-white/[0.05] border border-white/[0.08] group-hover:bg-white/[0.08] group-hover:border-white/[0.12] transition-all duration-300"
-                            whileHover={{
-                              scale: 1.05,
-                            }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            {company.logo === "Building" && (
-                              <Building
-                                className={`w-6 h-6 ${company.color}`}
-                              />
-                            )}
-                            {company.logo === "Palette" && (
-                              <Palette className={`w-6 h-6 ${company.color}`} />
-                            )}
-                            {company.logo === "Target" && (
-                              <Target className={`w-6 h-6 ${company.color}`} />
-                            )}
-                            {company.logo === "Lightbulb" && (
-                              <Lightbulb
-                                className={`w-6 h-6 ${company.color}`}
-                              />
-                            )}
-                            {company.logo === "Crown" && (
-                              <Crown className={`w-6 h-6 ${company.color}`} />
-                            )}
-                            {company.logo === "Layers" && (
-                              <Layers className={`w-6 h-6 ${company.color}`} />
-                            )}
-                          </motion.div>
-
-                          <div className="text-center">
-                            <div className="text-sm font-medium text-white/80 group-hover:text-white transition-colors duration-300">
-                              {company.name}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="absolute top-3 right-3 w-1.5 h-1.5 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-70 transition-opacity duration-300" />
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </div> */}
-
             {/* Enhanced Revolutionary CTA Section */}
             <motion.div
               variants={itemVariants}
@@ -921,57 +722,35 @@ const SocialProof = () => {
                 {/* Minimal CTA Buttons */}
                 <motion.div
                   variants={itemVariants}
-                  className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+                  className="flex flex-col sm:flex-row gap-8 justify-center items-center"
                 >
-                  <motion.button
-                    className="bg-white text-black font-medium px-10 py-4 rounded-full transition-all duration-300 hover:bg-white/90"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                  <CTAButton
+                    variant="white"
+                    size="lg"
+                    theme="social-proof"
+                    className="px-12 py-5 rounded-full"
                   >
-                    <span className="flex items-center gap-2 text-lg">
-                      <span>Start Building Free → No Credit Card</span>
-                      <ArrowRight className="w-5 h-5" />
-                    </span>
-                  </motion.button>
+                    {LANDING_CONTENT.ctaButtons.free}
+                  </CTAButton>
 
-                  <motion.button
-                    className="text-white/80 hover:text-white font-medium px-10 py-4 transition-colors duration-300"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setIsDemoOpen(true)}
+                  <CTAButton
+                    variant="ghost"
+                    size="lg"
+                    icon="play"
+                    onClick={openDemo}
+                    theme="social-proof"
+                    className="px-12 py-5"
                   >
-                    <span className="flex items-center gap-2 text-lg">
-                      <Play className="w-5 h-5" />
-                      <span>See 3-Min Demo</span>
-                    </span>
-                  </motion.button>
+                    {LANDING_CONTENT.ctaButtons.secondary}
+                  </CTAButton>
                 </motion.div>
-
-                <DemoVideoModal
-                  isOpen={isDemoOpen}
-                  onClose={() => setIsDemoOpen(false)}
-                  videoUrl="https://res.cloudinary.com/dgak25skk/video/upload/v1755180328/whizboard-3_qyofjn.mp4"
-                  title="Watch 3‑Min Demo"
-                  description="Experience Whizboard's realtime collaboration in action."
-                />
 
                 {/* Minimal Trust Indicators */}
                 <motion.div
                   variants={itemVariants}
-                  className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16 text-white/50 text-sm"
+                  className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-20 mt-8"
                 >
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4" />
-                    <span>No credit card required</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Shield className="w-4 h-4" />
-                    <span>Bank-level security</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Zap className="w-4 h-4" />
-                    <span>Setup in 30 seconds</span>
-                  </div>
+                  <TrustIndicators />
                 </motion.div>
               </div>
             </motion.div>

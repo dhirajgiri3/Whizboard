@@ -1,14 +1,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Plus, Palette, Zap, Users, Loader2, Info } from "lucide-react";
-import { gql, useMutation } from "@apollo/client";
+import { X, Plus, Palette, Zap, Users, Loader2, Info, AlertTriangle, Crown } from "lucide-react";
+import { gql, useMutation, useQuery } from "@apollo/client";
 
 const CREATE_BOARD = gql`
   mutation CreateBoard($name: String!) {
     createBoard(name: $name) {
       id
       name
+    }
+  }
+`;
+
+const GET_BOARD_USAGE = gql`
+  query GetBoardUsage {
+    myBoardUsage {
+      currentBoardCount
+      plan
+      boardLimit
+      canCreateMore
+      usagePercentage
     }
   }
 `;
@@ -65,6 +77,14 @@ export default function CreateBoardModal({
   const [step, setStep] = useState<"template" | "details">("template");
   const [error, setError] = useState<string | null>(null);
 
+  const { data: boardUsageData, loading: isBoardUsageLoading } = useQuery(GET_BOARD_USAGE, {
+    skip: !isOpen,
+    onError: (error) => {
+      console.error("Error fetching board usage:", error);
+      // Don't set error here as it's not critical for board creation
+    },
+  });
+
   const [createBoard, { loading: isCreating }] = useMutation(CREATE_BOARD, {
     onCompleted: (data) => {
       setError(null);
@@ -73,7 +93,12 @@ export default function CreateBoardModal({
     },
     onError: (error) => {
       console.error("Error creating board:", error);
-      setError("Failed to create board. Please try again.");
+      // Check if it's a board limit error
+      if (error.message?.includes("maximum number of boards")) {
+        setError(error.message);
+      } else {
+        setError("Failed to create board. Please try again.");
+      }
     },
   });
 
@@ -265,7 +290,7 @@ export default function CreateBoardModal({
               <div className="rounded-2xl bg-white/[0.02] border border-white/[0.05] p-6 backdrop-blur-sm">
                 <div className="mb-4 flex items-center gap-2">
                   <Info className="h-5 w-5 text-blue-400" />
-                  <h4 className="font-semibold text-white">What you’ll get</h4>
+                  <h4 className="font-semibold text-white">What you'll get</h4>
                 </div>
                 <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
                   <div className="flex items-center gap-2 text-white/70">
@@ -282,9 +307,70 @@ export default function CreateBoardModal({
                   </div>
                 </div>
               </div>
+
+              {/* Board Usage Indicator */}
+              {boardUsageData?.myBoardUsage && (
+                <div className="rounded-2xl bg-white/[0.02] border border-white/[0.05] p-6 backdrop-blur-sm">
+                  <div className="mb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Crown className="h-5 w-5 text-blue-400" />
+                      <h4 className="font-semibold text-white">Your Plan</h4>
+                    </div>
+                    <span className="text-sm font-medium text-white/60 capitalize">
+                      {boardUsageData.myBoardUsage.plan} Plan
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-white/70">Boards used</span>
+                      <span className="font-medium text-white">
+                        {boardUsageData.myBoardUsage.currentBoardCount} / {boardUsageData.myBoardUsage.boardLimit}
+                      </span>
+                    </div>
+                    
+                    {/* Progress bar */}
+                    <div className="w-full bg-white/10 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          boardUsageData.myBoardUsage.usagePercentage >= 80 
+                            ? 'bg-orange-500' 
+                            : boardUsageData.myBoardUsage.usagePercentage >= 60 
+                            ? 'bg-yellow-500' 
+                            : 'bg-blue-500'
+                        }`}
+                        style={{ width: `${Math.min(boardUsageData.myBoardUsage.usagePercentage, 100)}%` }}
+                      />
+                    </div>
+                    
+                    {!boardUsageData.myBoardUsage.canCreateMore && (
+                      <div className="flex items-center gap-2 text-sm text-orange-400 bg-orange-400/10 px-3 py-2 rounded-lg border border-orange-400/20">
+                        <AlertTriangle className="h-4 w-4" />
+                        <span>You've reached your board limit. Upgrade to Pro for unlimited boards.</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {error && (
-                <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-center">
+                <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="h-4 w-4 text-red-400" />
+                    <span className="font-medium text-red-300">Unable to create board</span>
+                  </div>
                   <p className="text-sm text-red-300">{error}</p>
+                  {error.includes("maximum number of boards") && (
+                    <div className="mt-3 pt-3 border-t border-red-500/20">
+                      <a 
+                        href="/pricing" 
+                        className="inline-flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        <Crown className="h-4 w-4" />
+                        View Pro plans
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
               <div className="flex flex-col gap-3 pt-4 sm:flex-row">
@@ -297,13 +383,26 @@ export default function CreateBoardModal({
                 </button>
                 <button
                   onClick={handleCreateBoard}
-                  disabled={!boardName.trim() || isCreating}
-                  className="flex flex-1 items-center justify-center gap-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 px-6 py-3 font-semibold text-white transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={
+                    !boardName.trim() || 
+                    isCreating || 
+                    (boardUsageData?.myBoardUsage && !boardUsageData.myBoardUsage.canCreateMore)
+                  }
+                  className={`flex flex-1 items-center justify-center gap-3 rounded-xl px-6 py-3 font-semibold text-white transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${
+                    boardUsageData?.myBoardUsage && !boardUsageData.myBoardUsage.canCreateMore
+                      ? 'bg-gray-600 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
+                  }`}
                 >
                   {isCreating ? (
                     <>
                       <Loader2 className="h-5 w-5 animate-spin" />
                       Creating Board...
+                    </>
+                  ) : boardUsageData?.myBoardUsage && !boardUsageData.myBoardUsage.canCreateMore ? (
+                    <>
+                      <Crown className="h-5 w-5" />
+                      Upgrade to Create More
                     </>
                   ) : (
                     <>

@@ -8,6 +8,8 @@ import FAQ from "../components/landing/FAQ";
 import Footer from "../components/layout/footer/Footer";
 import SmoothScrollProvider from "../components/landing/SmoothScrollProvider";
 import Integrations from "../components/landing/Integrations";
+import { DemoModalProvider } from "@/components/ui/modal/DemoModalProvider";
+import { LANDING_CONTENT } from "@/lib/landing-content";
 
 export const metadata: Metadata = {
   title: "Whizboard - Real-Time Collaborative Whiteboard for Modern Teams",
@@ -83,18 +85,24 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <SmoothScrollProvider>
-      <div className="relative">
-        <main className="">
-          <Hero />
-          <ValueProposition />
-          <SocialProof />
-          <Features />
-          <Integrations />
-          <Pricing />
-          <FAQ />
-        </main>
-        <Footer />
-      </div>
+      <DemoModalProvider
+        videoUrl={LANDING_CONTENT.demoModal.videoUrl}
+        title={LANDING_CONTENT.demoModal.title}
+        description={LANDING_CONTENT.demoModal.description}
+      >
+        <div className="relative">
+          <main className="">
+            <Hero />
+            <ValueProposition />
+            <SocialProof />
+            <Features />
+            <Integrations />
+            <Pricing />
+            <FAQ />
+          </main>
+          <Footer />
+        </div>
+      </DemoModalProvider>
     </SmoothScrollProvider>
   );
 }

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import Link from "next/link";
 import BackButton from "@/components/ui/BackButton";
+import SmoothScrollProvider from "@/components/landing/SmoothScrollProvider";
 import {
   Mail,
   MessageCircle,
@@ -15,6 +16,8 @@ import {
   Send,
   Calendar, 
   ChevronDown,
+  Users,
+  Star,
 } from "lucide-react";
 
 // Types
@@ -87,15 +90,6 @@ const contactMethods: ContactMethod[] = [
     color: "from-blue-600 to-blue-500"
   },
   {
-    icon: MessageCircle,
-    title: "Live Chat",
-    description: "Chat with us in real-time during business hours",
-    info: "Available 9 AM - 6 PM EST",
-    action: "Start Chat",
-    href: "#",
-    color: "from-blue-500 to-blue-600"
-  },
-  {
     icon: Phone,
     title: "Phone Support",
     description: "Speak directly with our enterprise team",
@@ -105,12 +99,12 @@ const contactMethods: ContactMethod[] = [
     color: "from-blue-700 to-blue-600"
   },
   {
-    icon: Calendar,
-    title: "Schedule Demo",
-    description: "Book a personalized demo for your team",
-    info: "15-minute consultation",
-    action: "Book Demo",
-    href: "#",
+    icon: MessageCircle,
+    title: "Talk to our team",
+    description: "Fill the form and we'll contact you soon",
+    info: "Avg. response < 24h",
+    action: "Open form",
+    href: "#contact-form",
     color: "from-blue-500 to-blue-400"
   }
 ];
@@ -158,6 +152,15 @@ export default function ContactPage() {
   const [errors, setErrors] = useState<Partial<ContactForm>>({});
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const inquiryTypes: ContactForm['type'][] = ['general', 'support', 'sales', 'partnership'];
+
+  // Smooth scroll to form
+  const handleScrollToForm = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const el = document.getElementById('contact-form');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   // Form validation
   const validateForm = (): boolean => {
@@ -209,13 +212,14 @@ export default function ContactPage() {
   };
 
   return (
+    <SmoothScrollProvider>
     <div className="min-h-screen bg-[#0A0A0B] text-white relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 pt-6">
         <BackButton variant="dark" />
       </div>
       {/* Background Elements */}
       {/* Hero Section with local grid + orbs */}
-      <section className="relative z-10 pt-32 pb-20">
+      <section className="relative z-10 pt-32 pb-24 sm:pb-28 lg:pb-32">
         {/* Hero grid overlay (subtle, hero-only) */}
         <motion.div 
           className="absolute inset-0 pointer-events-none"
@@ -292,6 +296,7 @@ export default function ContactPage() {
               </Link>
               <Link
                 href="#contact-form"
+                onClick={handleScrollToForm}
                 className="text-white hover:text-blue-300 hover:bg-white/5 font-medium px-6 py-3 rounded-xl border border-white/10 hover:border-blue-400/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
               >
                 Open form
@@ -302,7 +307,7 @@ export default function ContactPage() {
       </section>
 
       {/* Contact Methods */}
-      <section className="relative z-10 py-20">
+      <section className="relative z-10 py-16 sm:py-20 lg:py-24">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div 
             initial="hidden"
@@ -310,7 +315,7 @@ export default function ContactPage() {
             viewport={{ once: true, amount: 0.3 }}
             variants={sectionVariants}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
           >
             {contactMethods.map((method, index) => {
               const Icon = method.icon;
@@ -323,23 +328,28 @@ export default function ContactPage() {
                   transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                   className="relative group"
                 >
-                  <div className="relative bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-6 sm:p-8 h-full hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300">
-                    <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r ${method.color} mb-6 shadow-glow`}>
+                  <motion.div
+                    whileHover={{ y: -4 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="relative bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-6 sm:p-8 h-full hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 overflow-hidden"
+                  >
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style={{ background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, transparent 50%)' }} />
+                    <div className={`relative z-10 inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r ${method.color} mb-6 shadow-glow`}>
                       <Icon className="w-8 h-8 text-white" />
                     </div>
-                    
-                    <h3 className="text-lg font-semibold text-white mb-2">{method.title}</h3>
-                    <p className="text-white/70 mb-4 leading-relaxed">{method.description}</p>
-                    <p className="text-sm text-white/60 mb-6">{method.info}</p>
-                    
+                    <h3 className="relative z-10 text-lg font-semibold text-white mb-2">{method.title}</h3>
+                    <p className="relative z-10 text-white/70 mb-4 leading-relaxed">{method.description}</p>
+                    <p className="relative z-10 text-sm text-white/60 mb-6">{method.info}</p>
                     <Link 
                       href={method.href}
-                      className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors font-medium"
+                      onClick={method.href === '#contact-form' ? handleScrollToForm : undefined}
+                      className="relative z-10 inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors font-medium"
+                      title={method.action}
                     >
                       {method.action}
                       <ArrowRight className="w-4 h-4" />
                     </Link>
-                  </div>
+                  </motion.div>
                 </motion.div>
               );
             })}
@@ -348,7 +358,7 @@ export default function ContactPage() {
       </section>
 
       {/* Contact Form & Office Locations */}
-      <section className="relative z-10 py-20">
+      <section className="relative z-10 py-16 sm:py-20 lg:py-24">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
             initial="hidden"
@@ -395,9 +405,10 @@ export default function ContactPage() {
                     >
                       Send Another Message
                     </button>
+                    <div aria-live="polite" className="sr-only">Your message has been sent successfully.</div>
                   </motion.div>
                 ) : (
-                  <form id="contact-form" onSubmit={handleSubmit} className="space-y-6">
+                  <form id="contact-form" onSubmit={handleSubmit} noValidate className="space-y-6">
                     {/* Inquiry type segmented control */}
                     <div className="space-y-3">
                       <label className="block text-sm font-medium text-white/90">Inquiry type</label>
@@ -418,72 +429,92 @@ export default function ContactPage() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-white/90 mb-2">Name *</label>
+                        <label htmlFor="contact-name" className="block text-sm font-medium text-white/90 mb-2">Name *</label>
                         <input
                           type="text"
+                          id="contact-name"
                           value={formData.name}
                           onChange={(e) => handleInputChange('name', e.target.value)}
                           aria-invalid={!!errors.name}
+                          aria-describedby={errors.name ? 'contact-name-error' : undefined}
+                          required
+                          autoComplete="name"
                           className={`block w-full rounded-xl border-0 bg-white/[0.05] px-4 py-3 text-white placeholder-white/40 ring-1 ring-white/10 focus:ring-2 focus:ring-blue-500 hover:bg-white/[0.08] transition-all duration-200 ${errors.name ? 'ring-red-500 focus:ring-red-500' : ''}`}
                           placeholder="Your name"
                         />
-                        {errors.name && <p className="text-red-400 text-sm mt-1">{errors.name}</p>}
+                        {errors.name && <p id="contact-name-error" className="text-red-400 text-sm mt-1">{errors.name}</p>}
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-white/90 mb-2">Email *</label>
+                        <label htmlFor="contact-email" className="block text-sm font-medium text-white/90 mb-2">Email *</label>
                         <input
                           type="email"
+                          id="contact-email"
                           value={formData.email}
                           onChange={(e) => handleInputChange('email', e.target.value)}
                           aria-invalid={!!errors.email}
+                          aria-describedby={errors.email ? 'contact-email-error' : undefined}
+                          required
+                          autoComplete="email"
+                          inputMode="email"
                           className={`block w-full rounded-xl border-0 bg-white/[0.05] px-4 py-3 text-white placeholder-white/40 ring-1 ring-white/10 focus:ring-2 focus:ring-blue-500 hover:bg-white/[0.08] transition-all duration-200 ${errors.email ? 'ring-red-500 focus:ring-red-500' : ''}`}
                           placeholder="your@email.com"
                         />
-                        {errors.email && <p className="text-red-400 text-sm mt-1">{errors.email}</p>}
+                        {errors.email && <p id="contact-email-error" className="text-red-400 text-sm mt-1">{errors.email}</p>}
                       </div>
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-white/90 mb-2">Company</label>
+                      <label htmlFor="contact-company" className="block text-sm font-medium text-white/90 mb-2">Company</label>
                       <input
                         type="text"
+                        id="contact-company"
                         value={formData.company}
                         onChange={(e) => handleInputChange('company', e.target.value)}
+                        autoComplete="organization"
                         className="block w-full rounded-xl border-0 bg-white/[0.05] px-4 py-3 text-white placeholder-white/40 ring-1 ring-white/10 focus:ring-2 focus:ring-blue-500 hover:bg-white/[0.08] transition-all duration-200"
                         placeholder="Your company name"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-white/90 mb-2">Subject *</label>
+                      <label htmlFor="contact-subject" className="block text-sm font-medium text-white/90 mb-2">Subject *</label>
                       <input
                         type="text"
+                        id="contact-subject"
                         value={formData.subject}
                         onChange={(e) => handleInputChange('subject', e.target.value)}
                         aria-invalid={!!errors.subject}
+                        aria-describedby={errors.subject ? 'contact-subject-error' : undefined}
+                        required
+                        autoComplete="off"
                         className={`block w-full rounded-xl border-0 bg-white/[0.05] px-4 py-3 text-white placeholder-white/40 ring-1 ring-white/10 focus:ring-2 focus:ring-blue-500 hover:bg-white/[0.08] transition-all duration-200 ${errors.subject ? 'ring-red-500 focus:ring-red-500' : ''}`}
                         placeholder="What's this about?"
                       />
-                      {errors.subject && <p className="text-red-400 text-sm mt-1">{errors.subject}</p>}
+                      {errors.subject && <p id="contact-subject-error" className="text-red-400 text-sm mt-1">{errors.subject}</p>}
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-white/90 mb-2">Message *</label>
+                      <label htmlFor="contact-message" className="block text-sm font-medium text-white/90 mb-2">Message *</label>
                       <textarea
+                        id="contact-message"
                         value={formData.message}
                         onChange={(e) => handleInputChange('message', e.target.value)}
                         rows={6}
                         aria-invalid={!!errors.message}
+                        aria-describedby={errors.message ? 'contact-message-error' : undefined}
+                        required
                         className={`block w-full rounded-xl border-0 bg-white/[0.05] px-4 py-3 text-white placeholder-white/40 ring-1 ring-white/10 focus:ring-2 focus:ring-blue-500 hover:bg-white/[0.08] transition-all duration-200 resize-none ${errors.message ? 'ring-red-500 focus:ring-red-500' : ''}`}
                         placeholder="Tell us more about your inquiry..."
                       />
-                      {errors.message && <p className="text-red-400 text-sm mt-1">{errors.message}</p>}
+                      {errors.message && <p id="contact-message-error" className="text-red-400 text-sm mt-1">{errors.message}</p>}
                     </div>
                     
                     <button
                       type="submit"
                       disabled={isSubmitting}
+                      aria-busy={isSubmitting}
+                      aria-disabled={isSubmitting}
                       className="w-full bg-blue-600 hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 flex items-center justify-center gap-2 min-h-[44px]"
                     >
                       {isSubmitting ? (
@@ -528,12 +559,15 @@ export default function ContactPage() {
                         onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
                         className="w-full flex items-center justify-between text-left"
                         aria-expanded={openFaqIndex === index}
+                        aria-controls={`faq-panel-${index}`}
                       >
                         <span className="text-white font-medium">{faq.question}</span>
                         <ChevronDown className={`h-5 w-5 text-white/60 transition-transform ${openFaqIndex === index ? 'rotate-180' : ''}`} />
                       </button>
                       {openFaqIndex === index && (
                         <motion.p
+                          id={`faq-panel-${index}`}
+                          role="region"
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
                           className="text-white/70 mt-2"
@@ -549,58 +583,7 @@ export default function ContactPage() {
           </motion.div>
         </div>
       </section>
-      {/* Offices Section */}
-      <section className="relative z-10 py-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-            variants={sectionVariants}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="text-center space-y-3 mb-12"
-          >
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">Our Offices</h2>
-            <p className="text-white/70 leading-relaxed">Visit us at one of our global locations or connect remotely.</p>
-          </motion.div>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-            variants={sectionVariants}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8"
-          >
-            {officeLocations.map((location, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                className="bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-6 sm:p-8 hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl flex items-center justify-center">
-                      <MapPin className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-white mb-1">{location.city}</h3>
-                    <p className="text-white/70 mb-1">{location.address}</p>
-                    <p className="text-white/60 text-sm mb-2">{location.coordinates}</p>
-                    <div className="flex items-center gap-2 text-white/60 text-sm">
-                      <Clock className="w-4 h-4" />
-                      <span>{location.timezone}</span>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
     </div>
+    </SmoothScrollProvider>
   );
 }

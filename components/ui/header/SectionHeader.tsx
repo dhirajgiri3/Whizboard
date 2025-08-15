@@ -150,8 +150,8 @@ const SectionHeader = ({
   const DescriptionComponent = () =>
     description ? (
       <motion.p
-        variants={disableAnimation ? undefined : itemVariants}
-        className="text-white/65 max-w-lg body-base"
+        variants={disableAnimation ? undefined : itemVariants}  
+        className="text-white/65 max-w-lg text-sm sm:text-base text-center"
       >
         {description}
       </motion.p>

@@ -2,9 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform, Variants } from "framer-motion";
-import { ArrowRight, Play, Users, Star, Zap, Hand } from "lucide-react";
+import { Users, Star, Zap, Hand } from "lucide-react";
 import RealtimeWhiteboard from "@/components/reatime/whiteboard/RealtimeWhiteboard";
-import DemoVideoModal from "@/components/ui/modal/DemoVideoModal";
+import { useDemoModal } from "@/components/ui/modal/DemoModalProvider";
+import CTAButton from "@/components/ui/buttons/CTAButton";
+import TrustIndicators from "@/components/ui/TrustIndicators";
+import { LANDING_CONTENT } from "@/lib/landing-content";
 
 /**
  * Enhanced hero section with sophisticated responsive design and optimized performance
@@ -18,7 +21,7 @@ const Hero = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [showInteractivePrompt, setShowInteractivePrompt] = useState(false);
   const [interactionCount, setInteractionCount] = useState(0);
-  const [isDemoOpen, setIsDemoOpen] = useState(false);
+  const { openDemo } = useDemoModal();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -371,26 +374,31 @@ const Hero = () => {
                 transition={{ delay: 0.2 }}
                 className="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight text-white text-center max-w-sm sm:max-w-2xl px-2 sm:px-0"
               >
-                Transform Brainstorms into{" "}
-                <motion.span
-                  className="relative inline-block bg-gradient-to-r from-blue-500 via-white to-blue-500 bg-clip-text text-transparent bg-[length:200%_100%]"
-                  animate={{
-                    backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-                  }}
-                  transition={{
-                    duration: 6,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                >
-                  Action
-                  <motion.div
-                    className="absolute -inset-2 bg-gradient-to-r from-blue-600/20 to-blue-500/20 blur-xl rounded-lg"
-                    animate={{ opacity: [0, 0.4, 0] }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                  />
-                </motion.span>
-                , Together.
+                {LANDING_CONTENT.valuePropositions.primary.split(" ").map((word, index) => 
+                  word === "Action" ? (
+                    <motion.span
+                      key={index}
+                      className="relative inline-block bg-gradient-to-r from-blue-500 via-white to-blue-500 bg-clip-text text-transparent bg-[length:200%_100%]"
+                      animate={{
+                        backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                      }}
+                      transition={{
+                        duration: 6,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                    >
+                      {word}
+                      <motion.div
+                        className="absolute -inset-2 bg-gradient-to-r from-blue-600/20 to-blue-500/20 blur-xl rounded-lg"
+                        animate={{ opacity: [0, 0.4, 0] }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                      />
+                    </motion.span>
+                  ) : (
+                    <span key={index}>{word} </span>
+                  )
+                )}
               </motion.h1>
 
               {/* Enhanced description with better responsive design */}
@@ -402,9 +410,7 @@ const Hero = () => {
                 transition={{ delay: 0.25 }}
                 className="max-w-lg md:max-w-xl text-sm sm:text-base lg:text-lg text-white/80 leading-[1.6] font-light px-4 sm:px-0"
               >
-                Create, collaborate, and bring your ideas to life with the most
-                intuitive whiteboard experience. From concept to completion, all
-                in real-time.
+                {LANDING_CONTENT.valuePropositions.secondary}
               </motion.p>
             </div>
 
@@ -415,28 +421,28 @@ const Hero = () => {
               whileInView="visible"
               viewport={viewportOnce}
               transition={{ delay: 0.3 }}
-              className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 md:gap-6 justify-center w-full px-4 sm:px-0 mt-6 sm:mt-8"
+              className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 justify-center w-full px-4 sm:px-0 mt-8 sm:mt-10"
             >
-              <motion.a
+              <CTAButton
                 href="/login"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-6 py-4 sm:px-8 sm:py-4 rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/35 w-full sm:w-auto min-w-[200px] min-h-[44px] flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-black"
+                variant="primary"
+                size="lg"
+                theme="hero"
+                className="w-full sm:w-auto min-w-[220px] min-h-[48px]"
               >
-                <span>Get Started</span>
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </motion.a>
+                {LANDING_CONTENT.ctaButtons.primary}
+              </CTAButton>
 
-              <motion.a
-                href="#demo"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="group relative bg-white/[0.04] backdrop-blur-sm border border-white/[0.08] text-white px-6 py-4 sm:px-8 sm:py-4 rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 hover:bg-white/[0.08] hover:border-white/[0.15] w-full sm:w-auto min-w-[200px] min-h-[44px] flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-black"
-                onClick={(e) => { e.preventDefault(); setIsDemoOpen(true); }}
+              <CTAButton
+                variant="secondary"
+                size="lg"
+                icon="play"
+                onClick={openDemo}
+                theme="hero"
+                className="w-full sm:w-auto min-w-[220px] min-h-[48px]"
               >
-                <Play className="w-4 h-4 transition-transform group-hover:scale-110" />
-                <span>See 3-Min Demo</span>
-              </motion.a>
+                {LANDING_CONTENT.ctaButtons.secondary}
+              </CTAButton>
             </motion.div>
 
             {/* Enhanced trust indicators with better mobile layout */}
@@ -446,22 +452,30 @@ const Hero = () => {
               whileInView="visible"
               viewport={viewportOnce}
               transition={{ delay: 0.35 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 lg:gap-8 text-white/85 text-xs sm:text-sm px-4 sm:px-0 mt-6 sm:mt-8"
+              className="px-4 sm:px-0 mt-8 sm:mt-10"
             >
-              <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 sm:h-5 sm:w-5 fill-white text-white drop-shadow-sm" />
-                <span className="font-medium">Loved by early adopters</span>
-              </div>
-              <div className="hidden sm:block h-5 w-px bg-white/30" />
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 sm:h-5 sm:w-5 drop-shadow-sm" />
-                <span className="font-medium">Free forever plan available</span>
-              </div>
-              <div className="hidden sm:block h-5 w-px bg-white/30" />
-              <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 sm:h-5 sm:w-5 drop-shadow-sm" />
-                <span className="font-medium">Quick setup</span>
-              </div>
+              <TrustIndicators 
+                indicators={[
+                  {
+                    icon: Star,
+                    text: "Loved by early adopters",
+                    color: "text-yellow-400",
+                  },
+                  {
+                    icon: Users,
+                    text: "Free forever plan available",
+                    color: "text-blue-400",
+                  },
+                  {
+                    icon: Zap,
+                    text: "Quick setup",
+                    color: "text-blue-400",
+                  },
+                ]}
+                variant="horizontal"
+                size="md"
+                className="text-white/85"
+              />
             </motion.div>
           </motion.div>
         </div>
@@ -520,13 +534,7 @@ const Hero = () => {
         </div>
       </main>
 
-      <DemoVideoModal
-        isOpen={isDemoOpen}
-        onClose={() => setIsDemoOpen(false)}
-        videoUrl="https://res.cloudinary.com/dgak25skk/video/upload/v1755180328/whizboard-3_qyofjn.mp4"
-        title="Watch 3‑Min Demo"
-        description="See the whiteboard in action from the hero section."
-      />
+
     </div>
   );
 };

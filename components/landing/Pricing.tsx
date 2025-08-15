@@ -22,7 +22,10 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import SectionHeader from "@/components/ui/header/SectionHeader";
-import DemoVideoModal from "@/components/ui/modal/DemoVideoModal";
+import { useDemoModal } from "@/components/ui/modal/DemoModalProvider";
+import CTAButton from "@/components/ui/buttons/CTAButton";
+import TrustIndicators from "@/components/ui/TrustIndicators";
+import { LANDING_CONTENT } from "@/lib/landing-content";
 
 const Pricing = () => {
   const ref = useRef(null);
@@ -31,7 +34,7 @@ const Pricing = () => {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
     "yearly"
   );
-  const [isDemoOpen, setIsDemoOpen] = useState(false);
+  const { openDemo } = useDemoModal();
 
   const plans = [
     {
@@ -39,18 +42,7 @@ const Pricing = () => {
       description: "Create and collaborate on up to 5 whiteboards. Limited-time offer.",
       price: { monthly: 0, yearly: 0 },
       originalPrice: { monthly: 0, yearly: 0 },
-      features: [
-        "Up to 5 whiteboards",
-        "Real-time drawing and collaboration tools",
-        "Basic shapes and text elements",
-        "Sticky notes and frames",
-        "Export to PNG format",
-        "Up to 3 team members",
-        "Live cursor tracking",
-        "Basic templates",
-        "Auto-save functionality",
-        "Mobile-responsive design",
-      ],
+      features: LANDING_CONTENT.pricingFeatures.free,
       cta: "Get Started",
       href: "/login",
       popular: false,
@@ -66,19 +58,7 @@ const Pricing = () => {
       description: "Advanced features for teams — launching soon",
       price: { monthly: null, yearly: null },
       originalPrice: { monthly: null, yearly: null },
-      features: [
-        "Advanced drawing tools with pressure sensitivity",
-        "All premium frame templates (mobile, desktop, social media)",
-        "Enhanced exports (PNG, SVG, JSON, PDF)",
-        "Team collaboration insights",
-        "Up to 25 team members & roles",
-        "Custom branding & themes",
-        "Advanced integrations & API access",
-        "Version history & recovery",
-        "Priority customer support",
-        "Advanced security & compliance",
-        "Presentation & whiteboarding mode",
-      ],
+      features: LANDING_CONTENT.pricingFeatures.pro,
       cta: "Join Waitlist",
       href: "/waitlist",
       popular: false,
@@ -95,18 +75,7 @@ const Pricing = () => {
       description: "For organizations needing advanced controls and compliance",
       price: { monthly: null, yearly: null },
       originalPrice: { monthly: null, yearly: null },
-      features: [
-        "SSO & SAML integration",
-        "Advanced audit logs & security controls",
-        "Dedicated customer success manager",
-        "Custom integrations & API access",
-        "Unlimited team members & boards",
-        "Compliance features (SOC2, GDPR)",
-        "Custom contract terms & SLA guarantees",
-        "On-premise deployment options",
-        "Advanced role-based permissions",
-        "Custom training & onboarding",
-      ],
+      features: LANDING_CONTENT.pricingFeatures.enterprise,
       cta: "Contact Sales",
       href: "/contact",
       popular: false,
@@ -640,39 +609,28 @@ const Pricing = () => {
                 <motion.div
                   variants={itemVariants}
                   transition={{ delay: 0.72, duration: prefersReducedMotion ? 0 : 0.45 }}
-                  className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8"
+                  className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-10"
                 >
-                  <motion.button
-                    className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-medium px-8 py-3.5 rounded-lg transition-all duration-300 shadow-md shadow-blue-500/10 text-base group"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                  <CTAButton
+                    variant="primary"
+                    size="lg"
+                    theme="pricing"
+                    className="w-full sm:w-auto px-10 py-4 rounded-lg"
                   >
-                    <span className="flex items-center justify-center gap-2">
-                      <span>Start Building Free</span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
-                    </span>
-                  </motion.button>
+                    {LANDING_CONTENT.ctaButtons.free}
+                  </CTAButton>
 
-                  <motion.button
-                    className="w-full sm:w-auto text-white/90 hover:text-white font-medium px-8 py-3.5 transition-colors duration-300 border border-white/10 hover:border-white/20 rounded-lg backdrop-blur-sm text-base group"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setIsDemoOpen(true)}
+                  <CTAButton
+                    variant="secondary"
+                    size="lg"
+                    icon="play"
+                    onClick={openDemo}
+                    theme="pricing"
+                    className="w-full sm:w-auto px-10 py-4 rounded-lg"
                   >
-                    <span className="flex items-center justify-center gap-2">
-                      <Play className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
-                      <span>Watch 3-Min Demo</span>
-                    </span>
-                  </motion.button>
+                    {LANDING_CONTENT.ctaButtons.secondary}
+                  </CTAButton>
                 </motion.div>
-
-                <DemoVideoModal
-                  isOpen={isDemoOpen}
-                  onClose={() => setIsDemoOpen(false)}
-                  videoUrl="https://res.cloudinary.com/dgak25skk/video/upload/v1755180328/whizboard-3_qyofjn.mp4"
-                  title="Watch 3‑Min Demo"
-                  description="Quick walkthrough of Whizboard's capabilities."
-                />
 
                 {/* Trust Indicators */}
                 <motion.div
@@ -680,20 +638,28 @@ const Pricing = () => {
                   variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: prefersReducedMotion ? 0 : 0.4 } } }}
                   animate={isInView ? "visible" : "hidden"}
                   transition={{ delay: 0.8 }}
-                  className="flex flex-wrap items-center justify-center gap-6 text-white/60 text-sm"
+                  className="flex flex-wrap items-center justify-center gap-8"
                 >
-                  <div className="flex items-center gap-1.5 group hover:text-white/80 transition-colors duration-200">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform duration-200" />
-                    <span>No credit card required</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 group hover:text-white/80 transition-colors duration-200">
-                    <Shield className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform duration-200" />
-                    <span>Instant activation</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 group hover:text-white/80 transition-colors duration-200">
-                    <MessageSquare className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform duration-200" />
-                    <span>24/7 support</span>
-                  </div>
+                  <TrustIndicators 
+                    indicators={[
+                      {
+                        icon: CheckCircle2,
+                        text: "No credit card required",
+                        color: "text-emerald-400",
+                      },
+                      {
+                        icon: Shield,
+                        text: "Instant activation",
+                        color: "text-blue-400",
+                      },
+                      {
+                        icon: MessageSquare,
+                        text: "24/7 support",
+                        color: "text-blue-400",
+                      },
+                    ]}
+                    size="sm"
+                  />
                 </motion.div>
               </div>
             </motion.div>

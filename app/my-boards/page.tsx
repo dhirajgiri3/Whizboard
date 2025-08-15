@@ -24,6 +24,8 @@ import {
   ArrowRight,
   ChevronDown,
   RefreshCw,
+  Crown,
+  AlertTriangle,
 } from "lucide-react";
 import InviteCollaboratorsModal from "@/components/ui/modal/InviteCollaboratorsModal";
 import { toast } from "sonner";
@@ -43,6 +45,18 @@ const GET_MY_BOARDS = gql`
         name
         email
       }
+    }
+  }
+`;
+
+const GET_BOARD_USAGE = gql`
+  query GetBoardUsage {
+    myBoardUsage {
+      currentBoardCount
+      plan
+      boardLimit
+      canCreateMore
+      usagePercentage
     }
   }
 `;
@@ -86,7 +100,24 @@ const MyBoardsPage = () => {
       }
     },
   });
-  const [createBoard, { loading: creating }] = useMutation(CREATE_BOARD);
+
+  const { data: boardUsageData } = useQuery(GET_BOARD_USAGE, {
+    errorPolicy: "all",
+    onError: (error) => {
+      console.error("Error fetching board usage:", error);
+    },
+  });
+
+  const [createBoard, { loading: creating }] = useMutation(CREATE_BOARD, {
+    onError: (error) => {
+      console.error("Error creating board:", error);
+      if (error.message?.includes("maximum number of boards")) {
+        toast.error(error.message);
+      } else {
+        toast.error("Failed to create board. Please try again.");
+      }
+    },
+  });
 
   // State management
   const [newBoardName, setNewBoardName] = useState("");
@@ -396,7 +427,25 @@ const MyBoardsPage = () => {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <PrimaryButton onClick={() => setShowCreateModal(true)} aria-label="Create new board">
+                {/* Board Usage Indicator */}
+                {boardUsageData?.myBoardUsage && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] text-sm">
+                    <span className="text-white/70">Boards:</span>
+                    <span className="font-medium text-white">
+                      {boardUsageData.myBoardUsage.currentBoardCount}/{boardUsageData.myBoardUsage.boardLimit}
+                    </span>
+                    {!boardUsageData.myBoardUsage.canCreateMore && (
+                      <span className="text-orange-400 text-xs">Limit reached</span>
+                    )}
+                  </div>
+                )}
+                
+                <PrimaryButton 
+                  onClick={() => setShowCreateModal(true)} 
+                  aria-label="Create new board"
+                  disabled={boardUsageData?.myBoardUsage && !boardUsageData.myBoardUsage.canCreateMore}
+                  className={boardUsageData?.myBoardUsage && !boardUsageData.myBoardUsage.canCreateMore ? 'opacity-50 cursor-not-allowed' : ''}
+                >
                   <Plus className="w-4 h-4" /> New Board
                 </PrimaryButton>
                 <button
@@ -467,6 +516,47 @@ const MyBoardsPage = () => {
                     <div className="text-2xl font-semibold text-white">{boardStats.average}</div>
                   </div>
                 </div>
+
+                {/* Plan Usage Section */}
+                {boardUsageData?.myBoardUsage && (
+                  <div className="mt-6 pt-6 border-t border-white/[0.06]">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-base font-semibold text-white flex items-center gap-2">
+                        <Crown className="w-4 h-4 text-blue-400" />
+                        Plan Usage
+                      </h3>
+                      <span className="text-sm font-medium text-white/60 capitalize">
+                        {boardUsageData.myBoardUsage.plan} Plan
+                      </span>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-white/70">Board Limit</span>
+                        <span className="font-medium text-white">
+                          {boardUsageData.myBoardUsage.currentBoardCount} / {boardUsageData.myBoardUsage.boardLimit}
+                        </span>
+                      </div>
+                      <div className="w-full bg-white/10 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            boardUsageData.myBoardUsage.usagePercentage >= 80 
+                              ? 'bg-orange-500' 
+                              : boardUsageData.myBoardUsage.usagePercentage >= 60 
+                              ? 'bg-yellow-500' 
+                              : 'bg-blue-500'
+                          }`}
+                          style={{ width: `${Math.min(boardUsageData.myBoardUsage.usagePercentage, 100)}%` }}
+                        />
+                      </div>
+                      {!boardUsageData.myBoardUsage.canCreateMore && (
+                        <div className="flex items-center gap-2 text-sm text-orange-400 bg-orange-400/10 px-3 py-2 rounded-lg border border-orange-400/20">
+                          <AlertTriangle className="h-4 w-4" />
+                          <span>You've reached your board limit. Upgrade to Pro for unlimited boards.</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </SectionCard>
             </motion.div>
           )}

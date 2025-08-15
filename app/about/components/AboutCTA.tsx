@@ -4,7 +4,10 @@ import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Zap, ArrowRight, Play, CheckCircle, Shield, Rocket } from "lucide-react";
 import Link from "next/link";
-import DemoVideoModal from "@/components/ui/modal/DemoVideoModal";
+import { useDemoModal } from "@/components/ui/modal/DemoModalProvider";
+import CTAButton from "@/components/ui/buttons/CTAButton";
+import TrustIndicators from "@/components/ui/TrustIndicators";
+import { LANDING_CONTENT } from "@/lib/landing-content";
 
 const AboutCTA = () => {
   const containerVariants = {
@@ -22,7 +25,7 @@ const AboutCTA = () => {
     visible: { opacity: 1, y: 0 }
   };
 
-  const [isDemoOpen, setIsDemoOpen] = useState(false);
+  const { openDemo } = useDemoModal();
 
   return (
     <section className="relative py-24 overflow-hidden">
@@ -190,40 +193,35 @@ const AboutCTA = () => {
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
               className="flex flex-col sm:flex-row gap-6 justify-center items-center"
             >
-              <motion.button
-                className="bg-white text-black font-medium px-10 py-4 rounded-full transition-all duration-300 hover:bg-white/90"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <motion.div
                 variants={itemVariants}
                 transition={{ duration: 0.6, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
               >
-                <span className="flex items-center gap-2 text-lg">
-                  <span>Start Building Free</span>
-                  <ArrowRight className="w-5 h-5" />
-                </span>
-              </motion.button>
+                <CTAButton
+                  variant="white"
+                  size="lg"
+                  theme="about"
+                  className="px-12 py-5 rounded-full"
+                >
+                  {LANDING_CONTENT.ctaButtons.free}
+                </CTAButton>
+              </motion.div>
 
-              <motion.button
-                className="text-white/80 hover:text-white font-medium px-10 py-4 transition-colors duration-300"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <motion.div
                 variants={itemVariants}
                 transition={{ duration: 0.6, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                onClick={() => setIsDemoOpen(true)}
               >
-                <span className="flex items-center gap-2 text-lg">
-                  <Play className="w-5 h-5" />
-                  <span>See 3-Min Demo</span>
-                </span>
-              </motion.button>
-
-              <DemoVideoModal
-                isOpen={isDemoOpen}
-                onClose={() => setIsDemoOpen(false)}
-                videoUrl="https://res.cloudinary.com/dgak25skk/video/upload/v1755180328/whizboard-3_qyofjn.mp4"
-                title="Watch 3‑Min Demo"
-                description="A quick tour of Whizboard's whiteboard and features."
-              />
+                <CTAButton
+                  variant="ghost"
+                  size="lg"
+                  icon="play"
+                  onClick={openDemo}
+                  theme="about"
+                  className="px-12 py-5"
+                >
+                  {LANDING_CONTENT.ctaButtons.secondary}
+                </CTAButton>
+              </motion.div>
             </motion.div>
 
             {/* Minimal Trust Indicators */}
@@ -233,23 +231,31 @@ const AboutCTA = () => {
               viewport={{ once: true, amount: 0.3 }}
               variants={containerVariants}
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16 text-white/50 text-sm"
+              className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16"
             >
-              {[
-                { icon: CheckCircle, text: "No credit card required" },
-                { icon: Shield, text: "Bank-level security" },
-                { icon: Zap, text: "Setup in 30 seconds" }
-              ].map((item, index) => (
-                <motion.div 
-                  key={index}
-                  className="flex items-center gap-2"
-                  variants={itemVariants}
-                  transition={{ duration: 0.6, delay: 0.9 + index * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <item.icon className="w-4 h-4" />
-                  <span>{item.text}</span>
-                </motion.div>
-              ))}
+              <TrustIndicators 
+                indicators={[
+                  {
+                    icon: CheckCircle,
+                    text: "No credit card required",
+                    color: "text-emerald-400",
+                  },
+                  {
+                    icon: Shield,
+                    text: "Bank-level security",
+                    color: "text-blue-400",
+                  },
+                  {
+                    icon: Zap,
+                    text: "Setup in 30 seconds",
+                    color: "text-blue-400",
+                  },
+                ]}
+                variant="horizontal"
+                size="sm"
+                className="text-white/50"
+                withMotion={false}
+              />
             </motion.div>
           </div>
         </motion.div>

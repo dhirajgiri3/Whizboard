@@ -190,14 +190,14 @@ const Integrations = () => {
   const prefersReducedMotion = useReducedMotion();
   
   return (
-    <section className="section-padding max-w-7xl mx-auto pb-20">
+    <section className="section-padding flex flex-col items-center justify-center max-w-7xl mx-auto pb-20">
       <div className="container-base">
         <SectionHeader
           badge={{ icon: Link2, text: "Integrations" }}
           title="Work seamlessly with Slack and Google Drive"
           subtitle="Keep conversations flowing in Slack and keep files organized in Drive—without leaving Whizboard."
         />
-        <div className="relative mt-12 lg:mt-16">
+        <div className="relative mt-10">
           {/* Background grid and orbs */}
           <div className="absolute inset-0 grid-pattern opacity-20 pointer-events-none" />
           
