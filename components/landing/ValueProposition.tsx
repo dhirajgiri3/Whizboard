@@ -119,73 +119,73 @@ const ValueProposition = () => {
   // Enhanced traditional approach items with professional icons
   const traditionalItems = [
     {
-      text: "Multiple disconnected tools",
+      text: "Disconnected tools",
       icon: Link,
       description: "Switching between apps constantly",
       severity: "high",
     },
     {
-      text: "Complex setup and learning curve",
+      text: "Complex setup",
       icon: BookOpen,
       description: "Weeks of training required",
       severity: "high",
     },
     {
-      text: "Limited real-time collaboration",
+      text: "Limited collaboration",
       icon: UserCheck,
       description: "Delayed team updates",
       severity: "medium",
     },
     {
-      text: "Version control nightmares",
+      text: "Version control issues",
       icon: FolderOpen,
       description: "Lost work and conflicts",
       severity: "high",
     },
     {
-      text: "Expensive licensing per user",
+      text: "Expensive licensing",
       icon: DollarSign,
       description: "High monthly costs",
       severity: "medium",
     },
     {
-      text: "Poor mobile experience",
+      text: "Poor mobile support",
       icon: Mobile,
       description: "Limited functionality",
       severity: "medium",
     },
     {
-      text: "No cloud synchronization",
+      text: "No cloud sync",
       icon: Cloud,
       description: "Work stuck on devices",
       severity: "high",
     },
     {
-      text: "Outdated user interface",
+      text: "Outdated interface",
       icon: Monitor,
       description: "Clunky and slow",
       severity: "medium",
     },
     {
-      text: "Limited integration options",
+      text: "Limited integrations",
       icon: Link,
       description: "Isolated from other tools",
       severity: "medium",
     },
     {
-      text: "Poor customer support",
+      text: "Poor support",
       icon: HelpCircle,
       description: "Slow response times",
       severity: "high",
     },
     {
-      text: "No real-time insights",
+      text: "Limited insights",
       icon: TrendingUp,
       description: "Missing visibility",
       severity: "medium",
     },
     {
-      text: "Security vulnerabilities",
+      text: "Security issues",
       icon: Shield,
       description: "Outdated protocols",
       severity: "high",
@@ -195,7 +195,7 @@ const ValueProposition = () => {
   // Enhanced Whizboard solution items with professional icons
   const whizboardItems = [
     {
-      text: "All-in-one collaborative platform",
+      text: "Unified collaborative platform",
       icon: Rocket,
       description: "Everything you need in one place",
       benefit: "high",
@@ -203,65 +203,65 @@ const ValueProposition = () => {
     {
       text: "Intuitive design, instant productivity",
       icon: Lightning,
-      description: "Zero learning curve",
+      description: "Start creating immediately",
       benefit: "high",
     },
     {
-      text: "Real-time collaboration built-in",
+      text: "Real-time collaboration",
       icon: RefreshCw,
       description: "Live updates and cursors",
       benefit: "high",
     },
     {
-      text: "Automatic saving and sync",
+      text: "Auto-save & sync",
       icon: Save,
       description: "Never lose your work",
       benefit: "high",
     },
     {
-      text: "Free forever plan available",
+      text: "Free plan available",
       icon: Gift,
       description: "Start using immediately",
       benefit: "medium",
     },
     {
-      text: "Perfect on any device",
+      text: "Works on any device",
       icon: Mobile,
       description: "Responsive design",
       benefit: "high",
     },
     {
-      text: "Cloud-first architecture",
+      text: "Cloud-native platform",
       icon: Cloud,
       description: "Access from anywhere",
       benefit: "high",
     },
     {
-      text: "Modern, fast interface",
+      text: "Modern interface",
       icon: Monitor,
       description: "Smooth performance",
       benefit: "high",
     },
     {
-      text: "Rich integration ecosystem",
+      text: "Seamless integrations",
       icon: Link,
       description: "Connects with your tools",
       benefit: "medium",
     },
     {
-      text: "24/7 customer support",
+      text: "Expert customer support",
       icon: HelpCircle,
-      description: "Always here to help",
+      description: "Available when you need us",
       benefit: "high",
     },
     {
-      text: "Advanced collaboration insights",
+      text: "Collaboration analytics",
       icon: TrendingUp,
       description: "Deep visibility",
       benefit: "medium",
     },
     {
-      text: "Enterprise-grade security",
+      text: "Enterprise security",
       icon: Shield,
       description: "SOC 2 compliant",
       benefit: "high",
@@ -306,14 +306,14 @@ const ValueProposition = () => {
       icon: Clock,
       title: "Instant Access",
       description:
-        "No downloads, no installations. Start collaborating in seconds with any modern browser.",
+        "Start collaborating in seconds with any modern browser. No downloads required.",
       highlight: "Zero Setup",
     },
     {
       icon: Lock,
-      title: "Bank-Level Security",
+      title: "Enterprise Security",
       description:
-        "Secure authentication and data handling with sensible defaults.",
+        "SOC 2 compliant with end-to-end encryption and advanced access controls.",
       highlight: "Secure by design",
     },
     {
@@ -879,7 +879,7 @@ const ValueProposition = () => {
                   theme="value-prop"
                   className="px-12 py-5 rounded-full"
                 >
-                  {LANDING_CONTENT.ctaButtons.valueProp}
+                  {LANDING_CONTENT.ctaButtons.benefits}
                 </CTAButton>
 
                 {/* Supportive note */}
@@ -906,7 +906,7 @@ const ValueProposition = () => {
                   theme="value-prop"
                   className="px-12"
                 >
-                  {LANDING_CONTENT.ctaButtons.seeDemo}
+                  {LANDING_CONTENT.ctaButtons.demo}
                 </CTAButton>
               </motion.div>
 

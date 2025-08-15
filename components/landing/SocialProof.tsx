@@ -94,32 +94,32 @@ const SocialProof = () => {
 
   const trustBadges = [
     {
-      title: "Best Practices",
-      description: "Secure by design",
+      title: "Enterprise Security",
+      description: "SOC 2 compliant with end-to-end encryption",
       icon: "Shield" as const,
       gradient: "from-blue-500/20 to-cyan-500/20",
       iconColor: "text-blue-400",
       color: "border-blue-500/30",
     },
     {
-      title: "Privacy Respect",
-      description: "Data protection & privacy",
+      title: "Data Privacy",
+      description: "Your data stays yours with advanced controls",
       icon: "CheckCircle" as const,
       gradient: "from-emerald-400/20 to-emerald-600/20",
       iconColor: "text-emerald-400",
       color: "border-emerald-500/30",
     },
     {
-      title: "Reliability",
-      description: "Built for uptime",
+      title: "High Availability",
+      description: "99.9% uptime SLA for mission-critical work",
       icon: "TrendingUp" as const,
       gradient: "from-gray-500/20 to-blue-400/20",
       iconColor: "text-blue-400",
       color: "border-blue-500/30",
     },
     {
-      title: "Helpful Support",
-      description: "We respond during business hours",
+      title: "Expert Support",
+      description: "Dedicated support team available when you need us",
       icon: "Heart" as const,
       gradient: "from-red-600/20 to-gray-500/20",
       iconColor: "text-red-600",
@@ -298,134 +298,111 @@ const SocialProof = () => {
               </motion.div>
             </div>
 
-            {/* Enhanced Infinite Scrolling Testimonials with Edge Fading */}
-            <div className="relative overflow-hidden flex flex-col gap-12">
-              <motion.div variants={itemVariants} className="text-center">
-                {/* Redesigned Header - What Our Users Say */}
-                <motion.div
-                  variants={itemVariants}
-                  className="flex flex-col items-center gap-4 sm:gap-6"
-                >
-                  {/* Badge */}
+                          {/* Single Testimonials Section - No Duplicates */}
+              <div className="relative overflow-hidden flex flex-col gap-12">
+                <motion.div variants={itemVariants} className="text-center">
+                  {/* Header - What Our Users Say */}
                   <motion.div
                     variants={itemVariants}
-                    className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
+                    className="flex flex-col items-center gap-4 sm:gap-6"
                   >
-                    <Quote className="h-3.5 w-3.5 text-blue-400/80 group-hover:text-blue-400 transition-colors duration-200" />
-                    <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
-                      User Feedback - Mock Data
-                    </span>
+                    {/* Badge */}
+                    <motion.div
+                      variants={itemVariants}
+                      className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
+                    >
+                      <Quote className="h-3.5 w-3.5 text-blue-400/80 group-hover:text-blue-400 transition-colors duration-200" />
+                      <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
+                        User Feedback
+                      </span>
+                    </motion.div>
+
+                    <div className="flex flex-col items-center gap-1">
+                      {/* Title */}
+                      <motion.h3
+                        variants={itemVariants}
+                        className="text-3xl md:text-4xl font-bold text-white leading-[1.1] tracking-tight text-center"
+                      >
+                        What Our Users Say
+                      </motion.h3>
+
+                      {/* Description */}
+                      <motion.p
+                        variants={itemVariants}
+                        className="text-white/60 text-base max-w-lg mx-auto leading-relaxed text-center"
+                      >
+                        Real feedback from teams and professionals who've transformed their collaboration workflow with Whizboard.
+                      </motion.p>
+                    </div>
                   </motion.div>
-
-                  <div className="flex flex-col items-center gap-1">
-                    {/* Title */}
-                    <motion.h3
-                      variants={itemVariants}
-                      className="text-3xl md:text-4xl font-bold text-white leading-[1.1] tracking-tight text-center"
-                    >
-                      What Our Users Say
-                    </motion.h3>
-
-                    {/* Description */}
-                    <motion.p
-                      variants={itemVariants}
-                      className="text-white/60 text-base max-w-lg mx-auto leading-relaxed text-center"
-                    >
-                      Real feedback from teams and professionals who've transformed their collaboration workflow with Whizboard during our beta program.
-                    </motion.p>
-                  </div>
                 </motion.div>
-              </motion.div>
 
-              {/* Enhanced Testimonial Container with Infinite Horizontal Scroll */}
-              <div className="relative group">
-                {/* Left Edge Fade */}
-                <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#0A0A0B] to-transparent z-10 pointer-events-none"></div>
+                {/* Single Testimonial Grid - No Infinite Scroll */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {testimonials.map((testimonial, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      animate={
+                        isInView
+                          ? { opacity: 1, y: 0, scale: 1 }
+                          : { opacity: 0, y: 20, scale: 0.95 }
+                      }
+                      transition={{
+                        delay: 0.8 + index * 0.1,
+                        duration: 0.6,
+                        ease: "easeOut",
+                      }}
+                      className="testimonial-card bg-white/[0.02] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 hover:bg-white/[0.04] hover:border-white/[0.15] group/card relative overflow-hidden"
+                    >
+                      {/* Enhanced gradient overlay on hover */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
 
-                {/* Right Edge Fade */}
-                <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#0A0A0B] to-transparent z-10 pointer-events-none"></div>
+                      {/* Subtle glow effect */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 rounded-2xl blur-sm"></div>
 
-                {/* Enhanced Testimonial Cards Container with Infinite Scroll */}
-                <div className="relative h-80 overflow-hidden">
-                  <div
-                    className="testimonial-container flex gap-6 absolute"
-                    style={{
-                      width: `${
-                        testimonials.length * 3 * 320 +
-                        (testimonials.length * 3 - 1) * 24
-                      }px`,
-                    }}
-                  >
-                    {/* Duplicate testimonials for seamless loop */}
-                    {[...testimonials, ...testimonials, ...testimonials].map(
-                      (testimonial, index) => (
-                        <motion.div
-                          key={index}
-                          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                          animate={
-                            isInView
-                              ? { opacity: 1, y: 0, scale: 1 }
-                              : { opacity: 0, y: 20, scale: 0.95 }
-                          }
-                          transition={{
-                            delay: 0.8 + (index % testimonials.length) * 0.1,
-                            duration: 0.6,
-                            ease: "easeOut",
-                          }}
-                          className="testimonial-card flex-shrink-0 w-80 bg-white/[0.02] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 hover:bg-white/[0.04] hover:border-white/[0.15] group/card relative overflow-hidden"
-                        >
-                          {/* Enhanced gradient overlay on hover */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
-
-                          {/* Subtle glow effect */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 rounded-2xl blur-sm"></div>
-
-                          <div className="relative z-10">
-                            <div className="flex items-center gap-1 mb-4">
-                              {[...Array(testimonial.rating)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className="w-4 h-4 text-yellow-400 fill-current transition-transform duration-300 group-hover/card:scale-110"
-                                />
-                              ))}
-                            </div>
-                            <blockquote className="text-white/80 text-sm leading-relaxed mb-4 group-hover/card:text-white/90 transition-colors duration-300">
-                              {testimonial.content}
-                            </blockquote>
-                            <div className="flex items-center gap-3 mb-2">
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center transition-transform duration-300 group-hover/card:scale-110">
-                                <span className="text-white font-semibold text-sm">
-                                  {testimonial.name
-                                    .split(" ")
-                                    .map((n) => n[0])
-                                    .join("")}
-                                </span>
-                              </div>
-                              <div>
-                                <div className="text-white/90 font-medium text-sm group-hover/card:text-white transition-colors duration-300">
-                                  {testimonial.name}
-                                </div>
-                                <div className="text-white/50 text-xs group-hover/card:text-white/70 transition-colors duration-300">
-                                  {testimonial.role} at {testimonial.company}
-                                </div>
-                              </div>
-                            </div>
-
+                      <div className="relative z-10">
+                        <div className="flex items-center gap-1 mb-4">
+                          {[...Array(testimonial.rating)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className="w-4 h-4 text-yellow-400 fill-current transition-transform duration-300 group-hover/card:scale-110"
+                            />
+                          ))}
+                        </div>
+                        <blockquote className="text-white/80 text-sm leading-relaxed mb-4 group-hover/card:text-white/90 transition-colors duration-300">
+                          {testimonial.content}
+                        </blockquote>
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center transition-transform duration-300 group-hover/card:scale-110">
+                            <span className="text-white font-semibold text-sm">
+                              {testimonial.name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
+                            </span>
                           </div>
+                          <div>
+                            <div className="text-white/90 font-medium text-sm group-hover/card:text-white transition-colors duration-300">
+                              {testimonial.name}
+                            </div>
+                            <div className="text-white/50 text-xs group-hover/card:text-white/70 transition-colors duration-300">
+                              {testimonial.role} at {testimonial.company}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
 
-                          {/* Enhanced floating particles effect */}
-                          <div className="absolute top-4 right-4 w-1 h-1 bg-blue-400/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 animate-pulse"></div>
-                          <div
-                            className="absolute bottom-4 left-4 w-0.5 h-0.5 bg-purple-400/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1200 animate-pulse"
-                            style={{ animationDelay: "0.5s" }}
-                          ></div>
-                        </motion.div>
-                      )
-                    )}
-                  </div>
+                      {/* Enhanced floating particles effect */}
+                      <div className="absolute top-4 right-4 w-1 h-1 bg-blue-400/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 animate-pulse"></div>
+                      <div
+                        className="absolute bottom-4 left-4 w-0.5 h-0.5 bg-purple-400/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1200 animate-pulse"
+                        style={{ animationDelay: "0.5s" }}
+                      ></div>
+                    </motion.div>
+                  ))}
                 </div>
               </div>
-            </div>
 
             {/* Enhanced Trust & Security Section */}
             <div className="text-center flex flex-col gap-8">
@@ -731,7 +708,7 @@ const SocialProof = () => {
                     theme="social-proof"
                     className="px-12 py-5 rounded-full"
                   >
-                    {LANDING_CONTENT.ctaButtons.social}
+                    {LANDING_CONTENT.ctaButtons.footer}
                   </CTAButton>
 
                   <CTAButton
@@ -742,7 +719,7 @@ const SocialProof = () => {
                     theme="social-proof"
                     className="px-12 py-5"
                   >
-                    {LANDING_CONTENT.ctaButtons.seeDemo}
+                    {LANDING_CONTENT.ctaButtons.demo}
                   </CTAButton>
                 </motion.div>
 

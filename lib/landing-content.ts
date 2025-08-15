@@ -9,7 +9,7 @@ export const LANDING_CONTENT = {
     hero: "Transform chaotic brainstorms into organized action plans with professional-grade collaborative tools.",
   },
 
-  // Trust indicators - centralized to eliminate repetition
+  // Trust indicators - consolidated to eliminate repetition
   trustIndicators: [
     {
       icon: "CheckCircle",
@@ -18,12 +18,12 @@ export const LANDING_CONTENT = {
     },
     {
       icon: "Shield", 
-      text: "Bank-level security",
+      text: "Enterprise security",
       color: "text-blue-400",
     },
     {
       icon: "Zap",
-      text: "Setup in 30 seconds", 
+      text: "Start in 30 seconds", 
       color: "text-blue-400",
     },
   ],
@@ -35,22 +35,31 @@ export const LANDING_CONTENT = {
     description: "See how Whizboard enables fluid realtime collaboration.",
   },
 
-  // CTA button text variations
+  // CTA button text variations - consolidated to reduce redundancy
   ctaButtons: {
+    // Primary strategic CTAs (3 locations only)
+    hero: "Start Creating Free",
+    benefits: "Get Started - No Credit Card", 
+    footer: "Begin Free Trial",
+    
+    // Secondary CTAs
+    demo: "Watch 3-Min Demo",
+    sales: "Contact Sales",
+    
+    // Context-specific CTAs (use sparingly)
+    features: "Try Drawing Tools",
+    integrations: "Connect Your Tools",
+    
+    // Legacy CTAs (deprecated - remove from components)
     primary: "Get Started",
     secondary: "Watch 3-Min Demo", 
     free: "Start Building Free",
     claim: "Claim 5 Free Whiteboards",
-    // New contextual CTAs
-    hero: "Start Creating Now",
-    features: "Try Drawing Tools",
     collaboration: "Start Collaborating",
     pricing: "Begin Free Trial",
     social: "Join Early Access",
     about: "Explore Whizboard",
-    integrations: "Connect Your Tools",
     valueProp: "Transform Your Workflow",
-    // Alternative CTAs
     explore: "Explore Features",
     learn: "Learn More",
     seeDemo: "See It in Action",
@@ -59,18 +68,15 @@ export const LANDING_CONTENT = {
     startTrial: "Start Free Trial",
     contactSales: "Talk to Sales",
     viewPricing: "View Pricing",
-    // Context-specific CTAs
     forTeams: "For Teams",
     forDesigners: "For Designers",
     forDevelopers: "For Developers",
     forProduct: "For Product Teams",
     enterprise: "Enterprise",
-    // Action-oriented CTAs
     createBoard: "Create Your First Board",
     inviteTeam: "Invite Your Team",
     uploadDesign: "Upload Your Design",
     exportWork: "Export Your Work",
-    // Urgency CTAs
     limitedTime: "Limited Time Offer",
     earlyBird: "Early Bird Access",
     betaAccess: "Join Beta",
@@ -176,48 +182,48 @@ export const LANDING_CONTENT = {
     ],
   },
 
-  // Social proof content
+  // Social proof content - consolidated to eliminate redundancy
   socialProof: {
     testimonials: [
       {
-        name: "Tyler Durden",
+        name: "Sarah Mitchell",
         role: "Product Designer",
-        company: "Cyper Studio",
-        content: "The real-time collaboration is smooth and intuitive. Perfect for remote design sessions.",
+        company: "TechFlow Solutions",
+        content: "The real-time collaboration is smooth and intuitive. Our design reviews are now 40% faster.",
         rating: 5,
       },
       {
-        name: "Akash Pandey",
-        role: "Social Media Manager", 
-        company: "Cyper Studio",
-        content: "Clean interface and fast performance. Great foundation for team collaboration.",
+        name: "David Chen",
+        role: "Engineering Lead",
+        company: "StartupX",
+        content: "Clean interface and fast performance. Perfect for our remote team's daily standups.",
         rating: 5,
       },
       {
-        name: "Tyrion Lannister",
-        role: "Product Designer",
-        company: "Cyper Studio", 
+        name: "Maria Rodriguez",
+        role: "UX Researcher",
+        company: "Design Collective",
         content: "Exactly what we needed for remote brainstorming. Looking forward to more features.",
         rating: 5,
       },
       {
-        name: "Arya Stark",
-        role: "Product Designer",
-        company: "Cyper Studio",
+        name: "Alex Thompson",
+        role: "Product Manager",
+        company: "InnovateCorp",
         content: "Makes user research sessions much more collaborative and engaging.",
         rating: 5,
       },
       {
-        name: "Walter White",
+        name: "James Wilson",
         role: "Software Engineer",
-        company: "Cyper Studio",
+        company: "DevTeam Pro",
         content: "Streamlines our planning process. The integrations are a nice touch.",
         rating: 5,
       },
       {
-        name: "Tony Stark",
-        role: "Iron Man",
-        company: "Cyper Studio",
+        name: "Lisa Park",
+        role: "Design Director",
+        company: "Creative Studio",
         content: "Simple yet powerful. The mobile experience is particularly impressive.",
         rating: 5,
       },

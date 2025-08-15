@@ -95,7 +95,7 @@ const Features = () => {
       accent: "blue",
       details: LANDING_CONTENT.features.security.details,
       demo: "#",
-      stats: { users: "—", rating: "—", time: "High availability" },
+      stats: { users: "—", rating: "—", time: "Enterprise-grade" },
     },
   ];
 

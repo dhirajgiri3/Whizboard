@@ -58,9 +58,8 @@ const Hero = () => {
   // Unified reveal-on-scroll variants (first time only) for a minimal, smooth experience
   const viewportOnce = { once: true, amount: 0.2 } as const;
   const revealVariants: Variants = {
-    hidden: { opacity: 0, y: 24 },
+    hidden: { y: 24 },
     visible: {
-      opacity: 1,
       y: 0,
       transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
     },
@@ -110,7 +109,7 @@ const Hero = () => {
   ];
 
   const handleInteraction = () => {
-    setInteractionCount(prev => prev + 1);
+    setInteractionCount((prev) => prev + 1);
     if (showInteractivePrompt) {
       setShowInteractivePrompt(false);
       setTimeout(() => {
@@ -159,7 +158,11 @@ const Hero = () => {
             }}
             animate={{
               y: [-20, 30, -20],
-              x: [0, i % 2 === 0 ? (isMobile ? 5 : 10) : isMobile ? -5 : -10, 0],
+              x: [
+                0,
+                i % 2 === 0 ? (isMobile ? 5 : 10) : isMobile ? -5 : -10,
+                0,
+              ],
               opacity: [0.2, 0.8, 0.2],
               scale: [0.6, 1.2, 0.6],
             }}
@@ -187,7 +190,11 @@ const Hero = () => {
             }}
             animate={{
               y: [-15, 25, -15],
-              x: [0, i % 2 === 0 ? (isMobile ? 6 : 12) : isMobile ? -6 : -12, 0],
+              x: [
+                0,
+                i % 2 === 0 ? (isMobile ? 6 : 12) : isMobile ? -6 : -12,
+                0,
+              ],
               opacity: [0.3, 0.9, 0.3],
               scale: [0.7, 1.3, 0.7],
             }}
@@ -215,7 +222,11 @@ const Hero = () => {
             }}
             animate={{
               y: [-25, 35, -25],
-              x: [0, i % 2 === 0 ? (isMobile ? 8 : 15) : isMobile ? -8 : -15, 0],
+              x: [
+                0,
+                i % 2 === 0 ? (isMobile ? 8 : 15) : isMobile ? -8 : -15,
+                0,
+              ],
               opacity: [0.4, 1, 0.4],
               scale: [0.8, 1.4, 0.8],
             }}
@@ -239,7 +250,11 @@ const Hero = () => {
           preserveAspectRatio="none"
           viewBox="0 0 1440 320"
           style={{
-            transform: `translateX(${isMobile ? mousePosition.x * -1 : mousePosition.x * -8}px) translateY(${isMobile ? mousePosition.y * -0.5 : mousePosition.y * -4}px)`,
+            transform: `translateX(${
+              isMobile ? mousePosition.x * -1 : mousePosition.x * -8
+            }px) translateY(${
+              isMobile ? mousePosition.y * -0.5 : mousePosition.y * -4
+            }px)`,
           }}
         >
           <defs>
@@ -266,7 +281,11 @@ const Hero = () => {
           preserveAspectRatio="none"
           viewBox="0 0 1440 320"
           style={{
-            transform: `translateX(${isMobile ? mousePosition.x * -0.5 : mousePosition.x * -4}px) translateY(${isMobile ? mousePosition.y * -0.25 : mousePosition.y * -2}px)`,
+            transform: `translateX(${
+              isMobile ? mousePosition.x * -0.5 : mousePosition.x * -4
+            }px) translateY(${
+              isMobile ? mousePosition.y * -0.25 : mousePosition.y * -2
+            }px)`,
           }}
         >
           <defs>
@@ -294,7 +313,11 @@ const Hero = () => {
           preserveAspectRatio="none"
           viewBox="0 0 1440 320"
           style={{
-            transform: `translateX(${isMobile ? mousePosition.x * -0.375 : mousePosition.x * -3}px) translateY(${isMobile ? mousePosition.y * -0.25 : mousePosition.y * -2}px)`,
+            transform: `translateX(${
+              isMobile ? mousePosition.x * -0.375 : mousePosition.x * -3
+            }px) translateY(${
+              isMobile ? mousePosition.y * -0.25 : mousePosition.y * -2
+            }px)`,
           }}
         >
           <defs>
@@ -374,31 +397,33 @@ const Hero = () => {
                 transition={{ delay: 0.2 }}
                 className="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight text-white text-center max-w-sm sm:max-w-2xl px-2 sm:px-0"
               >
-                {LANDING_CONTENT.valuePropositions.primary.split(" ").map((word, index) => 
-                  word === "Action" ? (
-                    <motion.span
-                      key={index}
-                      className="relative inline-block bg-gradient-to-r from-blue-500 via-white to-blue-500 bg-clip-text text-transparent bg-[length:200%_100%]"
-                      animate={{
-                        backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-                      }}
-                      transition={{
-                        duration: 6,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                      }}
-                    >
-                      {word}
-                      <motion.div
-                        className="absolute -inset-2 bg-gradient-to-r from-blue-600/20 to-blue-500/20 blur-xl rounded-lg"
-                        animate={{ opacity: [0, 0.4, 0] }}
-                        transition={{ duration: 3, repeat: Infinity }}
-                      />
-                    </motion.span>
-                  ) : (
-                    <span key={index}>{word} </span>
-                  )
-                )}
+                {LANDING_CONTENT.valuePropositions.primary
+                  .split(" ")
+                  .map((word, index) =>
+                    word === "Action" ? (
+                      <motion.span
+                        key={index}
+                        className="relative inline-block bg-gradient-to-r from-blue-500 via-white to-blue-500 bg-clip-text text-transparent bg-[length:200%_100%]"
+                        animate={{
+                          backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                        }}
+                        transition={{
+                          duration: 6,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                      >
+                        {word}
+                        <motion.div
+                          className="absolute -inset-2 bg-gradient-to-r from-blue-600/20 to-blue-500/20 blur-xl rounded-lg"
+                          animate={{ opacity: [0, 0.4, 0] }}
+                          transition={{ duration: 3, repeat: Infinity }}
+                        />
+                      </motion.span>
+                    ) : (
+                      <span key={index}>{word} </span>
+                    )
+                  )}
               </motion.h1>
 
               {/* Enhanced description with better responsive design */}
@@ -441,7 +466,7 @@ const Hero = () => {
                 theme="hero"
                 className="w-full sm:w-auto min-w-[220px] min-h-[48px]"
               >
-                {LANDING_CONTENT.ctaButtons.seeDemo}
+                {LANDING_CONTENT.ctaButtons.demo}
               </CTAButton>
             </motion.div>
 
@@ -454,7 +479,7 @@ const Hero = () => {
               transition={{ delay: 0.35 }}
               className="px-4 sm:px-0 mt-8 sm:mt-10"
             >
-              <TrustIndicators 
+              <TrustIndicators
                 indicators={[
                   {
                     icon: Star,
@@ -463,12 +488,12 @@ const Hero = () => {
                   },
                   {
                     icon: Users,
-                    text: "Free forever plan available",
+                    text: "Free plan available",
                     color: "text-blue-400",
                   },
                   {
                     icon: Zap,
-                    text: "Quick setup",
+                    text: "Start in 30 seconds",
                     color: "text-blue-400",
                   },
                 ]}
@@ -533,8 +558,6 @@ const Hero = () => {
           </motion.div>
         </div>
       </main>
-
-
     </div>
   );
 };
