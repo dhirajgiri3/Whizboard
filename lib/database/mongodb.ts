@@ -34,10 +34,13 @@ if (process.env.NODE_ENV === 'development') {
 
 export async function connectToDatabase() {
   const mongoClient = await clientPromise;
-  const db = mongoClient.db(process.env.DB_NAME || 'cyperboard');
+  const dbName = process.env.DB_NAME || 'whizboard';
+  const db = mongoClient.db(dbName);
+  
   return db;
 }
 
 // Export a module-scoped MongoClient promise. By doing this in a
 // separate module, the client can be shared across functions.
+// This is used by NextAuth adapter and should connect to the same database
 export default clientPromise; 

@@ -59,7 +59,7 @@ export const authOptions: AuthOptions = {
         // Enhanced user validation
         try {
           const client = await clientPromise;
-          const db = client.db();
+          const db = client.db(process.env.DB_NAME || 'whizboard');
           const existingUser = await db.collection('users').findOne({ email: user.email });
           
           if (existingUser) {
@@ -139,7 +139,7 @@ export const authOptions: AuthOptions = {
         // Enhanced session validation with better error handling
         try {
           const client = await clientPromise;
-          const db = client.db();
+          const db = client.db(process.env.DB_NAME || 'whizboard');
           
           // Try multiple ways to find the user
           let user = null;
@@ -268,7 +268,7 @@ export const authOptions: AuthOptions = {
       if (user.email) {
         try {
           const client = await clientPromise;
-          const db = client.db();
+          const db = client.db(process.env.DB_NAME || 'whizboard');
           await db.collection('users').updateOne(
             { email: user.email },
             { 
@@ -303,7 +303,7 @@ export const authOptions: AuthOptions = {
       if (user.email) {
         try {
           const client = await clientPromise;
-          const db = client.db();
+          const db = client.db(process.env.DB_NAME || 'whizboard');
           
           // Generate unique username
           const username = await generateUniqueUsername(user.email, user.name || undefined);
@@ -356,7 +356,7 @@ export const authOptions: AuthOptions = {
       if (session?.user?.email) {
         try {
           const client = await clientPromise;
-          const db = client.db();
+          const db = client.db(process.env.DB_NAME || 'whizboard');
           await db.collection('security_events').insertOne({
             eventType: 'SIGN_OUT',
             userId: session.user.id,

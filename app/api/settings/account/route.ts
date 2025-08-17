@@ -205,6 +205,7 @@ export async function GET(request: NextRequest) {
       // User not found in database, but session is valid
       // This could happen in production due to database sync issues
       console.warn(`User ${session.user.email} not found in database, returning session data`);
+      
       return NextResponse.json({
         success: true,
         user: {
@@ -225,7 +226,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       user: {
-        image: (user as any).image || null,
+        image: (user as any).image || session.user.image || null,
         name: (user as any).name,
         email: (user as any).email,
         bio: (user as any).bio || '',

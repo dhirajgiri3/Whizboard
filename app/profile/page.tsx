@@ -91,7 +91,7 @@ const ProfilePage = () => {
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [user]);
 
     const fetchData = async () => {
         try {
