@@ -170,6 +170,12 @@ export function AppProvider({ children }: AppProviderProps) {
   // Sync NextAuth session user to AppContext user state
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
+      console.log('[AppContext] Session authenticated:', { 
+        email: session.user.email, 
+        name: session.user.name,
+        hasImage: !!session.user.image 
+      });
+      
       setUser(prevUser => {
         if (prevUser && prevUser.id === session.user?.id) {
           // If user ID hasn't changed, return existing user object to prevent unnecessary re-renders
@@ -185,18 +191,33 @@ export function AppProvider({ children }: AppProviderProps) {
           updatedAt: new Date().toISOString(), // Always update updatedAt on session change
         };
       });
+      
       // After base session sync, try to load DB profile image if present
       (async () => {
         try {
+          console.log('[AppContext] Loading database profile data...');
           const { data } = await api.get('/api/settings/account', { headers: { 'Cache-Control': 'no-store' } });
           const dbImage = data?.user?.image || null;
-          if (dbImage) {
-            setUser(prev => prev ? { ...prev, avatar: dbImage } : prev);
+          
+          if (data?.warning) {
+            console.warn('[AppContext] Profile data warning:', data.warning);
           }
-        } catch {}
+          
+          if (dbImage) {
+            console.log('[AppContext] Found database image, updating user avatar');
+            setUser(prev => prev ? { ...prev, avatar: dbImage } : prev);
+          } else {
+            console.log('[AppContext] No database image found, using session image');
+          }
+        } catch (error) {
+          console.error('[AppContext] Failed to load database profile data:', error);
+        }
       })();
     } else if (status === "unauthenticated") {
+      console.log('[AppContext] Session unauthenticated, clearing user');
       setUser(null);
+    } else if (status === "loading") {
+      console.log('[AppContext] Session loading...');
     }
   }, [session, status]);
 

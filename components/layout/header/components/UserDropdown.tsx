@@ -74,7 +74,7 @@ const UserDropdown = ({ session, isOpen, onClose, isLightMode, userMenuItems }: 
                     alt="User Avatar"
                     width={48}
                     height={48}
-                    className={`w-12 h-12 rounded-full ring-3 ${isLightMode ? 'ring-blue-100' : 'ring-blue-500/30'}`}
+                    className={`w-12 h-12 rounded-full ring-3 object-cover ${isLightMode ? 'ring-blue-100' : 'ring-blue-500/30'}`}
                   />
                 ) : (
                   <div

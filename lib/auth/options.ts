@@ -136,19 +136,36 @@ export const authOptions: AuthOptions = {
         (session.user as any).emailVerified = (token as any).emailVerified;
         (session.user as any).provider = (token as any).provider;
         
-        // Enhanced session validation
+        // Enhanced session validation with better error handling
         try {
           const client = await clientPromise;
           const db = client.db();
-          const user = await db.collection('users').findOne({
-            _id: new (await import('mongodb')).ObjectId((token as any).sub)
-          });
+          
+          // Try multiple ways to find the user
+          let user = null;
+          
+          // First, try to find by email (most reliable)
+          if (session.user.email) {
+            user = await db.collection('users').findOne({ email: session.user.email });
+          }
+          
+          // If not found by email, try by ObjectId (fallback)
+          if (!user && (token as any).sub) {
+            try {
+              const { ObjectId } = await import('mongodb');
+              user = await db.collection('users').findOne({
+                _id: new ObjectId((token as any).sub)
+              });
+            } catch (objectIdError) {
+              console.warn('[AUTH] Failed to parse ObjectId from token.sub:', (token as any).sub);
+            }
+          }
           
           if (user) {
             // Check user status
             if (user.status === 'banned' || user.status === 'suspended') {
               console.log(`[SECURITY] Session invalidated: User ${session.user.email} is ${user.status}`);
-              return session; // Return session but log the security issue
+              // Don't invalidate session completely, just log the issue
             }
             
             (session.user as any).status = user.status || 'active';
@@ -165,14 +182,29 @@ export const authOptions: AuthOptions = {
               tokenVersion: (token as any).tokenVersion,
             };
           } else {
-            // User not found in database, invalidate session
-            console.log(`[SECURITY] Session invalidated: User ${session.user.email} not found in database`);
-            return session; // Return session instead of null to avoid TypeScript error
+            // User not found in database, but don't invalidate session
+            // This could happen in production due to database sync issues
+            console.warn(`[AUTH] User ${session.user.email} not found in database, but session remains valid`);
+            (session as any).security = {
+              issuedAt: (token as any).iat,
+              jwtId: (token as any).jti,
+              lastUpdated: new Date().toISOString(),
+              userExists: false,
+              tokenVersion: (token as any).tokenVersion,
+            };
           }
         } catch (error) {
           console.error('[SECURITY] Error validating user in session callback:', error);
           // On database error, return session but log the issue
-          return session;
+          // Don't invalidate session on database errors
+          (session as any).security = {
+            issuedAt: (token as any).iat,
+            jwtId: (token as any).jti,
+            lastUpdated: new Date().toISOString(),
+            userExists: 'unknown',
+            tokenVersion: (token as any).tokenVersion,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          };
         }
       }
       return session;

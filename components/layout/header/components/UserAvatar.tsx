@@ -55,7 +55,7 @@ const UserAvatar = ({ session, isDropdownOpen, onClick, isLightMode }: UserAvata
             alt="User Avatar"
             width={32}
             height={32}
-            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full ring-2 transition-all duration-300 ${ringColor}`}
+            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full ring-2 transition-all duration-300 object-cover ${ringColor}`}
           />
         ) : (
           <div

@@ -229,6 +229,13 @@ export default function SettingsPage() {
       try {
         const { data } = await api.get('/api/settings/account', { headers: { 'Cache-Control': 'no-store' } });
         const account = data?.user || {};
+        
+        // Check for warnings or user creation messages
+        if (data?.warning) {
+          console.warn('Settings data warning:', data.warning);
+          toast.info('Profile data loaded with limited information. Some features may be restricted.');
+        }
+        
         // Use database image if available, otherwise fall back to Google profile image from session
         setProfileImageUrl(account.image || user?.avatar || null);
         setDisplayName(account.name || user?.name || "");
@@ -236,7 +243,10 @@ export default function SettingsPage() {
         setOriginalUsername(account.username || "");
         setBio(account.bio || "");
         setIsPublicProfile(account.isPublicProfile !== false);
-      } catch { }
+      } catch (error) {
+        console.error('Failed to load account data:', error);
+        toast.error('Failed to load account settings');
+      }
     })();
   }, [user?.name, user?.avatar]);
 
@@ -408,7 +418,11 @@ export default function SettingsPage() {
 
       const response = await api.put("/api/settings/account", formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       if (response.status >= 200 && response.status < 300) {
-        toast.success("Profile image updated successfully", { id: toastId });
+        if (response.data?.userCreated) {
+          toast.success("Profile created and image updated successfully", { id: toastId });
+        } else {
+          toast.success("Profile image updated successfully", { id: toastId });
+        }
         setIsEditingImage(false);
         setSelectedImage(null);
         setImagePreview("");
@@ -745,7 +759,11 @@ export default function SettingsPage() {
                       setIsSavingProfile(true);
                       const res = await api.put('/api/settings/account', { name: displayName, username, bio, isPublicProfile });
                       if (res.status >= 200 && res.status < 300) {
-                        toast.success('Profile updated successfully');
+                        if (res.data?.userCreated) {
+                          toast.success('Profile created and updated successfully');
+                        } else {
+                          toast.success('Profile updated successfully');
+                        }
                         // Update original username after successful save
                         setOriginalUsername(username);
                         // Optimistically update global user name

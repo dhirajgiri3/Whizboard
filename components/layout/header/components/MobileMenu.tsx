@@ -145,7 +145,7 @@ const MobileMenu = ({
                               alt="User Avatar"
                               width={48}
                               height={48}
-                              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ring-3 ${
+                              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ring-3 object-cover ${
                                 isLightMode ? 'ring-blue-200' : 'ring-blue-500/30'
                               }`}
                             />

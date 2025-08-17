@@ -104,12 +104,24 @@ const ProfilePage = () => {
             ]);
 
             const userData = profileResponse.data.user;
+            
+            // Check for warnings in the response
+            if (profileResponse.data.warning) {
+                console.warn('Profile data warning:', profileResponse.data.warning);
+                // Show a gentle notification to the user
+                toast.info('Some profile data may be limited. Please try refreshing the page.');
+            }
+            
             // Use database image if available, otherwise fall back to Google profile image from session
             setProfileData({
                 ...userData,
                 image: userData.image || user?.avatar || undefined
             });
-            setUserStats(statsResponse.data.stats);
+            
+            // Only set stats if the response is successful
+            if (statsResponse.data.stats) {
+                setUserStats(statsResponse.data.stats);
+            }
         } catch (error) {
             console.error('Failed to fetch profile data:', error);
             toast.error('Failed to load profile data');

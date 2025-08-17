@@ -31,13 +31,44 @@ export async function PUT(request: NextRequest) {
       }
 
       const db = await connectToDatabase();
-      const result = await db.collection('users').updateOne(
+      
+      // Try to update existing user
+      let result = await db.collection('users').updateOne(
         { email: session.user.email },
         { $set: update }
       );
 
+      // If user doesn't exist, create them
       if (result.matchedCount === 0) {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        console.warn(`User ${session.user.email} not found in database, creating new user record`);
+        
+        // Create basic user record
+        const newUser = {
+          email: session.user.email,
+          name: session.user.name || '',
+          image: session.user.image || null,
+          createdAt: new Date(),
+          lastLoginAt: new Date(),
+          updatedAt: new Date(),
+          status: 'active',
+          tokenVersion: 0,
+          isPublicProfile: true,
+          bio: '',
+          loginCount: 1,
+          ...update // Include the updates
+        };
+        
+        const insertResult = await db.collection('users').insertOne(newUser);
+        
+        if (insertResult.insertedId) {
+          return NextResponse.json({ 
+            success: true, 
+            message: 'User profile created and updated successfully',
+            userCreated: true
+          });
+        } else {
+          return NextResponse.json({ error: 'Failed to create user profile' }, { status: 500 });
+        }
       }
 
       return NextResponse.json({ success: true });
@@ -82,7 +113,7 @@ export async function PUT(request: NextRequest) {
     const db = await connectToDatabase();
 
     // Update user profile with new image URL and store public_id for deletes
-    const result = await db.collection('users').updateOne(
+    let result = await db.collection('users').updateOne(
       { email: session.user.email },
       {
         $set: {
@@ -93,8 +124,30 @@ export async function PUT(request: NextRequest) {
       }
     );
 
+    // If user doesn't exist, create them
     if (result.matchedCount === 0) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      console.warn(`User ${session.user.email} not found in database, creating new user record with image`);
+      
+      const newUser = {
+        email: session.user.email,
+        name: session.user.name || '',
+        image: imageUrl,
+        imagePublicId: publicId,
+        createdAt: new Date(),
+        lastLoginAt: new Date(),
+        updatedAt: new Date(),
+        status: 'active',
+        tokenVersion: 0,
+        isPublicProfile: true,
+        bio: '',
+        loginCount: 1
+      };
+      
+      const insertResult = await db.collection('users').insertOne(newUser);
+      
+      if (!insertResult.insertedId) {
+        return NextResponse.json({ error: 'Failed to create user profile' }, { status: 500 });
+      }
     }
 
     return NextResponse.json({
@@ -121,14 +174,52 @@ export async function GET(request: NextRequest) {
     // Connect to database
     const db = await connectToDatabase();
 
-  // Get user profile data
-  const user = await db.collection('users').findOne(
-    { email: session.user.email },
-    { projection: { image: 1, name: 1, email: 1, bio: 1, imageDescription: 1, createdAt: 1, lastLoginAt: 1, username: 1, isPublicProfile: 1 } }
-  );
+    // Get user profile data with better error handling
+    let user = null;
+    try {
+      user = await db.collection('users').findOne(
+        { email: session.user.email },
+        { projection: { image: 1, name: 1, email: 1, bio: 1, imageDescription: 1, createdAt: 1, lastLoginAt: 1, username: 1, isPublicProfile: 1 } }
+      );
+    } catch (dbError) {
+      console.error('Database error fetching user:', dbError);
+      // Return basic session data if database fails
+      return NextResponse.json({
+        success: true,
+        user: {
+          image: session.user.image || null,
+          name: session.user.name || '',
+          email: session.user.email,
+          bio: '',
+          imageDescription: '',
+          createdAt: null,
+          lastLoginAt: null,
+          username: null,
+          isPublicProfile: true,
+        },
+        warning: 'Database temporarily unavailable, showing session data only'
+      });
+    }
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      // User not found in database, but session is valid
+      // This could happen in production due to database sync issues
+      console.warn(`User ${session.user.email} not found in database, returning session data`);
+      return NextResponse.json({
+        success: true,
+        user: {
+          image: session.user.image || null,
+          name: session.user.name || '',
+          email: session.user.email,
+          bio: '',
+          imageDescription: '',
+          createdAt: null,
+          lastLoginAt: null,
+          username: null,
+          isPublicProfile: true,
+        },
+        warning: 'User profile not found in database, showing session data only'
+      });
     }
 
     return NextResponse.json({
