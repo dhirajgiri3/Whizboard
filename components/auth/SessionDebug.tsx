@@ -13,7 +13,8 @@ export function SessionDebug() {
   }, [session, status]);
 
   // Only show in development or when explicitly enabled
-  if (process.env.NODE_ENV !== 'development' && !process.env.NEXT_PUBLIC_DEBUG_SESSION) {
+  // Temporarily enabled for debugging production auth issues
+  if (process.env.NODE_ENV !== 'development' && !process.env.NEXT_PUBLIC_DEBUG_SESSION && false) {
     return null;
   }
 
