@@ -27,12 +27,12 @@ const CTAButton = ({
   disabled = false,
   theme = "hero",
 }: CTAButtonProps) => {
-  const baseClasses = "inline-flex items-center justify-center gap-2 font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black";
+  const baseClasses = "inline-flex items-center justify-center gap-2 font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black w-full sm:w-auto min-h-[44px] touch-manipulation";
   
   const sizeClasses = {
-    sm: "px-5 py-2.5 text-sm rounded-lg",
-    md: "px-7 py-3.5 text-base rounded-xl",
-    lg: "px-10 py-4.5 text-lg rounded-xl",
+    sm: "px-4 py-2.5 sm:px-5 text-sm rounded-lg",
+    md: "px-6 py-3.5 sm:px-7 text-base rounded-xl",
+    lg: "px-8 py-4 sm:px-10 sm:py-4.5 text-lg rounded-xl",
   };
   
   const variantClasses = {
@@ -55,27 +55,29 @@ const CTAButton = ({
   };
 
   const iconComponent = {
-    arrow: <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />,
-    play: <Play className="w-5 h-5 transition-transform group-hover:scale-110" />,
+    arrow: <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1 flex-shrink-0" />,
+    play: <Play className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:scale-110 flex-shrink-0" />,
     none: null,
   };
 
   const buttonContent = (
     <motion.span
-      className="flex items-center gap-2"
+      className="flex items-center justify-center gap-2 w-full"
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
     >
-      <span>{children}</span>
+      <span className="text-center truncate">{children}</span>
       {icon !== "none" && iconComponent[icon]}
     </motion.span>
   );
+
+  const responsiveClasses = "max-w-full sm:max-w-none text-center sm:text-left";
 
   if (href) {
     return (
       <motion.a
         href={href}
-        className={`group ${baseClasses} ${sizeClasses[size]} ${themeClasses[theme] || variantClasses[variant]} ${className} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+        className={`group ${baseClasses} ${sizeClasses[size]} ${themeClasses[theme] || variantClasses[variant]} ${responsiveClasses} ${className} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
         onClick={onClick}
         aria-disabled={disabled}
       >
@@ -86,7 +88,7 @@ const CTAButton = ({
 
   return (
     <motion.button
-      className={`group ${baseClasses} ${sizeClasses[size]} ${themeClasses[theme] || variantClasses[variant]} ${className} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+      className={`group ${baseClasses} ${sizeClasses[size]} ${themeClasses[theme] || variantClasses[variant]} ${responsiveClasses} ${className} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
       onClick={onClick}
       disabled={disabled}
     >

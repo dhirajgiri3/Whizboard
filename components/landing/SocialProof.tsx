@@ -612,22 +612,22 @@ const SocialProof = () => {
               </div>
             </div>
 
-            {/* Enhanced Revolutionary CTA Section */}
+            {/*  CTA Section */}
             <motion.div
               variants={itemVariants}
-              className="relative overflow-hidden h-[80vh] flex items-center justify-center"
+              className="relative overflow-hidden min-h-[60vh] sm:min-h-[70vh] lg:h-[80vh] flex items-center justify-center p-4 sm:p-6 lg:p-8"
             >
               {/* Enhanced Dynamic Background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A0B]/90 via-blue-600/30 to-[#0F0F10]/90 backdrop-blur-3xl rounded-[2rem] border-none shadow-none outline-none" />
+              <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A0B]/90 via-blue-600/30 to-[#0F0F10]/90 backdrop-blur-3xl rounded-xl sm:rounded-2xl lg:rounded-[2rem] border-none shadow-none outline-none" />
               {/* Enhanced Animated Background Elements */}
-              <div className="absolute inset-0 overflow-hidden rounded-[2rem]">
+              <div className="absolute inset-0 overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-[2rem]">
                 <motion.div
-                  className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-blue-600/30 to-blue-500/50 blur-3xl"
+                  className="absolute -top-20 sm:-top-32 lg:-top-40 -right-20 sm:-right-32 lg:-right-40 w-40 h-40 sm:w-60 sm:h-60 lg:w-80 lg:h-80 rounded-full bg-gradient-to-br from-blue-600/30 to-blue-500/50 blur-2xl sm:blur-3xl"
                   animate={{
                     scale: [1, 1.25, 1],
                     rotate: [0, 180, 360],
-                    x: [0, 40, 0],
-                    y: [0, -25, 0],
+                    x: [0, 20, 0],
+                    y: [0, -15, 0],
                   }}
                   transition={{
                     duration: 18,
@@ -636,12 +636,12 @@ const SocialProof = () => {
                   }}
                 />
                 <motion.div
-                  className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-gradient-to-tr from-blue-600/30 to-blue-500/50 blur-3xl"
+                  className="absolute -bottom-20 sm:-bottom-32 lg:-bottom-40 -left-20 sm:-left-32 lg:-left-40 w-40 h-40 sm:w-60 sm:h-60 lg:w-80 lg:h-80 rounded-full bg-gradient-to-tr from-blue-600/30 to-blue-500/50 blur-2xl sm:blur-3xl"
                   animate={{
                     scale: [1.15, 1, 1.15],
                     rotate: [360, 180, 0],
-                    x: [0, -25, 0],
-                    y: [0, 35, 0],
+                    x: [0, -15, 0],
+                    y: [0, 20, 0],
                   }}
                   transition={{
                     duration: 15,
@@ -651,30 +651,30 @@ const SocialProof = () => {
                 />
               </div>
 
-              <div className="relative z-10 text-center px-8 lg:px-16 flex flex-col gap-12 lg:gap-16">
+              <div className="relative z-10 text-center px-4 sm:px-6 md:px-8 lg:px-16 flex flex-col gap-8 sm:gap-10 md:gap-12 lg:gap-16 w-full max-w-6xl mx-auto">
                 {/* Minimal Header */}
                 <motion.div variants={itemVariants}>
                   {/* Redesigned Header - Ready to get started? */}
                   <motion.div
                     variants={itemVariants}
-                    className="flex flex-col items-center gap-4 sm:gap-6"
+                    className="flex flex-col items-center gap-3 sm:gap-4 md:gap-6"
                   >
                     {/* Badge */}
                     <motion.div
                       variants={itemVariants}
-                      className="group relative inline-flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-3 py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
+                      className="group relative inline-flex items-center gap-1.5 sm:gap-2 bg-white/[0.02] border border-white/[0.06] rounded-full px-2.5 py-1 sm:px-3 sm:py-1.5 backdrop-blur-sm hover:bg-white/[0.03] hover:border-white/[0.08] transition-all duration-200"
                     >
-                      <Rocket className="h-3.5 w-3.5 text-blue-400/80 group-hover:text-blue-400 transition-colors duration-200" />
+                      <Rocket className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-blue-400/80 group-hover:text-blue-400 transition-colors duration-200" />
                       <span className="text-white/70 text-xs font-medium tracking-wider uppercase group-hover:text-white/80 transition-colors duration-200">
                         Get Started
                       </span>
                     </motion.div>
 
-                    <div className="flex flex-col items-center gap-2">
+                    <div className="flex flex-col items-center gap-1 sm:gap-2">
                       {/* Title */}
                       <motion.h3
                         variants={itemVariants}
-                        className="flex flex-wrap justify-center items-center gap-3 text-4xl md:text-5xl lg:text-6xl font-light text-white leading-tight tracking-tight text-center"
+                        className="flex flex-wrap justify-center items-center gap-2 sm:gap-3 text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-light text-white leading-tight tracking-tight text-center"
                       >
                         <span>Ready to get</span>
                         <span className="bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent">
@@ -685,7 +685,7 @@ const SocialProof = () => {
                       {/* Description */}
                       <motion.p
                         variants={itemVariants}
-                        className="text-white/60 text-base max-w-xl mx-auto font-light leading-relaxed text-center"
+                        className="text-white/60 text-sm sm:text-base max-w-sm sm:max-w-lg md:max-w-xl mx-auto font-light leading-relaxed text-center px-2"
                       >
                         Join thousands of teams worldwide who are transforming
                         their collaboration with Whizboard. Start your journey
@@ -699,14 +699,14 @@ const SocialProof = () => {
                 {/* Minimal CTA Buttons */}
                 <motion.div
                   variants={itemVariants}
-                  className="flex flex-col sm:flex-row gap-8 justify-center items-center"
+                  className="flex flex-col sm:flex-row gap-4 sm:gap-6 md:gap-8 justify-center items-center w-full"
                 >
                   <CTAButton
                     href="/login"
                     variant="white"
                     size="lg"
                     theme="social-proof"
-                    className="px-12 py-5 rounded-full"
+                    className="w-full sm:w-auto px-8 sm:px-10 md:px-12 py-4 sm:py-5 rounded-full text-sm sm:text-base"
                   >
                     {LANDING_CONTENT.ctaButtons.footer}
                   </CTAButton>
@@ -717,7 +717,7 @@ const SocialProof = () => {
                     icon="play"
                     onClick={openDemo}
                     theme="social-proof"
-                    className="px-12 py-5"
+                    className="w-full sm:w-auto px-8 sm:px-10 md:px-12 py-4 sm:py-5 text-sm sm:text-base"
                   >
                     {LANDING_CONTENT.ctaButtons.demo}
                   </CTAButton>
@@ -726,7 +726,7 @@ const SocialProof = () => {
                 {/* Minimal Trust Indicators */}
                 <motion.div
                   variants={itemVariants}
-                  className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-20 mt-8"
+                  className="flex flex-col md:flex-row items-center justify-center gap-6 sm:gap-8 md:gap-12 lg:gap-20 mt-4 sm:mt-6 md:mt-8"
                 >
                   <TrustIndicators />
                 </motion.div>

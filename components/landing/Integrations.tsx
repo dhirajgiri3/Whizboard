@@ -66,7 +66,7 @@ const pathVariants = {
 
 const Bullet = ({ children }: { children: React.ReactNode }) => (
   <div className="flex items-start gap-2">
-    <CheckCircle className="w-4 h-4 text-blue-400 mt-0.5" />
+    <CheckCircle className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
     <span className="text-white/70 text-sm leading-relaxed">{children}</span>
   </div>
 );
@@ -75,7 +75,7 @@ const CTA = ({ href, children, variant = "primary" as const, ariaLabel }: { href
   const prefersReducedMotion = useReducedMotion();
 
   const baseClasses =
-    "relative inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 min-h-[44px] font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900";
+    "relative inline-flex items-center justify-center gap-2 rounded-xl px-4 sm:px-5 py-2.5 sm:py-3 min-h-[44px] font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 text-sm sm:text-base";
 
   const variantClasses =
     variant === "primary"
@@ -136,13 +136,13 @@ const InteractiveCard = ({
       whileHover={prefersReducedMotion ? undefined : { y: -2 }}
       transition={{ type: "spring", stiffness: 200, damping: 22 }}
       onPointerMove={prefersReducedMotion ? undefined : onPointerMove}
-      className={`relative p-6 sm:p-8 rounded-3xl bg-black/[0.1] border border-white/[0.07] overflow-hidden transition-colors duration-300 backdrop-blur-sm ${className}`}
+      className={`relative p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl bg-black/[0.1] border border-white/[0.07] overflow-hidden transition-colors duration-300 backdrop-blur-sm ${className}`}
     >
       {/* Spotlight effect that follows mouse */}
       {!prefersReducedMotion && (
         <motion.div
           aria-hidden
-          className="absolute inset-0 pointer-events-none rounded-3xl"
+          className="absolute inset-0 pointer-events-none rounded-2xl sm:rounded-3xl"
           style={{ backgroundImage: spotlight }}
         />
       )}
@@ -152,7 +152,7 @@ const InteractiveCard = ({
         initial={{ opacity: 0 }}
         whileHover={{ opacity: 1 }}
         transition={{ duration: 0.25, ease: easeCubic }}
-        className="pointer-events-none absolute -inset-px rounded-3xl"
+        className="pointer-events-none absolute -inset-px rounded-2xl sm:rounded-3xl"
         style={{
           background:
             "radial-gradient(120% 120% at 50% -10%, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 60%)",
@@ -164,12 +164,12 @@ const InteractiveCard = ({
 };
 
 const LogoBadge = ({ src, label }: { src: string; label: string }) => (
-  <div className="inline-flex items-center gap-3 self-start mb-5">
-    <div className="relative inline-flex p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
+  <div className="inline-flex items-center gap-3 self-start mb-4 sm:mb-5">
+    <div className="relative inline-flex p-2.5 sm:p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
       <motion.img
         src={src}
         alt={label}
-        className="h-6 w-6"
+        className="h-5 w-5 sm:h-6 sm:w-6"
         initial={{ scale: 0.96, rotate: 0 }}
         whileHover={{ scale: 1.02, rotate: 1 }}
         transition={{ duration: 0.2, ease: easeCubic }}
@@ -181,8 +181,8 @@ const LogoBadge = ({ src, label }: { src: string; label: string }) => (
       />
     </div>
     <div>
-      <h3 className="text-xl sm:text-2xl font-semibold text-white">{label}</h3>
-      <p className="text-white/70 text-sm">{label === "Slack integration" ? "Bring updates into channels where your team already works." : "Export, organize, and reuse your boards and assets in Drive."}</p>
+      <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-white">{label}</h3>
+      <p className="text-white/70 text-xs sm:text-sm">{label === "Slack integration" ? "Bring updates into channels where your team already works." : "Export, organize, and reuse your boards and assets in Drive."}</p>
     </div>
   </div>
 );
@@ -191,14 +191,30 @@ const Integrations = () => {
   const prefersReducedMotion = useReducedMotion();
   
   return (
-    <section className="section-padding flex flex-col items-center justify-center max-w-7xl mx-auto pb-20">
-      <div className="container-base">
+    <section className="relative py-12 sm:py-16 lg:py-20 bg-[#0A0A0B] overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0 opacity-30">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `
+            linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
+          `,
+            backgroundSize: "32px 32px",
+          }}
+        ></div>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-8 lg:gap-12">
         <SectionHeader
           badge={{ icon: Link2, text: "Integrations" }}
           title="Work seamlessly with Slack and Google Drive"
           subtitle="Keep conversations flowing in Slack and keep files organized in Drive—without leaving Whizboard."
+          disableAnimation={true}
         />
-        <div className="relative mt-10">
+
+        <div className="relative">
           {/* Background grid and orbs */}
           <div className="absolute inset-0 grid-pattern opacity-20 pointer-events-none" />
           
@@ -220,7 +236,7 @@ const Integrations = () => {
             width="100%"
             height="220"
             viewBox="0 0 1200 220"
-            className="hidden md:block absolute left-0 right-0 top-1/2 -translate-y-1/2"
+            className="hidden lg:block absolute left-0 right-0 top-1/2 -translate-y-1/2"
             xmlnsXlink="http://www.w3.org/1999/xlink"
             initial="hidden"
             whileInView="visible"
@@ -270,7 +286,7 @@ const Integrations = () => {
             {/* Slack Card */}
             <InteractiveCard variants={itemVariants}>
               <div className="absolute -top-20 -right-20 w-32 h-32 sm:w-40 sm:h-40 gradient-orb-blue opacity-70 group-hover:opacity-90 transition-opacity duration-300" />
-              <div className="flex flex-col h-full min-h-[27rem] md:min-h-[28rem]">
+              <div className="flex flex-col h-full min-h-[24rem] sm:min-h-[26rem] lg:min-h-[28rem]">
                 <LogoBadge src="/images/logos/slack.svg" label="Slack integration" />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
@@ -291,8 +307,8 @@ const Integrations = () => {
                     className="w-[82%] max-w-md rounded-2xl bg-white/[0.06] border border-white/[0.12] p-3 backdrop-blur-sm mb-2"
                   >
                     <div className="flex items-center gap-2 text-white/80 text-sm">
-                      <Share2 className="h-4 w-4 text-blue-300" />
-                      <span>Board snapshot shared to #design-reviews</span>
+                      <Share2 className="h-4 w-4 text-blue-300 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm">Board snapshot shared to #design-reviews</span>
                     </div>
                   </motion.div>
                   <motion.div
@@ -304,8 +320,8 @@ const Integrations = () => {
                     className="ml-auto w-[70%] max-w-sm rounded-2xl bg-white/[0.04] border border-white/[0.1] p-3 backdrop-blur-sm"
                   >
                     <div className="flex items-center gap-2 text-white/75 text-sm">
-                      <MessageSquare className="h-4 w-4 text-white/50" />
-                      <span>Looks great—approved</span>
+                      <MessageSquare className="h-4 w-4 text-white/50 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm">Looks great—approved</span>
                     </div>
                   </motion.div>
                 </div>
@@ -327,7 +343,7 @@ const Integrations = () => {
             {/* Google Drive Card */}
             <InteractiveCard variants={itemVariants}>
               <div className="absolute -top-24 -left-24 w-36 h-36 sm:w-48 sm:h-48 gradient-orb-neutral opacity-70 group-hover:opacity-90 transition-opacity duration-300" />
-              <div className="flex flex-col h-full min-h-[27rem] md:min-h-[28rem]">
+              <div className="flex flex-col h-full min-h-[24rem] sm:min-h-[26rem] lg:min-h-[28rem]">
                 <LogoBadge src="/images/logos/google-drive.svg" label="Google Drive integration" />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
@@ -338,16 +354,16 @@ const Integrations = () => {
                 </div>
 
                 {/* Animated file tiles */}
-                <div className="relative h-28 sm:h-32 mb-6">
+                <div className="relative h-24 sm:h-28 lg:h-32 mb-6">
                   <motion.div
                     initial={{ opacity: 0, y: 14 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     animate={prefersReducedMotion ? undefined : { y: [0, -2, 0] }}
                     transition={{ duration: 0.35, ease: easeCubic, delay: 0.06, repeat: prefersReducedMotion ? 0 : Infinity, repeatType: "mirror", repeatDelay: 2.4 }}
                     viewport={{ once: true }}
-                    className="absolute left-0 top-0 w-32 h-20 rounded-xl bg-white/[0.06] border border-white/[0.12] backdrop-blur-sm flex items-center justify-center gap-2"
+                    className="absolute left-0 top-0 w-28 sm:w-32 h-16 sm:h-20 rounded-xl bg-white/[0.06] border border-white/[0.12] backdrop-blur-sm flex items-center justify-center gap-2"
                   >
-                    <Image className="w-4 h-4 text-blue-300" />
+                    <Image className="w-4 h-4 text-blue-300 flex-shrink-0" />
                     <span className="text-xs text-white/75">Board.png</span>
                   </motion.div>
                   <motion.div
@@ -356,9 +372,9 @@ const Integrations = () => {
                     animate={prefersReducedMotion ? undefined : { y: [0, 2, 0] }}
                     transition={{ duration: 0.35, ease: easeCubic, delay: 0.18, repeat: prefersReducedMotion ? 0 : Infinity, repeatType: "mirror", repeatDelay: 2.8 }}
                     viewport={{ once: true }}
-                    className="absolute left-28 top-8 w-36 h-20 rounded-xl bg-white/[0.04] border border-white/[0.1] backdrop-blur-sm flex items-center justify-center gap-2"
+                    className="absolute left-24 sm:left-28 top-6 sm:top-8 w-32 sm:w-36 h-16 sm:h-20 rounded-xl bg-white/[0.04] border border-white/[0.1] backdrop-blur-sm flex items-center justify-center gap-2"
                   >
-                    <FileText className="w-4 h-4 text-white/60" />
+                    <FileText className="w-4 h-4 text-white/60 flex-shrink-0" />
                     <span className="text-xs text-white/70">Notes.pdf</span>
                   </motion.div>
                   <motion.div
@@ -367,9 +383,9 @@ const Integrations = () => {
                     animate={prefersReducedMotion ? undefined : { y: [0, -1, 0] }}
                     transition={{ duration: 0.35, ease: easeCubic, delay: 0.28, repeat: prefersReducedMotion ? 0 : Infinity, repeatType: "mirror", repeatDelay: 3.0 }}
                     viewport={{ once: true }}
-                    className="absolute left-56 top-2 w-28 h-20 rounded-xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm hidden sm:flex items-center justify-center gap-2"
+                    className="absolute left-48 sm:left-56 top-2 w-24 sm:w-28 h-16 sm:h-20 rounded-xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm hidden sm:flex items-center justify-center gap-2"
                   >
-                    <Folder className="w-4 h-4 text-white/50" />
+                    <Folder className="w-4 h-4 text-white/50 flex-shrink-0" />
                     <span className="text-xs text-white/60">Whizboard</span>
                   </motion.div>
                 </div>
@@ -391,7 +407,7 @@ const Integrations = () => {
         </div>
 
         {/* Value reinforcement row */}
-        <div className="mt-10 sm:mt-12">
+        <div className="mt-8 sm:mt-10 lg:mt-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -401,7 +417,7 @@ const Integrations = () => {
               viewport={{ once: true }}
               className="group flex items-center gap-2 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-colors"
             >
-              <MessageSquare className="h-4 w-4 text-blue-400" />
+              <MessageSquare className="h-4 w-4 text-blue-400 flex-shrink-0" />
               <span className="text-sm text-white/70">Faster reviews in team channels</span>
             </motion.div>
             <motion.div
@@ -412,7 +428,7 @@ const Integrations = () => {
               viewport={{ once: true }}
               className="group flex items-center gap-2 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-colors"
             >
-              <Cloud className="h-4 w-4 text-blue-400" />
+              <Cloud className="h-4 w-4 text-blue-400 flex-shrink-0" />
               <span className="text-sm text-white/70">Single source of truth for exports</span>
             </motion.div>
             <motion.div
@@ -423,7 +439,7 @@ const Integrations = () => {
               viewport={{ once: true }}
               className="group flex items-center gap-2 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-colors"
             >
-              <Upload className="h-4 w-4 text-blue-400" />
+              <Upload className="h-4 w-4 text-blue-400 flex-shrink-0" />
               <span className="text-sm text-white/70">Less context switching, more flow</span>
             </motion.div>
           </div>

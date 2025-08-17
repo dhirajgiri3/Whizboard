@@ -94,30 +94,30 @@ const Header = () => {
   // Determine header visibility based on scroll direction
   const shouldShowHeader = scrollDirection === 'up' || scrollY < 100;
 
-  // Theme-based styling with smooth transitions
+  // Theme-based styling with smooth transitions - minimal version
   const animations = isLightMode ? headerAnimations : darkHeaderAnimations;
   
   const headerBg = isLightMode
-    ? 'bg-white/80 backdrop-blur-md border-gray-200/60'
-    : 'bg-[#0A0A0B]/80 backdrop-blur-md border-white/10';
+    ? 'bg-white/90 backdrop-blur-sm border-gray-200/40'
+    : 'bg-[#0A0A0B]/90 backdrop-blur-sm border-white/5';
   
   const mobileHeaderBg = isLightMode
-    ? 'bg-white/95 backdrop-blur-lg border-gray-100'
-    : 'bg-[#0A0A0B]/95 backdrop-blur-lg border-white/10';
+    ? 'bg-white/95 backdrop-blur-sm border-gray-100'
+    : 'bg-[#0A0A0B]/95 backdrop-blur-sm border-white/5';
   
   const textColor = isLightMode
     ? 'text-gray-600 hover:text-gray-900'
     : 'text-white/70 hover:text-white';
   
   const buttonBg = isLightMode
-    ? 'hover:bg-gray-100 active:bg-gray-200'
+    ? 'hover:bg-gray-50 active:bg-gray-100'
     : 'hover:bg-white/5 active:bg-white/10';
 
   return (
     <>
-      {/* Desktop Header */}
+      {/* Desktop Header - Minimal */}
       <motion.header
-        className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 hidden lg:block"
+        className="fixed top-2 left-1/2 transform -translate-x-1/2 z-50 max-w-5xl w-full mx-auto px-4 sm:px-6 hidden lg:block"
         variants={animations.header}
         animate={shouldShowHeader ? "visible" : "hidden"}
         transition={{
@@ -129,35 +129,35 @@ const Header = () => {
         }}
       >
         <motion.div 
-          className={`${headerBg} backdrop-blur-enhanced rounded-full border ${!isLightMode ? 'dark' : ''}`} 
-          style={{ backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)' }}
+          className={`${headerBg} backdrop-blur-sm rounded-full border ${!isLightMode ? 'dark' : ''}`} 
+          style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
           animate={{
             backgroundColor: isLightMode 
-              ? 'rgba(255, 255, 255, 0.8)' 
-              : 'rgba(10, 10, 11, 0.8)',
+              ? 'rgba(255, 255, 255, 0.9)' 
+              : 'rgba(10, 10, 11, 0.9)',
             borderColor: isLightMode 
-              ? 'rgba(229, 231, 235, 0.6)' 
-              : 'rgba(255, 255, 255, 0.1)'
+              ? 'rgba(229, 231, 235, 0.4)' 
+              : 'rgba(255, 255, 255, 0.05)'
           }}
           transition={{
             duration: 0.4,
             ease: [0.4, 0, 0.2, 1]
           }}
         >
-          <nav className="flex w-full items-center justify-between py-3 px-6 lg:px-8">
+          <nav className="flex w-full items-center justify-between py-2 px-4 lg:px-6">
             {/* Logo */}
             <Logo isLightMode={isLightMode} />
 
             {/* Desktop Navigation */}
             {status === "authenticated" ? (
-              <div className="flex items-center space-x-4 lg:space-x-6">
+              <div className="flex items-center space-x-3 lg:space-x-4">
                 {/* Navigation Links */}
                 <motion.div
                   variants={animations.fadeInUp}
                   initial="initial"
                   animate="animate"
                   transition={{ delay: 0.3 }}
-                  className="flex items-center space-x-3 lg:space-x-4"
+                  className="flex items-center space-x-2 lg:space-x-3"
                 >
                   {navigationItems.map((item) => (
                     <NavigationLink
@@ -186,38 +186,30 @@ const Header = () => {
                   />
                 </motion.div>
 
-                {/* Create Board Button */}
+                {/* Action Buttons - Compact */}
                 <motion.div
                   variants={animations.fadeInUp}
                   initial="initial"
                   animate="animate"
                   transition={{ delay: 0.4 }}
+                  className="flex items-center space-x-2"
                 >
                   <CreateBoardButton onClick={handleCreateBoard} isLightMode={isLightMode} />
-                </motion.div>
-
-                {/* Slack Button */}
-                <motion.div
-                  variants={animations.fadeInUp}
-                  initial="initial"
-                  animate="animate"
-                  transition={{ delay: 0.45 }}
-                >
                   <SlackButton
                     variant="default"
-                    size="md"
-                    showQuickActions={true}
+                    size="sm"
+                    showQuickActions={false}
                     mode={isLightMode ? 'light' : 'dark'}
                   />
                 </motion.div>
 
-                {/* User Menu */}
+                {/* User Menu - Compact */}
                 <motion.div
                   variants={animations.fadeInUp}
                   initial="initial"
                   animate="animate"
                   transition={{ delay: 0.5 }}
-                  className="relative flex items-center gap-3 lg:gap-4"
+                  className="relative flex items-center gap-2"
                   ref={dropdownRef}
                 >
                   <NotificationBell />
@@ -242,7 +234,7 @@ const Header = () => {
                 initial="initial"
                 animate="animate"
                 transition={{ delay: 0.3 }}
-                className="flex items-center space-x-4 lg:space-x-6"
+                className="flex items-center space-x-3 lg:space-x-4"
               >
                 {/* Company Dropdown */}
                 <DropdownMenu
@@ -265,7 +257,7 @@ const Header = () => {
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <a
                     href="/login"
-                    className={`px-3 py-2 text-sm font-medium transition-all duration-300 rounded-full ${textColor}`}
+                    className={`px-3 py-1.5 text-sm font-medium transition-all duration-300 rounded-xl ${textColor}`}
                   >
                     Sign In
                   </a>
@@ -274,7 +266,7 @@ const Header = () => {
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <a
                     href="/login"
-                    className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-full transition-all duration-300 shadow-sm"
+                    className="px-3 py-1.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all duration-300 shadow-sm"
                   >
                     Get Started
                   </a>
@@ -285,7 +277,7 @@ const Header = () => {
         </motion.div>
       </motion.header>
 
-      {/* Mobile Header */}
+      {/* Mobile Header - Minimal */}
       <motion.header
         className="fixed top-0 left-0 right-0 z-40 lg:hidden"
         variants={animations.header}
@@ -299,22 +291,22 @@ const Header = () => {
         }}
       >
         <motion.div 
-          className={`${mobileHeaderBg} backdrop-blur-enhanced border-b ${!isLightMode ? 'dark' : ''}`} 
-          style={{ backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)' }}
+          className={`${mobileHeaderBg} backdrop-blur-sm border-b ${!isLightMode ? 'dark' : ''}`} 
+          style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
           animate={{
             backgroundColor: isLightMode 
               ? 'rgba(255, 255, 255, 0.95)' 
               : 'rgba(10, 10, 11, 0.95)',
             borderColor: isLightMode 
               ? 'rgba(243, 244, 246, 1)' 
-              : 'rgba(255, 255, 255, 0.1)'
+              : 'rgba(255, 255, 255, 0.05)'
           }}
           transition={{
             duration: 0.4,
             ease: [0.4, 0, 0.2, 1]
           }}
         >
-          <nav className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
+          <nav className="flex items-center justify-between px-4 sm:px-6 py-2.5 sm:py-3">
             {/* Mobile Logo */}
             <Logo isLightMode={isLightMode} className="flex items-center" />
 
@@ -326,8 +318,8 @@ const Header = () => {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`p-2.5 sm:p-3 rounded-full transition-all duration-300 ${textColor} ${buttonBg} ${
-                isMobileMenuOpen ? (isLightMode ? 'bg-gray-100' : 'bg-white/5') : ''
+              className={`p-2 sm:p-2.5 rounded-xl transition-all duration-300 ${textColor} ${buttonBg} ${
+                isMobileMenuOpen ? (isLightMode ? 'bg-gray-50' : 'bg-white/5') : ''
               }`}
               aria-label="Toggle mobile menu"
               aria-expanded={isMobileMenuOpen}
@@ -341,7 +333,7 @@ const Header = () => {
                     exit={{ rotate: 90, opacity: 0 }}
                     transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                   >
-                    <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <X className="w-5 h-5" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -351,7 +343,7 @@ const Header = () => {
                     exit={{ rotate: -90, opacity: 0 }}
                     transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                   >
-                    <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <Menu className="w-5 h-5" />
                   </motion.div>
                 )}
               </AnimatePresence>
