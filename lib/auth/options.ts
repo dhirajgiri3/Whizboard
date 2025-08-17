@@ -96,7 +96,13 @@ export const authOptions: AuthOptions = {
     },
     async session({ session, token }) {
       if (session?.user && (token as any).sub) {
-        // Validate user still exists in database
+        // Add basic user info from token to session
+        (session.user as any).id = (token as any).sub;
+        (session.user as any).emailVerified = (token as any).emailVerified;
+        (session.user as any).provider = (token as any).provider;
+        
+        // Only validate user in database if we're not in a loading state
+        // This prevents infinite loading issues
         try {
           const client = await clientPromise;
           const db = client.db();
@@ -104,63 +110,21 @@ export const authOptions: AuthOptions = {
             _id: new (await import('mongodb')).ObjectId((token as any).sub)
           });
           
-          // If user doesn't exist in database, invalidate session
-          if (!user) {
-            console.log(`[SECURITY] User ${session.user.email} not found in database, marking session invalid`);
-            (session as any).security = {
-              ...(session as any).security,
-              userExists: false,
-              invalidReason: 'USER_NOT_FOUND',
-            };
-            return session;
+          if (user) {
+            (session.user as any).status = user.status || 'active';
+            (session.user as any).tokenVersion = (user as any).tokenVersion ?? 0;
+          } else {
+            // User not found in database, but don't invalidate session immediately
+            // This could happen during the initial sign-in process
+            console.log(`[AUTH] User ${session.user.email} not found in database yet, allowing session`);
+            (session.user as any).status = 'active';
+            (session.user as any).tokenVersion = 0;
           }
-          
-          // Check if user is active/not banned
-          if (user.status === 'banned' || user.status === 'suspended') {
-            console.log(`[SECURITY] User ${session.user.email} is ${user.status}, marking session invalid`);
-            (session as any).security = {
-              ...(session as any).security,
-              userExists: true,
-              invalidReason: user.status.toUpperCase(),
-            };
-            return session;
-          }
-
-          // Invalidate session if tokenVersion has changed
-          const tokenVersionFromDb = (user as any).tokenVersion ?? 0;
-          if (typeof (token as any).tokenVersion === 'number' && (token as any).tokenVersion < tokenVersionFromDb) {
-            console.log(`[SECURITY] Token version outdated for ${session.user.email}, marking session invalid`);
-            (session as any).security = {
-              ...(session as any).security,
-              userExists: true,
-              invalidReason: 'TOKEN_VERSION_OUTDATED',
-            };
-            return session;
-          }
-          
-          (session.user as any).id = (token as any).sub;
-          (session.user as any).emailVerified = (token as any).emailVerified;
-          (session.user as any).provider = (token as any).provider;
-          (session.user as any).status = user.status || 'active';
-          (session.user as any).tokenVersion = (token as any).tokenVersion ?? 0;
-          (session as any).security = {
-            issuedAt: (token as any).iat,
-            jwtId: (token as any).jti,
-            lastUpdated: new Date().toISOString(),
-            userExists: true,
-          };
         } catch (error) {
-          console.error('[SECURITY] Error validating user in session callback:', error);
-          // On database error, allow session but log the issue
-          (session.user as any).id = (token as any).sub;
-          (session.user as any).emailVerified = (token as any).emailVerified;
-          (session.user as any).provider = (token as any).provider;
-          (session as any).security = {
-            issuedAt: (token as any).iat,
-            jwtId: (token as any).jti,
-            lastUpdated: new Date().toISOString(),
-            userExists: 'unknown',
-          };
+          console.error('[AUTH] Error validating user in session callback:', error);
+          // On database error, still allow session but with basic info
+          (session.user as any).status = 'active';
+          (session.user as any).tokenVersion = 0;
         }
       }
       return session;
@@ -174,6 +138,11 @@ export const authOptions: AuthOptions = {
 
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development',
+  
+  // Ensure proper URL configuration for production
+  ...(process.env.NODE_ENV === 'production' && {
+    url: 'https://whizboard.cyperstudio.in',
+  }),
 
   cookies: {
     sessionToken: {

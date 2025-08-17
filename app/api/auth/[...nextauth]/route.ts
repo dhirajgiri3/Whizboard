@@ -10,7 +10,19 @@ const handler = NextAuth(authOptions);
 // Add custom error handling
 const customHandler = async (req: Request, context: any) => {
   try {
-    return await handler(req, context);
+    // Log request details for debugging
+    console.log('[NextAuth] Request:', {
+      url: req.url,
+      method: req.method,
+      headers: Object.fromEntries(req.headers.entries())
+    });
+    
+    const response = await handler(req, context);
+    
+    // Log response details for debugging
+    console.log('[NextAuth] Response status:', response.status);
+    
+    return response;
   } catch (error: any) {
     console.error('NextAuth error:', error);
     

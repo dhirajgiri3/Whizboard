@@ -17,7 +17,7 @@ const yoga = createYoga({
   landingPage: false,
   cors: {
     origin: process.env.NODE_ENV === 'production' 
-      ? ['https://your-domain.com'] 
+      ? ['https://whizboard.cyperstudio.in'] 
       : ['http://localhost:3000'],
     credentials: true,
   },
@@ -39,7 +39,7 @@ export async function OPTIONS(request: NextRequest) {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': process.env.NODE_ENV === 'production' 
-        ? 'https://your-domain.com' 
+        ? 'https://whizboard.cyperstudio.in' 
         : 'http://localhost:3000',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',

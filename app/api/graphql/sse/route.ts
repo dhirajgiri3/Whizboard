@@ -185,7 +185,7 @@ export async function GET(request: NextRequest) {
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive',
       'Access-Control-Allow-Origin': process.env.NODE_ENV === 'production' 
-        ? 'https://your-domain.com' 
+        ? 'https://whizboard.cyperstudio.in' 
         : 'http://localhost:3000',
       'Access-Control-Allow-Credentials': 'true',
     },

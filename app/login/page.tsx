@@ -17,7 +17,11 @@ function LoginPageContent() {
     const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      await signIn("google", { callbackUrl: "/my-boards" });
+      // Get callback URL from URL parameters or default to /my-boards
+      const urlParams = new URLSearchParams(window.location.search);
+      const callbackUrl = urlParams.get('callbackUrl') || '/my-boards';
+      
+      await signIn("google", { callbackUrl });
     } catch (error) {
       console.error("Sign in error:", error);
     } finally {
