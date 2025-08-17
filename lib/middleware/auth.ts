@@ -61,75 +61,42 @@ export async function authMiddleware(request: NextRequest) {
       secret: process.env.NEXTAUTH_SECRET 
     });
     
-    // Also check for session token in cookies as fallback
-    const cookieHeader = request.headers.get('cookie') || '';
-    const hasSessionCookie = cookieHeader.includes('next-auth.session-token') || 
-                            cookieHeader.includes('__Secure-next-auth.session-token');
-    
     // Middleware runs on the Edge runtime. Avoid any Node-only libraries here.
     // Determine authentication strictly from the presence of a valid JWT.
-    const isAuthenticated = !!token || hasSessionCookie;
-    
-    // Debug logging for authentication issues
-    console.log('[MIDDLEWARE] Path:', pathname);
-    console.log('[MIDDLEWARE] Token exists:', !!token);
-    console.log('[MIDDLEWARE] Has session cookie:', hasSessionCookie);
-    console.log('[MIDDLEWARE] Is authenticated:', isAuthenticated);
-    console.log('[MIDDLEWARE] Token details:', token ? { sub: token.sub, email: token.email } : 'No token');
-    console.log('[MIDDLEWARE] Cookie header length:', cookieHeader.length);
+    const isAuthenticated = !!token;
     
     const currentRoute = getRouteAccessLevel(pathname);
-    console.log('[MIDDLEWARE] Route access level:', currentRoute);
     
     // Handle route access based on authentication status
     switch (currentRoute) {
       case RouteAccess.PUBLIC:
         // Public routes are accessible to everyone
-        console.log('[MIDDLEWARE] Public route - allowing access');
         return NextResponse.next();
         
       case RouteAccess.AUTHENTICATED:
-        // Temporarily disable middleware authentication checks for client-side handling
-        // This allows the ProtectedRoute component to handle authentication
-        console.log('[MIDDLEWARE] Authenticated route - allowing access (client-side auth check)');
+        // Client-side authentication handling for authenticated routes
         return NextResponse.next();
-        
-        // Original code (commented out for now):
-        // if (!isAuthenticated) {
-        //   // Redirect unauthenticated users to login
-        //   console.log('[MIDDLEWARE] Authenticated route - user not authenticated, redirecting to login');
-        //   const loginUrl = new URL(defaultRedirects.unauthenticated, request.url);
-        //   loginUrl.searchParams.set('callbackUrl', pathname);
-        //   return NextResponse.redirect(loginUrl);
-        // }
-        // console.log('[MIDDLEWARE] Authenticated route - user authenticated, allowing access');
-        // return NextResponse.next();
         
       case RouteAccess.UNAUTHENTICATED:
         if (isAuthenticated) {
           // Redirect authenticated users away from login/register pages
-          console.log('[MIDDLEWARE] Unauthenticated route - user authenticated, redirecting to callback');
           const redirectUrl = request.nextUrl.searchParams.get('callbackUrl') || defaultRedirects.authenticated;
           return NextResponse.redirect(new URL(redirectUrl, request.url));
         }
-        console.log('[MIDDLEWARE] Unauthenticated route - user not authenticated, allowing access');
         return NextResponse.next();
         
       case RouteAccess.BOARD_MEMBER:
         if (!isAuthenticated) {
           // Redirect unauthenticated users to login
-          console.log('[MIDDLEWARE] Board route - user not authenticated, redirecting to login');
           const loginUrl = new URL(defaultRedirects.unauthenticated, request.url);
           loginUrl.searchParams.set('callbackUrl', pathname);
           return NextResponse.redirect(loginUrl);
         }
         // Additional board access validation will be handled in the page component
-        console.log('[MIDDLEWARE] Board route - user authenticated, allowing access');
         return NextResponse.next();
         
       default:
         // Unknown route, allow access (could be a 404)
-        console.log('[MIDDLEWARE] Unknown route - allowing access');
         return NextResponse.next();
     }
   } catch (error) {

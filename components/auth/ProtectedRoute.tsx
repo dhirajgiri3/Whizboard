@@ -25,19 +25,7 @@ export default function ProtectedRoute({
   const pathname = usePathname();
 
   useEffect(() => {
-    // Add a timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
-      if (status === 'loading') {
-        console.warn('Session loading timeout, forcing refresh');
-        window.location.reload();
-      }
-    }, 10000); // 10 second timeout
-
-    if (status === 'loading') {
-      return () => clearTimeout(timeoutId);
-    }
-
-    clearTimeout(timeoutId);
+    if (status === 'loading') return;
 
     // If authentication is required and user is not authenticated
     if (requireAuth && !session) {

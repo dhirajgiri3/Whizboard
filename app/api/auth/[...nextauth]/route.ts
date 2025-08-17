@@ -10,30 +10,9 @@ const handler = NextAuth(authOptions);
 // Add custom error handling
 const customHandler = async (req: Request, context: any) => {
   try {
-    // Log request details for debugging
-    console.log('[NextAuth] Request:', {
-      url: req.url,
-      method: req.method,
-      headers: Object.fromEntries(req.headers.entries())
-    });
-    
-    const response = await handler(req, context);
-    
-    // Log response details for debugging
-    console.log('[NextAuth] Response status:', response.status);
-    
-    return response;
+    return await handler(req, context);
   } catch (error: any) {
     console.error('NextAuth error:', error);
-    
-    // Log additional details for debugging
-    console.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-      url: req.url,
-      method: req.method,
-      headers: Object.fromEntries(req.headers.entries())
-    });
     
     // Handle OAuthAccountNotLinked error
     if (error.message?.includes('OAuthAccountNotLinked')) {

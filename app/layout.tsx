@@ -9,7 +9,6 @@ import AppToaster from "@/components/ui/AppToaster";
 import Script from "next/script";
 import { Providers } from "./layout/providers";
 import ConditionalHeader from "@/components/layout/header/utils/ConditionalHeader";
-import { SessionDebug } from "@/components/auth/SessionDebug";
 
 const maisonNeue = localFont({
   src: [
@@ -176,7 +175,6 @@ export default async function RootLayout({
                 {children}
               </div>
               <AppToaster />
-              <SessionDebug />
             </Providers>
           </ApolloProvider>
         </AuthSessionProvider>
