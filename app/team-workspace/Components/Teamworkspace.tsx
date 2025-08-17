@@ -576,7 +576,7 @@ export default function TeamWorkspacePage() {
       <div className="absolute top-1/4 left-1/4 w-72 h-72 gradient-orb-blue" />
       <div className="absolute bottom-1/3 right-1/4 w-60 h-60 gradient-orb-blue" />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-24">
         <BackButton variant="dark" />
       </div>
 

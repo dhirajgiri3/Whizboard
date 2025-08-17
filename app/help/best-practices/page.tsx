@@ -143,7 +143,7 @@ const practices = [
 export default function BestPracticesPage() {
   return (
     <div className="min-h-screen bg-gray-950">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-28 pb-8 sm:pb-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-20 md:pt-24 pb-8 sm:pb-12">
         <BackButton label="Back to Help" fallbackHref="/help" variant="minimal" className="mb-6" />
 
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6 sm:p-8 backdrop-blur-sm">

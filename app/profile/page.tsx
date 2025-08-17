@@ -189,7 +189,7 @@ const ProfilePage = () => {
     }
 
     return (
-        <div className="min-h-screen relative overflow-hidden bg-gray-950 pb-16 pt-32">
+        <div className="min-h-screen relative overflow-hidden bg-gray-950 pb-16 pt-20 md:pt-24">
             {/* Background effects matching settings page */}
             <div className="absolute inset-0 grid-pattern opacity-20" />
             <div className="absolute top-1/4 left-1/4 w-72 h-72 gradient-orb-blue" />

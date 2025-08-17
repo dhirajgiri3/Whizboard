@@ -309,7 +309,7 @@ export default function GoogleDrivePage() {
       <div className="absolute bottom-1/3 right-1/4 w-60 h-60 gradient-orb-blue" />
 
       {/* Top actions */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-24">
         <BackButton
           variant="dark"
           position="relative"

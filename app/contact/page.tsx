@@ -214,7 +214,7 @@ export default function ContactPage() {
   return (
     <SmoothScrollProvider>
     <div className="min-h-screen bg-[#0A0A0B] text-white relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 pt-6">
+      <div className="max-w-7xl mx-auto px-6 pt-20 md:pt-24">
         <BackButton variant="dark" />
       </div>
       {/* Background Elements */}

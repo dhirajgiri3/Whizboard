@@ -279,7 +279,7 @@ export default function AdvancedSettingsPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-[var(--deep-canvas)] pb-16">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-28">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-24">
         <BackButton
           variant="dark"
           position="relative"

@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAppContext } from '@/lib/context/AppContext';
-import { X, ChevronRight, LogOut } from 'lucide-react';
+import { X, ChevronRight, LogOut, Home, Layout } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { MenuItem, UserMenuItem } from '../types';
 import { headerAnimations, darkHeaderAnimations } from '../utils/animations';
@@ -189,7 +189,7 @@ const MobileMenu = ({
                     <MobileMenuSection title="Navigation" isLightMode={isLightMode}>
                       <MobileMenuLink
                         href="/"
-                        icon={() => <div className="w-5 h-5" />}
+                        icon={Home}
                         label="Home"
                         description="Go to home page"
                         onClick={onClose}
@@ -197,7 +197,7 @@ const MobileMenu = ({
                       />
                       <MobileMenuLink
                         href="/my-boards"
-                        icon={() => <div className="w-5 h-5" />}
+                        icon={Layout}
                         label="My Boards"
                         description="View your boards"
                         onClick={onClose}

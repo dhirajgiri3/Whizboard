@@ -547,7 +547,7 @@ Effective Date: ${TERMS_OF_SERVICE.effectiveDate}`;
       />
 
       {/* Top bar with Back */}
-      <div className="container mx-auto px-4 max-w-6xl pt-24 relative z-10">
+      <div className="container mx-auto px-4 max-w-6xl pt-20 md:pt-24 relative z-10">
         <BackButton variant="dark" position="relative" size="md" label="Back to Home" />
       </div>
 
