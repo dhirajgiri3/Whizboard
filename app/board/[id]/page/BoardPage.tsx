@@ -3610,7 +3610,8 @@ function BoardPageContent() {
     return (
       <LoadingOverlay
         text="Loading your board"
-        subtitle="Please wait while we prepare your canvas for collaboration" 
+        subtitle="Please wait while we prepare your canvas for collaboration"
+        variant="collaboration"
       />
     );
   }
@@ -3642,7 +3643,7 @@ function BoardPageContent() {
       <LoadingOverlay
         text="Authenticating"
         subtitle="Verifying your access to the board..."
-        variant="default"
+        variant="collaboration"
       />
     );
   }

@@ -18,7 +18,7 @@ export default function ProtectedRoute({
   requireAuth = false,
   requireUnauth = false,
   redirectTo,
-  fallback = <LoadingOverlay theme="dark" />
+  fallback = <LoadingOverlay theme="dark" variant="collaboration" text="Authenticating" subtitle="Verifying your session..." />
 }: ProtectedRouteProps) {
   const { data: session, status } = useSession();
   const router = useRouter();

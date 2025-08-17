@@ -329,7 +329,7 @@ export default function Loading({
 // Enhanced full screen loading overlay for whiteboard
 export function LoadingOverlay({ 
   text = "Loading...", 
-  variant = 'whiteboard',
+  variant = 'collaboration',
   subtitle = "Preparing your collaborative workspace",
   theme = 'dark'
 }: { 

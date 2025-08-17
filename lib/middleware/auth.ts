@@ -54,16 +54,47 @@ export async function authMiddleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Skip middleware for auth-related routes to prevent redirect loops
+  if (pathname.startsWith('/auth/')) {
+    return NextResponse.next();
+  }
+
   try {
-    // Get the token from the request
-    const token = await getToken({ 
-      req: request, 
-      secret: process.env.NEXTAUTH_SECRET 
-    });
+    // Enhanced token detection for middleware
+    let token = null;
+    let isAuthenticated = false;
     
-    // Middleware runs on the Edge runtime. Avoid any Node-only libraries here.
-    // Determine authentication strictly from the presence of a valid JWT.
-    const isAuthenticated = !!token;
+    try {
+      // Try to get token using NextAuth's getToken
+      token = await getToken({ 
+        req: request, 
+        secret: process.env.NEXTAUTH_SECRET 
+      });
+      
+      if (token) {
+        isAuthenticated = true;
+      }
+    } catch (tokenError) {
+      // If getToken fails, try manual cookie parsing
+      const cookieHeader = request.headers.get('cookie') || '';
+      
+      // Check for session token cookies
+      const sessionTokenPatterns = [
+        'next-auth.session-token=',
+        '__Secure-next-auth.session-token=',
+        'next-auth.csrf-token='
+      ];
+      
+      const hasSessionCookie = sessionTokenPatterns.some(pattern => 
+        cookieHeader.includes(pattern)
+      );
+      
+      if (hasSessionCookie) {
+        // If we have session cookies, consider user authenticated
+        // The actual validation will happen on the client side
+        isAuthenticated = true;
+      }
+    }
     
     const currentRoute = getRouteAccessLevel(pathname);
     
@@ -74,14 +105,27 @@ export async function authMiddleware(request: NextRequest) {
         return NextResponse.next();
         
       case RouteAccess.AUTHENTICATED:
-        // Client-side authentication handling for authenticated routes
+        if (!isAuthenticated) {
+          // Redirect unauthenticated users to login
+          const loginUrl = new URL(defaultRedirects.unauthenticated, request.url);
+          loginUrl.searchParams.set('callbackUrl', pathname);
+          
+          // Prevent redirect loops by checking if we're already on the login page
+          if (pathname !== '/login') {
+            return NextResponse.redirect(loginUrl);
+          }
+        }
         return NextResponse.next();
         
       case RouteAccess.UNAUTHENTICATED:
         if (isAuthenticated) {
           // Redirect authenticated users away from login/register pages
           const redirectUrl = request.nextUrl.searchParams.get('callbackUrl') || defaultRedirects.authenticated;
-          return NextResponse.redirect(new URL(redirectUrl, request.url));
+          
+          // Prevent redirect loops by checking if we're already on the target URL
+          if (pathname !== redirectUrl) {
+            return NextResponse.redirect(new URL(redirectUrl, request.url));
+          }
         }
         return NextResponse.next();
         
@@ -160,6 +204,33 @@ export async function checkBoardAccess(
     return {
       hasAccess: false,
       redirectUrl: '/login'
+    };
+  }
+}
+
+// Debug function to test middleware authentication (remove in production)
+export async function debugMiddlewareAuth(request: NextRequest) {
+  try {
+    const token = await getToken({ 
+      req: request, 
+      secret: process.env.NEXTAUTH_SECRET 
+    });
+    
+    const cookieHeader = request.headers.get('cookie') || '';
+    const hasSessionCookie = cookieHeader.includes('next-auth.session-token') || 
+                            cookieHeader.includes('__Secure-next-auth.session-token');
+    
+    return {
+      hasToken: !!token,
+      hasSessionCookie,
+      tokenDetails: token ? { sub: token.sub, email: token.email } : null,
+      cookieLength: cookieHeader.length
+    };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      hasToken: false,
+      hasSessionCookie: false
     };
   }
 }
