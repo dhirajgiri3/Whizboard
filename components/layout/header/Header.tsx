@@ -102,8 +102,8 @@ const Header = () => {
     : 'bg-[#0A0A0B]/80 backdrop-blur-md border-white/10';
   
   const mobileHeaderBg = isLightMode
-    ? 'bg-white/90 backdrop-blur-lg border-gray-100'
-    : 'bg-[#0A0A0B]/90 backdrop-blur-lg border-white/10';
+    ? 'bg-white/95 backdrop-blur-lg border-gray-100'
+    : 'bg-[#0A0A0B]/95 backdrop-blur-lg border-white/10';
   
   const textColor = isLightMode
     ? 'text-gray-600 hover:text-gray-900'
@@ -117,7 +117,7 @@ const Header = () => {
     <>
       {/* Desktop Header */}
       <motion.header
-        className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 hidden lg:block"
+        className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 hidden lg:block"
         variants={animations.header}
         animate={shouldShowHeader ? "visible" : "hidden"}
         transition={{
@@ -144,20 +144,20 @@ const Header = () => {
             ease: [0.4, 0, 0.2, 1]
           }}
         >
-          <nav className="flex w-full items-center justify-between py-2 px-6">
+          <nav className="flex w-full items-center justify-between py-3 px-6 lg:px-8">
             {/* Logo */}
             <Logo isLightMode={isLightMode} />
 
             {/* Desktop Navigation */}
             {status === "authenticated" ? (
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-4 lg:space-x-6">
                 {/* Navigation Links */}
                 <motion.div
                   variants={animations.fadeInUp}
                   initial="initial"
                   animate="animate"
                   transition={{ delay: 0.3 }}
-                  className="flex items-center space-x-3"
+                  className="flex items-center space-x-3 lg:space-x-4"
                 >
                   {navigationItems.map((item) => (
                     <NavigationLink
@@ -217,7 +217,7 @@ const Header = () => {
                   initial="initial"
                   animate="animate"
                   transition={{ delay: 0.5 }}
-                  className="relative flex items-center gap-3"
+                  className="relative flex items-center gap-3 lg:gap-4"
                   ref={dropdownRef}
                 >
                   <NotificationBell />
@@ -242,7 +242,7 @@ const Header = () => {
                 initial="initial"
                 animate="animate"
                 transition={{ delay: 0.3 }}
-                className="flex items-center space-x-4"
+                className="flex items-center space-x-4 lg:space-x-6"
               >
                 {/* Company Dropdown */}
                 <DropdownMenu
@@ -265,7 +265,7 @@ const Header = () => {
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <a
                     href="/login"
-                    className={`px-3 py-1.5 text-sm font-medium transition-all duration-300 rounded-full ${textColor}`}
+                    className={`px-3 py-2 text-sm font-medium transition-all duration-300 rounded-full ${textColor}`}
                   >
                     Sign In
                   </a>
@@ -274,7 +274,7 @@ const Header = () => {
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <a
                     href="/login"
-                    className="px-3 py-1.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-full transition-all duration-300 shadow-sm"
+                    className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-full transition-all duration-300 shadow-sm"
                   >
                     Get Started
                   </a>
@@ -284,8 +284,6 @@ const Header = () => {
           </nav>
         </motion.div>
       </motion.header>
-
-      {/* Slack functionality is now handled by SlackButton component */}
 
       {/* Mobile Header */}
       <motion.header
@@ -305,8 +303,8 @@ const Header = () => {
           style={{ backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)' }}
           animate={{
             backgroundColor: isLightMode 
-              ? 'rgba(255, 255, 255, 0.9)' 
-              : 'rgba(10, 10, 11, 0.9)',
+              ? 'rgba(255, 255, 255, 0.95)' 
+              : 'rgba(10, 10, 11, 0.95)',
             borderColor: isLightMode 
               ? 'rgba(243, 244, 246, 1)' 
               : 'rgba(255, 255, 255, 0.1)'
@@ -316,7 +314,7 @@ const Header = () => {
             ease: [0.4, 0, 0.2, 1]
           }}
         >
-          <nav className="flex items-center justify-between px-4 py-3">
+          <nav className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
             {/* Mobile Logo */}
             <Logo isLightMode={isLightMode} className="flex items-center" />
 
@@ -328,7 +326,7 @@ const Header = () => {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`p-2 rounded-full transition-all duration-300 ${textColor} ${buttonBg} ${
+              className={`p-2.5 sm:p-3 rounded-full transition-all duration-300 ${textColor} ${buttonBg} ${
                 isMobileMenuOpen ? (isLightMode ? 'bg-gray-100' : 'bg-white/5') : ''
               }`}
               aria-label="Toggle mobile menu"
@@ -343,7 +341,7 @@ const Header = () => {
                     exit={{ rotate: 90, opacity: 0 }}
                     transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                   >
-                    <X className="w-6 h-6" />
+                    <X className="w-5 h-5 sm:w-6 sm:h-6" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -353,7 +351,7 @@ const Header = () => {
                     exit={{ rotate: -90, opacity: 0 }}
                     transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                   >
-                    <Menu className="w-6 h-6" />
+                    <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
                   </motion.div>
                 )}
               </AnimatePresence>

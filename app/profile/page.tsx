@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import { RequireAuth } from '@/components/auth/ProtectedRoute';
 import BackButton from '@/components/ui/BackButton';
 import api from '@/lib/http/axios';
+import { useAppContext } from '@/lib/context/AppContext';
 
 interface ProfileData {
     image?: string;
@@ -83,6 +84,7 @@ const SecondaryButton = ({ children, className = "", ...rest }: React.ButtonHTML
 );
 
 const ProfilePage = () => {
+    const { user } = useAppContext();
     const [profileData, setProfileData] = useState<ProfileData>({});
     const [userStats, setUserStats] = useState<UserStats | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -101,7 +103,12 @@ const ProfilePage = () => {
                 api.get('/api/settings/account/stats')
             ]);
 
-            setProfileData(profileResponse.data.user);
+            const userData = profileResponse.data.user;
+            // Use database image if available, otherwise fall back to Google profile image from session
+            setProfileData({
+                ...userData,
+                image: userData.image || user?.avatar || undefined
+            });
             setUserStats(statsResponse.data.stats);
         } catch (error) {
             console.error('Failed to fetch profile data:', error);

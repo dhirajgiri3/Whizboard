@@ -229,7 +229,8 @@ export default function SettingsPage() {
       try {
         const { data } = await api.get('/api/settings/account', { headers: { 'Cache-Control': 'no-store' } });
         const account = data?.user || {};
-        setProfileImageUrl(account.image || null);
+        // Use database image if available, otherwise fall back to Google profile image from session
+        setProfileImageUrl(account.image || user?.avatar || null);
         setDisplayName(account.name || user?.name || "");
         setUsername(account.username || "");
         setOriginalUsername(account.username || "");
@@ -237,7 +238,7 @@ export default function SettingsPage() {
         setIsPublicProfile(account.isPublicProfile !== false);
       } catch { }
     })();
-  }, [user?.name]);
+  }, [user?.name, user?.avatar]);
 
   // Username availability checking
   const checkUsernameAvailability = async (usernameToCheck: string) => {
@@ -1062,16 +1063,11 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gray-950 pb-16">
+    <div className="min-h-screen relative overflow-hidden bg-gray-950 py-16">
       {/* Background accents */}
       <div className="absolute inset-0 grid-pattern opacity-20" />
       <div className="absolute top-1/4 left-1/4 w-72 h-72 gradient-orb-blue" />
       <div className="absolute bottom-1/3 right-1/4 w-60 h-60 gradient-orb-blue" />
-
-      {/* Top actions */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <BackButton variant="dark" />
-      </div>
 
       {/* Header */}
       <section className="pt-14 pb-8 relative z-10">

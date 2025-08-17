@@ -41,7 +41,7 @@ const UserAvatar = ({ session, isDropdownOpen, onClick, isLightMode }: UserAvata
       onClick={onClick}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`group flex items-center gap-2 px-2 py-1 rounded-full transition-all duration-300 ${buttonClasses} ${
+      className={`group flex items-center gap-1.5 sm:gap-2 px-1.5 sm:px-2 py-1 rounded-full transition-all duration-300 ${buttonClasses} ${
         isDropdownOpen ? (isLightMode ? 'bg-gray-100/80' : 'bg-white/5') : ''
       }`}
       aria-expanded={isDropdownOpen}
@@ -55,12 +55,12 @@ const UserAvatar = ({ session, isDropdownOpen, onClick, isLightMode }: UserAvata
             alt="User Avatar"
             width={32}
             height={32}
-            className={`w-8 h-8 rounded-full ring-2 transition-all duration-300 ${ringColor}`}
+            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full ring-2 transition-all duration-300 ${ringColor}`}
           />
         ) : (
           <div
             aria-label="User Avatar Fallback"
-            className={`w-8 h-8 rounded-full ring-2 flex items-center justify-center ${fg} transition-all duration-300 ${ringColor}`}
+            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full ring-2 flex items-center justify-center ${fg} transition-all duration-300 ${ringColor}`}
             style={{ backgroundColor: bgColor }}
           >
             <span className="text-xs font-semibold">{initial}</span>
@@ -72,7 +72,7 @@ const UserAvatar = ({ session, isDropdownOpen, onClick, isLightMode }: UserAvata
         animate={{ rotate: isDropdownOpen ? 180 : 0 }}
         transition={{ duration: 0.3 }}
       >
-        <ChevronDown className={`w-4 h-4 ${textColor}`} />
+        <ChevronDown className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${textColor}`} />
       </motion.div>
     </motion.button>
   );

@@ -35,8 +35,8 @@ const MobileMenu = ({
   const animations = isLightMode ? headerAnimations : darkHeaderAnimations;
   
   const menuBg = isLightMode
-    ? 'bg-white/90 backdrop-blur-xl'
-    : 'bg-[#111111]/90 backdrop-blur-xl';
+    ? 'bg-white/95 backdrop-blur-xl'
+    : 'bg-[#111111]/95 backdrop-blur-xl';
   
   const borderColor = isLightMode
     ? 'border-gray-100'
@@ -66,6 +66,10 @@ const MobileMenu = ({
     return `hsl(${hue} 70% 45%)`;
   })();
 
+  // Separate account items from logout
+  const accountItems = userMenuItems.filter(item => item.label !== 'Sign Out');
+  const logoutItem = userMenuItems.find(item => item.label === 'Sign Out');
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -90,12 +94,12 @@ const MobileMenu = ({
               backdropFilter: 'blur(24px) saturate(180%)',
               WebkitBackdropFilter: 'blur(24px) saturate(180%)',
               backgroundColor: isLightMode 
-                ? 'rgba(255, 255, 255, 0.85)' 
-                : 'rgba(17, 17, 17, 0.85)'
+                ? 'rgba(255, 255, 255, 0.95)' 
+                : 'rgba(17, 17, 17, 0.95)'
             }}
           >
             {/* Mobile Header */}
-            <div className={`flex items-center justify-between px-6 py-4 border-b ${borderColor}`}>
+            <div className={`flex items-center justify-between px-4 sm:px-6 py-4 border-b ${borderColor}`}>
               <motion.div
                 variants={animations.mobileMenuItem}
                 className="flex items-center gap-3"
@@ -105,7 +109,7 @@ const MobileMenu = ({
                   alt="WhizBoard Logo"
                   width={80}
                   height={80}
-                  className="w-20 h-auto object-contain"
+                  className="w-16 sm:w-20 h-auto object-contain"
                 />
               </motion.div>
               
@@ -115,21 +119,21 @@ const MobileMenu = ({
                 className={`p-2 rounded-full ${buttonBg} transition-colors`}
                 aria-label="Close menu"
               >
-                <X className={`w-6 h-6 ${textColor}`} />
+                <X className={`w-5 h-5 sm:w-6 sm:h-6 ${textColor}`} />
               </motion.button>
             </div>
 
             {/* Menu Content */}
             <div className="max-h-[calc(100vh-80px)] overflow-y-auto">
-              <div className="py-6 space-y-8">
+              <div className="py-4 sm:py-6 space-y-6 sm:space-y-8">
                 {status === 'authenticated' ? (
                   <>
                     {/* User Info Section */}
                     <motion.div
                       variants={animations.mobileMenuItem}
-                      className="px-6"
+                      className="px-4 sm:px-6"
                     >
-                      <div className={`flex items-center gap-4 p-4 rounded-2xl ${
+                      <div className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-2xl ${
                         isLightMode 
                           ? 'bg-gradient-to-r from-blue-50 to-indigo-50' 
                           : 'bg-gradient-to-r from-blue-500/10 to-indigo-500/10'
@@ -141,30 +145,30 @@ const MobileMenu = ({
                               alt="User Avatar"
                               width={48}
                               height={48}
-                              className={`w-12 h-12 rounded-full ring-3 ${
+                              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ring-3 ${
                                 isLightMode ? 'ring-blue-200' : 'ring-blue-500/30'
                               }`}
                             />
                           ) : (
                             <div
                               aria-label="User Avatar Fallback"
-                              className={`w-12 h-12 rounded-full ring-3 flex items-center justify-center text-white ${
+                              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ring-3 flex items-center justify-center text-white ${
                                 isLightMode ? 'ring-blue-200' : 'ring-blue-500/30'
                               }`}
                               style={{ backgroundColor: bgColor }}
                             >
-                              <span className="text-base font-semibold">{initial}</span>
+                              <span className="text-sm sm:text-base font-semibold">{initial}</span>
                             </div>
                           )}
-                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white" />
+                          <div className="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-green-400 rounded-full border-2 border-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className={`text-base font-bold truncate ${
+                          <div className={`text-sm sm:text-base font-bold truncate ${
                             isLightMode ? 'text-gray-900' : 'text-white'
                           }`}>
                             {session?.user?.name || 'User'}
                           </div>
-                          <div className={`text-sm truncate ${
+                          <div className={`text-xs sm:text-sm truncate ${
                             isLightMode ? 'text-gray-600' : 'text-white/70'
                           }`}>
                             {session?.user?.email}
@@ -176,7 +180,7 @@ const MobileMenu = ({
                     {/* Create Board Button */}
                     <motion.div
                       variants={animations.mobileMenuItem}
-                      className="px-6"
+                      className="px-4 sm:px-6"
                     >
                       <CreateBoardButton onClick={onCreateBoard} isMobile isLightMode={isLightMode} />
                     </motion.div>
@@ -203,7 +207,7 @@ const MobileMenu = ({
 
                     {/* Account Section */}
                     <MobileMenuSection title="Account" isLightMode={isLightMode}>
-                      {userMenuItems.slice(0, -1).map((item) => (
+                      {accountItems.map((item) => (
                         <MobileMenuLink
                           key={item.label}
                           href={item.href}
@@ -214,6 +218,20 @@ const MobileMenu = ({
                           isLightMode={isLightMode}
                         />
                       ))}
+                      {/* Logout button in account section */}
+                      {logoutItem && (
+                        <MobileMenuLink
+                          icon={logoutItem.icon}
+                          label={logoutItem.label}
+                          description={logoutItem.description}
+                          variant="danger"
+                          onClick={() => {
+                            onClose();
+                            signOut();
+                          }}
+                          isLightMode={isLightMode}
+                        />
+                      )}
                     </MobileMenuSection>
 
                     {/* Company Section */}
@@ -245,21 +263,6 @@ const MobileMenu = ({
                         />
                       ))}
                     </MobileMenuSection>
-
-                    {/* Sign Out */}
-                    <div className={`border-t ${borderColor} pt-6`}>
-                      <MobileMenuLink
-                        icon={LogOut}
-                        label="Sign Out"
-                        description="End your session"
-                        variant="danger"
-                        onClick={() => {
-                          onClose();
-                          signOut();
-                        }}
-                        isLightMode={isLightMode}
-                      />
-                    </div>
                   </>
                 ) : (
                   <>
@@ -294,11 +297,11 @@ const MobileMenu = ({
                     </MobileMenuSection>
 
                     {/* Auth Buttons */}
-                    <div className="px-6 space-y-4">
+                    <div className="px-4 sm:px-6 space-y-3 sm:space-y-4">
                       <motion.div variants={animations.mobileMenuItem}>
                         <Link
                           href="/login"
-                          className={`block w-full px-6 py-4 text-sm font-medium rounded-2xl transition-all duration-300 text-center border ${
+                          className={`block w-full px-4 sm:px-6 py-3 sm:py-4 text-sm font-medium rounded-2xl transition-all duration-300 text-center border ${
                             isLightMode
                               ? 'text-gray-700 bg-gray-50 hover:bg-gray-100 border-gray-200'
                               : 'text-white/70 bg-white/5 hover:bg-white/10 border-white/10'
@@ -312,7 +315,7 @@ const MobileMenu = ({
                       <motion.div variants={animations.mobileMenuItem}>
                         <Link
                           href="/login"
-                          className="block w-full px-6 py-4 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-2xl transition-all duration-300 text-center shadow-sm"
+                          className="block w-full px-4 sm:px-6 py-3 sm:py-4 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-2xl transition-all duration-300 text-center shadow-sm"
                           onClick={onClose}
                         >
                           Get Started
@@ -344,7 +347,7 @@ const MobileMenuSection = ({
     variants={(isLightMode ? headerAnimations : darkHeaderAnimations).mobileMenuItem}
     className="space-y-2"
   >
-    <div className={`px-6 py-2 text-xs font-semibold uppercase tracking-wider ${
+    <div className={`px-4 sm:px-6 py-2 text-xs font-semibold uppercase tracking-wider ${
       isLightMode ? 'text-gray-500' : 'text-white/50'
     }`}>
       {title}
@@ -370,7 +373,7 @@ const MobileMenuLink = ({
   variant?: "default" | "danger";
   isLightMode: boolean;
 }) => {
-  const baseClasses = `flex items-center gap-4 px-6 py-4 text-sm font-medium rounded-2xl mx-3 transition-all duration-300 group active:scale-[0.98]`;
+  const baseClasses = `flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-4 text-sm font-medium rounded-2xl mx-3 transition-all duration-300 group active:scale-[0.98]`;
   
   const variantClasses = variant === "danger" 
     ? (isLightMode 
@@ -398,16 +401,16 @@ const MobileMenuLink = ({
 
   const content = (
     <>
-      <div className={`p-3 rounded-xl transition-colors ${iconBg}`}>
-        <Icon className={`w-5 h-5 transition-colors ${iconColor}`} />
+      <div className={`p-2.5 sm:p-3 rounded-xl transition-colors ${iconBg}`}>
+        <Icon className={`w-4 h-4 sm:w-5 sm:h-5 transition-colors ${iconColor}`} />
       </div>
-      <div className="flex-1">
-        <div className="font-medium">{label}</div>
-        <div className={`text-xs mt-0.5 ${
+      <div className="flex-1 min-w-0">
+        <div className="font-medium truncate">{label}</div>
+        <div className={`text-xs mt-0.5 truncate ${
           isLightMode ? 'text-gray-500' : 'text-white/50'
         }`}>{description}</div>
       </div>
-      <ChevronRight className={`w-4 h-4 transition-colors ${chevronColor}`} />
+      <ChevronRight className={`w-3 h-3 sm:w-4 sm:h-4 transition-colors ${chevronColor} flex-shrink-0`} />
     </>
   );
 

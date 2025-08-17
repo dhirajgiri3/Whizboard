@@ -17,13 +17,14 @@ const CreateBoardButton = ({ onClick, isMobile = false, isLightMode }: CreateBoa
       onClick={onClick}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`group relative flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-full transition-all duration-300 shadow-sm ${buttonClasses} ${
+      className={`group relative flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-sm font-medium rounded-full transition-all duration-300 shadow-sm ${buttonClasses} ${
         isMobile ? 'w-full' : ''
       }`}
       aria-label="Create new board"
     >
-      <Plus className="w-4 h-4" />
-      <span>Create Board</span>
+      <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+      <span className="hidden sm:inline">Create Board</span>
+      <span className="sm:hidden">Create</span>
     </motion.button>
   );
 };
