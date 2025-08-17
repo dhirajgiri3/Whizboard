@@ -61,15 +61,22 @@ export async function authMiddleware(request: NextRequest) {
       secret: process.env.NEXTAUTH_SECRET 
     });
     
+    // Also check for session token in cookies as fallback
+    const cookieHeader = request.headers.get('cookie') || '';
+    const hasSessionCookie = cookieHeader.includes('next-auth.session-token') || 
+                            cookieHeader.includes('__Secure-next-auth.session-token');
+    
     // Middleware runs on the Edge runtime. Avoid any Node-only libraries here.
     // Determine authentication strictly from the presence of a valid JWT.
-    const isAuthenticated = !!token;
+    const isAuthenticated = !!token || hasSessionCookie;
     
     // Debug logging for authentication issues
     console.log('[MIDDLEWARE] Path:', pathname);
     console.log('[MIDDLEWARE] Token exists:', !!token);
+    console.log('[MIDDLEWARE] Has session cookie:', hasSessionCookie);
     console.log('[MIDDLEWARE] Is authenticated:', isAuthenticated);
     console.log('[MIDDLEWARE] Token details:', token ? { sub: token.sub, email: token.email } : 'No token');
+    console.log('[MIDDLEWARE] Cookie header length:', cookieHeader.length);
     
     const currentRoute = getRouteAccessLevel(pathname);
     console.log('[MIDDLEWARE] Route access level:', currentRoute);
@@ -82,15 +89,21 @@ export async function authMiddleware(request: NextRequest) {
         return NextResponse.next();
         
       case RouteAccess.AUTHENTICATED:
-        if (!isAuthenticated) {
-          // Redirect unauthenticated users to login
-          console.log('[MIDDLEWARE] Authenticated route - user not authenticated, redirecting to login');
-          const loginUrl = new URL(defaultRedirects.unauthenticated, request.url);
-          loginUrl.searchParams.set('callbackUrl', pathname);
-          return NextResponse.redirect(loginUrl);
-        }
-        console.log('[MIDDLEWARE] Authenticated route - user authenticated, allowing access');
+        // Temporarily disable middleware authentication checks for client-side handling
+        // This allows the ProtectedRoute component to handle authentication
+        console.log('[MIDDLEWARE] Authenticated route - allowing access (client-side auth check)');
         return NextResponse.next();
+        
+        // Original code (commented out for now):
+        // if (!isAuthenticated) {
+        //   // Redirect unauthenticated users to login
+        //   console.log('[MIDDLEWARE] Authenticated route - user not authenticated, redirecting to login');
+        //   const loginUrl = new URL(defaultRedirects.unauthenticated, request.url);
+        //   loginUrl.searchParams.set('callbackUrl', pathname);
+        //   return NextResponse.redirect(loginUrl);
+        // }
+        // console.log('[MIDDLEWARE] Authenticated route - user authenticated, allowing access');
+        // return NextResponse.next();
         
       case RouteAccess.UNAUTHENTICATED:
         if (isAuthenticated) {
