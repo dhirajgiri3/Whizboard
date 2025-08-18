@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/database/mongodb';
+import { ObjectId } from 'mongodb';
 
 export async function GET(
   request: NextRequest,
@@ -20,7 +21,8 @@ export async function GET(
         createdAt: 1, 
         username: 1, 
         isPublicProfile: 1,
-        lastLoginAt: 1 
+        lastLoginAt: 1,
+        _id: 1 // Include _id to get the ObjectId
       } }
     );
 
@@ -36,8 +38,8 @@ export async function GET(
     // Track profile view
     await trackProfileView(db, username, request);
 
-    // Get user statistics
-    const stats = await getUserStats(db, user.email);
+    // Get user statistics using ObjectId and username
+    const stats = await getUserStats(db, user._id, username);
 
     return NextResponse.json({
       profile: {
@@ -84,11 +86,11 @@ async function trackProfileView(db: any, username: string, request: NextRequest)
   }
 }
 
-async function getUserStats(db: any, userEmail: string) {
+async function getUserStats(db: any, userId: ObjectId, username: string) {
   try {
-    // Get public board statistics
+    // Get public board statistics using ObjectId
     const boardStats = await db.collection('boards').aggregate([
-      { $match: { createdBy: userEmail } },
+      { $match: { createdBy: userId } },
       {
         $group: {
           _id: null,
@@ -99,9 +101,9 @@ async function getUserStats(db: any, userEmail: string) {
       }
     ]).toArray();
 
-    // Get collaboration statistics
-    const collaborationStats = await db.collection('board_invitations').aggregate([
-      { $match: { invitedUserEmail: userEmail, status: 'accepted' } },
+    // Get collaboration statistics - count boards where user is a collaborator
+    const collaborationStats = await db.collection('boards').aggregate([
+      { $match: { 'collaborators.id': userId.toString() } },
       {
         $group: {
           _id: null,
@@ -110,23 +112,31 @@ async function getUserStats(db: any, userEmail: string) {
       }
     ]).toArray();
 
-    // Get element creation statistics
-    const elementStats = await db.collection('board_elements').aggregate([
-      { $match: { createdBy: userEmail } },
+    // Get element creation statistics from boards - elements.createdBy is a string
+    const elementStats = await db.collection('boards').aggregate([
+      { $match: { createdBy: userId } },
+      {
+        $unwind: { path: '$elements', preserveNullAndEmptyArrays: true }
+      },
+      {
+        $match: {
+          'elements.createdBy': { $exists: true, $ne: null }
+        }
+      },
       {
         $group: {
           _id: null,
           totalElements: { $sum: 1 },
-          textElements: { $sum: { $cond: [{ $eq: ['$type', 'text'] }, 1, 0] } },
-          drawingElements: { $sum: { $cond: [{ $eq: ['$type', 'drawing'] }, 1, 0] } },
-          shapeElements: { $sum: { $cond: [{ $eq: ['$type', 'shape'] }, 1, 0] } }
+          textElements: { $sum: { $cond: [{ $eq: ['$elements.type', 'text'] }, 1, 0] } },
+          drawingElements: { $sum: { $cond: [{ $eq: ['$elements.type', 'drawing'] }, 1, 0] } },
+          shapeElements: { $sum: { $cond: [{ $eq: ['$elements.type', 'shape'] }, 1, 0] } }
         }
       }
     ]).toArray();
 
-    // Get profile view statistics
+    // Get profile view statistics - use the actual username string
     const viewStats = await db.collection('profile_views').aggregate([
-      { $match: { username: userEmail.split('@')[0] } }, // Simple username extraction
+      { $match: { username: username } }, // Use the actual username string
       {
         $group: {
           _id: null,
