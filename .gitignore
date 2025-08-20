@@ -1,54 +1,196 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
+############################################
+# Node.js / Package Managers
+############################################
+node_modules/
 /.pnp
 .pnp.*
+.pnpm-store/
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
+############################################
+# Logs & Diagnostics
+############################################
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+lerna-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
-# env files (can opt-in for committing if needed)
-.env*
+############################################
+# Process IDs
+############################################
+pids
+*.pid
+*.pid.lock
+*.seed
 
-# vercel
-.vercel
+############################################
+# Testing outputs
+############################################
+coverage/
+.nyc_output/
+# Playwright (if used)
+playwright-report/
+test-results/
+# Cypress (if used)
+cypress/screenshots/
+cypress/videos/
 
-# typescript
+############################################
+# Next.js
+############################################
+.next/
+.next/cache/
+out/
+
+############################################
+# Builds
+############################################
+build/
+dist/
+
+############################################
+# TypeScript
+############################################
 *.tsbuildinfo
 next-env.d.ts
 
-# temporary files
+############################################
+# Env files (opt-in to commit if needed)
+############################################
+.env*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+############################################
+# Tool caches
+############################################
+.turbo
+.eslintcache
+.stylelintcache
+.cache/
+.parcel-cache/
+.vite/
+.vitest/
+
+############################################
+# Editors & IDEs
+############################################
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.iml
+.history
+
+############################################
+# macOS
+############################################
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon\r
+.Spotlight-V100
+.Trashes
+.fseventsd
+.DocumentRevisions-V100
+.TemporaryItems
+.apdisk
+
+############################################
+# Hosting / Platforms
+############################################
+.vercel
+
+############################################
+# Secrets & Certificates
+############################################
+*.pem
+*.key
+*.crt
+*.p12
+
+############################################
+# Documentation & Development files
+############################################
+# Project documentation (keep core README.md)
+Designinstructions.md
 konva_code.md
 shapetool_code_konva.md
 Landing_content_copy.md
 Whizboard_Development_Plan_Cursor_Tasks_Integrated.md
+WhizBoard_Implementation_Roadmap.md
 
-# test scripts (temporary)
+# Component documentation
+components/**/README.md
+components/**/THEME_IMPROVEMENTS.md
+app/**/README.md
+
+# GitHub development files
+.github/chatmodes/
+*.chatmode.md
+
+# Development notes and drafts
+*.draft
+*.backup
+*.dev
+*.notes
+*.todo
+NOTES.md
+CHANGELOG.draft.md
+ROADMAP.md
+
+############################################
+# Temporary scripts (do not commit)
+############################################
 scripts/test-*.js
 scripts/create-test-*.js
 scripts/check-*.js
+scripts/dev-*.js
+scripts/temp-*.js
 
-__tests__
+############################################
+# Local development & testing
+############################################
+# Local development databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Development uploads/assets
+uploads/dev/
+assets/temp/
+public/temp/
+
+# Local configuration overrides
+config/local.*
+.env.local.backup
+
+############################################
+# Analysis & Reports
+############################################
+# Bundle analysis
+bundle-analyzer/
+stats.json
+*.analysis.json
+
+# Coverage reports (if not using CI)
+coverage-local/
+.nyc_output_local/
+
+# Performance reports
+lighthouse-reports/
+*.lighthouse.json
