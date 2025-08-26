@@ -65,6 +65,7 @@ export default function ContactPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<Partial<ContactForm>>({});
   const [hoveredMethod, setHoveredMethod] = useState<string | null>(null);
+  const [openFaq, setOpenFaq] = useState<string | null>(null);
 
   // Form validation
   const validateForm = (): boolean => {
@@ -115,6 +116,11 @@ export default function ContactPage() {
     }
   };
 
+  // Handle FAQ toggle
+  const toggleFaq = (faqId: string) => {
+    setOpenFaq(openFaq === faqId ? null : faqId);
+  };
+
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -134,6 +140,17 @@ export default function ContactPage() {
   const cardVariants = {
     hidden: { opacity: 0, y: 40, scale: 0.95 },
     visible: { opacity: 1, y: 0, scale: 1 }
+  };
+
+  const faqVariants = {
+    closed: { 
+      height: 0,
+      opacity: 0
+    },
+    open: { 
+      height: "auto",
+      opacity: 1
+    }
   };
 
   // Data
@@ -203,18 +220,22 @@ export default function ContactPage() {
 
   const faqs = [
     {
+      id: "faq-1",
       question: "How quickly do you respond to support requests?",
       answer: "We respond to all support requests within 24 hours. For enterprise customers, we offer priority support with response times under 4 hours."
     },
     {
+      id: "faq-2",
       question: "Do you offer phone support?",
       answer: "Yes! Phone support is available for Pro and Enterprise customers. We're available during business hours across all major time zones."
     },
     {
+      id: "faq-3",
       question: "Can I schedule a demo of WhizBoard?",
       answer: "Absolutely! We offer personalized 15-minute demos where we'll show you exactly how WhizBoard works for your specific use case."
     },
     {
+      id: "faq-4",
       question: "Do you have partnerships or integration opportunities?",
       answer: "We're always interested in strategic partnerships and integrations. Please reach out to our partnerships team for more information."
     }
@@ -336,7 +357,7 @@ export default function ContactPage() {
             <motion.h1
               variants={itemVariants}
               transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="text-5xl md:text-6xl lg:text-7xl font-bold mb-10 leading-tight tracking-tight"
+              className="max-w-3xl mx-auto text-5xl md:text-6xl font-bold mb-4 tracking-tight"
             >
               Let's Build Something{" "}
               <span className="text-blue-400">
@@ -348,7 +369,7 @@ export default function ContactPage() {
             <motion.p
               variants={itemVariants}
               transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="text-xl text-white/70 leading-relaxed mb-16 max-w-4xl mx-auto font-light"
+              className="text-lg text-white/70 leading-relaxed mb-16 max-w-xl mx-auto font-light"
             >
               Whether you have questions, need support, or want to explore partnerships, 
               our team is here to help you succeed with WhizBoard.
@@ -682,17 +703,57 @@ export default function ContactPage() {
                     variants={containerVariants}
                     transition={{ staggerChildren: 0.1, delayChildren: 0.4 }}
                   >
-                    {faqs.map((faq, index) => (
-                      <motion.div
-                        key={index}
-                        variants={itemVariants}
-                        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                        className="group p-6 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 backdrop-blur-sm"
-                      >
-                        <h4 className="text-lg font-semibold text-white mb-3 group-hover:text-blue-400 transition-colors">{faq.question}</h4>
-                        <p className="text-white/70 leading-relaxed">{faq.answer}</p>
-                      </motion.div>
-                    ))}
+                    {faqs.map((faq, index) => {
+                      const isOpen = openFaq === faq.id;
+                      return (
+                        <motion.div
+                          key={faq.id}
+                          variants={itemVariants}
+                          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                          className="group overflow-hidden rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 backdrop-blur-sm"
+                        >
+                          {/* FAQ Header */}
+                          <button
+                            onClick={() => toggleFaq(faq.id)}
+                            className="w-full p-6 text-left flex items-center justify-between hover:bg-white/[0.02] transition-colors duration-200"
+                          >
+                            <h4 className="text-lg font-semibold text-white group-hover:text-blue-400 transition-colors pr-4">
+                              {faq.question}
+                            </h4>
+                            <motion.div
+                              className="flex-shrink-0 w-6 h-6 rounded-full bg-white/[0.05] border border-white/[0.1] flex items-center justify-center"
+                              animate={{ rotate: isOpen ? 45 : 0 }}
+                              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                            >
+                              <motion.div
+                                className="w-3 h-3 bg-white/60"
+                                animate={{ 
+                                  rotate: isOpen ? 90 : 0,
+                                  scale: isOpen ? 0.8 : 1
+                                }}
+                                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                              />
+                            </motion.div>
+                          </button>
+                          
+                          {/* FAQ Content */}
+                          <motion.div
+                            initial="closed"
+                            animate={isOpen ? "open" : "closed"}
+                            variants={faqVariants}
+                            transition={{ 
+                              duration: 0.4, 
+                              ease: [0.22, 1, 0.36, 1] 
+                            }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-6 pb-6">
+                              <p className="text-white/70 leading-relaxed">{faq.answer}</p>
+                            </div>
+                          </motion.div>
+                        </motion.div>
+                      );
+                    })}
                   </motion.div>
                 </div>
               </div>
