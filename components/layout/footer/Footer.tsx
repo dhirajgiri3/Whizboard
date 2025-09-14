@@ -9,19 +9,13 @@ import {
   Twitter,
   Linkedin,
   Github,
-  Youtube,
   ArrowRight,
   CheckCircle,
   Send,
   Heart,
   Globe,
-  Shield,
-  Users,
-  Star,
-  Clock,
   Building2,
   BookOpen,
-  Zap,
 } from "lucide-react";
 
 const Footer = () => {
@@ -40,41 +34,37 @@ const Footer = () => {
 
   const footerLinks = {
     product: [
-      { name: "Features", href: "#features" },
-      { name: "Pricing", href: "#pricing" },
-      { name: "Templates", href: "#templates" },
-      { name: "Integrations", href: "#integrations" },
-      { name: "API", href: "/api" },
+      { name: "Features", href: "/#features" },
+      { name: "Pricing", href: "/#pricing" },
+      { name: "My Boards", href: "/my-boards" },
+      { name: "Team Workspace", href: "/team-workspace" },
+      { name: "Profile", href: "/profile" },
     ],
     company: [
       { name: "About", href: "/about" },
       { name: "Contact", href: "/contact" },
     ],
     resources: [
-      { name: "Documentation", href: "/docs" },
       { name: "Help Center", href: "/help" },
-      { name: "Community", href: "/community" },
-      { name: "Webinars", href: "/webinars" },
-      { name: "Status", href: "/status" },
+      { name: "Quick Start", href: "/help/quick-start/5-min-setup" },
+      { name: "Best Practices", href: "/help/best-practices" },
+      { name: "Shortcuts", href: "/help/shortcuts" },
+      { name: "Settings", href: "/settings" },
     ],
     legal: [
       { name: "Privacy Policy", href: "/privacy" },
       { name: "Terms of Service", href: "/terms" },
-      { name: "Cookie Policy", href: "/cookies" },
-      { name: "GDPR", href: "/gdpr" },
-      { name: "Security", href: "/security" },
     ],
   };
 
   const socialLinks = [
-    { name: "Twitter", icon: Twitter, href: "https://twitter.com/whizboard" },
+    { name: "Twitter", icon: Twitter, href: "https://x.com/theedhiraj" },
     {
       name: "LinkedIn",
       icon: Linkedin,
-      href: "https://linkedin.com/company/whizboard",
+      href: "https://www.linkedin.com/in/dhirajgiri",
     },
-    { name: "GitHub", icon: Github, href: "https://github.com/whizboard" },
-    { name: "YouTube", icon: Youtube, href: "https://youtube.com/whizboard" },
+    { name: "GitHub", icon: Github, href: "https://github.com/dhirajgiri3" },
   ];
 
   const containerVariants = {
@@ -165,7 +155,6 @@ const Footer = () => {
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
                   <span className="text-white font-bold text-xl">W</span>
                 </div>
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-gray-900 animate-pulse" />
               </div>
               <div>
                 <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
