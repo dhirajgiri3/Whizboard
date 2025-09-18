@@ -89,7 +89,7 @@ export default function ExportModal({
       if (saveToGoogleDrive) {
         // Export to Google Drive
         const result = await exportBoardToGoogleDrive(
-          params.id as string,
+          params?.id as string,
           exportOptions.format,
           {
             resolution: exportOptions.resolution,
@@ -122,7 +122,7 @@ export default function ExportModal({
         }
       } else {
         // Regular download export
-        const url = new URL(`/api/board/${params.id}/export`, window.location.origin);
+        const url = new URL(`/api/board/${params?.id}/export`, window.location.origin);
         
         // Add query parameters
         url.searchParams.set('format', exportOptions.format);

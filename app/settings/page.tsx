@@ -321,7 +321,7 @@ export default function SettingsPage() {
   // Show integration connect result notifications from OAuth callbacks
   useEffect(() => {
     // Respect tab query parameter to open a specific settings tab (e.g., ?tab=integrations)
-    const tabParam = searchParams.get('tab');
+    const tabParam = searchParams?.get('tab');
     if (tabParam) {
       const allowed = ['profile', 'notifications', 'integrations', 'security', 'danger-zone'];
       if (allowed.includes(tabParam)) {
@@ -329,8 +329,8 @@ export default function SettingsPage() {
       }
     }
 
-    const svc = searchParams.get('integrations');
-    const status = searchParams.get('status');
+    const svc = searchParams?.get('integrations');
+    const status = searchParams?.get('status');
     if (!svc || !status) return;
     const name = svc === 'googleDrive' ? 'Google Drive' : svc === 'slack' ? 'Slack' : svc;
     if (status === 'connected') {

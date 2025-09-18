@@ -67,7 +67,7 @@ const SectionCard = ({ children, className = "" }: { children: React.ReactNode; 
 
 export default function PublicProfilePage() {
     const params = useParams();
-    const username = params.username as string;
+    const username = params?.username as string;
     const { data: session } = useSession();
     
     const [profileData, setProfileData] = useState<PublicProfileData | null>(null);

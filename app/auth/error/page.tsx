@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export default function AuthErrorPage() {
   const searchParams = useSearchParams();
-  const error = searchParams.get('error');
+  const error = searchParams?.get('error');
 
   const getErrorMessage = (error: string | null) => {
     switch (error) {
@@ -48,7 +48,7 @@ export default function AuthErrorPage() {
     }
   };
 
-  const errorInfo = getErrorMessage(error);
+  const errorInfo = getErrorMessage(error || null);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

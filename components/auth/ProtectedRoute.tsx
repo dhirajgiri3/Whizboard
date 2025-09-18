@@ -29,7 +29,7 @@ export default function ProtectedRoute({
 
     // If authentication is required and user is not authenticated
     if (requireAuth && !session) {
-      const loginUrl = `/login?callbackUrl=${encodeURIComponent(pathname)}`;
+      const loginUrl = `/login?callbackUrl=${encodeURIComponent(pathname || '/')}`;
       router.push(loginUrl);
       return;
     }

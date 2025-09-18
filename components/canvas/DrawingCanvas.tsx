@@ -351,7 +351,7 @@ const DrawingCanvas = memo(function DrawingCanvas({
     // Listen for viewport changes on mobile
     const hasVisualViewport = window.visualViewport && isMobile;
     if (hasVisualViewport) {
-      window.visualViewport.addEventListener('resize', handleResize);
+      window.visualViewport!.addEventListener('resize', handleResize);
     }
 
     return () => {

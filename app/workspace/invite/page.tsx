@@ -23,8 +23,8 @@ export default function WorkspaceInvitePage() {
   const [accepting, setAccepting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const token = searchParams.get('token');
-  const email = searchParams.get('email');
+  const token = searchParams?.get('token');
+  const email = searchParams?.get('email');
 
   useEffect(() => {
     if (status === 'loading') return;

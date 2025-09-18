@@ -235,7 +235,7 @@ function BoardPageContent() {
 
   const { data: session, status } = useSession();
   const params = useParams();
-  const boardId = params.id as string;
+  const boardId = params?.id as string;
   const stageRef = useRef<Konva.Stage>(null);
   const {
     setBoardMetadata,
@@ -2856,7 +2856,7 @@ function BoardPageContent() {
         const allElements = data.undoBoardAction.elements || [];
 
         // Optimized element filtering with single pass
-        const elementsByType = allElements.reduce((acc, el: { data: string }) => {
+        const elementsByType = allElements.reduce((acc: Record<string, any[]>, el: { data: string }) => {
           const parsed = typeof el.data === "string" ? JSON.parse(el.data) : el.data;
           const type = parsed.type;
 
@@ -3818,8 +3818,8 @@ function BoardPageContent() {
                   setToolAction={setToolAction}
                   undoAction={handleUndo}
                   redoAction={handleRedo}
-                  canUndo={localCanUndo}
-                  canRedo={localCanRedo}
+                  canUndo={canUndo}
+                  canRedo={canRedo}
                   onExportAction={handleExport}
                   onImportAction={handleImport}
                   onFileManagerAction={handleFileManager}
