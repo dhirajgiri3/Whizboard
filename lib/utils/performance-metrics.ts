@@ -32,6 +32,7 @@ interface PerformanceMetric {
   userId?: string;
   boardId?: string;
   elementCount?: number;
+  apiName?: string;
   deviceInfo?: {
     userAgent: string;
     screenWidth: number;
@@ -61,6 +62,7 @@ export const recordMetric = (
     userId?: string;
     boardId?: string;
     elementCount?: number;
+    apiName?: string;
   } = {}
 ): void => {
   if (typeof window === 'undefined') return;
@@ -198,10 +200,10 @@ export const initWebVitals = (): void => {
   
   // Use web-vitals library if available
   if ('webVitals' in window) {
-    import('web-vitals').then(({ onFCP, onLCP, onFID, onCLS, onTTFB }) => {
+    import('web-vitals').then(({ onFCP, onLCP, onINP, onCLS, onTTFB }) => {
       onFCP((metric) => recordMetric(MetricType.FCP, metric.value));
       onLCP((metric) => recordMetric(MetricType.LCP, metric.value));
-      onFID((metric) => recordMetric(MetricType.FID, metric.value));
+      onINP((metric) => recordMetric(MetricType.FID, metric.value)); // Using INP instead of FID
       onCLS((metric) => recordMetric(MetricType.CLS, metric.value * 1000)); // Convert to ms for consistency
       onTTFB((metric) => recordMetric(MetricType.TTFB, metric.value));
     }).catch(console.error);
@@ -259,8 +261,9 @@ export const initWebVitals = (): void => {
         const clsObserver = new PerformanceObserver((entryList) => {
           const entries = entryList.getEntries();
           entries.forEach((entry) => {
-            if (!entry.hadRecentInput) {
-              clsValue += (entry as any).value;
+            const layoutShiftEntry = entry as any;
+            if (!layoutShiftEntry.hadRecentInput) {
+              clsValue += layoutShiftEntry.value;
             }
           });
           recordMetric(MetricType.CLS, clsValue * 1000); // Convert to ms for consistency

@@ -2,12 +2,19 @@ import sgMail from '@sendgrid/mail';
 import logger from '@/lib/logger/logger';
 import '@/lib/env';
 
-// Initialize SendGrid with API key
-if (!process.env.SENDGRID_API_KEY) {
-  logger.error('SENDGRID_API_KEY is not set in environment variables');
-  throw new Error('SENDGRID_API_KEY is required for email service');
+// Initialize SendGrid with API key (lazy initialization)
+let isInitialized = false;
+
+function initializeSendGrid() {
+  if (isInitialized) return;
+  
+  if (!process.env.SENDGRID_API_KEY) {
+    logger.error('SENDGRID_API_KEY is not set in environment variables');
+    throw new Error('SENDGRID_API_KEY is required for email service');
+  }
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  isInitialized = true;
 }
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 interface SendGridError {
   response?: {
@@ -282,6 +289,7 @@ export class EmailService {
 
   static async sendInvitationEmail(data: InvitationEmailData): Promise<boolean> {
     try {
+      initializeSendGrid();
       // Use a verified email address - for development, use your own email or set up domain verification
       const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'Hello@cyperstudio.in';
       
@@ -349,6 +357,7 @@ Real-time collaborative whiteboard for teams`,
 
   static async sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean> {
     try {
+      initializeSendGrid();
       const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'Hello@cyperstudio.in';
       
       const msg = {
@@ -411,6 +420,7 @@ Real-time collaborative whiteboard for teams`,
 
   static async sendCollaboratorJoinedNotification(data: CollaboratorNotificationData): Promise<boolean> {
     try {
+      initializeSendGrid();
       const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'Hello@cyperstudio.in';
       
       const msg = {
@@ -572,6 +582,7 @@ WhizBoard Team`,
 
   public static async sendWorkspaceInvitationEmail(data: WorkspaceInvitationEmailData): Promise<boolean> {
     try {
+      initializeSendGrid();
       const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'Hello@cyperstudio.in';
       
       const msg = {
