@@ -10,7 +10,7 @@ class SimpleUndoRedoManager {
   private history: any[] = [];
   private currentIndex: number = -1;
   private maxHistory: number = 50;
-  private onStateChange?: (state: any) => void;
+  public onStateChange?: (state: any) => void;
 
   constructor(onStateChange?: (state: any) => void) {
     this.onStateChange = onStateChange;

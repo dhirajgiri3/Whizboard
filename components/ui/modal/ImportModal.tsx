@@ -129,7 +129,7 @@ export default function ImportModal({ isOpen, onClose, onImportComplete }: Impor
         conflictResolution: importOptions.conflictResolution,
       }));
 
-      const { data: result } = await api.post(`/api/board/${params.id}/import`, formData, {
+      const { data: result } = await api.post(`/api/board/${params?.id}/import`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       toast.success(`Successfully imported ${result.importedElements} elements!`);
@@ -145,7 +145,7 @@ export default function ImportModal({ isOpen, onClose, onImportComplete }: Impor
 
   const loadTemplates = async () => {
     try {
-      const { data } = await api.get(`/api/board/${params.id}/import?category=all`);
+      const { data } = await api.get(`/api/board/${params?.id}/import?category=all`);
       setTemplates(data.templates || []);
     } catch (error) {
       console.error('Failed to load templates:', error);
@@ -576,7 +576,7 @@ export default function ImportModal({ isOpen, onClose, onImportComplete }: Impor
               {/* Footer */}
               <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
                 <div className="text-sm text-gray-600">
-                  <span className="font-medium">Board:</span> {params.id}
+                  <span className="font-medium">Board:</span> {params?.id}
                 </div>
                 <div className="flex items-center space-x-3">
                   <button

@@ -41,7 +41,7 @@ export function useOptimizedUndoRedo({
   const [currentIndex, setCurrentIndex] = useState(-1);
 
   // Debouncing for rapid changes
-  const saveTimeoutRef = useRef<NodeJS.Timeout>();
+  const saveTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const lastSaveRef = useRef<number>(0);
 
   // Calculate derived state

@@ -5,7 +5,7 @@
 
 import { CRDTCore, CRDTConfig, BoardElement } from './CRDTCore';
 
-export { CRDTConfig as CRDTDocumentConfig, BoardElement };
+export type { CRDTConfig as CRDTDocumentConfig, BoardElement };
 
 /**
  * Simplified CRDT Document implementation
