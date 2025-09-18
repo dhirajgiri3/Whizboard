@@ -148,7 +148,7 @@ export function useRealTimeCollaboration({
     });
   }, [isConnected, boardId, userId]);
 
-  // Handle real-time events
+  // Handle real-time events - optimized to prevent excessive re-renders
   const handleRealTimeEvent = useCallback((event: RealTimeEvent) => {
     logger.debug('Received real-time event:', event);
 
@@ -588,14 +588,27 @@ export function useRealTimeCollaboration({
       return;
     }
 
+    let reconnectTimeoutId: NodeJS.Timeout | null = null;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 10;
+
+    const getReconnectDelay = (attempt: number): number => {
+      // Exponential backoff with jitter: min 1s, max 30s
+      const baseDelay = Math.min(1000 * Math.pow(2, attempt), 30000);
+      const jitter = Math.random() * 1000;
+      return baseDelay + jitter;
+    };
+
     const connectSSE = () => {
-      logger.info(`Attempting to connect to SSE for board ${boardId} and user ${userId}`);
+      logger.info(`Attempting to connect to SSE for board ${boardId} and user ${userId} (attempt ${reconnectAttempts + 1})`);
       const eventSource = new EventSource(`/api/graphql/sse?boardId=${boardId}&userId=${userId}`);
       eventSourceRef.current = eventSource;
 
       eventSource.onopen = () => {
         logger.info('SSE connection opened.');
         setIsConnected(true);
+        reconnectAttempts = 0; // Reset attempts on successful connection
+
         // Initial user presence broadcast
         updateAndBroadcastPresence({
           userEmail: userId, // Assuming userId is email for now
@@ -619,8 +632,19 @@ export function useRealTimeCollaboration({
         logger.error('SSE Error:', error);
         eventSource.close();
         setIsConnected(false);
-        // Attempt to reconnect after a delay
-        setTimeout(connectSSE, 5000); 
+
+        // Attempt to reconnect with exponential backoff
+        if (reconnectAttempts < maxReconnectAttempts) {
+          const delay = getReconnectDelay(reconnectAttempts);
+          logger.info(`Reconnecting SSE in ${Math.round(delay)}ms (attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`);
+
+          reconnectTimeoutId = setTimeout(() => {
+            reconnectAttempts++;
+            connectSSE();
+          }, delay);
+        } else {
+          logger.error('SSE max reconnection attempts reached. Manual refresh required.');
+        }
       };
     };
 
@@ -628,10 +652,13 @@ export function useRealTimeCollaboration({
 
     return () => {
       logger.info('Closing SSE connection.');
+      if (reconnectTimeoutId) {
+        clearTimeout(reconnectTimeoutId);
+      }
       eventSourceRef.current?.close();
       setIsConnected(false);
     };
-  }, [boardId, userId]); // Removed updateAndBroadcastPresence from dependencies to prevent infinite re-renders
+  }, [boardId, userId, updateAndBroadcastPresence]);
 
   // Join/Leave board API calls (stable)
   const joinBoard = useCallback(() => {
@@ -678,8 +705,14 @@ export function useRealTimeCollaboration({
   useEffect(() => {
     if (!isConnected) return;
 
+    // Store refs to track cleanup state
+    let activityThrottleTimeout: NodeJS.Timeout | null = null;
+    let mounted = true;
+
     // Start activity timer
     activityTimerRef.current = setInterval(() => {
+      if (!mounted) return; // Prevent updates after unmount
+
       const now = Date.now();
       const idleTime = (now - lastActivityTimeRef.current) / 1000; // in seconds
 
@@ -704,6 +737,8 @@ export function useRealTimeCollaboration({
     }, 60000); // Update every minute
 
     const handleUserActivity = () => {
+      if (!mounted) return; // Prevent updates after unmount
+
       lastActivityTimeRef.current = Date.now();
       if (userPresence?.status !== 'online') {
         updateAndBroadcastPresence({ status: 'online', currentActivity: 'Active' });
@@ -711,19 +746,37 @@ export function useRealTimeCollaboration({
       totalActionsRef.current += 1; // Increment total actions on any activity
     };
 
-    window.addEventListener('mousemove', handleUserActivity);
-    window.addEventListener('keydown', handleUserActivity);
-    window.addEventListener('click', handleUserActivity);
+    // Throttle activity events to prevent excessive calls
+    const throttledActivityHandler = () => {
+      if (activityThrottleTimeout || !mounted) return;
+      activityThrottleTimeout = setTimeout(() => {
+        if (mounted) {
+          handleUserActivity();
+        }
+        activityThrottleTimeout = null;
+      }, 1000); // Throttle to once per second
+    };
+
+    window.addEventListener('mousemove', throttledActivityHandler, { passive: true });
+    window.addEventListener('keydown', handleUserActivity, { passive: true });
+    window.addEventListener('click', handleUserActivity, { passive: true });
 
     return () => {
+      mounted = false; // Mark as unmounted
+
       if (activityTimerRef.current) {
         clearInterval(activityTimerRef.current);
+        activityTimerRef.current = null;
       }
-      window.removeEventListener('mousemove', handleUserActivity);
+      if (activityThrottleTimeout) {
+        clearTimeout(activityThrottleTimeout);
+        activityThrottleTimeout = null;
+      }
+      window.removeEventListener('mousemove', throttledActivityHandler);
       window.removeEventListener('keydown', handleUserActivity);
       window.removeEventListener('click', handleUserActivity);
     };
-  }, [isConnected]); // Removed updateAndBroadcastPresence and userPresence from dependencies to prevent infinite re-renders
+  }, [isConnected, updateAndBroadcastPresence, userPresence?.status]);
 
   // Broadcast cursor movement with enhanced data
   const broadcastCursorMovement = useCallback((x: number, y: number, currentTool?: string, isDrawing?: boolean, isSelecting?: boolean, activeElementId?: string, pressure?: number) => {

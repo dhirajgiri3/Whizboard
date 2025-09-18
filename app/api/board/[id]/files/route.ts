@@ -107,8 +107,8 @@ export async function GET(
         return NextResponse.json({ error: 'File is not an image' }, { status: 400 });
       }
 
-      // Convert base64 data back to buffer
-      const imageBuffer = Buffer.from(file.data, 'base64');
+      // Handle both binary Buffer and legacy base64 data
+      const imageBuffer = file.data instanceof Buffer ? file.data : Buffer.from(file.data, 'base64');
       
       console.log(`Serving image preview: ${file.name}, size: ${imageBuffer.length} bytes, type: ${file.type}`);
       
@@ -176,8 +176,8 @@ export async function GET(
         return NextResponse.json({ error: 'File not found' }, { status: 404 });
       }
 
-      // Convert base64 data back to buffer
-      const fileBuffer = Buffer.from(file.data, 'base64');
+      // Handle both binary Buffer and legacy base64 data
+      const fileBuffer = file.data instanceof Buffer ? file.data : Buffer.from(file.data, 'base64');
       
       console.log(`Serving file download: ${file.name}, size: ${fileBuffer.length} bytes, type: ${file.type}`);
       
@@ -561,13 +561,12 @@ export async function DELETE(
   }
 }
 
-async function processFile(file: File): Promise<string> {
+async function processFile(file: File): Promise<Buffer> {
   try {
     const arrayBuffer = await file.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-    
-    // Use Buffer for efficient base64 conversion in Node.js
-    return Buffer.from(uint8Array).toString('base64');
+
+    // Return Buffer directly for binary storage instead of base64
+    return Buffer.from(arrayBuffer);
   } catch (error) {
     console.error('Error processing file:', error);
     throw new Error('Failed to process file data');

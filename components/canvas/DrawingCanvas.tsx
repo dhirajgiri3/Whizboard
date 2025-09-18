@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, memo } from 'react';
 import { Stage, Layer } from 'react-konva';
 import { KonvaEventObject } from 'konva/lib/Node';
 import Konva from 'konva';
@@ -10,6 +10,8 @@ import { CanvasLayers } from './CanvasLayers';
 import { CanvasControls } from './CanvasControls';
 import { EnhancedCursor } from '@/types';
 import TextEditor from './text/TextEditor';
+import { useMemoryProfiler } from '@/lib/performance/MemoryProfiler';
+import { markStart, markEnd, usePerformanceMeasure } from '@/lib/performance/PerformanceMarkers';
 
 interface DrawingCanvasProps {
   stageRef: React.RefObject<Konva.Stage | null>;
@@ -81,7 +83,7 @@ interface DrawingCanvasProps {
   onRealTimeImageElementDeleteAction?: (imageElementId: string) => void;
 }
 
-export default function DrawingCanvas({
+const DrawingCanvas = memo(function DrawingCanvas({
   stageRef,
   tool,
   color,
@@ -150,6 +152,9 @@ export default function DrawingCanvas({
   onRealTimeImageElementAction,
   onRealTimeImageElementDeleteAction,
 }: DrawingCanvasProps) {
+  // Development profiling
+  useMemoryProfiler('DrawingCanvas');
+  usePerformanceMeasure('DrawingCanvas');
   // State management
   const [lines, setLines] = useState<ILine[]>(initialLines);
   const [stickyNotes, setStickyNotes] = useState<StickyNoteElement[]>(initialStickyNotes);
@@ -239,6 +244,7 @@ export default function DrawingCanvas({
   useEffect(() => {
     if (!touchOptimized && !isTablet) return;
 
+    // Stable references for event handlers to ensure proper cleanup
     const preventDefaultTouch = (e: TouchEvent) => {
       // Prevent default touch behaviors that interfere with canvas
       if (e.touches.length > 1) {
@@ -261,19 +267,19 @@ export default function DrawingCanvas({
           const touch1 = e.touches[0];
           const touch2 = e.touches[1];
           const distance = Math.sqrt(
-            Math.pow(touch2.clientX - touch1.clientX, 2) + 
+            Math.pow(touch2.clientX - touch1.clientX, 2) +
             Math.pow(touch2.clientY - touch1.clientY, 2)
           );
-          
+
           // Store initial distance for pinch detection
           if (e.target && !(e.target as HTMLElement).dataset.initialDistance) {
             (e.target as HTMLElement).dataset.initialDistance = distance.toString();
           }
-          
+
           // Allow the gesture to continue for zoom
           return;
         }
-        
+
         // Prevent gestures with more than 2 touches
         if (e.touches.length > 2) {
           e.preventDefault();
@@ -290,7 +296,7 @@ export default function DrawingCanvas({
           const rect = (e.target as HTMLElement).getBoundingClientRect();
           const x = touch.clientX - rect.left;
           const y = touch.clientY - rect.top;
-          
+
           // Emit cursor movement for better collaboration
           if (moveCursorAction) {
             moveCursorAction(x, y);
@@ -299,15 +305,17 @@ export default function DrawingCanvas({
       }
     };
 
+    // Add event listeners with explicit references
     document.addEventListener('touchstart', handleTouchStart, { passive: false });
     document.addEventListener('touchmove', preventDefaultTouch, { passive: false });
-    
+
     if (isTablet) {
       document.addEventListener('touchstart', handleTabletTouch, { passive: false });
       document.addEventListener('touchmove', handleTouchMove, { passive: true });
     }
 
     return () => {
+      // Cleanup with the exact same function references
       document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('touchmove', preventDefaultTouch);
       if (isTablet) {
@@ -317,35 +325,40 @@ export default function DrawingCanvas({
     };
   }, [touchOptimized, isTablet, moveCursorAction]);
 
-  // Effect for window resize
+  // Effect for window resize with proper cleanup
   useEffect(() => {
     const handleResize = () => {
       const newWidth = window.innerWidth;
       const newHeight = window.innerHeight;
-      
+
       // Account for mobile browser UI changes
-      const adjustedHeight = isMobile 
+      const adjustedHeight = isMobile
         ? newHeight - (window.innerHeight - (window.visualViewport?.height || window.innerHeight))
         : newHeight;
-      
+
       setDimensions({
-        width: newWidth, 
-        height: adjustedHeight 
+        width: newWidth,
+        height: adjustedHeight
       });
     };
 
+    // Initial size setting
     handleResize();
-    window.addEventListener('resize', handleResize);
-    
+
+    // Add resize listeners
+    window.addEventListener('resize', handleResize, { passive: true });
+
     // Listen for viewport changes on mobile
-    if (window.visualViewport && isMobile) {
+    const hasVisualViewport = window.visualViewport && isMobile;
+    if (hasVisualViewport) {
       window.visualViewport.addEventListener('resize', handleResize);
     }
 
     return () => {
+      // Cleanup with exact same function reference
       window.removeEventListener('resize', handleResize);
-      if (window.visualViewport && isMobile) {
-        window.visualViewport.removeEventListener('resize', handleResize);
+      if (hasVisualViewport) {
+        window.visualViewport!.removeEventListener('resize', handleResize);
       }
     };
   }, [isMobile]);
@@ -721,4 +734,51 @@ export default function DrawingCanvas({
       )}
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison function to prevent unnecessary re-renders
+  const simpleProps = ['tool', 'color', 'strokeWidth', 'isFramePlacementMode', 'isMobile', 'isTablet', 'showGrid'];
+
+  for (const prop of simpleProps) {
+    if (prevProps[prop as keyof typeof prevProps] !== nextProps[prop as keyof typeof nextProps]) {
+      return false;
+    }
+  }
+
+  // Check selected items
+  const selectedProps = [
+    'selectedStickyNote', 'selectedFrame', 'selectedTextElement',
+    'selectedShape', 'selectedImageElement'
+  ];
+  for (const prop of selectedProps) {
+    if (prevProps[prop as keyof typeof prevProps] !== nextProps[prop as keyof typeof nextProps]) {
+      return false;
+    }
+  }
+
+  // Check arrays length and reference
+  const arrayProps = [
+    'initialLines', 'initialStickyNotes', 'initialFrames',
+    'initialTextElements', 'initialShapes', 'initialImageElements', 'selectedShapes'
+  ];
+  for (const prop of arrayProps) {
+    const prevArray = prevProps[prop as keyof typeof prevProps] as any[];
+    const nextArray = nextProps[prop as keyof typeof nextProps] as any[];
+    if (prevArray?.length !== nextArray?.length || prevArray !== nextArray) {
+      return false;
+    }
+  }
+
+  // Check editingTextElement
+  if (prevProps.editingTextElement?.id !== nextProps.editingTextElement?.id) {
+    return false;
+  }
+
+  // Check cursors object (shallow comparison)
+  if (Object.keys(prevProps.cursors || {}).length !== Object.keys(nextProps.cursors || {}).length) {
+    return false;
+  }
+
+  return true;
+});
+
+export default DrawingCanvas;

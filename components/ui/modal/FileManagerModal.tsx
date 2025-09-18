@@ -8,6 +8,7 @@ import { useParams } from 'next/navigation';
 import api from '@/lib/http/axios';
 import { useGoogleDrive, GoogleDriveFile } from '@/hooks/useGoogleDrive';
 import { toast } from 'sonner';
+import { compressImage, shouldCompressImage, getCompressionRecommendations } from '@/lib/utils/imageCompression';
 
 interface FileManagerModalProps {
   isOpen: boolean;
@@ -344,12 +345,36 @@ export default function FileManagerModal({ isOpen, onClose, onImageSelect }: Fil
     setIsLoading(true);
     try {
       for (const file of fileList) {
+        let fileToUpload = file;
+
+        // Compress images if needed
+        if (shouldCompressImage(file)) {
+          try {
+            const compressionOptions = getCompressionRecommendations(file);
+            const compressionResult = await compressImage(file, compressionOptions);
+            fileToUpload = compressionResult.compressedFile;
+
+            // Show compression feedback
+            if (compressionResult.compressionRatio > 1.1) {
+              toast.info(`Compressed "${file.name}" by ${((compressionResult.compressionRatio - 1) * 100).toFixed(1)}%`);
+            }
+          } catch (compressionError) {
+            console.warn('Image compression failed, uploading original:', compressionError);
+            // Continue with original file
+          }
+        }
+
         const formData = new FormData();
-        formData.append('file', file);
-        formData.append('name', file.name);
+        formData.append('file', fileToUpload);
+        formData.append('name', file.name); // Keep original name
         formData.append('description', '');
         formData.append('tags', '');
-        formData.append('metadata', JSON.stringify({ originalName: file.name }));
+        formData.append('metadata', JSON.stringify({
+          originalName: file.name,
+          compressed: fileToUpload !== file,
+          originalSize: file.size,
+          compressedSize: fileToUpload.size
+        }));
 
         await api.post(`/api/board/${params.id}/files`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       }

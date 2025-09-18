@@ -33,7 +33,7 @@ export async function PUT(request: NextRequest) {
       const db = await connectToDatabase();
       
       // Try to update existing user
-      let result = await db.collection('users').updateOne(
+      const result = await db.collection('users').updateOne(
         { email: session.user.email },
         { $set: update }
       );
@@ -113,7 +113,7 @@ export async function PUT(request: NextRequest) {
     const db = await connectToDatabase();
 
     // Update user profile with new image URL and store public_id for deletes
-    let result = await db.collection('users').updateOne(
+    const result = await db.collection('users').updateOne(
       { email: session.user.email },
       {
         $set: {

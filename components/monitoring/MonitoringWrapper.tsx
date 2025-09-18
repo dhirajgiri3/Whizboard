@@ -42,6 +42,11 @@ const AlertNotifications = dynamic(
   { ssr: false }
 );
 
+const ConnectionQualityMonitor = dynamic(
+  () => import('@/components/monitoring/ConnectionQualityMonitor'),
+  { ssr: false }
+);
+
 interface MonitoringWrapperProps {
   // Optional props for positioning if needed
 }
@@ -77,6 +82,9 @@ const MonitoringWrapper: React.FC<MonitoringWrapperProps> = () => {
       
       {/* Alert notifications */}
       <AlertNotifications position="bottom-right" maxAlerts={3} autoHideSeconds={10} />
+      
+      {/* Connection quality monitor */}
+      <ConnectionQualityMonitor position="top-right" />
     </>
   );
 };

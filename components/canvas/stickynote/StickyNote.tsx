@@ -81,6 +81,71 @@ export default function StickyNote({
     }
   }, [isSelected, isHovered, isDragging, isEditing]);
 
+  // Dynamic color scheme generator for custom colors
+  const generateColorSchemeFromColor = (bgColor: string) => {
+    // Helper function to convert hex to RGB
+    const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : null;
+    };
+
+    // Helper function to convert RGB to hex
+    const rgbToHex = (r: number, g: number, b: number): string => {
+      return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    };
+
+    // Helper function to darken a color
+    const darkenColor = (rgb: { r: number; g: number; b: number }, factor: number) => {
+      return {
+        r: Math.max(0, Math.round(rgb.r * (1 - factor))),
+        g: Math.max(0, Math.round(rgb.g * (1 - factor))),
+        b: Math.max(0, Math.round(rgb.b * (1 - factor)))
+      };
+    };
+
+    // Helper function to lighten a color
+    const lightenColor = (rgb: { r: number; g: number; b: number }, factor: number) => {
+      return {
+        r: Math.min(255, Math.round(rgb.r + (255 - rgb.r) * factor)),
+        g: Math.min(255, Math.round(rgb.g + (255 - rgb.g) * factor)),
+        b: Math.min(255, Math.round(rgb.b + (255 - rgb.b) * factor))
+      };
+    };
+
+    const baseRgb = hexToRgb(bgColor);
+    if (!baseRgb) {
+      // Fallback to default scheme if color parsing fails
+      return {
+        primary: '#64748b',
+        secondary: '#94a3b8',
+        accent: '#f8fafc',
+        shadow: 'rgba(100, 116, 139, 0.15)',
+        text: '#334155',
+        border: '#64748b',
+        gradient: ['#f1f5f9', '#f8fafc', '#f1f5f9']
+      };
+    }
+
+    const primaryRgb = darkenColor(baseRgb, 0.3);
+    const secondaryRgb = darkenColor(baseRgb, 0.2);
+    const accentRgb = lightenColor(baseRgb, 0.5);
+    const textRgb = darkenColor(baseRgb, 0.7);
+
+    return {
+      primary: rgbToHex(primaryRgb.r, primaryRgb.g, primaryRgb.b),
+      secondary: rgbToHex(secondaryRgb.r, secondaryRgb.g, secondaryRgb.b),
+      accent: rgbToHex(accentRgb.r, accentRgb.g, accentRgb.b),
+      shadow: `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.15)`,
+      text: rgbToHex(textRgb.r, textRgb.g, textRgb.b),
+      border: rgbToHex(primaryRgb.r, primaryRgb.g, primaryRgb.b),
+      gradient: [bgColor, rgbToHex(accentRgb.r, accentRgb.g, accentRgb.b), bgColor]
+    };
+  };
+
   // Modern color system with better contrast and accessibility
   const getColorScheme = (bgColor: string) => {
     const schemes: Record<string, {
@@ -201,7 +266,13 @@ export default function StickyNote({
         gradient: ['#f1f5f9', '#f8fafc', '#f1f5f9']
       },
     };
-    return schemes[bgColor] || schemes['#f1f5f9'];
+    // If color scheme exists, use it
+    if (schemes[bgColor]) {
+      return schemes[bgColor];
+    }
+
+    // Generate dynamic color scheme for custom colors
+    return generateColorSchemeFromColor(bgColor);
   };
 
   const colorScheme = getColorScheme(color);

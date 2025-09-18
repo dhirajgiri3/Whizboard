@@ -11,11 +11,30 @@ const httpLink = createHttpLink({
   credentials: 'same-origin',
 });
 
-// WebSocket link for subscriptions
+// Connection quality monitoring
+interface ConnectionQuality {
+  latency: number;
+  packetLoss: number;
+  jitter: number;
+  quality: 'excellent' | 'good' | 'fair' | 'poor';
+}
+
+let connectionQuality: ConnectionQuality = {
+  latency: 0,
+  packetLoss: 0,
+  jitter: 0,
+  quality: 'good'
+};
+
+// Enhanced WebSocket link for subscriptions with connection quality monitoring
 const createWebSocketLink = () => {
   // Use secure WebSocket in production, regular in development
   const protocol = process.env.NODE_ENV === 'production' ? 'wss' : 'ws';
   const host = typeof window !== 'undefined' ? window.location.host : 'localhost:3000';
+  
+  let retryCount = 0;
+  const lastPingTime = 0;
+  let connectionStartTime = 0;
   
   const wsClient = createClient({
     url: `${protocol}://${host}/api/graphql/ws`,
@@ -23,30 +42,82 @@ const createWebSocketLink = () => {
       // Add any authentication headers here
       // authToken: getAuthToken(),
     },
-    retryAttempts: 5,
-    retryWait: (retryCount) => new Promise(resolve => setTimeout(resolve, Math.min(1000 * Math.pow(2, retryCount), 30000))),
+    retryAttempts: 10, // Increased retry attempts
+    retryWait: (retryCount) => {
+      // Enhanced exponential backoff with jitter
+      const baseDelay = Math.min(1000 * Math.pow(2, retryCount), 30000);
+      const jitter = Math.random() * 1000; // Add jitter to prevent thundering herd
+      return new Promise(resolve => setTimeout(resolve, baseDelay + jitter));
+    },
     shouldRetry: (errorOrCloseEvent) => {
-      // Retry on network errors, but not on authentication errors
+      // Enhanced retry logic
       if (errorOrCloseEvent instanceof Error) {
-        return !errorOrCloseEvent.message.includes('authentication');
+        // Don't retry on authentication errors
+        if (errorOrCloseEvent.message.includes('authentication')) {
+          return false;
+        }
+        // Don't retry on certain close codes
+        if (errorOrCloseEvent.message.includes('1002') || errorOrCloseEvent.message.includes('1003')) {
+          return false;
+        }
       }
-      return true;
+      
+      // Limit retries based on connection quality
+      if (connectionQuality.quality === 'poor' && retryCount > 3) {
+        return false;
+      }
+      
+      return retryCount < 10;
     },
     on: {
       connecting: () => {
-        logger.info('WebSocket connecting...');
+        connectionStartTime = Date.now();
+        retryCount++;
+        logger.info(`WebSocket connecting... (attempt ${retryCount})`);
       },
       connected: () => {
-        logger.info('WebSocket connected');
+        const connectionTime = Date.now() - connectionStartTime;
+        retryCount = 0; // Reset retry count on successful connection
+        
+        // Update connection quality based on connection time
+        if (connectionTime < 1000) {
+          connectionQuality.quality = 'excellent';
+        } else if (connectionTime < 3000) {
+          connectionQuality.quality = 'good';
+        } else if (connectionTime < 5000) {
+          connectionQuality.quality = 'fair';
+        } else {
+          connectionQuality.quality = 'poor';
+        }
+        
+        logger.info(`WebSocket connected in ${connectionTime}ms (quality: ${connectionQuality.quality})`);
+        
+        // Start connection monitoring
+        startConnectionMonitoring();
       },
       closed: (event: any) => {
-        logger.info({ code: event.code, reason: event.reason }, 'WebSocket closed');
+        logger.info({ code: event.code, reason: event.reason, retryCount }, 'WebSocket closed');
+        
+        // Update connection quality based on close reason
+        if (event.code === 1000) {
+          connectionQuality.quality = 'excellent'; // Normal closure
+        } else if (event.code === 1001 || event.code === 1006) {
+          connectionQuality.quality = 'poor'; // Abnormal closure
+        }
       },
       error: (error) => {
-        logger.warn({ error }, 'WebSocket error - this is expected if WebSocket endpoint is not available');
+        logger.warn({ error, retryCount }, 'WebSocket error');
+        connectionQuality.quality = 'poor';
       },
     },
   });
+
+  // Connection monitoring (simplified without ping)
+  const startConnectionMonitoring = () => {
+    // For now, we'll rely on the connection events for quality monitoring
+    // In a production environment, you might want to implement custom ping/pong
+    logger.info('Connection monitoring started');
+  };
 
   return new GraphQLWsLink(wsClient);
 };
@@ -178,11 +249,20 @@ export const clearCache = () => {
 
 // Export connection status helpers
 export const getConnectionStatus = () => {
-  // This would need to be implemented based on your WebSocket client
-  // For now, we'll return a basic status
   return {
     isConnected: true, // This should be updated based on actual connection state
     lastError: null,
     retryCount: 0,
+    connectionQuality,
   };
+};
+
+// Export connection quality getter
+export const getConnectionQuality = (): ConnectionQuality => {
+  return { ...connectionQuality };
+};
+
+// Export function to update connection quality
+export const updateConnectionQuality = (quality: Partial<ConnectionQuality>) => {
+  connectionQuality = { ...connectionQuality, ...quality };
 }; 

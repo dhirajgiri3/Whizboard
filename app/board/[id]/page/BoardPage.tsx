@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useRef, useEffect, useCallback, useState, useMemo } from "react";
+import { useRef, useEffect, useCallback, useState, useMemo, memo } from "react";
 import { gql, useMutation, useSubscription, useQuery } from "@apollo/client";
 import { useSession } from "next-auth/react";
 import ExportModal from "@/components/ui/modal/ExportModal";
@@ -32,6 +32,10 @@ import {
 } from "@/lib/context/BoardContext";
 import { OptimizedBoardProvider, useOptimizedBoardContext } from "@/lib/context/OptimizedBoardContext";
 import { useRealTimeCollaboration } from "@/hooks/useRealTimeCollaboration";
+import { startMeasurement, recordMetric } from "@/lib/utils/performance-metrics";
+import { useMemoryProfiler } from "@/lib/performance/MemoryProfiler";
+import { markStart, markEnd, usePerformanceMeasure } from "@/lib/performance/PerformanceMarkers";
+import ConnectionQualityMonitor from "@/components/monitoring/ConnectionQualityMonitor";
 
 import {
   StickyNoteElement,
@@ -44,7 +48,6 @@ import {
 } from "@/types";
 import { FramePreset } from "@/components/toolbar/frame/types";
 import { EnhancedCursor } from "@/types";
-import { getRandomStickyNoteColor } from "@/components/canvas/stickynote/StickyNote";
 import StickyNoteColorPicker, {
   useStickyNoteColorPicker,
 } from "@/components/ui/modal/StickyNoteColorPicker";
@@ -191,7 +194,45 @@ export default function BoardPage() {
   );
 }
 
+// Memoized toolbar component to prevent unnecessary re-renders
+const MemoizedMainToolbar = memo(MainToolbar, (prevProps, nextProps) => {
+  return (
+    prevProps.tool === nextProps.tool &&
+    prevProps.canUndo === nextProps.canUndo &&
+    prevProps.canRedo === nextProps.canRedo &&
+    prevProps.isMobile === nextProps.isMobile &&
+    prevProps.isTablet === nextProps.isTablet
+  );
+});
+
+// Memoized collaboration panel to prevent re-renders when not needed
+const MemoizedCollaborationPanel = memo(CollaborationPanel, (prevProps, nextProps) => {
+  return (
+    prevProps.users?.length === nextProps.users?.length &&
+    prevProps.currentUserId === nextProps.currentUserId &&
+    prevProps.currentUserRole === nextProps.currentUserRole &&
+    prevProps.canManageUsers === nextProps.canManageUsers
+  );
+});
+
+// Memoized canvas header to prevent re-renders
+const MemoizedCanvasHeader = memo(CanvasHeader, (prevProps, nextProps) => {
+  return (
+    prevProps.boardName === nextProps.boardName &&
+    prevProps.zoomLevel === nextProps.zoomLevel &&
+    prevProps.isPresentationMode === nextProps.isPresentationMode &&
+    prevProps.showGrid === nextProps.showGrid &&
+    prevProps.isMobile === nextProps.isMobile &&
+    prevProps.isTablet === nextProps.isTablet &&
+    prevProps.onlineUsers?.length === nextProps.onlineUsers?.length
+  );
+});
+
 function BoardPageContent() {
+  // Development profiling
+  useMemoryProfiler('BoardPageContent');
+  usePerformanceMeasure('BoardPageContent');
+
   const { data: session, status } = useSession();
   const params = useParams();
   const boardId = params.id as string;
@@ -249,13 +290,24 @@ function BoardPageContent() {
   } | null>(null);
   const [isOwner, setIsOwner] = useState(false);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
-  const [currentStickyNoteColor, setCurrentStickyNoteColor] = useState(() => 
-    getRandomStickyNoteColor()
-  );
+  const [currentStickyNoteColor, setCurrentStickyNoteColor] = useState(() => {
+    // Try to load saved color from localStorage first
+    if (typeof window !== 'undefined') {
+      const savedColor = localStorage.getItem('whizboard-sticky-note-color');
+      if (savedColor && /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(savedColor)) {
+        return savedColor;
+      }
+    }
+    // Default to light yellow instead of random
+    return '#fef3c7';
+  });
   
   // User presence state
   const [userPresenceData, setUserPresenceData] = useState<Record<string, any>>({});
-  
+
+  // Enhanced Undo/Redo State
+  const [undoRedoLoading, setUndoRedoLoading] = useState(false);
+
   // Phase 3 Modal States
   const [showExportModal, setShowExportModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -371,9 +423,6 @@ function BoardPageContent() {
     return () => document.removeEventListener("touchend", handleTouchEnd);
   }, []); // Removed lastTouchEnd from dependencies to prevent infinite re-renders
 
-  // Calculate canUndo and canRedo based on current state
-  const canUndo = history.length > 0 && historyIndex >= 0;
-  const canRedo = history.length > 0 && historyIndex < history.length - 1;
 
   // Handler functions for interactions
   const handleStickyNoteSelect = useCallback((id: string | null) => {
@@ -689,6 +738,7 @@ function BoardPageContent() {
 
   // Memoized callbacks for real-time collaboration to prevent infinite re-renders
   const onBoardUpdate = useCallback((elements: any[]) => {
+    markStart('boardUpdate');
     setLines(
       elements.map((el) => ({
         id: el.id,
@@ -698,6 +748,7 @@ function BoardPageContent() {
         color: (el.data.color as string) || "#000000",
       }))
     );
+    markEnd('boardUpdate');
   }, []);
 
   const onCursorMove = useCallback((cursors: any) => {
@@ -819,6 +870,12 @@ function BoardPageContent() {
   const [addBoardAction] = useMutation(ADD_BOARD_ACTION);
   const [undoBoardAction] = useMutation(UNDO_BOARD_ACTION);
   const [redoBoardAction] = useMutation(REDO_BOARD_ACTION);
+
+  // Enhanced Database-Backed Undo/Redo System with 15-step history
+  // Calculate canUndo and canRedo based on current state
+  const canUndo = history.length > 1 && historyIndex > 0;
+  const canRedo = history.length > 1 && historyIndex < history.length - 1;
+
 
   useSubscription(CURSOR_MOVEMENT, {
     variables: { boardId },
@@ -1035,6 +1092,8 @@ function BoardPageContent() {
       });
       setHistory(initialData.getBoard.history || []);
       setHistoryIndex(initialData.getBoard.historyIndex ?? 0);
+
+      // Initial state is automatically handled by the database
     }
   }, [
     initialData,
@@ -1249,6 +1308,7 @@ function BoardPageContent() {
                 typeof el.data === "string" ? JSON.parse(el.data) : el.data
               );
             setStickyNotes(stickyNoteElements);
+
             setHistory(data.addBoardAction.history || []);
             setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
             // Use debounced timestamp update to prevent excessive API calls
@@ -1342,6 +1402,7 @@ function BoardPageContent() {
               typeof el.data === "string" ? JSON.parse(el.data) : el.data
             );
           setStickyNotes(stickyNoteElements);
+
           setHistory(data.addBoardAction.history || []);
           setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
           // Use debounced timestamp update to prevent excessive API calls
@@ -1800,6 +1861,7 @@ function BoardPageContent() {
                 typeof el.data === "string" ? JSON.parse(el.data) : el.data
               );
             setTextElements(textElementElements);
+
             setHistory(data.addBoardAction.history || []);
             setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
             // Use debounced timestamp update to prevent excessive API calls
@@ -2021,6 +2083,7 @@ function BoardPageContent() {
                 typeof el.data === "string" ? JSON.parse(el.data) : el.data
               );
             setShapes(shapeElements);
+
             setHistory(data.addBoardAction.history || []);
             setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
             // Use debounced timestamp update to prevent excessive API calls
@@ -2781,100 +2844,72 @@ function BoardPageContent() {
 
   const handleUndo = useCallback(async () => {
     logger.debug("Undo action triggered");
-    if (boardId) {
-      try {
-        const { data } = await undoBoardAction({ variables: { boardId } });
-        if (data?.undoBoardAction) {
-          const allElements = data.undoBoardAction.elements || [];
+    if (!boardId || undoRedoLoading) {
+      return;
+    }
 
-          // Filter drawing lines (non-sticky-note, non-frame, non-text elements)
-          const lineElements = allElements
-            .filter((el: { data: string }) => {
-              const parsed =
-                typeof el.data === "string" ? JSON.parse(el.data) : el.data;
-              return (
-                parsed.type !== "sticky-note" &&
-                parsed.type !== "frame" &&
-                parsed.type !== "text"
-              );
-            })
-            .map((el: { data: string }) =>
-              typeof el.data === "string" ? JSON.parse(el.data) : el.data
-            );
+    try {
+      setUndoRedoLoading(true);
+      const { data } = await undoBoardAction({ variables: { boardId } });
 
-          // Filter sticky notes
-          const stickyNoteElements = allElements
-            .filter((el: { data: string }) => {
-              const parsed =
-                typeof el.data === "string" ? JSON.parse(el.data) : el.data;
-              return parsed.type === "sticky-note";
-            })
-            .map((el: { data: string }) =>
-              typeof el.data === "string" ? JSON.parse(el.data) : el.data
-            );
+      if (data?.undoBoardAction) {
+        const allElements = data.undoBoardAction.elements || [];
 
-          // Filter frames
-          const frameElements = allElements
-            .filter((el: { data: string }) => {
-              const parsed =
-                typeof el.data === "string" ? JSON.parse(el.data) : el.data;
-              return parsed.type === "frame";
-            })
-            .map((el: { data: string }) =>
-              typeof el.data === "string" ? JSON.parse(el.data) : el.data
-            );
+        // Optimized element filtering with single pass
+        const elementsByType = allElements.reduce((acc, el: { data: string }) => {
+          const parsed = typeof el.data === "string" ? JSON.parse(el.data) : el.data;
+          const type = parsed.type;
 
-          // Filter text elements
-          const textElementElements = allElements
-            .filter((el: { data: string }) => {
-              const parsed =
-                typeof el.data === "string" ? JSON.parse(el.data) : el.data;
-              return parsed.type === "text";
-            })
-            .map((el: { data: string }) =>
-              typeof el.data === "string" ? JSON.parse(el.data) : el.data
-            );
+          if (!acc[type]) acc[type] = [];
+          acc[type].push(parsed);
+          return acc;
+        }, {} as Record<string, any[]>);
 
-          // Filter image elements
-          const imageElementElements = allElements
-            .filter((el: { data: string }) => {
-              const parsed =
-                typeof el.data === "string" ? JSON.parse(el.data) : el.data;
-              return parsed.type === "image";
-            })
-            .map((el: { data: string }) =>
-              typeof el.data === "string" ? JSON.parse(el.data) : el.data
-            );
+        // Set all element types efficiently
+        const lineElements = elementsByType.line || elementsByType.drawing || elementsByType.path || [];
+        const otherElements = allElements
+          .filter((el: { data: string }) => {
+            const parsed = typeof el.data === "string" ? JSON.parse(el.data) : el.data;
+            return parsed.type !== "sticky-note" && parsed.type !== "frame" &&
+                   parsed.type !== "text" && parsed.type !== "image";
+          })
+          .map((el: { data: string }) =>
+            typeof el.data === "string" ? JSON.parse(el.data) : el.data
+          );
 
-          setLines(lineElements);
-          setStickyNotes(stickyNoteElements);
-          setFrames((prevFrames) => {
-            const frameElementsStr = JSON.stringify(frameElements);
-            const prevFramesStr = JSON.stringify(prevFrames);
-            if (frameElementsStr !== prevFramesStr) {
-              return frameElements;
-            }
-            return prevFrames;
-          });
-          setTextElements(textElementElements);
-          setImageElements(imageElementElements);
-          setHistory(data.undoBoardAction.history || []);
-          setHistoryIndex(data.undoBoardAction.historyIndex ?? 0);
-          updateBoardTimestamp(boardId);
+        setLines([...lineElements, ...otherElements]);
+        setStickyNotes(elementsByType["sticky-note"] || []);
+        setTextElements(elementsByType.text || []);
+        setImageElements(elementsByType.image || []);
 
-          // Clear selections after undo
-          setSelectedStickyNote(null);
-          setSelectedFrame(null);
-          setSelectedTextElement(null);
-          setEditingTextElement(null);
-          setSelectedShape(null);
-          setSelectedShapes([]);
-          setSelectedImageElement(null);
-        }
-      } catch (err) {
-        logger.error({ err }, "Failed to undo board action");
-        toast.error("Failed to undo.");
+        // Handle frames with comparison optimization
+        const frameElements = elementsByType.frame || [];
+        setFrames((prevFrames) => {
+          const frameElementsStr = JSON.stringify(frameElements);
+          const prevFramesStr = JSON.stringify(prevFrames);
+          return frameElementsStr !== prevFramesStr ? frameElements : prevFrames;
+        });
+
+        setHistory(data.undoBoardAction.history || []);
+        setHistoryIndex(data.undoBoardAction.historyIndex ?? 0);
+        updateBoardTimestamp(boardId);
+
+        // Clear all selections after undo
+        setSelectedStickyNote(null);
+        setSelectedFrame(null);
+        setSelectedTextElement(null);
+        setEditingTextElement(null);
+        setSelectedShape(null);
+        setSelectedShapes([]);
+        setSelectedImageElement(null);
+
+        toast.success("Undone!");
       }
+    } catch (err) {
+      logger.error({ err }, "Failed to undo board action");
+      toast.error("Failed to undo.");
+    } finally {
+      setUndoRedoLoading(false);
     }
   }, [
     boardId,
@@ -2891,104 +2926,81 @@ function BoardPageContent() {
     setSelectedFrame,
     setSelectedTextElement,
     setEditingTextElement,
+    setSelectedShape,
+    setSelectedShapes,
     setSelectedImageElement,
+    undoRedoLoading
   ]);
+
 
   const handleRedo = useCallback(async () => {
     logger.debug("Redo action triggered");
-    if (boardId) {
-      try {
-        const { data } = await redoBoardAction({ variables: { boardId } });
-        if (data?.redoBoardAction) {
-          const allElements = data.redoBoardAction.elements || [];
+    if (!boardId || undoRedoLoading) {
+      return;
+    }
 
-          // Filter drawing lines (non-sticky-note, non-frame, non-text elements)
-          const lineElements = allElements
-            .filter((el: { data: string }) => {
-              const parsed =
-                typeof el.data === "string" ? JSON.parse(el.data) : el.data;
-              return (
-                parsed.type !== "sticky-note" &&
-                parsed.type !== "frame" &&
-                parsed.type !== "text"
-              );
-            })
-            .map((el: { data: string }) =>
-              typeof el.data === "string" ? JSON.parse(el.data) : el.data
-            );
+    try {
+      setUndoRedoLoading(true);
+      const { data } = await redoBoardAction({ variables: { boardId } });
 
-          // Filter sticky notes
-          const stickyNoteElements = allElements
-            .filter((el: { data: string }) => {
-              const parsed =
-                typeof el.data === "string" ? JSON.parse(el.data) : el.data;
-              return parsed.type === "sticky-note";
-            })
-            .map((el: { data: string }) =>
-              typeof el.data === "string" ? JSON.parse(el.data) : el.data
-            );
+      if (data?.redoBoardAction) {
+        const allElements = data.redoBoardAction.elements || [];
 
-          // Filter frames
-          const frameElements = allElements
-            .filter((el: { data: string }) => {
-              const parsed =
-                typeof el.data === "string" ? JSON.parse(el.data) : el.data;
-              return parsed.type === "frame";
-            })
-            .map((el: { data: string }) =>
-              typeof el.data === "string" ? JSON.parse(el.data) : el.data
-            );
+        // Optimized element filtering with single pass
+        const elementsByType = allElements.reduce((acc: Record<string, any[]>, el: { data: string }) => {
+          const parsed = typeof el.data === "string" ? JSON.parse(el.data) : el.data;
+          const type = parsed.type;
 
-          // Filter text elements
-          const textElementElements = allElements
-            .filter((el: { data: string }) => {
-              const parsed =
-                typeof el.data === "string" ? JSON.parse(el.data) : el.data;
-              return parsed.type === "text";
-            })
-            .map((el: { data: string }) =>
-              typeof el.data === "string" ? JSON.parse(el.data) : el.data
-            );
+          if (!acc[type]) acc[type] = [];
+          acc[type].push(parsed);
+          return acc;
+        }, {} as Record<string, any[]>);
 
-          // Filter image elements
-          const imageElementElements = allElements
-            .filter((el: { data: string }) => {
-              const parsed =
-                typeof el.data === "string" ? JSON.parse(el.data) : el.data;
-              return parsed.type === "image";
-            })
-            .map((el: { data: string }) =>
-              typeof el.data === "string" ? JSON.parse(el.data) : el.data
-            );
+        // Set all element types efficiently
+        const lineElements = elementsByType.line || elementsByType.drawing || elementsByType.path || [];
+        const otherElements = allElements
+          .filter((el: { data: string }) => {
+            const parsed = typeof el.data === "string" ? JSON.parse(el.data) : el.data;
+            return parsed.type !== "sticky-note" && parsed.type !== "frame" &&
+                   parsed.type !== "text" && parsed.type !== "image";
+          })
+          .map((el: { data: string }) =>
+            typeof el.data === "string" ? JSON.parse(el.data) : el.data
+          );
 
-          setLines(lineElements);
-          setStickyNotes(stickyNoteElements);
-          setFrames((prevFrames) => {
-            const frameElementsStr = JSON.stringify(frameElements);
-            const prevFramesStr = JSON.stringify(prevFrames);
-            if (frameElementsStr !== prevFramesStr) {
-              return frameElements;
-            }
-            return prevFrames;
-          });
-          setTextElements(textElementElements);
-          setImageElements(imageElementElements);
-          setHistory(data.redoBoardAction.history || []);
-          setHistoryIndex(data.redoBoardAction.historyIndex ?? 0);
-          updateBoardTimestamp(boardId);
+        setLines([...lineElements, ...otherElements]);
+        setStickyNotes(elementsByType["sticky-note"] || []);
+        setTextElements(elementsByType.text || []);
+        setImageElements(elementsByType.image || []);
 
-          // Clear selections after redo
-          setSelectedStickyNote(null);
-          setSelectedFrame(null);
-          setSelectedTextElement(null);
-          setEditingTextElement(null);
-          setSelectedShape(null);
-          setSelectedShapes([]);
-        }
-      } catch (err) {
-        logger.error({ err }, "Failed to redo board action");
-        toast.error("Failed to redo.");
+        // Handle frames with comparison optimization
+        const frameElements = elementsByType.frame || [];
+        setFrames((prevFrames) => {
+          const frameElementsStr = JSON.stringify(frameElements);
+          const prevFramesStr = JSON.stringify(prevFrames);
+          return frameElementsStr !== prevFramesStr ? frameElements : prevFrames;
+        });
+
+        setHistory(data.redoBoardAction.history || []);
+        setHistoryIndex(data.redoBoardAction.historyIndex ?? 0);
+        updateBoardTimestamp(boardId);
+
+        // Clear all selections after redo
+        setSelectedStickyNote(null);
+        setSelectedFrame(null);
+        setSelectedTextElement(null);
+        setEditingTextElement(null);
+        setSelectedShape(null);
+        setSelectedShapes([]);
+        setSelectedImageElement(null);
+
+        toast.success("Redone!");
       }
+    } catch (err) {
+      logger.error({ err }, "Failed to redo board action");
+      toast.error("Failed to redo.");
+    } finally {
+      setUndoRedoLoading(false);
     }
   }, [
     boardId,
@@ -3005,8 +3017,41 @@ function BoardPageContent() {
     setSelectedFrame,
     setSelectedTextElement,
     setEditingTextElement,
+    setSelectedShape,
+    setSelectedShapes,
     setSelectedImageElement,
+    undoRedoLoading
   ]);
+
+  // Standard keyboard shortcuts for undo/redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip if user is typing in an input field
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      const isMac = navigator.userAgent.indexOf('Mac') !== -1;
+      const cmdKey = isMac ? e.metaKey : e.ctrlKey;
+
+      if (cmdKey && e.key === 'z' && !undoRedoLoading) {
+        e.preventDefault();
+        if (e.shiftKey) {
+          // Shift + Cmd/Ctrl + Z = redo (standard behavior)
+          handleRedo();
+        } else {
+          handleUndo();
+        }
+      } else if (cmdKey && e.key === 'y' && !undoRedoLoading) {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo, undoRedoLoading]);
+
 
   const handleExport = useCallback(() => {
     logger.info("Export action triggered");
@@ -3654,7 +3699,7 @@ function BoardPageContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col overflow-hidden">
       {/* Enhanced Responsive Header */}
-      <CanvasHeader
+      <MemoizedCanvasHeader
         currentUser={currentUser}
         onlineUsers={filteredOnlineUsers}
         boardId={boardId}
@@ -3696,7 +3741,7 @@ function BoardPageContent() {
         >
           <div className="flex-1 flex flex-col items-center py-6 space-y-4">
             {/* Main Toolbar */}
-            <MainToolbar
+            <MemoizedMainToolbar
               tool={tool}
               setToolAction={setToolAction}
               undoAction={handleUndo}
@@ -3768,13 +3813,13 @@ function BoardPageContent() {
                     <X size={20} />
                   </button>
                 </div>
-                <MainToolbar
+                <MemoizedMainToolbar
                   tool={tool}
                   setToolAction={setToolAction}
                   undoAction={handleUndo}
                   redoAction={handleRedo}
-                  canUndo={canUndo}
-                  canRedo={canRedo}
+                  canUndo={localCanUndo}
+                  canRedo={localCanRedo}
                   onExportAction={handleExport}
                   onImportAction={handleImport}
                   onFileManagerAction={handleFileManager}
@@ -3816,7 +3861,7 @@ function BoardPageContent() {
                       <X size={20} />
                     </button>
                   </div>
-                  <CollaborationPanel
+                  <MemoizedCollaborationPanel
                     users={[currentUser, ...filteredOnlineUsers]}
                     currentUserId={localUserId}
                     onInviteAction={handleInviteCollaborators}
@@ -3975,7 +4020,14 @@ function BoardPageContent() {
           {/* Responsive Floating Sticky Note Toolbar */}
           <FloatingStickyNoteToolbar
             currentColor={currentStickyNoteColor}
-            onColorChangeAction={setCurrentStickyNoteColor}
+            onColorChangeAction={(color) => {
+              setCurrentStickyNoteColor(color);
+              // Persist color selection to localStorage
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('whizboard-sticky-note-color', color);
+              }
+              console.log(`🎨 Sticky note color changed to: ${color}`);
+            }}
             onColorPickerOpenAction={(position) => {
               colorPicker.openPicker(currentStickyNoteColor, position);
             }}
@@ -4190,7 +4242,7 @@ function BoardPageContent() {
       `}
       >
         <div className={`px-4 ${isMobile ? "py-2" : "py-3"}`}>
-          <MainToolbar
+          <MemoizedMainToolbar
             tool={tool}
             setToolAction={setToolAction}
             undoAction={handleUndo}
@@ -4406,6 +4458,9 @@ function BoardPageContent() {
         boardName={initialData?.getBoard?.name || "Untitled Board"}
         isMobile={isMobile}
       />
+
+      {/* Connection Quality Monitor */}
+      <ConnectionQualityMonitor />
     </div>
   );
 }

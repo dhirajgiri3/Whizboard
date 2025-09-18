@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useRef } from 'react';
+import React, { useMemo, useCallback, useRef, memo } from 'react';
 import { Layer, Line, Circle, Group, Text, Rect } from 'react-konva';
 import { KonvaEventObject } from 'konva/lib/Node';
 import Konva from 'konva';
@@ -159,7 +159,7 @@ interface CanvasLayersProps {
   stageRef: React.RefObject<Konva.Stage | null>;
 }
 
-export function CanvasLayers({
+const CanvasLayers = memo(function CanvasLayers({
   showGrid,
   dimensions,
   stageScale,
@@ -610,4 +610,54 @@ export function CanvasLayers({
       </Layer>
     </>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison function for React.memo optimization
+  const propsToCompare = [
+    'showGrid', 'stageScale', 'tool', 'strokeWidth', 'hoveredLineIndex',
+    'selectedStickyNote', 'selectedTextElement', 'selectedShape', 'selectedImageElement',
+    'showFrameAlignment'
+  ];
+
+  // Check simple props
+  for (const prop of propsToCompare) {
+    if (prevProps[prop as keyof typeof prevProps] !== nextProps[prop as keyof typeof nextProps]) {
+      return false;
+    }
+  }
+
+  // Check array props length and reference changes
+  const arrayProps = ['lines', 'stickyNotes', 'frames', 'textElements', 'shapes', 'imageElements', 'selectedFrameIds', 'selectedShapes'];
+  for (const prop of arrayProps) {
+    const prevArray = prevProps[prop as keyof typeof prevProps] as any[];
+    const nextArray = nextProps[prop as keyof typeof nextProps] as any[];
+    if (prevArray?.length !== nextArray?.length || prevArray !== nextArray) {
+      return false;
+    }
+  }
+
+  // Check dimensions object
+  if (prevProps.dimensions?.width !== nextProps.dimensions?.width ||
+      prevProps.dimensions?.height !== nextProps.dimensions?.height) {
+    return false;
+  }
+
+  // Check stagePos object
+  if (prevProps.stagePos?.x !== nextProps.stagePos?.x ||
+      prevProps.stagePos?.y !== nextProps.stagePos?.y) {
+    return false;
+  }
+
+  // Check editingTextElement
+  if (prevProps.editingTextElement?.id !== nextProps.editingTextElement?.id) {
+    return false;
+  }
+
+  // Cursors can change frequently, but we'll do a shallow check
+  if (Object.keys(prevProps.cursors || {}).length !== Object.keys(nextProps.cursors || {}).length) {
+    return false;
+  }
+
+  return true;
+});
+
+export { CanvasLayers };

@@ -9,7 +9,7 @@ try {
     // Load once per process
     if (!process.env.__DOTENV_LOADED__) {
       // Use a dynamic import to avoid bundlers trying to include dotenv in client builds
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
+       
       const dotenv = require('dotenv');
       dotenv.config();
       process.env.__DOTENV_LOADED__ = 'true';
