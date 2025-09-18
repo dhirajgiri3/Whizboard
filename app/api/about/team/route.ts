@@ -17,7 +17,7 @@ interface TeamMember {
 }
 
 // Solo founder data
-let teamMembers: TeamMember[] = [
+const teamMembers: TeamMember[] = [
   {
     id: "1",
     name: "Dhiraj Giri",
@@ -36,7 +36,7 @@ let teamMembers: TeamMember[] = [
 ];
 
 // GET handler - Retrieve all active team members
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // Filter only active team members and sort by order
     const activeMembers = teamMembers

@@ -9,6 +9,7 @@ import AppToaster from "@/components/ui/AppToaster";
 import Script from "next/script";
 import { Providers } from "./layout/providers";
 import ConditionalHeader from "@/components/layout/header/utils/ConditionalHeader";
+import MonitoringWrapper from "@/components/monitoring/MonitoringWrapper";
 
 const maisonNeue = localFont({
   src: [
@@ -175,6 +176,8 @@ export default async function RootLayout({
                 {children}
               </div>
               <AppToaster />
+              {/* Monitoring components wrapper */}
+              <MonitoringWrapper />
             </Providers>
           </ApolloProvider>
         </AuthSessionProvider>

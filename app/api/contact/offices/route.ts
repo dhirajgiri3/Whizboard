@@ -12,7 +12,7 @@ interface ContactOffice {
 }
 
 // In-memory data store (replace with database in production)
-let contactOffices: ContactOffice[] = [
+const contactOffices: ContactOffice[] = [
   {
     id: "1",
     city: "Delhi",
@@ -26,7 +26,7 @@ let contactOffices: ContactOffice[] = [
 ];
 
 // GET handler - Retrieve all visible offices
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // Return only visible offices, sorted by order
     const visibleOffices = contactOffices

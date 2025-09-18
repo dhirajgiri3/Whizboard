@@ -14,6 +14,12 @@ interface BoardUser {
   role: 'owner' | 'admin' | 'collaborator' | 'blocked';
 }
 
+interface UpdateData {
+  $addToSet?: { [key: string]: string };
+  $pull?: { [key: string]: string | { id: string } };
+  updatedAt: Date;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -112,7 +118,7 @@ export async function POST(
     }
 
     const { id: boardId } = await params;
-    const { action, userId, targetUserId } = await request.json();
+    const { action, targetUserId } = await request.json();
 
     if (!action || !targetUserId) {
       return NextResponse.json(
@@ -165,8 +171,7 @@ export async function POST(
       );
     }
 
-    let updateResult;
-    const updateData: any = { updatedAt: new Date() };
+    const updateData: UpdateData = { updatedAt: new Date() };
 
     switch (action) {
       case 'promote_to_admin':
@@ -207,7 +212,7 @@ export async function POST(
         );
     }
 
-    updateResult = await db.collection('boards').updateOne(
+    const updateResult = await db.collection('boards').updateOne(
       { _id: new ObjectId(boardId) },
       updateData
     );

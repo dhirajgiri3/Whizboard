@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
       const timestamp = Date.now();
 
       switch (action) {
-        case 'create':
+        case 'create': {
           if (!textElement) {
             return NextResponse.json(
               { success: false, error: 'Text element data required for create action' },
@@ -118,8 +118,8 @@ export async function POST(request: NextRequest) {
           pubSub.publish('textElementAdded', boardId, createEvent);
           logger.debug(`Text element created by user ${userId} on board ${boardId}`);
           break;
-
-        case 'update':
+        }
+        case 'update': {
           if (!textElement) {
             return NextResponse.json(
               { success: false, error: 'Text element data required for update action' },
@@ -138,8 +138,8 @@ export async function POST(request: NextRequest) {
           pubSub.publish('textElementUpdated', boardId, updateEvent);
           logger.debug(`Text element updated by user ${userId} on board ${boardId}`);
           break;
-
-        case 'delete':
+        }
+        case 'delete': {
           if (!textElement?.id) {
             return NextResponse.json(
               { success: false, error: 'Text element ID required for delete action' },
@@ -158,8 +158,8 @@ export async function POST(request: NextRequest) {
           pubSub.publish('textElementDeleted', boardId, deleteEvent);
           logger.debug(`Text element deleted by user ${userId} on board ${boardId}`);
           break;
-
-        case 'startEdit':
+        }
+        case 'startEdit': {
           if (!textElement?.id) {
             return NextResponse.json(
               { success: false, error: 'Text element ID required for startEdit action' },
@@ -178,8 +178,8 @@ export async function POST(request: NextRequest) {
           pubSub.publish('textElementEditingStarted', boardId, startEditEvent);
           logger.debug(`Text element editing started by user ${userId} on board ${boardId}`);
           break;
-
-        case 'finishEdit':
+        }
+        case 'finishEdit': {
           if (!textElement?.id) {
             return NextResponse.json(
               { success: false, error: 'Text element ID required for finishEdit action' },
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
           pubSub.publish('textElementEditingFinished', boardId, finishEditEvent);
           logger.debug(`Text element editing finished by user ${userId} on board ${boardId}`);
           break;
-
+        }
         default:
           return NextResponse.json(
             { success: false, error: 'Invalid action' },

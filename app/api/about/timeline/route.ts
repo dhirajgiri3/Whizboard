@@ -11,7 +11,7 @@ interface TimelineEvent {
 }
 
 // In-memory data store (replace with database in production)
-let timelineEvents: TimelineEvent[] = [
+const timelineEvents: TimelineEvent[] = [
   {
     id: "1",
     year: "2021",
@@ -51,7 +51,7 @@ let timelineEvents: TimelineEvent[] = [
 ];
 
 // GET handler - Retrieve all visible timeline events
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // Return only visible events, sorted by order
     const visibleEvents = timelineEvents

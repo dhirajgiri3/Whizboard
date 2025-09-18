@@ -206,8 +206,8 @@ const AboutHero = () => {
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="text-base text-white/70 leading-relaxed font-light mb-8 max-w-lg mx-auto"
           >
-            We're building the future of collaborative whiteboarding. Learn about our journey, 
-            values, and the people behind the innovation that's transforming how teams work together.
+            We&apos;re building the future of collaborative whiteboarding. Learn about our journey, 
+            values, and the people behind the innovation that&apos;s transforming how teams work together.
           </motion.p>
 
           {/* CTA Buttons */}

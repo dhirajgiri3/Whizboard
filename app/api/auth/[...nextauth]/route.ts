@@ -8,26 +8,29 @@ export const runtime = 'nodejs';
 const handler = NextAuth(authOptions);
 
 // Add custom error handling
-const customHandler = async (req: Request, context: any) => {
+const customHandler = async (req: Request, context: { params: Promise<{ nextauth: string[] }> }) => {
   try {
-    return await handler(req, context);
-  } catch (error: any) {
-    console.error('NextAuth error:', error);
+    const resolvedContext = { params: await context.params };
+    return await handler(req, resolvedContext);
+  } catch (error) {
+     if (error instanceof Error) {
+      console.error('NextAuth error:', error);
     
-    // Handle OAuthAccountNotLinked error
-    if (error.message?.includes('OAuthAccountNotLinked')) {
-      const url = new URL(req.url);
-      url.pathname = '/auth/error';
-      url.searchParams.set('error', 'OAuthAccountNotLinked');
-      return Response.redirect(url);
-    }
-    
-    // Handle callback errors
-    if (error.message?.includes('Callback') || error.message?.includes('callback')) {
-      const url = new URL(req.url);
-      url.pathname = '/auth/error';
-      url.searchParams.set('error', 'Callback');
-      return Response.redirect(url);
+      // Handle OAuthAccountNotLinked error
+      if (error.message?.includes('OAuthAccountNotLinked')) {
+        const url = new URL(req.url);
+        url.pathname = '/auth/error';
+        url.searchParams.set('error', 'OAuthAccountNotLinked');
+        return Response.redirect(url);
+      }
+      
+      // Handle callback errors
+      if (error.message?.includes('Callback') || error.message?.includes('callback')) {
+        const url = new URL(req.url);
+        url.pathname = '/auth/error';
+        url.searchParams.set('error', 'Callback');
+        return Response.redirect(url);
+      }
     }
     
     // Re-throw other errors

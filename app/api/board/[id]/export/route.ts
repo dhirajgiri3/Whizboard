@@ -5,6 +5,13 @@ import { gql } from '@apollo/client';
 import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 import { googleDriveService } from '@/lib/integrations/googleDriveService';
 import { getToken } from '@/lib/integrations/tokenStore';
+import { Board, DrawingElement } from '@/types';
+
+interface RequestContext {
+  params: Promise<{
+    id: string;
+  }>;
+}
 
 function createApolloClientForRequest(request: NextRequest) {
   const origin = new URL(request.url).origin;
@@ -16,7 +23,7 @@ function createApolloClientForRequest(request: NextRequest) {
     headers: {
       cookie: request.headers.get('cookie') || '',
     },
-  } as any);
+  });
 
   return new ApolloClient({
     link: httpLink,
@@ -26,7 +33,7 @@ function createApolloClientForRequest(request: NextRequest) {
 
 export async function GET(
   request: NextRequest,
-  { params }: any
+  { params }: RequestContext
 ) {
   try {
     const resolvedParams = await params;
@@ -85,9 +92,9 @@ export async function GET(
 
     const board = boardData.getBoard;
     const userEmail = session.user.email;
-    const userId = (session as any).user?.id;
+    const userId = session.user.id;
     const hasAccess = board.isPublic || (board.createdBy === userId) || (Array.isArray(board.collaborators) && board.collaborators.some(
-      (collaborator: any) => collaborator?.email === userEmail || collaborator?.id === userId
+      (collaborator: { email: string, id: string }) => collaborator?.email === userEmail || collaborator?.id === userId
     ));
 
     if (!hasAccess) {
@@ -108,13 +115,16 @@ export async function GET(
     }
 
     switch (format.toLowerCase()) {
-      case 'png':
+      case 'png': {
         return await handlePNGExport(board, elements, resolution, background, area, customBackground, bounds, viewport, quality, compression);
-      case 'svg':
-        return await handleSVGExport(board, elements, resolution, background, area, customBackground, bounds, viewport, quality);
+      }
+      case 'svg': {
+        return await handleSVGExport(board, elements, resolution, background, area, customBackground, bounds, viewport);
+      }
       case 'json':
-      default:
+      default: {
         return await handleJSONExport(board, elements, includeMetadata);
+      }
     }
   } catch (error) {
     console.error('Export error:', error);
@@ -131,7 +141,7 @@ import { createCanvas } from 'canvas';
  * Enhanced bounding box calculation that considers all element types
  * and provides comprehensive coverage of the canvas content
  */
-function calculateComprehensiveBoardBounds(elements: any[]) {
+function calculateComprehensiveBoardBounds(elements: DrawingElement[]) {
   if (elements.length === 0) {
     return { x: 0, y: 0, width: 1200, height: 800 };
   }
@@ -193,7 +203,7 @@ function calculateComprehensiveBoardBounds(elements: any[]) {
         maxX = Math.max(maxX, textX + textWidth);
         maxY = Math.max(maxY, textY + textHeight);
         hasValidElements = true;
-      } else if (element.type === 'shape' || element.type === 'rectangle' || element.type === 'circle') {
+      } else if (element.type === 'rectangle' || element.type === 'circle') {
         const shapeX = elementData.x || elementData.position?.x || 0;
         const shapeY = elementData.y || elementData.position?.y || 0;
         const shapeWidth = elementData.width || elementData.dimensions?.width || 100;
@@ -268,7 +278,7 @@ function getResolutionMultiplier(resolution: string): number {
 /**
  * Enhanced PNG export with comprehensive element rendering
  */
-async function handlePNGExport(board: any, elements: any[], resolution: string, background: string, area: string, customBackground?: string, bounds?: string, viewport?: string, quality: string = 'high', compression: boolean = true) {
+async function handlePNGExport(board: Board, elements: DrawingElement[], resolution: string, background: string, area: string, customBackground?: string, bounds?: string, viewport?: string, quality?: string, compression = true) {
   console.log('Exporting board:', board.name, 'with', elements.length, 'elements');
   console.log('Export settings:', { resolution, background, area, quality, compression });
   
@@ -374,7 +384,7 @@ async function handlePNGExport(board: any, elements: any[], resolution: string, 
   const compressionLevel = compression ? 6 : 0; // 0 = no compression, 6 = max compression
   const buffer = canvas.toBuffer('image/png', { compressionLevel });
   
-  return new NextResponse(buffer, {
+  return new NextResponse(buffer as any, {
     headers: {
       'Content-Type': 'image/png',
       'Content-Disposition': `attachment; filename="${board.name}-export.png"`,
@@ -385,7 +395,7 @@ async function handlePNGExport(board: any, elements: any[], resolution: string, 
 /**
  * Enhanced SVG export with comprehensive element support
  */
-async function handleSVGExport(board: any, elements: any[], resolution: string, background: string, area: string, customBackground?: string, bounds?: string, viewport?: string, quality: string = 'high') {
+async function handleSVGExport(board: Board, elements: DrawingElement[], resolution: string, background: string, area: string, customBackground?: string, bounds?: string, viewport?: string) {
   console.log('Exporting SVG for board:', board.name, 'with', elements.length, 'elements');
   
   // Calculate comprehensive board bounds
@@ -421,7 +431,7 @@ async function handleSVGExport(board: any, elements: any[], resolution: string, 
 /**
  * Enhanced JSON export with comprehensive metadata
  */
-async function handleJSONExport(board: any, elements: any[], includeMetadata: boolean = true) {
+async function handleJSONExport(board: Board, elements: DrawingElement[], includeMetadata = true) {
   const exportData = {
     version: '1.0.0',
     board: {
@@ -445,7 +455,7 @@ async function handleJSONExport(board: any, elements: any[], includeMetadata: bo
         totalElements: elements.length,
         exportFormat: 'json',
         bounds: calculateComprehensiveBoardBounds(elements),
-        elementTypes: elements.reduce((acc: any, el) => {
+        elementTypes: elements.reduce((acc: { [key: string]: number }, el) => {
           acc[el.type] = (acc[el.type] || 0) + 1;
           return acc;
         }, {}),
@@ -468,7 +478,7 @@ async function handleJSONExport(board: any, elements: any[], includeMetadata: bo
 /**
  * Enhanced element rendering with high-quality output
  */
-async function renderElementToCanvasEnhanced(ctx: any, element: any, scale: number = 1) {
+async function renderElementToCanvasEnhanced(ctx: any, element: DrawingElement, scale = 1) {
   try {
     const data = typeof element.data === 'string' ? JSON.parse(element.data) : element.data;
     const style = typeof element.style === 'string' ? JSON.parse(element.style) : element.style || {};
@@ -522,7 +532,7 @@ async function renderElementToCanvasEnhanced(ctx: any, element: any, scale: numb
       ctx.fillStyle = textColor;
       ctx.textBaseline = 'top';
       ctx.fillText(textContent, textX, textY);
-    } else if (element.type === 'shape' || element.type === 'rectangle') {
+    } else if (element.type === 'rectangle') {
         
             const rectX = elementData.x || elementData.position?.x || 0;
       const rectY = elementData.y || elementData.position?.y || 0;
@@ -610,7 +620,7 @@ async function renderElementToCanvasEnhanced(ctx: any, element: any, scale: numb
 /**
  * Generate enhanced SVG content with comprehensive element support
  */
-function generateEnhancedSVGContent(board: any, elements: any[], bounds: any, background: string, customBackground?: string) {
+function generateEnhancedSVGContent(board: Board, elements: DrawingElement[], bounds: { x: number, y: number, width: number, height: number }, background: string, customBackground?: string) {
   const bgColor = background === 'custom' ? customBackground : background === 'white' ? '#ffffff' : background === 'black' ? '#000000' : 'none';
   
   let svg = `<svg width="${bounds.width}" height="${bounds.height}" viewBox="${bounds.x} ${bounds.y} ${bounds.width} ${bounds.height}" xmlns="http://www.w3.org/2000/svg">`;
@@ -665,7 +675,7 @@ function generateEnhancedSVGContent(board: any, elements: any[], bounds: any, ba
         const textColor = elementData.color || elementStyle.color || '#000000';
         
         svg += `<text x="${textX}" y="${textY + fontSize}" font-family="${fontFamily}" font-size="${fontSize}" fill="${textColor}">${textContent}</text>`;
-      } else if (element.type === 'shape' || element.type === 'rectangle') {
+      } else if (element.type === 'rectangle') {
           
         const rectX = elementData.x || elementData.position?.x || 0;
         const rectY = elementData.y || elementData.position?.y || 0;
@@ -720,16 +730,16 @@ function generateEnhancedSVGContent(board: any, elements: any[], bounds: any, ba
  * Handle Google Drive export
  */
 async function handleGoogleDriveExport(
-  board: any, 
-  elements: any[], 
+  board: Board, 
+  elements: DrawingElement[], 
   format: string, 
   resolution: string, 
   background: string, 
   area: string, 
   userEmail: string,
-  quality: string = 'high', 
-  includeMetadata: boolean = true, 
-  compression: boolean = true,
+  quality = 'high', 
+  includeMetadata = true, 
+  compression = true,
   customBackground?: string, 
   bounds?: string, 
   viewport?: string, 
@@ -742,25 +752,28 @@ async function handleGoogleDriveExport(
 
     // Generate the export data based on format
     switch (format.toLowerCase()) {
-      case 'png':
+      case 'png': {
         const pngBuffer = await generatePNGBuffer(board, elements, resolution, background, area, customBackground, bounds, viewport, quality, compression);
         fileData = pngBuffer;
         fileName = `${board.name}-export.png`;
         mimeType = 'image/png';
         break;
-      case 'svg':
-        const svgContent = generateSVGContent(board, elements, resolution, background, area, customBackground, bounds, viewport, quality);
+      }
+      case 'svg': {
+        const svgContent = generateSVGContent(board, elements, resolution, background, area, customBackground, bounds, viewport);
         fileData = svgContent;
         fileName = `${board.name}-export.svg`;
         mimeType = 'image/svg+xml';
         break;
+      }
       case 'json':
-      default:
+      default: {
         const jsonContent = generateJSONContent(board, elements, includeMetadata);
         fileData = JSON.stringify(jsonContent, null, 2);
         fileName = `${board.name}-export.json`;
         mimeType = 'application/json';
         break;
+      }
     }
 
     // Get or create Whizboard folder if no specific folder is provided
@@ -804,7 +817,7 @@ async function handleGoogleDriveExport(
 /**
  * Generate PNG buffer for Google Drive upload
  */
-async function generatePNGBuffer(board: any, elements: any[], resolution: string, background: string, area: string, customBackground?: string, bounds?: string, viewport?: string, quality: string = 'high', compression: boolean = true) {
+async function generatePNGBuffer(board: Board, elements: DrawingElement[], resolution: string, background: string, area: string, customBackground?: string, bounds?: string, viewport?: string, quality = 'high', compression = true) {
   // Parse viewport information if provided
   let viewportData = null;
   if (viewport) {
@@ -882,7 +895,7 @@ async function generatePNGBuffer(board: any, elements: any[], resolution: string
 /**
  * Generate SVG content for Google Drive upload
  */
-function generateSVGContent(board: any, elements: any[], resolution: string, background: string, area: string, customBackground?: string, bounds?: string, viewport?: string, quality: string = 'high') {
+function generateSVGContent(board: Board, elements: DrawingElement[], resolution: string, background: string, area: string, customBackground?: string, bounds?: string, viewport?: string) {
   const boardBounds = calculateComprehensiveBoardBounds(elements);
   return generateEnhancedSVGContent(board, elements, boardBounds, background, customBackground);
 }
@@ -890,7 +903,7 @@ function generateSVGContent(board: any, elements: any[], resolution: string, bac
 /**
  * Generate JSON content for Google Drive upload
  */
-function generateJSONContent(board: any, elements: any[], includeMetadata: boolean = true) {
+function generateJSONContent(board: Board, elements: DrawingElement[], includeMetadata = true) {
   return {
     version: '1.0.0',
     board: {
@@ -914,7 +927,7 @@ function generateJSONContent(board: any, elements: any[], includeMetadata: boole
         totalElements: elements.length,
         exportFormat: 'json',
         bounds: calculateComprehensiveBoardBounds(elements),
-        elementTypes: elements.reduce((acc: any, el) => {
+        elementTypes: elements.reduce((acc: { [key: string]: number }, el) => {
           acc[el.type] = (acc[el.type] || 0) + 1;
           return acc;
         }, {}),

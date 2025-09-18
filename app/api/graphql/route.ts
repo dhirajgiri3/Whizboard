@@ -69,7 +69,9 @@ const yoga = createYoga({
                   session = sessionData;
                   console.log('Session retrieved from session endpoint:', !!session, session?.user?.id);
                 }
-              } catch {}
+              } catch {
+                // Ignore errors if session endpoint fails
+              }
               } catch (sessionError) {
                 console.error('Error fetching session:', sessionError);
               }

@@ -12,7 +12,7 @@ interface CompanyStat {
 }
 
 // In-memory data store (replace with database in production)
-let companyStats: CompanyStat[] = [
+const companyStats: CompanyStat[] = [
   {
     id: "1",
     name: "Happy Teams",
@@ -53,7 +53,7 @@ let companyStats: CompanyStat[] = [
 ];
 
 // GET handler - Retrieve all visible stats
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // Return only visible stats, sorted by order
     const visibleStats = companyStats

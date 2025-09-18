@@ -14,7 +14,7 @@ interface ContactSubmission {
 }
 
 // In-memory data store (replace with database in production)
-let contactSubmissions: ContactSubmission[] = [];
+const contactSubmissions: ContactSubmission[] = [];
 
 export async function POST(req: NextRequest) {
   try {

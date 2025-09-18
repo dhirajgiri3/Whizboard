@@ -1,12 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createYoga } from 'graphql-yoga';
-import { createPubSub } from 'graphql-yoga';
 import { schema } from '@/lib/graphql/schema';
-import logger from '@/lib/logger/logger';
 import '@/lib/env';
-
-// Create pubsub instance for real-time subscriptions
-const pubsub = createPubSub();
 
 // Use pre-built GraphQL schema
 
@@ -34,7 +29,7 @@ export async function POST(request: NextRequest) {
 }
 
 // WebSocket upgrade handler
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new Response(null, {
     status: 200,
     headers: {

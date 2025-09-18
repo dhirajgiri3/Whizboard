@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Github, Linkedin, Twitter, Mail, Code, Coffee, Rocket, Terminal, Palette, Megaphone } from 'lucide-react';
 import api from '@/lib/http/axios';
+import Image from 'next/image';
 
 interface TeamMember {
   id: string;
@@ -199,7 +200,7 @@ const AboutTeam = () => {
             transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="text-base text-gray-300 max-w-4xl mx-auto leading-relaxed mb-8"
           >
-            Meet the solo founder who's redefining what it means to build a product from scratch. 
+            Meet the solo founder who&apos;s redefining what it means to build a product from scratch. 
             <br />
             <span className="text-blue-400 font-medium">No committees, no meetings, just pure execution and relentless iteration.</span>
           </motion.p>
@@ -235,7 +236,7 @@ const AboutTeam = () => {
           variants={containerVariants}
           transition={{ staggerChildren: 0.15, delayChildren: 0.1 }}
         >
-          {teamMembers.map((member, index) => (
+          {teamMembers.map((member) => (
             <motion.div 
               key={member.id} 
               className="group relative p-8 sm:p-10 rounded-2xl bg-white/[0.03] border border-white/[0.08] overflow-hidden hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 backdrop-blur-sm text-center flex flex-col items-center max-w-2xl"
@@ -269,9 +270,11 @@ const AboutTeam = () => {
                     viewport={{ once: true, amount: 0.1 }}
                     transition={{ duration: 0.6, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
                   >
-                    <img 
+                    <Image 
                       src={member.avatar} 
                       alt={member.name}
+                      width={160}
+                      height={160}
                       className="w-full h-full object-cover rounded-full"
                     />
                   </motion.div>
@@ -428,7 +431,7 @@ const AboutTeam = () => {
           <div className="inline-flex items-center space-x-4 text-gray-400 text-lg max-w-2xl mx-auto p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] backdrop-blur-sm">
             <Code className="w-5 h-5 text-blue-400 flex-shrink-0" />
             <span className="italic">
-              "Building solo doesn't mean building alone. It means building exactly what you want, when you want it, with zero compromises."
+              &quot;Building solo doesn&apos;t mean building alone. It means building exactly what you want, when you want it, with zero compromises.&quot;
             </span>
             <Code className="w-5 h-5 text-blue-400 flex-shrink-0" />
           </div>

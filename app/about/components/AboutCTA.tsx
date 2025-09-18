@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
-import { Zap, ArrowRight, Play, CheckCircle, Shield, Rocket } from "lucide-react";
-import Link from "next/link";
+import { Zap, CheckCircle, Shield, Rocket } from "lucide-react";
 import { useDemoModal } from "@/components/ui/modal/DemoModalProvider";
 import CTAButton from "@/components/ui/buttons/CTAButton";
 import TrustIndicators from "@/components/ui/TrustIndicators";

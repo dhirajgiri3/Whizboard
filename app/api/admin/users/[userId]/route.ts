@@ -11,22 +11,29 @@ import {
 } from '@/lib/auth/session-management';
 import { ObjectId } from 'mongodb';
 import '@/lib/env';
+import { Session } from 'next-auth';
+
+interface AdminContext {
+  params: Promise<{
+    userId: string;
+  }>;
+}
 
 /**
  * Admin endpoint for user management
  * Requires admin privileges
  */
 
-async function isAdmin(session: any): Promise<boolean> {
+async function isAdmin(session: Session | null): Promise<boolean> {
   // Add your admin check logic here
   // For now, checking if user email is in admin list
   const adminEmails = process.env.ADMIN_EMAILS?.split(',') || [];
-  return adminEmails.includes(session?.user?.email);
+  return adminEmails.includes(session?.user?.email ?? '');
 }
 
 export const runtime = 'nodejs';
 
-export async function DELETE(request: Request, { params }: any) {
+export async function DELETE(request: Request, { params }: AdminContext) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -104,7 +111,7 @@ export async function DELETE(request: Request, { params }: any) {
   }
 }
 
-export async function PATCH(request: Request, context: any) {
+export async function PATCH(request: Request, context: AdminContext) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -115,7 +122,7 @@ export async function PATCH(request: Request, context: any) {
       );
     }
 
-    const { userId } = context.params as { userId: string };
+    const { userId } = await context.params;
     const body = await request.json();
     const { action, reason } = body;
 
@@ -194,7 +201,7 @@ export async function PATCH(request: Request, context: any) {
   }
 }
 
-export async function GET(request: Request, context: any) {
+export async function GET(request: Request, context: AdminContext) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -205,7 +212,7 @@ export async function GET(request: Request, context: any) {
       );
     }
 
-    const { userId } = context.params as { userId: string };
+    const { userId } = await context.params;
 
     // Validate userId format
     if (!ObjectId.isValid(userId)) {

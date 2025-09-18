@@ -6,7 +6,6 @@ import { ObjectId } from 'mongodb';
 import { EmailService } from '@/lib/email/sendgrid';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '@/lib/logger/logger';
-import { User } from '@/types';
 import { pubSub } from '@/lib/graphql/schema';
 import { postSlackForUser } from '@/lib/integrations/slackService';
 import { connectToDatabase as _connect } from '@/lib/database/mongodb';
@@ -126,7 +125,9 @@ export async function POST(request: NextRequest) {
         { projection: { 'notifications.email.boardInvitations': 1 } }
       );
       sendInvitationEmail = prefsDoc?.notifications?.email?.boardInvitations !== false;
-    } catch {}
+    } catch {
+      // Ignore errors and default to sending email
+    }
 
     // Send invitation email if enabled
     const emailSent = sendInvitationEmail
@@ -175,7 +176,9 @@ export async function POST(request: NextRequest) {
           { projection: { 'notifications.slack.boardEvents': 1 } }
         );
         slackEnabled = prefsDoc?.notifications?.slack?.boardEvents !== false;
-      } catch {}
+      } catch {
+        // Ignore errors and default to sending notification
+      }
 
       if (!slackEnabled) {
         logger.info({ userEmail: session.user.email }, 'Slack boardEvents notifications disabled; skipping');

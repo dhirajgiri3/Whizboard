@@ -6,7 +6,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  webpack: (config, { isServer }) => {
+  // Enable Fast Refresh (HMR)
+  reactStrictMode: true,
+  webpack: (config, { isServer, dev }) => {
     if (isServer) {
       // Exclude Konva and react-konva from server-side bundling
       config.externals = [...config.externals, 'konva', 'react-konva', 'canvas'];
@@ -17,6 +19,14 @@ const nextConfig = {
       ...config.resolve.fallback,
       canvas: false,
     };
+    
+    // Enable React Refresh for development
+    if (dev) {
+      config.experiments = {
+        ...config.experiments,
+        topLevelAwait: true,
+      };
+    }
     
     return config;
   },

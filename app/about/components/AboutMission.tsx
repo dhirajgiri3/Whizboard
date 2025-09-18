@@ -44,16 +44,6 @@ const AboutMission = () => {
     visible: { opacity: 1, y: 0 }
   };
 
-  const orbAnimation = {
-    scale: [1, 1.1, 1],
-    opacity: [0.4, 0.6, 0.4],
-    transition: {
-      duration: 8,
-      repeat: Infinity,
-      ease: [0.22, 1, 0.36, 1]
-    }
-  };
-
   return (
     <section className="py-16 md:py-24 relative z-10">
       {/* Background Elements */}

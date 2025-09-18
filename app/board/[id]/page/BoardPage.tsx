@@ -181,9 +181,6 @@ const DrawingCanvas = dynamic(
 );
 
 export default function BoardPage() {
-  const params = useParams();
-  const boardId = params.id as string;
-  const { data: session } = useSession();
 
   return (
     <BoardProvider>
@@ -193,6 +190,7 @@ export default function BoardPage() {
     </BoardProvider>
   );
 }
+
 function BoardPageContent() {
   const { data: session, status } = useSession();
   const params = useParams();

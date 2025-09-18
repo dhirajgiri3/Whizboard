@@ -248,7 +248,7 @@ const AboutTimeline = () => {
             transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="text-base text-gray-300 max-w-3xl mx-auto leading-relaxed"
           >
-            From a simple idea to a powerful platform. Here's how we're shaping the future of collaborative work.
+            From a simple idea to a powerful platform. Here&apos;s how we&apos;re shaping the future of collaborative work.
           </motion.p>
         </motion.div>
 

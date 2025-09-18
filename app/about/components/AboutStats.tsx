@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { TrendingUp, Users, Star, Award, Globe, Zap, Shield, Heart, Target, Rocket, Activity, Sparkles } from "lucide-react";
+import { TrendingUp, Users, Star, Award, Globe, Zap, Shield, Heart } from "lucide-react";
 
 interface CompanyStat {
   id: string;
@@ -147,11 +147,6 @@ const AboutStats = () => {
   };
 
   const badgeVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: { opacity: 1, scale: 1 }
-  };
-
-  const backgroundVariants = {
     hidden: { opacity: 0, scale: 0.8 },
     visible: { opacity: 1, scale: 1 }
   };

@@ -10,7 +10,7 @@ interface FaqItem {
 }
 
 // In-memory data store (replace with database in production)
-let faqItems: FaqItem[] = [
+const faqItems: FaqItem[] = [
   {
     id: "1",
     question: "How quickly do you respond to support requests?",

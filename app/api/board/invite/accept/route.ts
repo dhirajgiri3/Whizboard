@@ -144,7 +144,9 @@ export async function POST(request: NextRequest) {
           { projection: { 'notifications.email.activityUpdates': 1 } }
         );
         shouldSendWelcome = prefsDoc?.notifications?.email?.activityUpdates !== false;
-      } catch {}
+      } catch {
+        // Ignore errors and default to sending email
+      }
 
       const emailSent = shouldSendWelcome
         ? await EmailService.sendWelcomeEmail({
@@ -173,7 +175,9 @@ export async function POST(request: NextRequest) {
             { projection: { 'notifications.email.activityUpdates': 1 } }
           );
           shouldNotifyOwner = prefsDoc?.notifications?.email?.activityUpdates !== false;
-        } catch {}
+        } catch {
+          // Ignore errors and default to sending email
+        }
 
         if (shouldNotifyOwner) {
           await EmailService.sendCollaboratorJoinedNotification({
