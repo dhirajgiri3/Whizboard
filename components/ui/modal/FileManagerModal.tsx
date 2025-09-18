@@ -376,7 +376,7 @@ export default function FileManagerModal({ isOpen, onClose, onImageSelect }: Fil
           compressedSize: fileToUpload.size
         }));
 
-        await api.post(`/api/board/${params.id}/files`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+        await api.post(`/api/board/${params?.id}/files`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       }
 
       toast.success(`${fileList.length} file${fileList.length > 1 ? 's' : ''} uploaded successfully!`);
@@ -452,7 +452,7 @@ export default function FileManagerModal({ isOpen, onClose, onImageSelect }: Fil
   const handleAddBoardImageToCanvas = async (file: BoardFile) => {
     try {
       // Fetch binary for this board file preview (we already have a preview endpoint returning the image)
-      const url = `/api/board/${params.id}/files?fileId=${file.id}&action=preview`;
+      const url = `/api/board/${params?.id}/files?fileId=${file.id}&action=preview`;
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch image');
       const blob = await res.blob();
@@ -483,7 +483,7 @@ export default function FileManagerModal({ isOpen, onClose, onImageSelect }: Fil
   const handleDownloadFile = async (file: BoardFile) => {
     try {
       console.log('Downloading file:', file);
-      const response = await api.get(`/api/board/${params.id}/files?fileId=${file.id}&action=download`, { responseType: 'blob' });
+      const response = await api.get(`/api/board/${params?.id}/files?fileId=${file.id}&action=download`, { responseType: 'blob' });
       if (response.status >= 200 && response.status < 300) {
         const blob = response.data as Blob;
         const url = window.URL.createObjectURL(blob);
@@ -507,7 +507,7 @@ export default function FileManagerModal({ isOpen, onClose, onImageSelect }: Fil
 
   const loadVersions = async (fileId: string) => {
     try {
-      const { data } = await api.patch(`/api/board/${params.id}/files`, {
+      const { data } = await api.patch(`/api/board/${params?.id}/files`, {
         fileId,
         action: 'get_versions',
       });
@@ -521,7 +521,7 @@ export default function FileManagerModal({ isOpen, onClose, onImageSelect }: Fil
   const loadFiles = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data } = await api.get(`/api/board/${params.id}/files`);
+      const { data } = await api.get(`/api/board/${params?.id}/files`);
       setFiles(data.files || []);
     } catch (error) {
       console.error('Failed to load files:', error);
@@ -529,7 +529,7 @@ export default function FileManagerModal({ isOpen, onClose, onImageSelect }: Fil
     } finally {
       setIsLoading(false);
     }
-  }, [params.id]);
+  }, [params?.id]);
 
   const filterFiles = useCallback(() => {
     let filtered = [...files];
@@ -592,7 +592,7 @@ export default function FileManagerModal({ isOpen, onClose, onImageSelect }: Fil
     if (!confirm('Delete this file?')) return;
 
     try {
-    const response = await api.delete(`/api/board/${params.id}/files?fileId=${fileId}`);
+    const response = await api.delete(`/api/board/${params?.id}/files?fileId=${fileId}`);
     if (response.status >= 200 && response.status < 300) {
         toast.success('File deleted successfully!');
         loadFiles();
@@ -610,7 +610,7 @@ export default function FileManagerModal({ isOpen, onClose, onImageSelect }: Fil
     if (!selectedFile) return;
 
     try {
-      const response = await api.put(`/api/board/${params.id}/files`, {
+      const response = await api.put(`/api/board/${params?.id}/files`, {
         fileId: selectedFile.id,
         updates: {
           name: editForm.name,
@@ -950,7 +950,7 @@ export default function FileManagerModal({ isOpen, onClose, onImageSelect }: Fil
                               {isImageFile(file.type) ? (
                                 <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
                                   <img
-                                    src={`/api/board/${params.id}/files?fileId=${file.id}&action=preview`}
+                                    src={`/api/board/${params?.id}/files?fileId=${file.id}&action=preview`}
                                     alt={file.name}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                                     onLoad={() => console.log('Grid image loaded:', file.name)}
@@ -1534,7 +1534,7 @@ export default function FileManagerModal({ isOpen, onClose, onImageSelect }: Fil
                       <div className="p-6">
                         <div className="relative">
                            <img
-                            src={`/api/board/${params.id}/files?fileId=${previewFile.id}&action=preview`}
+                            src={`/api/board/${params?.id}/files?fileId=${previewFile.id}&action=preview`}
                             alt={previewFile.name}
                             className="w-full h-auto max-h-96 object-contain rounded-lg"
                             onLoad={() => console.log('Image loaded successfully:', previewFile.name)}

@@ -285,7 +285,13 @@ export function useEnhancedBoardManager({
     };
 
     if (crdt) {
-      return { ...stats, crdtStats: crdt.getStats?.() };
+      return {
+        ...stats,
+        crdtStats: {
+          isConnected: crdt.isConnected(),
+          totalElements: crdt.getAllElements().length
+        }
+      };
     }
 
     return stats;
@@ -295,7 +301,17 @@ export function useEnhancedBoardManager({
    * Export board data
    */
   const exportData = useCallback(() => {
-    const data = {
+    const data: {
+      elements: typeof elements;
+      metadata: {
+        boardId: string;
+        userId: string;
+        exportedAt: number;
+        version: string;
+      };
+      stats: ReturnType<typeof getStats>;
+      crdtData?: Uint8Array;
+    } = {
       elements,
       metadata: {
         boardId,
