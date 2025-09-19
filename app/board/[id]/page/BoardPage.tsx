@@ -185,11 +185,24 @@ const DrawingCanvas = dynamic(
 );
 
 export default function BoardPage() {
+  const params = useParams();
+  const boardId = params?.id as string;
+  const { data: session } = useSession();
+  
+  // Create the CRDT config with the necessary parameters
+  const crdtConfig = {
+    boardId: boardId,
+    userId: session?.user?.id || `anon-${Math.random().toString(36).slice(2, 9)}`,
+    userName: session?.user?.name || 'Anonymous User',
+    enableOffline: true
+  };
 
   return (
     <BoardProvider>
       <OptimizedBoardProvider>
-        <BoardPageContent />
+        <CRDTProvider config={crdtConfig}>
+          <BoardPageContent />
+        </CRDTProvider>
       </OptimizedBoardProvider>
     </BoardProvider>
   );

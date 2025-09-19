@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useRealTimeCollaboration } from './useRealTimeCollaboration';
 import { useAwarenessCollaboration } from './useAwarenessCollaboration';
 
@@ -37,20 +37,8 @@ export function useHybridCollaboration(props: UseHybridCollaborationProps) {
     onUserPresenceUpdate,
   } = props;
 
-  // New awareness-based collaboration
-  const awarenessCollaboration = useAwarenessCollaboration({
-    boardId,
-    userId,
-    userName,
-    onCursorMove,
-    onPresenceUpdate: onUserPresenceUpdate,
-    onUserJoined: (userId, userName) => {
-      console.log(`[Awareness] ${userName} joined`);
-    },
-    onUserLeft: (userId) => {
-      console.log(`[Awareness] User ${userId} left`);
-    },
-  });
+  // Track whether CRDT awareness is available
+  const [isCRDTAvailable, setIsCRDTAvailable] = useState(true);
 
   // Legacy collaboration system
   const legacyCollaboration = useRealTimeCollaboration({
@@ -66,6 +54,51 @@ export function useHybridCollaboration(props: UseHybridCollaborationProps) {
     onUserPresenceUpdate,
   });
 
+  // Always call the hook, but we'll handle errors via state
+  const awarenessProps = {
+    boardId,
+    userId,
+    userName,
+    onCursorMove,
+    onPresenceUpdate: onUserPresenceUpdate,
+    onUserJoined: (userId: string, userName: string) => {
+      console.log(`[Awareness] ${userName} joined`);
+    },
+    onUserLeft: (userId: string) => {
+      console.log(`[Awareness] User ${userId} left`);
+    },
+  };
+
+  // Create a safe version of awareness collaboration that won't throw if CRDT context is missing
+  const safeAwarenessCollaboration = (() => {
+    try {
+      // Try to use the CRDT-based collaboration
+      return useAwarenessCollaboration(awarenessProps);
+    } catch (error) {
+      // If it fails, update state and return a mock implementation
+      if (isCRDTAvailable) {
+        console.warn('CRDT Context not available, falling back to legacy collaboration', error);
+        // Use setTimeout to avoid state updates during render
+        setTimeout(() => setIsCRDTAvailable(false), 0);
+      }
+      
+      // Return a dummy implementation with the same interface
+      return {
+        isConnected: false,
+        cursors: {},
+        presence: {},
+        connectedUsers: 0,
+        broadcastCursorMovement: () => {},
+        updateUserPresence: () => {},
+        setEditingElement: () => {},
+        clearEditingElement: () => {},
+        updateSelection: () => {},
+        getConnectionStats: () => ({ connectedUsers: 0, localClientId: 0, totalClients: 0 }),
+        getEditingUsers: () => ({}),
+      };
+    }
+  })();
+
   // Hybrid cursor movement that works with both systems
   const hybridBroadcastCursorMovement = useCallback((
     x: number,
@@ -76,9 +109,9 @@ export function useHybridCollaboration(props: UseHybridCollaborationProps) {
     activeElementId?: string,
     pressure?: number
   ) => {
-    if (useAwareness) {
+    if (useAwareness && isCRDTAvailable) {
       // Use new awareness system
-      awarenessCollaboration.broadcastCursorMovement(
+      safeAwarenessCollaboration.broadcastCursorMovement(
         x, y, currentTool, isDrawing, isSelecting, activeElementId, pressure
       );
     } else {
@@ -87,28 +120,28 @@ export function useHybridCollaboration(props: UseHybridCollaborationProps) {
         x, y, currentTool, isDrawing, isSelecting, activeElementId, pressure
       );
     }
-  }, [useAwareness, awarenessCollaboration, legacyCollaboration]);
+  }, [useAwareness, isCRDTAvailable, safeAwarenessCollaboration, legacyCollaboration]);
 
   // For now, return the appropriate system based on the flag
-  if (useAwareness) {
+  if (useAwareness && isCRDTAvailable) {
     return {
-      ...awarenessCollaboration,
+      ...safeAwarenessCollaboration,
       // Override cursor movement with hybrid version
       broadcastCursorMovement: hybridBroadcastCursorMovement,
       // Add no-op functions for methods not yet migrated
-      broadcastDrawingStart: () => console.log('[Awareness] Drawing events handled by CRDT'),
-      broadcastDrawingUpdate: () => console.log('[Awareness] Drawing events handled by CRDT'),
-      broadcastDrawingComplete: () => console.log('[Awareness] Drawing events handled by CRDT'),
-      broadcastElementUpdate: () => console.log('[Awareness] Element events handled by CRDT'),
-      broadcastTextElementCreate: () => console.log('[Awareness] Text events handled by CRDT'),
-      broadcastTextElementUpdate: () => console.log('[Awareness] Text events handled by CRDT'),
-      broadcastTextElementDelete: () => console.log('[Awareness] Text events handled by CRDT'),
-      broadcastTextElementEditStart: (id: string) => awarenessCollaboration.setEditingElement(id, 'text'),
-      broadcastTextElementEditFinish: () => awarenessCollaboration.clearEditingElement(),
-      broadcastShapeElementCreate: () => console.log('[Awareness] Shape events handled by CRDT'),
-      broadcastShapeElementUpdate: () => console.log('[Awareness] Shape events handled by CRDT'),
-      broadcastShapeElementDelete: () => console.log('[Awareness] Shape events handled by CRDT'),
-      updateAndBroadcastPresence: (updates: any) => awarenessCollaboration.updateUserPresence(updates),
+      broadcastDrawingStart: () => { console.log('[Awareness] Drawing events handled by CRDT'); },
+      broadcastDrawingUpdate: () => { console.log('[Awareness] Drawing events handled by CRDT'); },
+      broadcastDrawingComplete: () => { console.log('[Awareness] Drawing events handled by CRDT'); },
+      broadcastElementUpdate: () => { console.log('[Awareness] Element events handled by CRDT'); },
+      broadcastTextElementCreate: () => { console.log('[Awareness] Text events handled by CRDT'); },
+      broadcastTextElementUpdate: () => { console.log('[Awareness] Text events handled by CRDT'); },
+      broadcastTextElementDelete: () => { console.log('[Awareness] Text events handled by CRDT'); },
+      broadcastTextElementEditStart: (id: string) => { safeAwarenessCollaboration.setEditingElement(id, 'text'); },
+      broadcastTextElementEditFinish: () => { safeAwarenessCollaboration.clearEditingElement(); },
+      broadcastShapeElementCreate: () => { console.log('[Awareness] Shape events handled by CRDT'); },
+      broadcastShapeElementUpdate: () => { console.log('[Awareness] Shape events handled by CRDT'); },
+      broadcastShapeElementDelete: () => { console.log('[Awareness] Shape events handled by CRDT'); },
+      updateAndBroadcastPresence: (updates: Record<string, unknown>) => { safeAwarenessCollaboration.updateUserPresence(updates); },
     };
   } else {
     return legacyCollaboration;
