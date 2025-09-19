@@ -124,6 +124,9 @@ export default async function RootLayout({
   return (
     <html lang="en" className={maisonNeue.variable}>
       <head>
+        {/* Google site verification */}
+        <meta name="google-site-verification" content="M5rv07bY6tHcGLfimzfpB7eHtc-d5-SVVVZame8NF7s" />
+        
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
