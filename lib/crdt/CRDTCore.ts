@@ -6,12 +6,16 @@
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 import { IndexeddbPersistence } from 'y-indexeddb';
+import { CRDTAwareness } from './CRDTAwareness';
+import { getCRDTConfig, type CRDTProductionConfig } from './CRDTConfig';
 
 export interface CRDTConfig {
   boardId: string;
   userId: string;
   websocketUrl?: string;
   enableOffline?: boolean;
+  userName?: string;
+  productionConfig?: Partial<CRDTProductionConfig>;
 }
 
 export interface BoardElement {
@@ -34,19 +38,33 @@ export class CRDTCore {
   public readonly ydoc: Y.Doc;
   public readonly elements: Y.Array<Y.Map<any>>;
   public readonly metadata: Y.Map<any>;
-  public readonly awareness: Y.Map<any>;
+  public readonly awareness: CRDTAwareness;
 
   private websocketProvider?: WebsocketProvider;
   private indexeddbProvider?: IndexeddbPersistence;
   private listeners: Map<string, Set<(...args: any[]) => void>> = new Map();
 
   constructor(private config: CRDTConfig) {
-    this.ydoc = new Y.Doc({ guid: `whizboard-${config.boardId}` });
+    // Get production configuration
+    const prodConfig = getCRDTConfig();
+    if (config.productionConfig) {
+      Object.assign(prodConfig, config.productionConfig);
+    }
+
+    this.ydoc = new Y.Doc({
+      guid: `whizboard-${config.boardId}`,
+      gc: prodConfig.performance.compressionEnabled,
+    });
 
     // Core CRDT structures - simplified to just elements array
     this.elements = this.ydoc.getArray('elements');
     this.metadata = this.ydoc.getMap('metadata');
-    this.awareness = this.ydoc.getMap('awareness');
+    this.awareness = new CRDTAwareness(this.ydoc, {
+      userId: config.userId,
+      userName: config.userName || `User ${config.userId.substring(0, 8)}`,
+      cursorThrottleMs: prodConfig.awareness.cursorThrottleMs,
+      updateInterval: prodConfig.awareness.presenceUpdateInterval,
+    });
 
     // Initialize metadata
     if (this.metadata.size === 0) {
@@ -69,7 +87,7 @@ export class CRDTCore {
         wsUrl,
         `whizboard-${this.config.boardId}`,
         this.ydoc,
-        { connect: true }
+        { connect: true, awareness: this.awareness.awareness }
       );
 
       this.websocketProvider.on('status', (event: any) => {
@@ -203,6 +221,7 @@ export class CRDTCore {
    * Destroy and cleanup
    */
   public destroy(): void {
+    this.awareness.destroy();
     this.websocketProvider?.destroy();
     this.indexeddbProvider?.destroy();
     this.ydoc.destroy();

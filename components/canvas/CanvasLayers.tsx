@@ -5,6 +5,7 @@ import Konva from 'konva';
 import { Tool } from '@/types';
 import { StickyNoteElement, FrameElement, ILine, TextElement, ShapeElement, ImageElement, EnhancedCursor } from '@/types';
 import LiveCursors from '../reatime/LiveCursors';
+import LiveCursorsAware from '../reatime/LiveCursorsAware';
 import StickyNote from './stickynote/StickyNote';
 import EnhancedFrame from './frame/EnhancedFrame';
 import FrameAlignmentHelper from './frame/FrameAlignmentHelper';
@@ -125,7 +126,8 @@ interface CanvasLayersProps {
   hoveredLineIndex: number | null;
   showFrameAlignment: boolean;
 
-  cursors: Record<string, EnhancedCursor>;
+  cursors?: Record<string, EnhancedCursor>; // Optional - falls back to awareness
+  useAwareness?: boolean; // Flag to use new awareness system
   handleLineClick: (lineIndex: number) => void;
   setHoveredLineIndex: (index: number | null) => void;
   handleFrameSelect: (frameId: string) => void;
@@ -182,6 +184,7 @@ const CanvasLayers = memo(function CanvasLayers({
   hoveredLineIndex,
   showFrameAlignment,
   cursors,
+  useAwareness = false,
   handleLineClick,
   setHoveredLineIndex,
   handleFrameSelect,
@@ -590,7 +593,16 @@ const CanvasLayers = memo(function CanvasLayers({
       
       {/* Cursors Layer */}
       <Layer>
-        <LiveCursors cursors={cursors} />
+        {useAwareness ? (
+          <LiveCursorsAware
+            currentTool={tool}
+            isDrawing={tool === 'pen' || tool === 'highlighter'}
+            isSelecting={tool === 'select'}
+            activeElementId={selectedTextElement || selectedShape || selectedStickyNote || undefined}
+          />
+        ) : (
+          <LiveCursors cursors={cursors || {}} />
+        )}
       </Layer>
       
       {/* Tool Indicators Layer */}

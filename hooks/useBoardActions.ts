@@ -14,7 +14,7 @@ interface UseBoardActionsProps {
   setHistory: (history: any[]) => void;
   setHistoryIndex: (index: number) => void;
   updateBoardTimestamp: (boardId: string) => Promise<void>;
-  broadcastDrawingComplete: (data: any) => void;
+  broadcastDrawingComplete?: (data: any) => void;
 }
 
 export const useBoardActions = (props: UseBoardActionsProps) => {
@@ -58,17 +58,19 @@ export const useBoardActions = (props: UseBoardActionsProps) => {
         return;
       }
 
-      // Broadcast drawing completion
-      try {
-        broadcastDrawingComplete({
-          id: lineWithId.id,
-          points: lineWithId.points,
-          tool: lineWithId.tool,
-          color: lineWithId.color,
-          strokeWidth: lineWithId.strokeWidth,
-        });
-      } catch (broadcastError) {
-        logger.warn({ broadcastError }, "Failed to broadcast drawing completion");
+      // Broadcast drawing completion (optional for backward compatibility)
+      if (broadcastDrawingComplete) {
+        try {
+          broadcastDrawingComplete({
+            id: lineWithId.id,
+            points: lineWithId.points,
+            tool: lineWithId.tool,
+            color: lineWithId.color,
+            strokeWidth: lineWithId.strokeWidth,
+          });
+        } catch (broadcastError) {
+          logger.warn({ broadcastError }, "Failed to broadcast drawing completion");
+        }
       }
 
       // Add board action

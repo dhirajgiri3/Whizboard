@@ -194,3 +194,10 @@ coverage-local/
 # Performance reports
 lighthouse-reports/
 *.lighthouse.json
+
+############################################
+# Miscellaneous
+/18/9-changes.md
+
+env.txt
+README-OLD.md

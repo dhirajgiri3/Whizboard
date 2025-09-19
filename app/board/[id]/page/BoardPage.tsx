@@ -31,7 +31,8 @@ import {
   useBoardContext,
 } from "@/lib/context/BoardContext";
 import { OptimizedBoardProvider, useOptimizedBoardContext } from "@/lib/context/OptimizedBoardContext";
-import { useRealTimeCollaboration } from "@/hooks/useRealTimeCollaboration";
+import { useHybridCollaboration } from "@/hooks/useHybridCollaboration";
+import { CRDTProvider } from "@/lib/crdt/CRDTProvider";
 import { startMeasurement, recordMetric } from "@/lib/utils/performance-metrics";
 import { useMemoryProfiler } from "@/lib/performance/MemoryProfiler";
 import { markStart, markEnd, usePerformanceMeasure } from "@/lib/performance/PerformanceMarkers";
@@ -772,11 +773,12 @@ function BoardPageContent() {
     broadcastShapeElementUpdate,
     broadcastShapeElementDelete,
     updateAndBroadcastPresence,
-  } = useRealTimeCollaboration({
+  } = useHybridCollaboration({
     boardId,
     userId: session?.user?.id || "unknown",
     userName: session?.user?.name || "Unknown User",
     isOwner,
+    useAwareness: process.env.NODE_ENV === 'development', // Enable in development
     onBoardUpdate,
     onCursorMove,
     onElementAdded: useCallback((element: any) => {
@@ -3696,7 +3698,10 @@ function BoardPageContent() {
     return null;
   }
 
-  return (
+  // Feature flag for CRDT awareness system
+  const useAwareness = process.env.NODE_ENV === 'development';
+
+  const content = (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col overflow-hidden">
       {/* Enhanced Responsive Header */}
       <MemoizedCanvasHeader
@@ -4463,5 +4468,16 @@ function BoardPageContent() {
       <ConnectionQualityMonitor />
     </div>
   );
+
+  // Wrap with CRDT Provider if using awareness
+  if (useAwareness) {
+    return (
+      <CRDTProvider config={{ boardId, userId: session?.user?.id || "unknown" }}>
+        {content}
+      </CRDTProvider>
+    );
+  }
+
+  return content;
 }
 
