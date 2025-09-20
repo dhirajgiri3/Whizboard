@@ -103,6 +103,13 @@ export function useCanvasInteractions({
   const isPanning = useRef(false);
   // Stylus pressure tracking
   const pressureRef = useRef<number>(1);
+  // Keep ref to current lines for proper state tracking
+  const linesRef = useRef<ILine[]>(lines);
+
+  // Effect to update lines ref when lines change
+  useEffect(() => {
+    linesRef.current = lines;
+  }, [lines]);
 
   // Enhanced touch gesture support
   const touchGestureRef = useRef<{
@@ -672,7 +679,7 @@ export function useCanvasInteractions({
       frameId: targetFrame?.id,
     };
 
-    setLines([...lines, newLine]);
+    setLines(currentLines => [...currentLines, newLine]);
     setIsDrawing(true);
     lastPointer.current = stagePos;
     lastUpdatePoint.current = null; // Reset for new drawing
@@ -761,8 +768,9 @@ export function useCanvasInteractions({
 
     if (isDrawingInFrame && activeFrameId) {
       const frame = frames.find(f => f.id === activeFrameId);
-      if (frame && lines.length > 0) {
-        const lastLine = lines[lines.length - 1];
+      const currentLines = linesRef.current;
+      if (frame && currentLines.length > 0) {
+        const lastLine = currentLines[currentLines.length - 1];
         if (!lastLine.points || !Array.isArray(lastLine.points)) {
           return; // Skip if the last line doesn't have valid points
         }
@@ -777,8 +785,8 @@ export function useCanvasInteractions({
           strokeWidth: Math.max(1, Math.round((lastLine.tool === 'highlighter' ? strokeWidth * 2 : strokeWidth) * pressureRef.current)),
         };
 
-        setLines(lines.map((line, i) => 
-          i === lines.length - 1 ? updatedLine : line
+        setLines(currentLines => currentLines.map((line, i) =>
+          i === currentLines.length - 1 ? updatedLine : line
         ));
 
         // Check distance threshold before sending real-time update
@@ -799,11 +807,12 @@ export function useCanvasInteractions({
         }
       }
     } else {
-      if (lines.length === 0) {
+      const currentLines = linesRef.current;
+      if (currentLines.length === 0) {
         return; // Skip if there are no lines to update
       }
-      
-      const lastLine = lines[lines.length - 1];
+
+      const lastLine = currentLines[currentLines.length - 1];
       if (!lastLine.points || !Array.isArray(lastLine.points)) {
         return; // Skip if the last line doesn't have valid points
       }
@@ -816,8 +825,8 @@ export function useCanvasInteractions({
         strokeWidth: Math.max(1, Math.round((lastLine.tool === 'highlighter' ? strokeWidth * 2 : strokeWidth) * pressureRef.current)),
       };
 
-      setLines(lines.map((line, i) => 
-        i === lines.length - 1 ? updatedLine : line
+      setLines(currentLines => currentLines.map((line, i) =>
+        i === currentLines.length - 1 ? updatedLine : line
       ));
 
       // Check distance threshold before sending real-time update
@@ -839,7 +848,7 @@ export function useCanvasInteractions({
     }
 
     lastPointer.current = stagePoint;
-  }, [isDrawing, lines, frames, activeFrameId, isDrawingInFrame, handleDrawingInFrame, onRealTimeLineUpdateAction, moveCursorAction, handlePinchZoom]);
+  }, [isDrawing, frames, activeFrameId, isDrawingInFrame, handleDrawingInFrame, onRealTimeLineUpdateAction, moveCursorAction, handlePinchZoom, tool, strokeWidth]);
 
   const handleMouseUp = useCallback(() => {
     // Enhanced touch gesture completion
@@ -877,8 +886,15 @@ export function useCanvasInteractions({
     lastPointer.current = null;
     lastUpdatePoint.current = null; // Reset for next drawing
     isPanning.current = false;
-    onDrawEndAction(lines);
-  }, [lines, onDrawEndAction, addFrame, onFrameAddAction, onRealTimeFrameAction, frames.length, resetTouchGesture]);
+    // Critical fix: Only call onDrawEndAction if we were actually drawing with pen/highlighter
+    if (isDrawing && (tool === 'pen' || tool === 'highlighter')) {
+      // Use ref to get current lines and defer the callback to avoid setState during render
+      const currentLines = linesRef.current;
+      Promise.resolve().then(() => {
+        onDrawEndAction(currentLines);
+      });
+    }
+  }, [isDrawing, tool, onDrawEndAction, resetTouchGesture]);
 
   const handleWheel = useCallback((e: KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault();

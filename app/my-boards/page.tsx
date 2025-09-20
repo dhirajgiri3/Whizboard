@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useRouter } from "next/navigation";
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RequireAuth } from "@/components/auth/ProtectedRoute";
 import {
@@ -27,11 +27,25 @@ import {
   Crown,
   AlertTriangle,
 } from "lucide-react";
-import InviteCollaboratorsModal from "@/components/ui/modal/InviteCollaboratorsModal";
 import { toast } from "sonner";
 import { LoadingOverlay } from "@/components/ui/loading/Loading";
-import CreateBoardModal from "@/components/ui/modal/CreateBoardModal";
-import SuccessModal from "@/components/ui/modal/SuccessModal";
+import dynamic from "next/dynamic";
+
+// Lazy load heavy modal components
+const InviteCollaboratorsModal = dynamic(() => import("@/components/ui/modal/InviteCollaboratorsModal"), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-white/10 rounded-lg h-96" />
+});
+
+const CreateBoardModal = dynamic(() => import("@/components/ui/modal/CreateBoardModal"), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-white/10 rounded-lg h-96" />
+});
+
+const SuccessModal = dynamic(() => import("@/components/ui/modal/SuccessModal"), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-white/10 rounded-lg h-96" />
+});
 
 const GET_MY_BOARDS = gql`
   query GetMyBoards {
@@ -103,6 +117,7 @@ const MyBoardsPage = () => {
 
   const { data: boardUsageData } = useQuery(GET_BOARD_USAGE, {
     errorPolicy: "all",
+    skip: !data?.myBoards, // Only load after boards are loaded
     onError: (error) => {
       console.error("Error fetching board usage:", error);
     },
@@ -163,23 +178,21 @@ const MyBoardsPage = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Filtered and sorted boards
-  const filteredAndSortedBoards = useMemo(() => {
-    console.log("My boards data:", data);
-    console.log("My boards array:", data?.myBoards);
+  // Simplified filtering and sorting
+  const getFilteredAndSortedBoards = () => {
     if (!data?.myBoards) return [];
 
-    let boards = [...data.myBoards];
+    let boards = data.myBoards;
 
     // Filter by search query
     if (searchQuery) {
-      boards = boards.filter((board) =>
+      boards = boards.filter((board: Board) =>
         board.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     // Sort boards
-    boards.sort((a, b) => {
+    boards.sort((a: Board, b: Board) => {
       switch (sortBy) {
         case "name":
           return a.name.localeCompare(b.name);
@@ -202,24 +215,24 @@ const MyBoardsPage = () => {
     });
 
     return boards;
-  }, [data?.myBoards, searchQuery, sortBy]);
+  };
+
+  const filteredAndSortedBoards = getFilteredAndSortedBoards();
 
   // Reset page on search/sort change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, sortBy]);
 
-  const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil(filteredAndSortedBoards.length / pageSize));
-  }, [filteredAndSortedBoards.length]);
+  const totalPages = Math.max(1, Math.ceil(filteredAndSortedBoards.length / pageSize));
 
-  const paginatedBoards = useMemo(() => {
+  const paginatedBoards = (() => {
     const start = (currentPage - 1) * pageSize;
     return filteredAndSortedBoards.slice(start, start + pageSize);
-  }, [filteredAndSortedBoards, currentPage]);
+  })();
 
-  // Board statistics
-  const boardStats = useMemo(() => {
+  // Simplified board statistics - calculate only when needed
+  const getBoardStats = () => {
     if (!data?.myBoards) return null;
 
     const boards = data.myBoards;
@@ -228,9 +241,9 @@ const MyBoardsPage = () => {
       (acc: number, board: Board) => acc + (board.collaborators?.length || 0),
       0
     );
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     const recentBoards = boards.filter((board: Board) => {
-      const updatedAt = new Date(board.updatedAt || 0);
-      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const updatedAt = new Date(board.updatedAt || 0).getTime();
       return updatedAt > weekAgo;
     }).length;
 
@@ -243,7 +256,7 @@ const MyBoardsPage = () => {
           ? Math.round((totalCollaborators / totalBoards) * 10) / 10
           : 0,
     };
-  }, [data?.myBoards]);
+  };
 
   const handleCreateBoard = async () => {
     if (newBoardName.trim() !== "") {
@@ -260,15 +273,12 @@ const MyBoardsPage = () => {
     }
   };
 
-  const handleBoardCreated = useCallback(
-    (board: { id: string; name: string }) => {
-      setCreatedBoard({ id: board.id, name: board.name });
-      setShowCreateModal(false);
-      setShowSuccessModal(true);
-      refetch();
-    },
-    [refetch]
-  );
+  const handleBoardCreated = (board: { id: string; name: string }) => {
+    setCreatedBoard({ id: board.id, name: board.name });
+    setShowCreateModal(false);
+    setShowSuccessModal(true);
+    refetch();
+  };
 
   const inviteToBoard = (board: Board) => {
     setSelectedBoard(board);
@@ -475,7 +485,7 @@ const MyBoardsPage = () => {
 
         {/* Statistics Panel */}
         <AnimatePresence>
-          {showStats && boardStats && (
+          {showStats && getBoardStats() && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}>
               <SectionCard className="mb-6">
                 <div className="flex items-center justify-between mb-4">
@@ -492,28 +502,28 @@ const MyBoardsPage = () => {
                       <Folder className="w-4 h-4 text-blue-400" />
                       <span className="text-sm text-white/70">Total Boards</span>
                     </div>
-                    <div className="text-2xl font-semibold text-white">{boardStats.total}</div>
+                    <div className="text-2xl font-semibold text-white">{getBoardStats()?.total}</div>
                   </div>
                   <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
                     <div className="flex items-center gap-2 mb-1">
                       <Users className="w-4 h-4 text-emerald-400" />
                       <span className="text-sm text-white/70">Collaborators</span>
                     </div>
-                    <div className="text-2xl font-semibold text-white">{boardStats.collaborators}</div>
+                    <div className="text-2xl font-semibold text-white">{getBoardStats()?.collaborators}</div>
                   </div>
                   <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
                     <div className="flex items-center gap-2 mb-1">
                       <Activity className="w-4 h-4 text-blue-300" />
                       <span className="text-sm text-white/70">Active This Week</span>
                     </div>
-                    <div className="text-2xl font-semibold text-white">{boardStats.recent}</div>
+                    <div className="text-2xl font-semibold text-white">{getBoardStats()?.recent}</div>
                   </div>
                   <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
                     <div className="flex items-center gap-2 mb-1">
                       <BarChart3 className="w-4 h-4 text-amber-300" />
                       <span className="text-sm text-white/70">Avg. Collaborators</span>
                     </div>
-                    <div className="text-2xl font-semibold text-white">{boardStats.average}</div>
+                    <div className="text-2xl font-semibold text-white">{getBoardStats()?.average}</div>
                   </div>
                 </div>
 

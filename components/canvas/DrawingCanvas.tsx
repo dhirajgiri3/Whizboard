@@ -1,5 +1,5 @@
-import React, { useRef, useState, useEffect, useCallback, memo } from 'react';
-import { Stage, Layer } from 'react-konva';
+import React, { useState, useEffect, useCallback, memo } from 'react';
+import { Stage } from 'react-konva';
 import { KonvaEventObject } from 'konva/lib/Node';
 import Konva from 'konva';
 import { Tool } from '@/types';
@@ -11,7 +11,7 @@ import { CanvasControls } from './CanvasControls';
 import { EnhancedCursor } from '@/types';
 import TextEditor from './text/TextEditor';
 import { useMemoryProfiler } from '@/lib/performance/MemoryProfiler';
-import { markStart, markEnd, usePerformanceMeasure } from '@/lib/performance/PerformanceMarkers';
+import { usePerformanceMeasure } from '@/lib/performance/PerformanceMarkers';
 
 interface DrawingCanvasProps {
   stageRef: React.RefObject<Konva.Stage | null>;
@@ -96,7 +96,7 @@ const DrawingCanvas = memo(function DrawingCanvas({
   initialImageElements = [],
   isFramePlacementMode = false,
   selectedStickyNote,
-  selectedFrame,
+  selectedFrame: _selectedFrame,
   selectedTextElement,
   editingTextElement,
   selectedShape,
@@ -107,7 +107,7 @@ const DrawingCanvas = memo(function DrawingCanvas({
   showGrid: showGridProp = true,
   onDrawEndAction,
   onEraseAction,
-  onStickyNoteAddAction,
+  onStickyNoteAddAction: _onStickyNoteAddAction,
   onStickyNoteUpdateAction,
   onStickyNoteDeleteAction,
   onStickyNoteSelectAction,
@@ -119,7 +119,7 @@ const DrawingCanvas = memo(function DrawingCanvas({
   onFrameSelectAction,
   onFrameDragStartAction,
   onFrameDragEndAction,
-  onTextElementAddAction,
+  onTextElementAddAction: _onTextElementAddAction,
   onTextElementUpdateAction,
   onTextElementDeleteAction,
   onTextElementSelectAction,
@@ -127,13 +127,13 @@ const DrawingCanvas = memo(function DrawingCanvas({
   onTextElementFinishEditAction,
   onTextElementDragStartAction,
   onTextElementDragEndAction,
-  onShapeAddAction,
+  onShapeAddAction: _onShapeAddAction,
   onShapeUpdateAction,
   onShapeDeleteAction,
   onShapeSelectAction,
   onShapeDragStartAction,
   onShapeDragEndAction,
-  onImageElementAddAction,
+  onImageElementAddAction: _onImageElementAddAction,
   onImageElementUpdateAction,
   onImageElementDeleteAction,
   onImageElementSelectAction,
@@ -147,23 +147,26 @@ const DrawingCanvas = memo(function DrawingCanvas({
   onRealTimeLineUpdateAction,
   onRealTimeFrameAction,
   onRealTimeFrameDeleteAction,
-  onRealTimeTextElementAction,
-  onRealTimeTextElementDeleteAction,
-  onRealTimeImageElementAction,
-  onRealTimeImageElementDeleteAction,
+  onRealTimeTextElementAction: _onRealTimeTextElementAction,
+  onRealTimeTextElementDeleteAction: _onRealTimeTextElementDeleteAction,
+  onRealTimeImageElementAction: _onRealTimeImageElementAction,
+  onRealTimeImageElementDeleteAction: _onRealTimeImageElementDeleteAction,
 }: DrawingCanvasProps) {
-  // Development profiling
-  useMemoryProfiler('DrawingCanvas');
-  usePerformanceMeasure('DrawingCanvas');
+  // Remove performance monitoring in production
+  if (process.env.NODE_ENV === 'development') {
+    useMemoryProfiler('DrawingCanvas');
+    usePerformanceMeasure('DrawingCanvas');
+  }
+
   // State management
   const [lines, setLines] = useState<ILine[]>(initialLines);
   const [stickyNotes, setStickyNotes] = useState<StickyNoteElement[]>(initialStickyNotes);
   const [textElements, setTextElements] = useState<TextElement[]>(initialTextElements);
   const [shapes, setShapes] = useState<ShapeElement[]>(initialShapes);
   const [imageElements, setImageElements] = useState<ImageElement[]>(initialImageElements);
-  const [dimensions, setDimensions] = useState({ 
-    width: typeof window !== 'undefined' ? window.innerWidth : 1920, 
-    height: typeof window !== 'undefined' ? window.innerHeight : 1080 
+  const [dimensions, setDimensions] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1920,
+    height: typeof window !== 'undefined' ? window.innerHeight : 1080
   });
 
   // Frame management
@@ -177,7 +180,7 @@ const DrawingCanvas = memo(function DrawingCanvas({
     selectFrames,
     clearSelection,
     replaceFrames,
-    selectAll,
+    selectAll: _selectAll,
   } = useFrameManager(initialFrames);
 
   // Canvas interactions hook
@@ -367,7 +370,7 @@ const DrawingCanvas = memo(function DrawingCanvas({
   useEffect(() => {
     setLines(initialLines);
   }, [initialLines]);
-  
+
   useEffect(() => {
     setShapes(initialShapes);
   }, [initialShapes]);
@@ -377,16 +380,16 @@ const DrawingCanvas = memo(function DrawingCanvas({
   }, [initialStickyNotes]);
 
   useEffect(() => {
-    replaceFrames(initialFrames);
-  }, [initialFrames, replaceFrames]);
-
-  useEffect(() => {
     setTextElements(initialTextElements);
   }, [initialTextElements]);
 
   useEffect(() => {
     setImageElements(initialImageElements);
   }, [initialImageElements]);
+
+  useEffect(() => {
+    replaceFrames(initialFrames);
+  }, [initialFrames, replaceFrames]);
 
   // Ensure Konva stage redraws promptly when collaborative state updates arrive
   useEffect(() => {
@@ -501,6 +504,18 @@ const DrawingCanvas = memo(function DrawingCanvas({
     }
   }, [onImageElementDragEndAction]);
 
+  const handleShapeDragStart = useCallback(() => {
+    if (onShapeDragStartAction) {
+      onShapeDragStartAction();
+    }
+  }, [onShapeDragStartAction]);
+
+  const handleShapeDragEnd = useCallback(() => {
+    if (onShapeDragEndAction) {
+      onShapeDragEndAction();
+    }
+  }, [onShapeDragEndAction]);
+
   // Enhanced stage configuration for mobile/tablet
   const stageConfig = {
     width: dimensions.width,
@@ -532,7 +547,7 @@ const DrawingCanvas = memo(function DrawingCanvas({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onWheel={handleWheel}
-        style={{ 
+        style={{
           cursor: getCursor(),
           // Enhanced touch action for mobile and tablet
           touchAction: (touchOptimized || isTablet) ? 'none' : 'auto',
@@ -583,15 +598,7 @@ const DrawingCanvas = memo(function DrawingCanvas({
             handleMouseMove(mouseEvent as any);
           }
         } : undefined}
-        onTouchEnd={(touchOptimized || isTablet) ? (e) => {
-          const mouseEvent = {
-            ...e,
-            evt: {
-              ...e.evt,
-              preventDefault: () => e.evt.preventDefault(),
-              stopPropagation: () => e.evt.stopPropagation(),
-            }
-          };
+        onTouchEnd={(touchOptimized || isTablet) ? () => {
           handleMouseUp();
         } : undefined}
       >
@@ -618,6 +625,7 @@ const DrawingCanvas = memo(function DrawingCanvas({
           strokeWidth={strokeWidth}
           hoveredLineIndex={hoveredLineIndex}
           showFrameAlignment={showFrameAlignment}
+          isDrawing={isDrawing}
 
           // Props not used by CanvasLayers have been removed to match its interface
           cursors={cursors}
@@ -735,46 +743,85 @@ const DrawingCanvas = memo(function DrawingCanvas({
     </div>
   );
 }, (prevProps, nextProps) => {
-  // Custom comparison function to prevent unnecessary re-renders
-  const simpleProps = ['tool', 'color', 'strokeWidth', 'isFramePlacementMode', 'isMobile', 'isTablet', 'showGrid'];
+  // Enhanced comparison function with better performance
 
-  for (const prop of simpleProps) {
-    if (prevProps[prop as keyof typeof prevProps] !== nextProps[prop as keyof typeof nextProps]) {
+  // Quick reference check for props that change frequently
+  if (prevProps === nextProps) return true;
+
+  // Check simple props that change frequently
+  const criticalProps = ['tool', 'color', 'strokeWidth'] as const;
+  for (const prop of criticalProps) {
+    if (prevProps[prop] !== nextProps[prop]) {
       return false;
     }
   }
 
-  // Check selected items
+  // Check boolean flags
+  const booleanProps = ['isFramePlacementMode', 'isMobile', 'isTablet', 'showGrid'] as const;
+  for (const prop of booleanProps) {
+    if (prevProps[prop] !== nextProps[prop]) {
+      return false;
+    }
+  }
+
+  // Check selected items efficiently
   const selectedProps = [
     'selectedStickyNote', 'selectedFrame', 'selectedTextElement',
     'selectedShape', 'selectedImageElement'
-  ];
+  ] as const;
   for (const prop of selectedProps) {
-    if (prevProps[prop as keyof typeof prevProps] !== nextProps[prop as keyof typeof nextProps]) {
+    if (prevProps[prop] !== nextProps[prop]) {
       return false;
     }
   }
 
-  // Check arrays length and reference
+  // Check arrays with early exit and shallow comparison
   const arrayProps = [
     'initialLines', 'initialStickyNotes', 'initialFrames',
     'initialTextElements', 'initialShapes', 'initialImageElements', 'selectedShapes'
-  ];
+  ] as const;
+
   for (const prop of arrayProps) {
-    const prevArray = prevProps[prop as keyof typeof prevProps] as any[];
-    const nextArray = nextProps[prop as keyof typeof nextProps] as any[];
-    if (prevArray?.length !== nextArray?.length || prevArray !== nextArray) {
+    const prevArray = prevProps[prop] as unknown[];
+    const nextArray = nextProps[prop] as unknown[];
+
+    // Quick reference check
+    if (prevArray === nextArray) continue;
+
+    // Length check
+    const prevLen = prevArray?.length ?? 0;
+    const nextLen = nextArray?.length ?? 0;
+    if (prevLen !== nextLen) {
+      return false;
+    }
+
+    // For arrays with many elements, do a deeper check only if lengths match but refs differ
+    if (prevArray && nextArray && prevLen > 0) {
+      // For performance, we trust that if the array reference changed but length is same,
+      // there might be meaningful changes
       return false;
     }
   }
 
-  // Check editingTextElement
-  if (prevProps.editingTextElement?.id !== nextProps.editingTextElement?.id) {
+  // Check editingTextElement efficiently
+  const prevEditingId = prevProps.editingTextElement?.id;
+  const nextEditingId = nextProps.editingTextElement?.id;
+  if (prevEditingId !== nextEditingId) {
     return false;
   }
 
-  // Check cursors object (shallow comparison)
-  if (Object.keys(prevProps.cursors || {}).length !== Object.keys(nextProps.cursors || {}).length) {
+  // Optimized cursors comparison
+  const prevCursors = prevProps.cursors || {};
+  const nextCursors = nextProps.cursors || {};
+  const prevCursorKeys = Object.keys(prevCursors);
+  const nextCursorKeys = Object.keys(nextCursors);
+
+  if (prevCursorKeys.length !== nextCursorKeys.length) {
+    return false;
+  }
+
+  // Quick check for cursor changes (reference comparison)
+  if (prevCursors !== nextCursors && prevCursorKeys.length > 0) {
     return false;
   }
 

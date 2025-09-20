@@ -125,6 +125,7 @@ interface CanvasLayersProps {
   strokeWidth: number;
   hoveredLineIndex: number | null;
   showFrameAlignment: boolean;
+  isDrawing: boolean;
 
   cursors?: Record<string, EnhancedCursor>; // Optional - falls back to awareness
   useAwareness?: boolean; // Flag to use new awareness system
@@ -183,6 +184,7 @@ const CanvasLayers = memo(function CanvasLayers({
   strokeWidth,
   hoveredLineIndex,
   showFrameAlignment,
+  isDrawing,
   cursors,
   useAwareness = false,
   handleLineClick,
@@ -345,15 +347,15 @@ const CanvasLayers = memo(function CanvasLayers({
             points={points}
             stroke={line.color || '#000000'}
             strokeWidth={baseStrokeWidth}
-            tension={0.4}
+            tension={line.tool === 'highlighter' ? 0.2 : 0.4} // Less tension for highlighter for more precision
             lineCap="round"
             lineJoin="round"
             shadowColor={shadowColor}
             shadowBlur={shadowBlur}
             shadowOpacity={shadowOpacity}
             globalCompositeOperation={
-              line.tool === 'eraser' ? 'destination-out' : 
-              line.tool === 'highlighter' ? 'screen' : 'source-over'
+              line.tool === 'eraser' ? 'destination-out' :
+              line.tool === 'highlighter' ? 'multiply' : 'source-over' // Changed to 'multiply' for better highlighter effect
             }
             perfectDrawEnabled={false}
             listening={isClickable}
@@ -596,7 +598,7 @@ const CanvasLayers = memo(function CanvasLayers({
         {useAwareness ? (
           <LiveCursorsAware
             currentTool={tool}
-            isDrawing={tool === 'pen' || tool === 'highlighter'}
+            isDrawing={isDrawing}
             isSelecting={tool === 'select'}
             activeElementId={selectedTextElement || selectedShape || selectedStickyNote || undefined}
           />

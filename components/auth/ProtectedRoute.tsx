@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect, ReactNode } from 'react';
+import { useEffect, ReactNode, useMemo } from 'react';
 import { LoadingOverlay } from '@/components/ui/loading/Loading';
 
 interface ProtectedRouteProps {
@@ -24,36 +24,46 @@ export default function ProtectedRoute({
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    if (status === 'loading') return;
+  // Memoize auth state to prevent unnecessary recalculations
+  const authState = useMemo(() => {
+    if (status === 'loading') return { shouldShow: false, isLoading: true };
 
-    // If authentication is required and user is not authenticated
-    if (requireAuth && !session) {
+    const isAuthenticated = !!session;
+
+    if (requireAuth && !isAuthenticated) {
+      return { shouldShow: false, isLoading: false, needsLogin: true };
+    }
+
+    if (requireUnauth && isAuthenticated) {
+      return { shouldShow: false, isLoading: false, needsRedirect: true };
+    }
+
+    return { shouldShow: true, isLoading: false };
+  }, [session, status, requireAuth, requireUnauth]);
+
+  useEffect(() => {
+    if (authState.isLoading) return;
+
+    if (authState.needsLogin) {
       const loginUrl = `/login?callbackUrl=${encodeURIComponent(pathname || '/')}`;
       router.push(loginUrl);
       return;
     }
 
-    // If unauthenticated access is required and user is authenticated
-    if (requireUnauth && session) {
+    if (authState.needsRedirect) {
       const redirectUrl = redirectTo || '/my-boards';
       router.push(redirectUrl);
       return;
     }
-  }, [session, status, requireAuth, requireUnauth, redirectTo, router, pathname]);
+  }, [authState, router, pathname, redirectTo]);
 
   // Show loading while checking authentication
-  if (status === 'loading') {
+  if (authState.isLoading) {
     return <>{fallback}</>;
   }
 
-  // If authentication is required and user is not authenticated, don't render children
-  if (requireAuth && !session) {
-    return <>{fallback}</>;
-  }
-
-  // If unauthenticated access is required and user is authenticated, don't render children
-  if (requireUnauth && session) {
+  // Don't render children if not authorized
+  if (!authState.shouldShow) {
     return <>{fallback}</>;
   }
 

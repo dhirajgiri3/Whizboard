@@ -4,30 +4,28 @@ import dynamic from "next/dynamic";
 import { useRef, useEffect, useCallback, useState, useMemo, memo } from "react";
 import { gql, useMutation, useSubscription, useQuery } from "@apollo/client";
 import { useSession } from "next-auth/react";
-// Lazy load heavy modal and toolbar components
-const ExportModal = dynamic(() => import("@/components/ui/modal/ExportModal"), { ssr: false });
-const ImportModal = dynamic(() => import("@/components/ui/modal/ImportModal"), { ssr: false });
-const FileManagerModal = dynamic(() => import("@/components/ui/modal/FileManagerModal"), { ssr: false });
-const GoogleDrivePickerModal = dynamic(() => import("@/components/ui/modal/GoogleDrivePickerModal"), { ssr: false });
-const MainToolbar = dynamic(() => import("@/components/toolbar/MainToolbar"), { ssr: false });
-const FloatingStickyNoteToolbar = dynamic(() => import("@/components/toolbar/stickynote/FloatingStickyNoteToolbar"), { ssr: false });
-const FloatingFrameToolbar = dynamic(() => import("@/components/toolbar/frame/FloatingFrameToolbar"), { ssr: false });
-const FloatingTextToolbar = dynamic(() => import("@/components/toolbar/text/FloatingTextToolbar"), { ssr: false });
-const FloatingShapesToolbar = dynamic(() => import("@/components/toolbar/shape/FloatingShapesToolbar"), { ssr: false });
-const CollaborationPanel = dynamic(() => import("@/components/layout/CollaborationPanel"), { ssr: false });
+import ExportModal from "@/components/ui/modal/ExportModal";
+import ImportModal from "@/components/ui/modal/ImportModal";
+import FileManagerModal from "@/components/ui/modal/FileManagerModal";
+import GoogleDrivePickerModal from "@/components/ui/modal/GoogleDrivePickerModal";
+import MainToolbar from "@/components/toolbar/MainToolbar";
+import FloatingStickyNoteToolbar from "@/components/toolbar/stickynote/FloatingStickyNoteToolbar";
+import FloatingFrameToolbar from "@/components/toolbar/frame/FloatingFrameToolbar";
+import FloatingTextToolbar from "@/components/toolbar/text/FloatingTextToolbar";
+import FloatingShapesToolbar from "@/components/toolbar/shape/FloatingShapesToolbar";
+import CollaborationPanel from "@/components/layout/CollaborationPanel";
 import { useParams } from "next/navigation";
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import logger from "@/lib/logger/logger";
 import { LoadingOverlay } from "@/components/ui/loading/Loading";
 import { X, AlertCircle, ChevronUp, ChevronDown } from "lucide-react";
-// More lazy loaded modals
-const RenameBoardModal = dynamic(() => import("@/components/ui/modal/RenameBoardModal"), { ssr: false });
-const InviteCollaboratorsModal = dynamic(() => import("@/components/ui/modal/InviteCollaboratorsModal"), { ssr: false });
-const UserManagementModal = dynamic(() => import("@/components/ui/modal/UserManagementModal"), { ssr: false });
-const SuccessModal = dynamic(() => import("@/components/ui/modal/SuccessModal"), { ssr: false });
+import RenameBoardModal from "@/components/ui/modal/RenameBoardModal";
+import InviteCollaboratorsModal from "@/components/ui/modal/InviteCollaboratorsModal";
+import UserManagementModal from "@/components/ui/modal/UserManagementModal";
+import SuccessModal from "@/components/ui/modal/SuccessModal";
 import { toast } from "sonner";
-const CanvasHeader = dynamic(() => import("@/components/layout/header/utils/CanvasHeader"), { ssr: false });
+import CanvasHeader from "@/components/layout/header/utils/CanvasHeader";
 import {
   BoardProvider,
   useBoardContext,
@@ -204,14 +202,44 @@ export default function BoardPage() {
   );
 }
 
-// Simplified components without expensive memoization
+// Memoized toolbar component to prevent unnecessary re-renders
+const MemoizedMainToolbar = memo(MainToolbar, (prevProps, nextProps) => {
+  return (
+    prevProps.tool === nextProps.tool &&
+    prevProps.canUndo === nextProps.canUndo &&
+    prevProps.canRedo === nextProps.canRedo &&
+    prevProps.isMobile === nextProps.isMobile &&
+    prevProps.isTablet === nextProps.isTablet
+  );
+});
+
+// Memoized collaboration panel to prevent re-renders when not needed
+const MemoizedCollaborationPanel = memo(CollaborationPanel, (prevProps, nextProps) => {
+  return (
+    prevProps.users?.length === nextProps.users?.length &&
+    prevProps.currentUserId === nextProps.currentUserId &&
+    prevProps.currentUserRole === nextProps.currentUserRole &&
+    prevProps.canManageUsers === nextProps.canManageUsers
+  );
+});
+
+// Memoized canvas header to prevent re-renders
+const MemoizedCanvasHeader = memo(CanvasHeader, (prevProps, nextProps) => {
+  return (
+    prevProps.boardName === nextProps.boardName &&
+    prevProps.zoomLevel === nextProps.zoomLevel &&
+    prevProps.isPresentationMode === nextProps.isPresentationMode &&
+    prevProps.showGrid === nextProps.showGrid &&
+    prevProps.isMobile === nextProps.isMobile &&
+    prevProps.isTablet === nextProps.isTablet &&
+    prevProps.onlineUsers?.length === nextProps.onlineUsers?.length
+  );
+});
 
 function BoardPageContent() {
-  // Remove performance monitoring in production
-  if (process.env.NODE_ENV === 'development') {
-    useMemoryProfiler('BoardPageContent');
-    usePerformanceMeasure('BoardPageContent');
-  }
+  // Development profiling
+  useMemoryProfiler('BoardPageContent');
+  usePerformanceMeasure('BoardPageContent');
 
   const { data: session, status } = useSession();
   const params = useParams();
@@ -3683,7 +3711,7 @@ function BoardPageContent() {
   const content = (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col overflow-hidden">
       {/* Enhanced Responsive Header */}
-      <CanvasHeader
+      <MemoizedCanvasHeader
         currentUser={currentUser}
         onlineUsers={filteredOnlineUsers}
         boardId={boardId}
@@ -3725,7 +3753,7 @@ function BoardPageContent() {
         >
           <div className="flex-1 flex flex-col items-center py-6 space-y-4">
             {/* Main Toolbar */}
-            <MainToolbar
+            <MemoizedMainToolbar
               tool={tool}
               setToolAction={setToolAction}
               undoAction={handleUndo}
@@ -3797,7 +3825,7 @@ function BoardPageContent() {
                     <X size={20} />
                   </button>
                 </div>
-                <MainToolbar
+                <MemoizedMainToolbar
                   tool={tool}
                   setToolAction={setToolAction}
                   undoAction={handleUndo}
@@ -3845,7 +3873,7 @@ function BoardPageContent() {
                       <X size={20} />
                     </button>
                   </div>
-                  <CollaborationPanel
+                  <MemoizedCollaborationPanel
                     users={[currentUser, ...filteredOnlineUsers]}
                     currentUserId={localUserId}
                     onInviteAction={handleInviteCollaborators}
@@ -4226,7 +4254,7 @@ function BoardPageContent() {
       `}
       >
         <div className={`px-4 ${isMobile ? "py-2" : "py-3"}`}>
-          <MainToolbar
+          <MemoizedMainToolbar
             tool={tool}
             setToolAction={setToolAction}
             undoAction={handleUndo}
