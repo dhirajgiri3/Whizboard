@@ -1,6 +1,6 @@
 'use client';
 
-import { useOffline } from '@/hooks/useOffline';
+import { useOffline } from '@/hooks';
 import { Wifi, WifiOff, Cloud, AlertCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 

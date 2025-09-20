@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { getStickyNoteColorPalette } from '../components/canvas/stickynote/StickyNote';
+import { getStickyNoteColorPalette } from '@/components/canvas/stickynote/StickyNote';
 
 interface UseStickyNoteColorResult {
   currentColor: string;

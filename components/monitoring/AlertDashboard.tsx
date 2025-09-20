@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAlertSystem } from '@/hooks/useAlertSystem';
+import { useAlertSystem } from '@/hooks';
 import { AlertSeverity } from '@/lib/utils/alert-system';
 
 interface AlertDashboardProps {

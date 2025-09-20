@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useOffline } from '@/hooks/useOffline';
+import { useOffline } from '@/hooks';
 import { useSession } from 'next-auth/react';
 import {
   Wifi,

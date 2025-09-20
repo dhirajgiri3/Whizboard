@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, Image, FileText, Download, ExternalLink } from 'lucide-react';
-import { useGoogleDrive, GoogleDriveFile } from '@/hooks/useGoogleDrive';
+import { useGoogleDrive, GoogleDriveFile } from '@/hooks';
 import { toast } from 'sonner';
 
 interface GoogleDrivePickerModalProps {

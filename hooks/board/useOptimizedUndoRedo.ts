@@ -1,10 +1,10 @@
 /**
  * Optimized Undo/Redo Hook
- * Provides instant, local undo/redo functionality without server calls
+ * Provides high-performance history management for board elements
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { BoardElement } from '../lib/crdt/CRDTCore';
+import { BoardElement } from '@/lib/crdt/CRDTCore';
 
 interface BoardState {
   elements: BoardElement[];

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, Users, MessageSquare, Check, Wifi, WifiOff } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useHeaderTheme } from '../hooks/useHeaderTheme';
-import { useRealTimeNotifications } from '@/hooks/useRealTimeNotifications';
+import { useRealTimeNotifications } from '@/hooks';
 
 interface Notification {
   _id: string;

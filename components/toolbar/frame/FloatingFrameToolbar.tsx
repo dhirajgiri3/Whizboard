@@ -47,7 +47,7 @@ import {
   Moon,
 } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
-import { useFloatingToolbarDrag } from "@/hooks/useFloatingToolbarDrag";
+import { useFloatingToolbarDrag } from "@/hooks";
 import { cn } from "@/lib/utils/utils";
 import type {
   FramePreset,

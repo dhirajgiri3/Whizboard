@@ -19,7 +19,7 @@ import {
   BarChart3,
   Zap
 } from 'lucide-react';
-import { useGoogleDrive } from '@/hooks/useGoogleDrive';
+import { useGoogleDrive } from '@/hooks';
 import { GoogleDriveManager } from './GoogleDriveManager';
 import { GoogleDriveDashboard } from './GoogleDriveDashboard';
 import { toast } from 'sonner';

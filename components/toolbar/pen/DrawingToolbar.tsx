@@ -18,7 +18,7 @@ import {
   Layers
 } from 'lucide-react';
 import { cn } from '@/lib/utils/utils';
-import { useFloatingToolbarDrag } from '@/hooks/useFloatingToolbarDrag';
+import { useFloatingToolbarDrag } from '@/hooks';
 
 // Types
 interface ColorOption {

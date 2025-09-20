@@ -4,7 +4,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import { useScrollDirection } from "@/hooks/useScrollDirection";
+import { useScrollDirection } from "@/hooks";
 import { useHeaderTheme } from "./hooks/useHeaderTheme";
 import { headerAnimations, darkHeaderAnimations } from "./utils/animations";
 import { navigationItems, companyMenuItems, supportMenuItems, userMenuItems } from "./data/menuItems";

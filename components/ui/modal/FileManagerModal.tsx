@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import api from '@/lib/http/axios';
-import { useGoogleDrive, GoogleDriveFile } from '@/hooks/useGoogleDrive';
+import { useGoogleDrive, GoogleDriveFile } from '@/hooks';
 import { toast } from 'sonner';
 import { compressImage, shouldCompressImage, getCompressionRecommendations } from '@/lib/utils/imageCompression';
 

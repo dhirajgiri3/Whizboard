@@ -22,7 +22,7 @@ import {
   X,
   Lightbulb
 } from 'lucide-react';
-import { useGoogleDrive } from '@/hooks/useGoogleDrive';
+import { useGoogleDrive } from '@/hooks';
 import { GoogleDriveManager } from '@/components/ui/google-drive/GoogleDriveManager';
 import { toast } from 'sonner';
 import api from '@/lib/http/axios';

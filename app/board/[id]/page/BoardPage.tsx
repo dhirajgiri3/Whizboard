@@ -31,7 +31,7 @@ import {
   useBoardContext,
 } from "@/lib/context/BoardContext";
 import { OptimizedBoardProvider, useOptimizedBoardContext } from "@/lib/context/OptimizedBoardContext";
-import { useHybridCollaboration } from "@/hooks/useHybridCollaboration";
+import { useHybridCollaboration } from "@/hooks";
 import { CRDTProvider } from "@/lib/crdt/CRDTProvider";
 import { startMeasurement, recordMetric } from "@/lib/utils/performance-metrics";
 import { useMemoryProfiler } from "@/lib/performance/MemoryProfiler";
@@ -64,7 +64,7 @@ import AdvancedSelectionManager from "@/components/canvas/selection/AdvancedSele
 
 import CanvasPerformanceOptimizer from "@/components/canvas/performance/CanvasPerformanceOptimizer";
 import LineToolbar from "@/components/toolbar/line/LineToolbar";
-import { useBoardUserManagement } from "@/hooks/useBoardUserManagement";
+import { useBoardUserManagement } from "@/hooks";
 
 
 const GET_BOARD = gql`

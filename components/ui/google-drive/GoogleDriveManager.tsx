@@ -18,7 +18,7 @@ import {
   RefreshCw,
   X
 } from 'lucide-react';
-import { useGoogleDrive, GoogleDriveFile, GoogleDriveFolder } from '@/hooks/useGoogleDrive';
+import { useGoogleDrive, GoogleDriveFile, GoogleDriveFolder } from '@/hooks';
 import { toast } from 'sonner';
 
 interface GoogleDriveManagerProps {

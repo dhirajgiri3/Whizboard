@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { CRDTProvider } from '@/lib/crdt/CRDTProvider';
-import { useAwarenessCollaboration } from '@/hooks/useAwarenessCollaboration';
+import { useAwarenessCollaboration } from '@/hooks';
 import LiveCursorsAware from '@/components/reatime/LiveCursorsAware';
 import { Stage, Layer } from 'react-konva';
 

@@ -22,7 +22,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { getStickyNoteColorPalette } from "../../canvas/stickynote/StickyNote";
-import { useFloatingToolbarDrag } from "@/hooks/useFloatingToolbarDrag";
+import { useFloatingToolbarDrag } from "@/hooks";
 import { cn } from "@/lib/utils/utils";
 import { toast as sonnerToast } from "sonner";
 

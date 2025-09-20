@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Crown, Shield, User, UserX, UserCheck, MoreVertical, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useBoardUserManagement } from '@/hooks/useBoardUserManagement';
+import { useBoardUserManagement } from '@/hooks';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar/avatar";
 
 interface UserManagementModalProps {

@@ -25,7 +25,7 @@ import {
   Clock,
   TrendingUp,
 } from "lucide-react";
-import { useGoogleDrive } from "@/hooks/useGoogleDrive";
+import { useGoogleDrive } from "@/hooks";
 import { GoogleDriveManager } from "@/components/ui/google-drive/GoogleDriveManager";
 import { GoogleDriveDashboard } from "@/components/ui/google-drive/GoogleDriveDashboard";
 import { GoogleDriveOnboarding } from "@/components/ui/google-drive/GoogleDriveOnboarding";

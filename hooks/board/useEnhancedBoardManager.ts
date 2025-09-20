@@ -4,10 +4,10 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { CRDTCore, BoardElement } from '../lib/crdt/CRDTCore';
+import { CRDTCore, BoardElement } from '@/lib/crdt/CRDTCore';
 import { useOptimizedUndoRedo } from './useOptimizedUndoRedo';
-import { useStickyNoteColor } from './useStickyNoteColor';
-import { StickyNoteElement, FrameElement, TextElement, ShapeElement, ImageElement } from '../types';
+import { useStickyNoteColor } from '@/hooks/ui/useStickyNoteColor';
+import { StickyNoteElement, FrameElement, TextElement, ShapeElement, ImageElement } from '@/types';
 
 interface UseEnhancedBoardManagerProps {
   boardId: string;
