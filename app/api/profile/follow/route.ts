@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
       .toArray();
 
     // Get user details for the follows
-    const usernames = follows.map(follow => 
+    const usernames = follows.map((follow: { followerUsername: string; followingUsername: string }) => 
       type === 'followers' ? follow.followerUsername : follow.followingUsername
     );
 
@@ -167,12 +167,19 @@ export async function GET(request: NextRequest) {
       )
       .toArray();
 
-    const userMap = users.reduce((acc, user) => {
+    interface UserRecord {
+      username: string;
+      name: string;
+      image?: string;
+      bio?: string;
+    }
+
+    const userMap = users.reduce((acc: Record<string, UserRecord>, user: UserRecord) => {
       acc[user.username] = user;
       return acc;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, UserRecord>);
 
-    const result = follows.map(follow => {
+    const result = follows.map((follow: { followerUsername: string; followingUsername: string }) => {
       const username = type === 'followers' ? follow.followerUsername : follow.followingUsername;
       return {
         ...follow,

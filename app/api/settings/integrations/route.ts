@@ -5,6 +5,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { connectToDatabase } from '@/lib/database/mongodb';
 
+// Simple in-memory cache for integration status
+const integrationCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 30000; // 30 seconds cache
+
 // GET: return current integration connection booleans based on stored tokens
 export async function GET() {
   try {
@@ -13,8 +17,16 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const db = await connectToDatabase();
     const userEmail = session.user.email;
+    const cacheKey = `integrations:${userEmail}`;
+
+    // Check cache first
+    const cached = integrationCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return NextResponse.json(cached.data);
+    }
+
+    const db = await connectToDatabase();
     const tokens = await db
       .collection('integrationTokens')
       .find({ userEmail })
@@ -27,6 +39,10 @@ export async function GET() {
       googleDrive: has('googleDrive'),
       slack: has('slack'),
     };
+
+    // Cache the result
+    integrationCache.set(cacheKey, { data: payload, timestamp: Date.now() });
+
     logger.info({ userEmail, ...payload }, 'Integrations status fetched');
     return NextResponse.json(payload);
   } catch (error) {
@@ -73,6 +89,10 @@ export async function PUT(request: NextRequest) {
       userEmail: session.user.email,
       provider: service,
     });
+
+    // Invalidate cache
+    const cacheKey = `integrations:${session.user.email}`;
+    integrationCache.delete(cacheKey);
 
     logger.info({ userEmail: session.user.email, service }, 'Integration disconnected');
     return NextResponse.json({ success: true });

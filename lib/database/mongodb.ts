@@ -39,16 +39,28 @@ if (process.env.NODE_ENV === 'development') {
   logger.info('Creating new MongoDB connection (production).');
 }
 
+// Cache the database connection
+let cachedDb: any = null;
+
 export async function connectToDatabase() {
+  // Return cached connection if available
+  if (cachedDb) {
+    return cachedDb;
+  }
+
   try {
     const mongoClient = await clientPromise;
     const dbName = process.env.DB_NAME || 'whizboard';
     const db = mongoClient.db(dbName);
-    
-    // Test the connection
+
+    // Test the connection only on first connect
     await db.admin().ping();
+
+    // Cache the connection
+    cachedDb = db;
+
     logger.info(`Successfully connected to MongoDB database: ${dbName}`);
-    
+
     return db;
   } catch (error) {
     logger.error('Failed to connect to MongoDB:', error);

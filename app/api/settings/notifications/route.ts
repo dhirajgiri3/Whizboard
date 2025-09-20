@@ -4,6 +4,10 @@ import { authOptions } from '@/lib/auth/options';
 import { connectToDatabase } from '@/lib/database/mongodb';
 import logger from '@/lib/logger/logger';
 
+// Simple in-memory cache for notification settings
+const notificationCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 30000; // 30 seconds cache
+
 type EmailPrefs = {
   boardInvitations: boolean;
   activityUpdates: boolean;
@@ -37,11 +41,20 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const userEmail = session.user.email;
+  const cacheKey = `notifications:${userEmail}`;
+
+  // Check cache first
+  const cached = notificationCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return NextResponse.json(cached.data);
+  }
+
   try {
     const db = await connectToDatabase();
     const settingsDoc = await db
       .collection('userSettings')
-      .findOne({ userEmail: session.user.email }, { projection: { notifications: 1 } });
+      .findOne({ userEmail }, { projection: { notifications: 1 } });
 
     const merged: NotificationPreferences = {
       email: {
@@ -53,6 +66,9 @@ export async function GET() {
         ...(settingsDoc?.notifications?.slack ?? {}),
       },
     };
+
+    // Cache the result
+    notificationCache.set(cacheKey, { data: merged, timestamp: Date.now() });
 
     return NextResponse.json(merged);
   } catch (error) {
@@ -95,6 +111,10 @@ export async function PUT(request: NextRequest) {
       { $set: { notifications: nextPrefs } },
       { upsert: true }
     );
+
+    // Invalidate cache
+    const cacheKey = `notifications:${session.user.email}`;
+    notificationCache.delete(cacheKey);
 
     logger.info({ userEmail: session.user.email, modifiedCount: result.modifiedCount }, 'Saved notification preferences');
 

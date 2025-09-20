@@ -7,7 +7,7 @@ import { EmailService } from '@/lib/email/sendgrid';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '@/lib/logger/logger';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -143,7 +143,15 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      invitations: invitations.map(inv => ({
+      invitations: invitations.map((inv: {
+        _id: ObjectId;
+        email: string;
+        role: string;
+        invitedBy: { name: string };
+        status: string;
+        createdAt: Date;
+        expiresAt: Date;
+      }) => ({
         id: inv._id.toString(),
         email: inv.email,
         role: inv.role,
@@ -160,7 +168,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(request: NextRequest): Promise<NextResponse> {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {

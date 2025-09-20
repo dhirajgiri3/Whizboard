@@ -291,7 +291,7 @@ export async function GET(request: NextRequest) {
       .toArray();
 
     // Convert MongoDB _id to string for frontend compatibility
-    const serializedInvitations = invitations.map(invitation => ({
+    const serializedInvitations = invitations.map((invitation: any) => ({
       ...invitation,
       id: invitation._id.toString(),
       boardId: invitation.boardId.toString(),

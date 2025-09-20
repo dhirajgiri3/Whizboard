@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     // Mark notifications as read if requested
     if (markAsRead && notifications.length > 0) {
-      const notificationIds = notifications.map(n => n._id);
+      const notificationIds = notifications.map((n: any) => n._id);
       await db.collection('notifications').updateMany(
         { 
           _id: { $in: notificationIds },
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       );
 
       // Update the notifications array to reflect read status
-      notifications.forEach(notification => {
+      notifications.forEach((notification: { read: boolean; readAt: Date }) => {
         notification.read = true;
         notification.readAt = new Date();
       });

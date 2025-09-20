@@ -3,7 +3,7 @@
  * Provides all essential CRDT functionality in a clean, optimized package
  */
 
-import * as Y from 'yjs';
+import { Y } from './shared-yjs';
 import { WebsocketProvider } from 'y-websocket';
 import { IndexeddbPersistence } from 'y-indexeddb';
 import { CRDTAwareness } from './CRDTAwareness';

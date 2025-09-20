@@ -5,7 +5,7 @@
 
 import WebSocket from 'ws';
 import { WebSocketServer } from 'ws';
-import * as Y from 'yjs';
+import { Y } from './shared-yjs';
 import * as syncProtocol from 'y-protocols/sync';
 import * as awarenessProtocol from 'y-protocols/awareness';
 import { getCRDTConfig } from './CRDTConfig';

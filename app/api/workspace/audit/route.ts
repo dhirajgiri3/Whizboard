@@ -44,7 +44,15 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      logs: auditLogs.map(log => ({
+      logs: auditLogs.map((log: {
+        _id: ObjectId;
+        action: string;
+        description: string;
+        performedBy: string;
+        targetUser?: string;
+        metadata?: Record<string, unknown>;
+        createdAt: Date;
+      }) => ({
         id: log._id.toString(),
         action: log.action,
         description: log.description,

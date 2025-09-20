@@ -3,7 +3,7 @@
  * Handles ephemeral state like cursors, user presence, and real-time interactions
  */
 
-import * as Y from 'yjs';
+import { Y } from './shared-yjs';
 import { Awareness } from 'y-protocols/awareness';
 
 export interface UserCursor {

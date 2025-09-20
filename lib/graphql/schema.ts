@@ -243,7 +243,7 @@ builder.queryType({
         logger.debug({ id }, "getBoard query received");
         const db = await connectToDatabase();
         const board = await db
-          .collection<BoardDocument>("boards")
+          .collection("boards")
           .findOne({ _id: new ObjectId(id) });
 
         if (!board) {
@@ -279,7 +279,7 @@ builder.queryType({
 
         const db = await connectToDatabase();
         const boards = await db
-          .collection<BoardDocument>("boards")
+          .collection("boards")
           .find({ createdBy: new ObjectId(session.user.id) })
           .toArray();
 
@@ -324,7 +324,7 @@ builder.queryType({
 
         const db = await connectToDatabase();
         const userBoardCount = await db
-          .collection<BoardDocument>("boards")
+          .collection("boards")
           .countDocuments({
             createdBy: new ObjectId(session.user.id),
           });
@@ -379,7 +379,7 @@ builder.mutationType({
         // Free plan users are limited to 5 boards maximum
         // This ensures compliance with the pricing model defined in Pricing.tsx
         const userBoardCount = await db
-          .collection<BoardDocument>("boards")
+          .collection("boards")
           .countDocuments({
             createdBy: new ObjectId(session.user.id),
           });
@@ -415,7 +415,7 @@ builder.mutationType({
           isPublic: true,
         };
         const result = await db
-          .collection<BoardDocument>("boards")
+          .collection("boards")
           .insertOne(newBoardDocument as any);
         logger.info({ boardId: result.insertedId }, "New board created");
 
@@ -524,7 +524,7 @@ builder.mutationType({
         }
         const db = await connectToDatabase();
         const board = await db
-          .collection<BoardDocument>("boards")
+          .collection("boards")
           .findOne({ _id: new ObjectId(id) });
         if (!board) {
           throw new Error("Board not found");
@@ -533,13 +533,13 @@ builder.mutationType({
           throw new Error("You are not authorized to update this board");
         }
         await db
-          .collection<BoardDocument>("boards")
+          .collection("boards")
           .updateOne(
             { _id: new ObjectId(id) },
             { $set: { name, updatedAt: new Date() } }
           );
         const updatedBoard = await db
-          .collection<BoardDocument>("boards")
+          .collection("boards")
           .findOne({ _id: new ObjectId(id) });
         if (!updatedBoard) {
           throw new Error("Board not found after update");
@@ -567,7 +567,7 @@ builder.mutationType({
         }
         const db = await connectToDatabase();
         const board = await db
-          .collection<BoardDocument>("boards")
+          .collection("boards")
           .findOne({ _id: new ObjectId(id) });
         if (!board) {
           throw new Error("Board not found");
@@ -576,7 +576,7 @@ builder.mutationType({
           throw new Error("You are not authorized to delete this board");
         }
         await db
-          .collection<BoardDocument>("boards")
+          .collection("boards")
           .deleteOne({ _id: new ObjectId(id) });
         return id;
       },
@@ -609,7 +609,7 @@ builder.mutationType({
           updatedAt: new Date(),
         };
 
-        const result = await db.collection<BoardDocument>("boards").updateOne(
+        const result = await db.collection("boards").updateOne(
           { _id: new ObjectId(boardId) },
           {
             $push: {
@@ -628,7 +628,7 @@ builder.mutationType({
         }
 
         const updatedBoard = await db
-          .collection<BoardDocument>("boards")
+          .collection("boards")
           .findOne({ _id: new ObjectId(boardId) });
 
         if (updatedBoard) {
@@ -718,7 +718,7 @@ builder.mutationType({
         }
         const db = await connectToDatabase();
         const board = await db
-          .collection<BoardDocument>("boards")
+          .collection("boards")
           .findOne({ _id: new ObjectId(boardId) });
         if (!board) throw new Error("Board not found");
 
@@ -780,7 +780,7 @@ builder.mutationType({
           }
         }
 
-        await db.collection<BoardDocument>("boards").updateOne(
+        await db.collection("boards").updateOne(
           { _id: new ObjectId(boardId) },
           {
             $set: {
@@ -803,7 +803,7 @@ builder.mutationType({
           }
         );
         const updatedBoard = await db
-          .collection<BoardDocument>("boards")
+          .collection("boards")
           .findOne({ _id: new ObjectId(boardId) });
         if (updatedBoard) {
           const boardForPublish: Board = {
@@ -837,7 +837,7 @@ builder.mutationType({
         if (!session?.user?.id) throw new Error("Authentication required");
         const db = await connectToDatabase();
         const board = await db
-          .collection<BoardDocument>("boards")
+          .collection("boards")
           .findOne({ _id: new ObjectId(boardId) });
         if (!board) throw new Error("Board not found");
         const history = board.history || [];
@@ -908,7 +908,7 @@ builder.mutationType({
           }
         }
 
-        await db.collection<BoardDocument>("boards").updateOne(
+        await db.collection("boards").updateOne(
           { _id: new ObjectId(boardId) },
           {
             $set: {
@@ -930,7 +930,7 @@ builder.mutationType({
           }
         );
         const updatedBoard = await db
-          .collection<BoardDocument>("boards")
+          .collection("boards")
           .findOne({ _id: new ObjectId(boardId) });
         if (updatedBoard) {
           pubSub.publish("boardUpdates", boardId, {
@@ -963,7 +963,7 @@ builder.mutationType({
         if (!session?.user?.id) throw new Error("Authentication required");
         const db = await connectToDatabase();
         const board = await db
-          .collection<BoardDocument>("boards")
+          .collection("boards")
           .findOne({ _id: new ObjectId(boardId) });
         if (!board) throw new Error("Board not found");
         const history = board.history || [];
@@ -1026,7 +1026,7 @@ builder.mutationType({
             elements = [];
           }
         }
-        await db.collection<BoardDocument>("boards").updateOne(
+        await db.collection("boards").updateOne(
           { _id: new ObjectId(boardId) },
           {
             $set: {
@@ -1048,7 +1048,7 @@ builder.mutationType({
           }
         );
         const updatedBoard = await db
-          .collection<BoardDocument>("boards")
+          .collection("boards")
           .findOne({ _id: new ObjectId(boardId) });
         if (updatedBoard) {
           pubSub.publish("boardUpdates", boardId, {

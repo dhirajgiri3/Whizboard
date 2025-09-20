@@ -3,7 +3,23 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { connectToDatabase } from '@/lib/database/mongodb';
 
-export async function GET(request: NextRequest) {
+// Define interfaces for type safety
+interface NotificationDocument {
+  _id: string;
+  type: string;
+  recipientEmail: string;
+  senderEmail: string;
+  data: Record<string, unknown>;
+  read: boolean;
+  createdAt: Date;
+}
+
+interface ChangeStreamDocument {
+  operationType: string;
+  fullDocument: NotificationDocument;
+}
+
+export async function GET(request: NextRequest): Promise<Response> {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
@@ -22,11 +38,11 @@ export async function GET(request: NextRequest) {
     };
 
     const stream = new ReadableStream({
-      start(controller) {
+      start(controller: ReadableStreamDefaultController): void {
         let isConnected = true;
         let isControllerClosed = false;
 
-        const sendEvent = (data: any) => {
+        const sendEvent = (data: Record<string, unknown>): void => {
           if (!isConnected || isControllerClosed) return;
           
           try {
@@ -41,7 +57,7 @@ export async function GET(request: NextRequest) {
         sendEvent({ type: 'connected', message: 'Notification stream connected' });
 
         // Set up database change stream for notifications
-        const setupNotificationStream = async () => {
+        const setupNotificationStream = async (): Promise<void> => {
           try {
             const db = await connectToDatabase();
             
@@ -58,7 +74,7 @@ export async function GET(request: NextRequest) {
             });
 
             // Listen for new notifications
-            changeStream.on('change', (change) => {
+            changeStream.on('change', (change: ChangeStreamDocument) => {
               if (change.operationType === 'insert' && change.fullDocument) {
                 const notification = change.fullDocument;
                 
@@ -78,13 +94,13 @@ export async function GET(request: NextRequest) {
             });
 
             // Handle change stream errors
-            changeStream.on('error', (error) => {
+            changeStream.on('error', (error: Error) => {
               console.error('Notification change stream error:', error);
               sendEvent({ type: 'error', message: 'Notification stream error' });
             });
 
             // Store change stream reference for cleanup
-            let changeStreamRef: any = changeStream;
+            let changeStreamRef = changeStream;
 
             // Clean up on disconnect
             request.signal.addEventListener('abort', () => {
