@@ -6,7 +6,7 @@ import { withAuth, AuthenticatedUser } from '@/lib/middleware/apiAuth';
 async function getBoardMetadata(
   request: NextRequest,
   user: AuthenticatedUser
-) {
+): Promise<NextResponse> {
   try {
     const url = new URL(request.url);
     const id = url.pathname.split('/')[3];
@@ -67,7 +67,15 @@ async function getBoardMetadata(
     }
 
     // Get owner information - handle case where users collection might not exist yet
-    let owner = null;
+    type OwnerData = {
+      id: string;
+      name: string | null;
+      email: string | null;
+      avatar: string | null;
+      username: string | null;
+    } | null;
+    
+    let owner: OwnerData = null;
     try {
       const ownerData = await db.collection('users').findOne(
         { _id: board.createdBy },

@@ -283,7 +283,7 @@ async function handlePNGExport(board: Board, elements: DrawingElement[], resolut
   console.log('Export settings:', { resolution, background, area, quality, compression });
   
   // Parse viewport information if provided
-  let viewportData = null;
+  let viewportData: { position?: { x: number; y: number }; bounds?: { width: number; height: number } } | null = null;
   if (viewport) {
     try {
       viewportData = JSON.parse(viewport);
@@ -819,7 +819,7 @@ async function handleGoogleDriveExport(
  */
 async function generatePNGBuffer(board: Board, elements: DrawingElement[], resolution: string, background: string, area: string, customBackground?: string, bounds?: string, viewport?: string, quality = 'high', compression = true) {
   // Parse viewport information if provided
-  let viewportData = null;
+  let viewportData: { position?: { x: number; y: number }; bounds?: { width: number; height: number } } | null = null;
   if (viewport) {
     try {
       viewportData = JSON.parse(viewport);

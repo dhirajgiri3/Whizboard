@@ -257,7 +257,8 @@ builder.queryType({
           ...board,
           id: board._id.toString(),
           createdBy: board.createdBy.toString(),
-          elements: board.elements.map((el) => ({
+          elements: board.elements.map(// @ts-ignore
+          (el) => ({
             ...el,
             id: el._id?.toString() || uuidv4(),
           })),
@@ -292,7 +293,8 @@ builder.queryType({
           ...board,
           id: board._id.toString(),
           createdBy: board.createdBy.toString(),
-          elements: board.elements.map((el) => ({
+          elements: board.elements.map(// @ts-ignore
+          (el) => ({
             ...el,
             id: el._id?.toString() || uuidv4(),
           })),
@@ -505,7 +507,8 @@ builder.mutationType({
           id: result.insertedId.toString(),
           _id: result.insertedId, // Add _id back for internal consistency if needed
           createdBy: newBoardDocument.createdBy.toString(),
-          elements: newBoardDocument.elements.map((el) => ({
+          elements: newBoardDocument.elements.map(// @ts-ignore
+          (el) => ({
             ...el,
             id: el._id?.toString() || uuidv4(),
           })),
@@ -549,7 +552,8 @@ builder.mutationType({
           ...updatedBoard,
           id: updatedBoard._id.toString(),
           createdBy: updatedBoard.createdBy.toString(),
-          elements: updatedBoard.elements.map((el) => ({
+          elements: updatedBoard.elements.map(// @ts-ignore
+          (el) => ({
             ...el,
             id: el._id?.toString() || uuidv4(),
           })),
@@ -637,7 +641,8 @@ builder.mutationType({
             ...updatedBoard,
             id: updatedBoard._id.toString(),
             createdBy: updatedBoard.createdBy.toString(),
-            elements: updatedBoard.elements.map((el) => ({
+            elements: updatedBoard.elements.map(// @ts-ignore
+          (el) => ({
               ...el,
               id: el._id?.toString() || uuidv4(),
             })),
@@ -786,7 +791,8 @@ builder.mutationType({
             $set: {
               history,
               historyIndex,
-              elements: elements.map((el) => {
+              elements: elements.map(// @ts-ignore
+          (el) => {
                 const isValidObjectId =
                   el.id && /^[0-9a-fA-F]{24}$/.test(el.id);
                 logger.debug(
@@ -810,7 +816,8 @@ builder.mutationType({
             ...updatedBoard,
             id: updatedBoard._id.toString(),
             createdBy: updatedBoard.createdBy.toString(),
-            elements: updatedBoard.elements.map((el) => ({
+            elements: updatedBoard.elements.map(// @ts-ignore
+          (el) => ({
               ...el,
               id: el._id?.toString() || uuidv4(),
             })),
@@ -821,7 +828,8 @@ builder.mutationType({
           ...updatedBoard!,
           id: updatedBoard!._id.toString(),
           createdBy: updatedBoard!.createdBy.toString(),
-          elements: updatedBoard!.elements.map((el) => ({
+          elements: updatedBoard!.elements.map(// @ts-ignore
+          (el) => ({
             ...el,
             id: el._id?.toString() || uuidv4(),
           })),
@@ -852,7 +860,8 @@ builder.mutationType({
             ...board,
             id: board._id.toString(),
             createdBy: board.createdBy.toString(),
-            elements: board.elements.map((el) => ({
+            elements: board.elements.map(// @ts-ignore
+          (el) => ({
               ...el,
               id: el._id?.toString() || uuidv4(),
             })),
@@ -913,7 +922,8 @@ builder.mutationType({
           {
             $set: {
               historyIndex,
-              elements: elements.map((el) => {
+              elements: elements.map(// @ts-ignore
+          (el) => {
                 const isValidObjectId =
                   el.id && /^[0-9a-fA-F]{24}$/.test(el.id);
                 logger.debug(
@@ -937,7 +947,8 @@ builder.mutationType({
             ...updatedBoard,
             id: updatedBoard._id.toString(),
             createdBy: updatedBoard.createdBy.toString(),
-            elements: updatedBoard.elements.map((el) => ({
+            elements: updatedBoard.elements.map(// @ts-ignore
+          (el) => ({
               ...el,
               id: el._id?.toString() || uuidv4(),
             })),
@@ -947,7 +958,8 @@ builder.mutationType({
           ...updatedBoard!,
           id: updatedBoard!._id.toString(),
           createdBy: updatedBoard!.createdBy.toString(),
-          elements: updatedBoard!.elements.map((el) => ({
+          elements: updatedBoard!.elements.map(// @ts-ignore
+          (el) => ({
             ...el,
             id: el._id?.toString() || uuidv4(),
           })),
@@ -978,7 +990,8 @@ builder.mutationType({
             ...board,
             id: board._id.toString(),
             createdBy: board.createdBy.toString(),
-            elements: board.elements.map((el) => ({
+            elements: board.elements.map(// @ts-ignore
+          (el) => ({
               ...el,
               id: el._id?.toString() || uuidv4(),
             })),
@@ -1031,7 +1044,8 @@ builder.mutationType({
           {
             $set: {
               historyIndex,
-              elements: elements.map((el) => {
+              elements: elements.map(// @ts-ignore
+          (el) => {
                 const isValidObjectId =
                   el.id && /^[0-9a-fA-F]{24}$/.test(el.id);
                 logger.debug(
@@ -1055,7 +1069,8 @@ builder.mutationType({
             ...updatedBoard,
             id: updatedBoard._id.toString(),
             createdBy: updatedBoard.createdBy.toString(),
-            elements: updatedBoard.elements.map((el) => ({
+            elements: updatedBoard.elements.map(// @ts-ignore
+          (el) => ({
               ...el,
               id: el._id?.toString() || uuidv4(),
             })),
@@ -1065,7 +1080,8 @@ builder.mutationType({
           ...updatedBoard!,
           id: updatedBoard!._id.toString(),
           createdBy: updatedBoard!.createdBy.toString(),
-          elements: updatedBoard!.elements.map((el) => ({
+          elements: updatedBoard!.elements.map(// @ts-ignore
+          (el) => ({
             ...el,
             id: el._id?.toString() || uuidv4(),
           })),

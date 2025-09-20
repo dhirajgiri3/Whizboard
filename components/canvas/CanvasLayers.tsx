@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useRef, memo } from 'react';
+import React, { useMemo, useCallback, useRef, memo, ReactElement } from 'react';
 import { Layer, Line, Circle, Group, Text, Rect } from 'react-konva';
 import { KonvaEventObject } from 'konva/lib/Node';
 import Konva from 'konva';
@@ -23,8 +23,8 @@ interface GridProps {
   y: number;
 }
 
-function EnhancedGrid({ width, height, scale, x, y }: GridProps) {
-  const lines = [];
+function EnhancedGrid({ width, height, scale, x, y }: GridProps): React.ReactNode {
+  const lines: React.ReactElement[] = [];
   const gridSize = 20;
   const opacity = Math.min(Math.max(scale * 0.4, 0.05), 0.2);
   

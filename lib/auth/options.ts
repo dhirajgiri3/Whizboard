@@ -141,21 +141,37 @@ export const authOptions: AuthOptions = {
           const client = await clientPromise;
           const db = client.db(process.env.DB_NAME || 'whizboard');
           
-          // Try multiple ways to find the user
-          let user = null;
+          // Type for user document
+          type UserDocument = {
+            _id: any;
+            email: string;
+            status?: string;
+            tokenVersion?: number;
+            loginCount?: number;
+            lastLoginAt?: Date;
+            [key: string]: any;
+          };
           
           // First, try to find by email (most reliable)
+          let user: UserDocument | null = null;
+          
           if (session.user.email) {
-            user = await db.collection('users').findOne({ email: session.user.email });
+            const result = await db.collection('users').findOne({ email: session.user.email });
+            if (result) {
+              user = result as unknown as UserDocument;
+            }
           }
           
           // If not found by email, try by ObjectId (fallback)
           if (!user && (token as any).sub) {
             try {
               const { ObjectId } = await import('mongodb');
-              user = await db.collection('users').findOne({
+              const result = await db.collection('users').findOne({
                 _id: new ObjectId((token as any).sub)
               });
+              if (result) {
+                user = result as unknown as UserDocument;
+              }
             } catch (objectIdError) {
               console.warn('[AUTH] Failed to parse ObjectId from token.sub:', (token as any).sub);
             }

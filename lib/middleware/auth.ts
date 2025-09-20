@@ -61,7 +61,7 @@ export async function authMiddleware(request: NextRequest) {
 
   try {
     // Enhanced token detection for middleware
-    let token = null;
+    let token: any = null;
     let isAuthenticated = false;
     
     try {

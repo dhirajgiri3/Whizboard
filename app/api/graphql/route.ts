@@ -10,7 +10,17 @@ const yoga = createYoga({
   graphqlEndpoint: '/api/graphql',
   context: async (context) => {
     // Get session from cookies for HTTP requests
-    let session = null;
+    type SessionType = {
+      user: {
+        id: string;
+        name: string | null | undefined;
+        email: string | null | undefined;
+        image: string | null | undefined;
+      };
+      expires: string;
+    } | null;
+    
+    let session: SessionType = null;
     
     try {
       // Only try to get cookies for HTTP requests, not WebSocket
@@ -38,7 +48,7 @@ const yoga = createYoga({
             try {
               const token = await decode({
                 token: sessionToken,
-                secret: authOptions.secret!,
+                secret: authOptions.secret || process.env.NEXTAUTH_SECRET || '',
               });
               
               console.log('Decoded token:', !!token, token?.sub);
@@ -99,14 +109,14 @@ const yoga = createYoga({
   graphiql: process.env.NODE_ENV !== 'production',
 });
 
-export async function GET(request: Request) {
+export async function GET(request: Request): Promise<Response> {
   return yoga.fetch(request);
 }
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
   return yoga.fetch(request);
 }
 
-export async function OPTIONS(request: Request) {
+export async function OPTIONS(request: Request): Promise<Response> {
   return yoga.fetch(request);
 }

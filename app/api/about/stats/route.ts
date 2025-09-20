@@ -86,7 +86,7 @@ export async function PUT(req: NextRequest) {
       );
     }
     
-    const updatedStats = [];
+    const updatedStats: CompanyStat[] = [];
     
     for (const update of updates) {
       // Validate ID
