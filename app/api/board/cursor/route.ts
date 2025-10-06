@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth/options';
 import { pubSub } from '@/lib/graphql/schema';
 import logger from '@/lib/logger/logger';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const session = await getServerSession(authOptions);
 
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { boardId, userId, x, y, name, currentTool, isDrawing, isSelecting, activeElementId, pressure } = body;
+    const { boardId, userId, x, y, name } = body;
 
     if (!boardId || userId !== session.user.id) {
       return NextResponse.json(
@@ -31,11 +31,8 @@ export async function POST(request: NextRequest) {
       name: name || session.user.name,
       x,
       y,
-      currentTool,
-      isDrawing,
-      isSelecting,
-      activeElementId,
-      pressure,
+      // Note: Extended cursor properties not supported in the current schema
+      // These need to be added to the GraphQL schema if needed
     });
 
     return NextResponse.json({ success: true });

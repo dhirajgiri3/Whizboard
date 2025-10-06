@@ -202,10 +202,10 @@ const EnhancedFrame: React.FC<EnhancedFrameProps> = ({
       // Store initial position for undo/redo
       e.target.setAttr("initialProps", { x, y, width, height });
 
-      // Optimize rendering during drag
+      // Move to top for better visibility during drag
       if (groupRef.current) {
         groupRef.current.moveToTop();
-        groupRef.current.cache(); // Cache for better performance
+        // Don't cache during drag - we want real-time updates
       }
 
       if (onDragStart) {
@@ -234,12 +234,7 @@ const EnhancedFrame: React.FC<EnhancedFrameProps> = ({
       const newX = Math.round(node.x());
       const newY = Math.round(node.y());
 
-      // Clear cache after drag
-      if (groupRef.current) {
-        groupRef.current.clearCache();
-      }
-
-      // Debounced update to prevent excessive updates
+      // Update immediately on drag end - no need to wait
       if (
         dragStartPos &&
         (Math.abs(newX - dragStartPos.x) > 1 ||
@@ -253,10 +248,7 @@ const EnhancedFrame: React.FC<EnhancedFrameProps> = ({
           version: frame.version + 1,
         };
 
-        // Throttle updates during rapid movements
-        setTimeout(() => {
-          onUpdateAction(updatedFrame);
-        }, 50);
+        onUpdateAction(updatedFrame);
       }
 
       setDragStartPos(null);
@@ -365,14 +357,38 @@ const EnhancedFrame: React.FC<EnhancedFrameProps> = ({
 
       if (!isOurKey) return;
 
-      // Delete frame - Don't directly delete here to avoid conflicts with toolbar confirmation
-      // Let the FloatingFrameToolbar handle deletion with confirmation
+      // Delete frame - Use confirmation toast before deleting
       if (
         e.key === "Delete" ||
         (e.key === "Backspace" && (e.metaKey || e.ctrlKey))
       ) {
         e.preventDefault();
-        // Don't call onDeleteAction directly - let the toolbar handle it with confirmation
+        // Show confirmation toast before deletion
+        import("sonner").then(({ toast }) => {
+          const toastId = toast(
+            <div className="flex flex-col gap-1">
+              <div className="font-medium">Delete Frame?</div>
+              <div className="text-sm text-gray-500">
+                This action cannot be undone.
+              </div>
+            </div>,
+            {
+              duration: 5000,
+              action: {
+                label: "Delete",
+                onClick: () => {
+                  onDeleteAction(id);
+                  toast.success("Frame deleted");
+                  toast.dismiss(toastId);
+                },
+              },
+              cancel: {
+                label: "Cancel",
+                onClick: () => toast.dismiss(toastId),
+              },
+            }
+          );
+        });
         return;
       }
 

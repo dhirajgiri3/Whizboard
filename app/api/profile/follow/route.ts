@@ -156,9 +156,17 @@ export async function GET(request: NextRequest) {
       .toArray();
 
     // Get user details for the follows
-    const usernames = follows.map((follow: { followerUsername: string; followingUsername: string }) => 
-      type === 'followers' ? follow.followerUsername : follow.followingUsername
-    );
+    // Define a type for follow documents
+    interface FollowDocument {
+      followerUsername: string;
+      followingUsername: string;
+    }
+    
+    const usernames = follows.map((follow) => {
+      // Use a type assertion with unknown as an intermediate step
+      const typedFollow = (follow as unknown) as FollowDocument;
+      return type === 'followers' ? typedFollow.followerUsername : typedFollow.followingUsername;
+    });
 
     const users = await db.collection('users')
       .find(
@@ -174,15 +182,19 @@ export async function GET(request: NextRequest) {
       bio?: string;
     }
 
-    const userMap = users.reduce((acc: Record<string, UserRecord>, user: UserRecord) => {
-      acc[user.username] = user;
+    const userMap = users.reduce((acc: Record<string, UserRecord>, user) => {
+      // Cast the user to UserRecord
+      const typedUser = (user as unknown) as UserRecord;
+      acc[typedUser.username] = typedUser;
       return acc;
     }, {} as Record<string, UserRecord>);
 
-    const result = follows.map((follow: { followerUsername: string; followingUsername: string }) => {
-      const username = type === 'followers' ? follow.followerUsername : follow.followingUsername;
+    const result = follows.map((follow) => {
+      // Cast to FollowDocument type
+      const typedFollow = (follow as unknown) as FollowDocument;
+      const username = type === 'followers' ? typedFollow.followerUsername : typedFollow.followingUsername;
       return {
-        ...follow,
+        ...typedFollow,
         user: userMap[username] || null
       };
     });

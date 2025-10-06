@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { connectToDatabase } from '@/lib/database/mongodb';
-import { ObjectId } from 'mongodb';
+import { ObjectId, WithId } from 'mongodb';
 import { EmailService } from '@/lib/email/sendgrid';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '@/lib/logger/logger';
@@ -110,6 +110,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 }
 
+type Invitation = {
+  workspaceId: ObjectId;
+  email: string;
+  role: string;
+  invitedBy: {
+    userId: ObjectId;
+    name?: string;
+    email?: string;
+  };
+  invitationToken?: string;
+  status: string;
+  createdAt: Date;
+  expiresAt: Date;
+};
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const session = await getServerSession(authOptions);
@@ -132,7 +147,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // Get pending invitations
-    const invitations = await db.collection('workspace_invitations')
+    const invitations: WithId<Invitation>[] = await db.collection<Invitation>('workspace_invitations')
       .find({
         workspaceId: workspace._id,
         status: 'pending',
@@ -143,19 +158,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({
       success: true,
-      invitations: invitations.map((inv: {
-        _id: ObjectId;
-        email: string;
-        role: string;
-        invitedBy: { name: string };
-        status: string;
-        createdAt: Date;
-        expiresAt: Date;
-      }) => ({
+      invitations: invitations.map((inv) => ({
         id: inv._id.toString(),
         email: inv.email,
         role: inv.role,
-        invitedBy: inv.invitedBy.name,
+        invitedBy: inv.invitedBy?.name,
         status: inv.status,
         createdAt: inv.createdAt,
         expiresAt: inv.expiresAt

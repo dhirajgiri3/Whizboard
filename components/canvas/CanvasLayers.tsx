@@ -396,205 +396,223 @@ const CanvasLayers = memo(function CanvasLayers({
 
   return (
     <>
-      {/* Grid Layer */}
-      <Layer>
+      {/* Layer 1: Background Layer (Static - Grid only) */}
+      <Layer
+        listening={false}
+        perfectDrawEnabled={false}
+        imageSmoothingEnabled={false}
+      >
         {showGrid && (
-          <EnhancedGrid 
-            width={dimensions.width} 
-            height={dimensions.height} 
+          <EnhancedGrid
+            width={dimensions.width}
+            height={dimensions.height}
             scale={stageScale}
             x={stagePos.x}
             y={stagePos.y}
           />
         )}
       </Layer>
-      
-      {/* Canvas Lines Layer - Optimized for interaction */}
-      <Layer>
-        {renderLines(groupedLines.canvas, 'canvas-')}
-      </Layer>
-      
-      {/* Frame Selection and Alignment Layer */}
-      <Layer>
-        <FrameSelectionManager
-          onSelectionChange={selectFrames}
-          onSelectionStart={() => {}}
-          onSelectionEnd={() => {}}
-          frameElements={frames}
-          stageRef={stageRef}
-          isActive={tool === 'select'}
-          selectedFrameIds={selectedFrameIds}
-        />
-        
-        <FrameAlignmentHelper
-          frameElements={frames}
-          selectedFrameIds={selectedFrameIds}
-          snapDistance={10}
-          showGrid={showFrameAlignment}
-          gridSize={20}
-        />
-      </Layer>
-      
-      {/* Frames Layer */}
-      <Layer>
-        {frames.map((frame, index) => (
-          <React.Fragment key={`frame-group-${frame.id}-idx-${index}`}>
-            <EnhancedFrame
-              frame={frame}
-              isSelected={selectedFrameIds.includes(frame.id)}
-              isDraggable={tool === 'select' || tool === 'frame'}
-              onSelectAction={(frameId) => handleFrameSelect(frameId)}
-              onUpdateAction={handleFrameUpdate}
-              onDeleteAction={handleFrameDelete}
-              onDragStart={handleFrameDragStart}
-              onDragEnd={handleFrameDragEnd}
+
+      {/* Layer 2: Main Content Layer (All interactive elements) */}
+      <Layer
+        hitGraphEnabled={true}
+        perfectDrawEnabled={false}
+        clearBeforeDraw={true}
+        imageSmoothingEnabled={false}
+      >
+        {/* Group: Canvas Lines */}
+        <Group name="canvas-lines">
+          {renderLines(groupedLines.canvas, 'canvas-')}
+        </Group>
+
+        {/* Group: Frames with nested content */}
+        <Group name="frames">
+          {frames.map((frame, index) => (
+            <React.Fragment key={`frame-group-${frame.id}-idx-${index}`}>
+              <EnhancedFrame
+                frame={frame}
+                isSelected={selectedFrameIds.includes(frame.id)}
+                isDraggable={tool === 'select' || tool === 'frame'}
+                onSelectAction={(frameId) => handleFrameSelect(frameId)}
+                onUpdateAction={handleFrameUpdate}
+                onDeleteAction={handleFrameDelete}
+                onDragStart={handleFrameDragStart}
+                onDragEnd={handleFrameDragEnd}
+                scale={stageScale}
+                stageRef={stageRef}
+                currentTool={tool}
+              >
+                {/* Render frame-specific lines */}
+                {renderLines(groupedLines[frame.id] || [], `frame-${frame.id}-`)}
+              </EnhancedFrame>
+            </React.Fragment>
+          ))}
+        </Group>
+
+        {/* Group: Sticky Notes */}
+        <Group name="sticky-notes">
+          {stickyNotes.map((stickyNote, index) => (
+            <StickyNote
+              key={`sticky-${stickyNote.id}-idx-${index}`}
+              id={stickyNote.id}
+              x={stickyNote.x}
+              y={stickyNote.y}
+              width={stickyNote.width}
+              height={stickyNote.height}
+              text={stickyNote.text}
+              color={stickyNote.color}
+              fontSize={stickyNote.fontSize}
+              isSelected={selectedStickyNote === stickyNote.id}
+              onSelectAction={onStickyNoteSelectAction || (() => {})}
+              onTextChangeAction={(id, text) => {
+                if (onStickyNoteUpdateAction) {
+                  const updatedStickyNote = {
+                    ...stickyNote,
+                    text,
+                    updatedAt: Date.now(),
+                  };
+                  onStickyNoteUpdateAction(updatedStickyNote);
+                }
+              }}
+              onPositionChangeAction={(id, x, y) => {
+                if (onStickyNoteUpdateAction) {
+                  onStickyNoteUpdateAction({
+                    ...stickyNote,
+                    x,
+                    y,
+                    updatedAt: Date.now(),
+                  });
+                }
+              }}
+              onDeleteAction={onStickyNoteDeleteAction || (() => {})}
+              onDragStartAction={handleStickyNoteDragStart}
+              onDragEndAction={handleStickyNoteDragEnd}
+              isDraggable={tool === 'select' || tool === 'sticky-note'}
+            />
+          ))}
+        </Group>
+
+        {/* Group: Text Elements */}
+        <Group name="text-elements">
+          {textElements.map((textElement, index) => (
+            <TextElementComponent
+              key={`text-${textElement.id}-v${textElement.version || 0}-idx${index}`}
+              textElement={textElement}
+              isSelected={selectedTextElement === textElement.id}
+              isEditing={editingTextElement === textElement}
+              isDraggable={tool === 'select' || tool === 'text'}
+              onSelectAction={onTextElementSelectAction || (() => {})}
+              onUpdateAction={onTextElementUpdateAction || (() => {})}
+              onDeleteAction={onTextElementDeleteAction || (() => {})}
+              onStartEditAction={(textId) => {
+                const textElement = textElements.find(el => el.id === textId);
+                if (textElement && onTextElementStartEditAction) {
+                  onTextElementStartEditAction(textElement);
+                }
+              }}
+              onDragStartAction={handleTextElementDragStart}
+              onDragEndAction={handleTextElementDragEnd}
+              scale={stageScale}
+              stageRef={stageRef}
+            />
+          ))}
+        </Group>
+
+        {/* Group: Shapes */}
+        <Group name="shapes">
+          {shapes.map((shape, index) => (
+            <ShapeElementComponent
+              key={`shape-${shape.id}-v${shape.version || 0}-t${shape.updatedAt || 0}-idx${index}`}
+              shape={shape}
+              isSelected={selectedShape === shape.id || (selectedShapes && selectedShapes.includes(shape.id))}
+              isDraggable={tool === 'select' || tool === 'shapes'}
+              onSelectAction={onShapeSelectAction || (() => {})}
+              onUpdateAction={onShapeUpdateAction || (() => {})}
+              onDeleteAction={onShapeDeleteAction || (() => {})}
+              onDragStart={handleShapeDragStart}
+              onDragEnd={handleShapeDragEnd}
               scale={stageScale}
               stageRef={stageRef}
               currentTool={tool}
-            >
-              {/* Render frame-specific lines */}
-              {renderLines(groupedLines[frame.id] || [], `frame-${frame.id}-`)}
-            </EnhancedFrame>
-          </React.Fragment>
-        ))}
-        
-        {/* Frame creation is now handled externally through onCanvasClickAction */}
-      </Layer>
-      
-      {/* Sticky Notes Layer */}
-      <Layer>
-        {stickyNotes.map((stickyNote, index) => (
-          <StickyNote
-            key={`sticky-${stickyNote.id}-idx-${index}`}
-            id={stickyNote.id}
-            x={stickyNote.x}
-            y={stickyNote.y}
-            width={stickyNote.width}
-            height={stickyNote.height}
-            text={stickyNote.text}
-            color={stickyNote.color}
-            fontSize={stickyNote.fontSize}
-            isSelected={selectedStickyNote === stickyNote.id}
-            onSelectAction={onStickyNoteSelectAction || (() => {})}
-            onTextChangeAction={(id, text) => {
-              if (onStickyNoteUpdateAction) {
-                const updatedStickyNote = {
-                  ...stickyNote,
-                  text,
-                  updatedAt: Date.now(),
-                };
-                onStickyNoteUpdateAction(updatedStickyNote);
-              }
-            }}
-            onPositionChangeAction={(id, x, y) => {
-              if (onStickyNoteUpdateAction) {
-                onStickyNoteUpdateAction({
-                  ...stickyNote,
-                  x,
-                  y,
-                  updatedAt: Date.now(),
-                });
-              }
-            }}
-            onDeleteAction={onStickyNoteDeleteAction || (() => {})}
-            onDragStartAction={handleStickyNoteDragStart}
-            onDragEndAction={handleStickyNoteDragEnd}
-            isDraggable={tool === 'select' || tool === 'sticky-note'}
-          />
-        ))}
-      </Layer>
-      
-      {/* Text Elements Layer - Optimized for performance */}
-      <Layer
-        // Enable hit detection for text elements
-        hitGraphEnabled={true}
-        perfectDrawEnabled={false}
-        clearBeforeDraw={true}
-        imageSmoothingEnabled={false}
-      >
-        {textElements.map((textElement, index) => (
-          <TextElementComponent
-            key={`text-${textElement.id}-v${textElement.version || 0}-idx${index}`}
-            textElement={textElement}
-            isSelected={selectedTextElement === textElement.id}
-            isEditing={editingTextElement === textElement}
-            isDraggable={tool === 'select' || tool === 'text'}
-            onSelectAction={onTextElementSelectAction || (() => {})}
-            onUpdateAction={onTextElementUpdateAction || (() => {})}
-            onDeleteAction={onTextElementDeleteAction || (() => {})}
-            onStartEditAction={(textId) => {
-              const textElement = textElements.find(el => el.id === textId);
-              if (textElement && onTextElementStartEditAction) {
-                onTextElementStartEditAction(textElement);
-              }
-            }}
-            onDragStartAction={handleTextElementDragStart}
-            onDragEndAction={handleTextElementDragEnd}
-            scale={stageScale}
-            stageRef={stageRef}
-          />
-        ))}
-      </Layer>
-      
-      {/* Shapes Layer */}
-      <Layer
-        hitGraphEnabled={true}
-        perfectDrawEnabled={false}
-        clearBeforeDraw={true}
-        imageSmoothingEnabled={false}
-      >
-        {shapes.map((shape, index) => (
-          <ShapeElementComponent
-            key={`shape-${shape.id}-v${shape.version || 0}-t${shape.updatedAt || 0}-idx${index}`}
-            shape={shape}
-            isSelected={selectedShape === shape.id || (selectedShapes && selectedShapes.includes(shape.id))}
-            isDraggable={tool === 'select' || tool === 'shapes'}
-            onSelectAction={onShapeSelectAction || (() => {})}
-            onUpdateAction={onShapeUpdateAction || (() => {})}
-            onDeleteAction={onShapeDeleteAction || (() => {})}
-            onDragStart={handleShapeDragStart}
-            onDragEnd={handleShapeDragEnd}
-            scale={stageScale}
-            stageRef={stageRef}
-            currentTool={tool}
-          />
-        ))}
-      </Layer>
-      
-      {/* Image Elements Layer */}
-      <Layer
-        hitGraphEnabled={true}
-        perfectDrawEnabled={false}
-        clearBeforeDraw={true}
-        imageSmoothingEnabled={false}
-      >
-        {imageElements.map((imageElement, index) => (
-          <ImageElementComponent
-            key={`image-${imageElement.id}-v${imageElement.version || 0}-t${imageElement.updatedAt || 0}-idx${index}`}
-            imageElement={imageElement}
-            isSelected={selectedImageElement === imageElement.id}
-            isDraggable={tool === 'select' || tool === 'image'}
-            onSelectAction={onImageElementSelectAction || (() => {})}
-            onUpdateAction={(id, updates) => {
-              if (onImageElementUpdateAction) {
-                const imageElement = imageElements.find(el => el.id === id);
-                if (imageElement) {
-                  onImageElementUpdateAction({ ...imageElement, ...updates });
+            />
+          ))}
+        </Group>
+
+        {/* Group: Image Elements */}
+        <Group name="image-elements">
+          {imageElements.map((imageElement, index) => (
+            <ImageElementComponent
+              key={`image-${imageElement.id}-v${imageElement.version || 0}-t${imageElement.updatedAt || 0}-idx${index}`}
+              imageElement={imageElement}
+              isSelected={selectedImageElement === imageElement.id}
+              isDraggable={tool === 'select' || tool === 'image'}
+              onSelectAction={onImageElementSelectAction || (() => {})}
+              onUpdateAction={(id, updates) => {
+                if (onImageElementUpdateAction) {
+                  const imageElement = imageElements.find(el => el.id === id);
+                  if (imageElement) {
+                    onImageElementUpdateAction({ ...imageElement, ...updates });
+                  }
                 }
-              }
-            }}
-            onDeleteAction={onImageElementDeleteAction || (() => {})}
-            onDragStart={handleImageElementDragStart}
-            onDragEnd={handleImageElementDragEnd}
-            scale={stageScale}
-            stageRef={stageRef}
-            currentTool={tool}
-          />
-        ))}
+              }}
+              onDeleteAction={onImageElementDeleteAction || (() => {})}
+              onDragStart={handleImageElementDragStart}
+              onDragEnd={handleImageElementDragEnd}
+              scale={stageScale}
+              stageRef={stageRef}
+              currentTool={tool}
+            />
+          ))}
+        </Group>
       </Layer>
-      
-      {/* Cursors Layer */}
-      <Layer>
+
+      {/* Layer 3: Selection & UI Overlays (Non-interactive) */}
+      <Layer
+        listening={false}
+        perfectDrawEnabled={false}
+        imageSmoothingEnabled={false}
+      >
+        <Group name="selection-ui">
+          <FrameSelectionManager
+            onSelectionChange={selectFrames}
+            onSelectionStart={() => {}}
+            onSelectionEnd={() => {}}
+            frameElements={frames}
+            stageRef={stageRef}
+            isActive={tool === 'select'}
+            selectedFrameIds={selectedFrameIds}
+          />
+
+          <FrameAlignmentHelper
+            frameElements={frames}
+            selectedFrameIds={selectedFrameIds}
+            snapDistance={10}
+            showGrid={showFrameAlignment}
+            gridSize={20}
+          />
+
+          {/* Tool Indicators */}
+          {tool === 'eraser' && (
+            <Circle
+              x={0}
+              y={0}
+              radius={strokeWidth * 1.2}
+              stroke="#ef4444"
+              strokeWidth={2}
+              dash={[4, 4]}
+              opacity={0.8}
+              visible={false} // Will be made visible when mouse moves
+            />
+          )}
+        </Group>
+      </Layer>
+
+      {/* Layer 4: Cursors Layer (Updates frequently) */}
+      <Layer
+        listening={false}
+        perfectDrawEnabled={false}
+        imageSmoothingEnabled={false}
+      >
         {useAwareness ? (
           <LiveCursorsAware
             currentTool={tool}
@@ -604,22 +622,6 @@ const CanvasLayers = memo(function CanvasLayers({
           />
         ) : (
           <LiveCursors cursors={cursors || {}} />
-        )}
-      </Layer>
-      
-      {/* Tool Indicators Layer */}
-      <Layer>
-        {tool === 'eraser' && (
-          <Circle
-            x={0}
-            y={0}
-            radius={strokeWidth * 1.2}
-            stroke="#ef4444"
-            strokeWidth={2}
-            dash={[4, 4]}
-            opacity={0.8}
-            visible={false} // Will be made visible when mouse moves
-          />
         )}
       </Layer>
     </>

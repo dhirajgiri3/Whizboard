@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth/options';
 import { pubSub } from '@/lib/graphql/schema';
 import logger from '@/lib/logger/logger';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const session = await getServerSession(authOptions);
 
@@ -26,26 +26,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Publish drawing event based on action type
-    const eventMap: Record<string, string> = {
-      start: 'drawingStarted',
-      update: 'drawingUpdated',
-      complete: 'drawingCompleted',
+    const payload = {
+      boardId,
+      userId,
+      userName: userName || session.user.name,
+      line,
+      timestamp: Date.now(),
     };
-
-    const eventType = eventMap[action];
-    if (!eventType) {
+    
+    if (action === 'start') {
+      pubSub.publish('drawingStarted', boardId, payload);
+    } else if (action === 'update') {
+      pubSub.publish('drawingUpdated', boardId, payload);
+    } else if (action === 'complete') {
+      pubSub.publish('drawingCompleted', boardId, payload);
+    } else {
       return NextResponse.json(
         { success: false, error: 'Invalid action' },
         { status: 400 }
       );
     }
-
-    pubSub.publish(eventType, boardId, {
-      userId,
-      userName: userName || session.user.name,
-      line,
-      timestamp: Date.now(),
-    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

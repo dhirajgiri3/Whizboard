@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { connectToDatabase } from '@/lib/database/mongodb';
+import { ChangeStream, Document } from 'mongodb';
 
 // Define interfaces for type safety
 interface NotificationDocument {
@@ -100,14 +101,14 @@ export async function GET(request: NextRequest): Promise<Response> {
             });
 
             // Store change stream reference for cleanup
-            let changeStreamRef = changeStream;
+            let changeStreamRef: ChangeStream<Document> | undefined = changeStream;
 
             // Clean up on disconnect
             request.signal.addEventListener('abort', () => {
               isConnected = false;
               if (changeStreamRef) {
                 changeStreamRef.close();
-                changeStreamRef = null;
+                changeStreamRef = undefined;
               }
               clearInterval(pingInterval);
               if (!isControllerClosed) {

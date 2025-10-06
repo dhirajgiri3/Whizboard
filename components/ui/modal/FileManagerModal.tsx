@@ -672,7 +672,7 @@ export default function FileManagerModal({ isOpen, onClose, onImageSelect }: Fil
 
   return (
     <>
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {isOpen && (
           <div key="file-manager-modal" className="fixed inset-0 z-50 overflow-y-auto">
             {/* Backdrop */}
@@ -1347,7 +1347,7 @@ export default function FileManagerModal({ isOpen, onClose, onImageSelect }: Fil
               </div>
 
               {/* Edit Modal */}
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                 {isEditing && selectedFile && (
                   <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
                     <motion.div
@@ -1423,7 +1423,7 @@ export default function FileManagerModal({ isOpen, onClose, onImageSelect }: Fil
               </AnimatePresence>
 
               {/* Versions Modal */}
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                 {showVersions && selectedFile && (
                   <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
                     <motion.div
@@ -1484,7 +1484,7 @@ export default function FileManagerModal({ isOpen, onClose, onImageSelect }: Fil
               </AnimatePresence>
 
               {/* Image Preview Modal */}
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                 {previewFile && (
                   <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
                     <motion.div
@@ -1612,7 +1612,7 @@ export default function FileManagerModal({ isOpen, onClose, onImageSelect }: Fil
               </AnimatePresence>
 
               {/* Google Drive Image Preview Modal */}
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                 {previewGoogleDriveFile && (
                   <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
                     <motion.div

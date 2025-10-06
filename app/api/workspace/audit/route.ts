@@ -2,10 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/options';
 import { connectToDatabase } from '@/lib/database/mongodb';
-import { ObjectId } from 'mongodb';
+import { ObjectId, WithId } from 'mongodb';
 import logger from '@/lib/logger/logger';
 
-export async function GET(request: NextRequest) {
+type AuditLog = {
+  workspaceId: ObjectId;
+  action: string;
+  description: string;
+  performedBy: string;
+  targetUser?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+};
+
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -31,7 +41,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get audit logs for this workspace
-    const auditLogs = await db.collection('workspace_audit_logs')
+    const auditLogs: WithId<AuditLog>[] = await db.collection<AuditLog>('workspace_audit_logs')
       .find({ workspaceId: workspace._id })
       .sort({ createdAt: -1 })
       .skip(offset)
@@ -44,15 +54,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      logs: auditLogs.map((log: {
-        _id: ObjectId;
-        action: string;
-        description: string;
-        performedBy: string;
-        targetUser?: string;
-        metadata?: Record<string, unknown>;
-        createdAt: Date;
-      }) => ({
+      logs: auditLogs.map((log) => ({
         id: log._id.toString(),
         action: log.action,
         description: log.description,

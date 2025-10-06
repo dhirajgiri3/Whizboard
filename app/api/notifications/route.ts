@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth/options';
 import { getCachedSession } from '@/lib/auth/session-cache';
 import { connectToDatabase } from '@/lib/database/mongodb';
+import { ObjectId } from 'mongodb';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const session = await getCachedSession();
     if (!session?.user?.email) {
@@ -34,7 +37,10 @@ export async function GET(request: NextRequest) {
 
     // Mark notifications as read if requested
     if (markAsRead && notifications.length > 0) {
-      const notificationIds = notifications.map((n: any) => n._id);
+      // Convert notification IDs to ObjectId instances if needed
+      const notificationIds = notifications.map((n: { _id: string | ObjectId }) => 
+        typeof n._id === 'string' ? new ObjectId(n._id) : n._id
+      );
       await db.collection('notifications').updateMany(
         { 
           _id: { $in: notificationIds },
@@ -44,9 +50,16 @@ export async function GET(request: NextRequest) {
       );
 
       // Update the notifications array to reflect read status
-      notifications.forEach((notification: { read: boolean; readAt: Date }) => {
-        notification.read = true;
-        notification.readAt = new Date();
+      interface NotificationDocument {
+        read: boolean;
+        readAt: Date;
+        [key: string]: unknown; // For other properties
+      }
+      
+      notifications.forEach((notification) => {
+        // Use a double cast to bypass TypeScript's safety checks - we know these fields exist
+        ((notification as unknown) as NotificationDocument).read = true;
+        ((notification as unknown) as NotificationDocument).readAt = new Date();
       });
     }
 
@@ -80,7 +93,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
@@ -121,7 +134,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Mark specific notifications as read
-export async function PATCH(request: NextRequest) {
+export async function PATCH(request: NextRequest): Promise<NextResponse> {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
@@ -148,9 +161,11 @@ export async function PATCH(request: NextRequest) {
       });
     } else if (notificationIds && Array.isArray(notificationIds)) {
       // Mark specific notifications as read
+      // Convert IDs to ObjectId instances
+      const objectIds = notificationIds.map((id: string) => new ObjectId(id));
       const result = await db.collection('notifications').updateMany(
         { 
-          _id: { $in: notificationIds },
+          _id: { $in: objectIds },
           recipientEmail: session.user.email,
           read: false 
         },

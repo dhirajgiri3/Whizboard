@@ -174,7 +174,7 @@ export async function GET(request: NextRequest) {
     const db = await connectToDatabase();
 
     // Get user profile data with better error handling
-    let user = null;
+    let user: Record<string, any> | null = null;
     try {
       user = await db.collection('users').findOne(
         { email: session.user.email },

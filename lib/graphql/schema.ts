@@ -12,7 +12,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { postSlackForUser } from "@/lib/integrations/slackService";
 import { connectToDatabase } from "../database/mongodb";
-import { ObjectId } from "mongodb";
+import { ObjectId, WithId } from "mongodb";
 import logger from "../logger/logger";
 import { Session } from "next-auth";
 import { EmailService } from "../email/sendgrid";
@@ -206,6 +206,29 @@ interface BoardDocument extends Omit<Board, "id" | "createdBy" | "elements"> {
   blockedUsers?: string[];
 }
 
+// Helper to convert BoardDocument (from MongoDB) to GraphQL-exposed Board
+function boardDocToBoard(board: WithId<BoardDocument>): Board {
+  return {
+    id: board._id.toString(),
+    name: board.name ?? "Untitled Board",
+    elements: board.elements.map((el) => ({
+      ...el,
+      id: (el as DrawingElementDocument)._id?.toString() || uuidv4(),
+    })) as DrawingElement[],
+    collaborators: (board as unknown as Partial<Board>).collaborators ?? [],
+    createdBy: board.createdBy.toString(),
+    createdAt: (board as unknown as Partial<Board>).createdAt ?? new Date(),
+    updatedAt: (board as unknown as Partial<Board>).updatedAt ?? new Date(),
+    isPublic: (board as unknown as Partial<Board>).isPublic ?? false,
+    history: (board as unknown as Partial<Board>).history,
+    historyIndex: (board as unknown as Partial<Board>).historyIndex,
+    pendingInvitations: (board as unknown as Partial<Board>).pendingInvitations,
+    adminUsers: board.adminUsers,
+    blockedUsers: board.blockedUsers,
+    collaboration: (board as unknown as Partial<Board>).collaboration,
+  };
+}
+
 // DrawingElementDocument represents the structure of DrawingElement as stored in MongoDB subdocuments
 interface DrawingElementDocument extends Omit<DrawingElement, "id"> {
   _id?: ObjectId; // MongoDB might not have _id for subdocuments, or it might be string for some reason
@@ -242,9 +265,9 @@ builder.queryType({
       resolve: async (_, { id }) => {
         logger.debug({ id }, "getBoard query received");
         const db = await connectToDatabase();
-        const board = await db
-          .collection("boards")
-          .findOne({ _id: new ObjectId(id) });
+        const board = (await db
+          .collection<BoardDocument>("boards")
+          .findOne({ _id: new ObjectId(id) })) as WithId<BoardDocument> | null;
 
         if (!board) {
           logger.error({ id }, "Board not found");
@@ -252,17 +275,8 @@ builder.queryType({
         }
 
         logger.info({ boardId: board._id }, "Board retrieved successfully");
-        // Convert BoardDocument to Board for GraphQL response
-        return {
-          ...board,
-          id: board._id.toString(),
-          createdBy: board.createdBy.toString(),
-          elements: board.elements.map(// @ts-ignore
-          (el) => ({
-            ...el,
-            id: el._id?.toString() || uuidv4(),
-          })),
-        };
+
+        return boardDocToBoard(board);
       },
     }),
     myBoards: t.field({
@@ -289,16 +303,7 @@ builder.queryType({
           "Found boards for user"
         );
 
-        return boards.map((board) => ({
-          ...board,
-          id: board._id.toString(),
-          createdBy: board.createdBy.toString(),
-          elements: board.elements.map(// @ts-ignore
-          (el) => ({
-            ...el,
-            id: el._id?.toString() || uuidv4(),
-          })),
-        }));
+        return boards.map((board) => boardDocToBoard(board as WithId<BoardDocument>));
       },
     }),
     myBoardUsage: t.field({
@@ -417,8 +422,8 @@ builder.mutationType({
           isPublic: true,
         };
         const result = await db
-          .collection("boards")
-          .insertOne(newBoardDocument as any);
+          .collection<BoardDocument>("boards")
+          .insertOne(newBoardDocument as BoardDocument);
         logger.info({ boardId: result.insertedId }, "New board created");
 
         // Log board creation for analytics
@@ -502,17 +507,11 @@ builder.mutationType({
           );
         }
         // Convert to Board for GraphQL response
-        return {
-          ...newBoardDocument,
-          id: result.insertedId.toString(),
-          _id: result.insertedId, // Add _id back for internal consistency if needed
-          createdBy: newBoardDocument.createdBy.toString(),
-          elements: newBoardDocument.elements.map(// @ts-ignore
-          (el) => ({
-            ...el,
-            id: el._id?.toString() || uuidv4(),
-          })),
-        };
+        const createdBoard = await db
+          .collection<BoardDocument>("boards")
+          .findOne({ _id: result.insertedId });
+
+        return createdBoard ? boardDocToBoard(createdBoard as WithId<BoardDocument>) : null;
       },
     }),
     updateBoard: t.field({
@@ -548,16 +547,7 @@ builder.mutationType({
           throw new Error("Board not found after update");
         }
         // Convert to Board for GraphQL response
-        return {
-          ...updatedBoard,
-          id: updatedBoard._id.toString(),
-          createdBy: updatedBoard.createdBy.toString(),
-          elements: updatedBoard.elements.map(// @ts-ignore
-          (el) => ({
-            ...el,
-            id: el._id?.toString() || uuidv4(),
-          })),
-        };
+        return boardDocToBoard(updatedBoard as WithId<BoardDocument>);
       },
     }),
     deleteBoard: t.field({
@@ -637,17 +627,7 @@ builder.mutationType({
 
         if (updatedBoard) {
           logger.info({ boardId }, "Publishing board update");
-          const boardForPublish: Board = {
-            ...updatedBoard,
-            id: updatedBoard._id.toString(),
-            createdBy: updatedBoard.createdBy.toString(),
-            elements: updatedBoard.elements.map(// @ts-ignore
-          (el) => ({
-              ...el,
-              id: el._id?.toString() || uuidv4(),
-            })),
-          };
-          pubSub.publish("boardUpdates", boardId, boardForPublish);
+          pubSub.publish("boardUpdates", boardId, boardDocToBoard(updatedBoard as WithId<BoardDocument>));
         }
 
         logger.info(
@@ -812,28 +792,10 @@ builder.mutationType({
           .collection("boards")
           .findOne({ _id: new ObjectId(boardId) });
         if (updatedBoard) {
-          const boardForPublish: Board = {
-            ...updatedBoard,
-            id: updatedBoard._id.toString(),
-            createdBy: updatedBoard.createdBy.toString(),
-            elements: updatedBoard.elements.map(// @ts-ignore
-          (el) => ({
-              ...el,
-              id: el._id?.toString() || uuidv4(),
-            })),
-          };
-          pubSub.publish("boardUpdates", boardId, boardForPublish);
+          pubSub.publish("boardUpdates", boardId, boardDocToBoard(updatedBoard as WithId<BoardDocument>));
+          return boardDocToBoard(updatedBoard as WithId<BoardDocument>);
         }
-        return {
-          ...updatedBoard!,
-          id: updatedBoard!._id.toString(),
-          createdBy: updatedBoard!.createdBy.toString(),
-          elements: updatedBoard!.elements.map(// @ts-ignore
-          (el) => ({
-            ...el,
-            id: el._id?.toString() || uuidv4(),
-          })),
-        };
+        return null as unknown as Board | null;
       },
     }),
     undoBoardAction: t.field({
@@ -856,16 +818,7 @@ builder.mutationType({
 
         // Check if undo is possible - can't undo if no history or already at beginning
         if (history.length === 0 || historyIndex < 0) {
-          return {
-            ...board,
-            id: board._id.toString(),
-            createdBy: board.createdBy.toString(),
-            elements: board.elements.map(// @ts-ignore
-          (el) => ({
-              ...el,
-              id: el._id?.toString() || uuidv4(),
-            })),
-          };
+          return boardDocToBoard(board as WithId<BoardDocument>);
         }
 
         historyIndex--;
@@ -943,27 +896,10 @@ builder.mutationType({
           .collection("boards")
           .findOne({ _id: new ObjectId(boardId) });
         if (updatedBoard) {
-          pubSub.publish("boardUpdates", boardId, {
-            ...updatedBoard,
-            id: updatedBoard._id.toString(),
-            createdBy: updatedBoard.createdBy.toString(),
-            elements: updatedBoard.elements.map(// @ts-ignore
-          (el) => ({
-              ...el,
-              id: el._id?.toString() || uuidv4(),
-            })),
-          });
+          pubSub.publish("boardUpdates", boardId, boardDocToBoard(updatedBoard as WithId<BoardDocument>));
+          return boardDocToBoard(updatedBoard as WithId<BoardDocument>);
         }
-        return {
-          ...updatedBoard!,
-          id: updatedBoard!._id.toString(),
-          createdBy: updatedBoard!.createdBy.toString(),
-          elements: updatedBoard!.elements.map(// @ts-ignore
-          (el) => ({
-            ...el,
-            id: el._id?.toString() || uuidv4(),
-          })),
-        };
+        return null as unknown as Board | null;
       },
     }),
     redoBoardAction: t.field({
@@ -986,16 +922,7 @@ builder.mutationType({
 
         // Check if redo is possible (not at the end)
         if (history.length === 0 || historyIndex >= history.length - 1) {
-          return {
-            ...board,
-            id: board._id.toString(),
-            createdBy: board.createdBy.toString(),
-            elements: board.elements.map(// @ts-ignore
-          (el) => ({
-              ...el,
-              id: el._id?.toString() || uuidv4(),
-            })),
-          };
+          return boardDocToBoard(board as WithId<BoardDocument>);
         }
 
         historyIndex++;
@@ -1065,27 +992,10 @@ builder.mutationType({
           .collection("boards")
           .findOne({ _id: new ObjectId(boardId) });
         if (updatedBoard) {
-          pubSub.publish("boardUpdates", boardId, {
-            ...updatedBoard,
-            id: updatedBoard._id.toString(),
-            createdBy: updatedBoard.createdBy.toString(),
-            elements: updatedBoard.elements.map(// @ts-ignore
-          (el) => ({
-              ...el,
-              id: el._id?.toString() || uuidv4(),
-            })),
-          });
+          pubSub.publish("boardUpdates", boardId, boardDocToBoard(updatedBoard as WithId<BoardDocument>));
+          return boardDocToBoard(updatedBoard as WithId<BoardDocument>);
         }
-        return {
-          ...updatedBoard!,
-          id: updatedBoard!._id.toString(),
-          createdBy: updatedBoard!.createdBy.toString(),
-          elements: updatedBoard!.elements.map(// @ts-ignore
-          (el) => ({
-            ...el,
-            id: el._id?.toString() || uuidv4(),
-          })),
-        };
+        return null as unknown as Board | null;
       },
     }),
   }),
@@ -1142,14 +1052,14 @@ builder.objectType(BoardRef, {
     createdBy: t.string({
       resolve: (board) => board.createdBy.toString(),
     }),
-    elements: t.field({
+        elements: t.field({
       type: [DrawingElementRef],
       resolve: (board) =>
         board.elements.map(
           (el) =>
             ({
               ...el,
-              id: el.id || (el as any)._id?.toString() || uuidv4(),
+              id: el.id || (el as unknown as DrawingElementDocument)._id?.toString() || uuidv4(),
             } as DrawingElement)
         ),
     }),

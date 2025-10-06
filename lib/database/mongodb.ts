@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { MongoClient, Db } from 'mongodb';
 import logger from '../logger/logger';
 import '../env';
 
@@ -23,14 +23,18 @@ const options = {
   maxConnecting: 2,
 };
 
-let client: MongoClient | null = null;
-let clientPromise: Promise<MongoClient> | null = null;
-
 declare global {
   var _mongoClientPromise: Promise<MongoClient> | undefined;
-  var _mongoDbCache: any;
+  var _mongoDbCache: Db | undefined;
 }
 
+// Create a new MongoClient instance with null initialization
+let client: MongoClient | null = null;
+
+// Define the client promise
+let clientPromise: Promise<MongoClient>;
+
+// Initialize client promise
 if (process.env.NODE_ENV === 'development') {
   // In development mode, use a global variable so that the value
   // is preserved across module reloads caused by HMR (Hot Module Replacement).
@@ -44,32 +48,26 @@ if (process.env.NODE_ENV === 'development') {
   clientPromise = global._mongoClientPromise;
 } else {
   // In production mode, it's best to not use a global variable.
-  if (!client) {
-    client = new MongoClient(uri, options);
-  }
-  if (!clientPromise) {
-    clientPromise = client.connect();
-    logger.info('Creating new MongoDB connection (production).');
-  } else {
-    logger.debug('Reusing existing MongoDB connection (production).');
-  }
+  client = new MongoClient(uri, options);
+  clientPromise = client.connect();
+  logger.info('Creating new MongoDB connection (production).');
 }
 
 // Cache the database connection globally
-const getCachedDb = () => {
+const getCachedDb = (): Db | undefined => {
   if (process.env.NODE_ENV === 'development') {
     return global._mongoDbCache;
   }
-  return null;
+  return undefined;
 };
 
-const setCachedDb = (db: any) => {
+const setCachedDb = (db: Db): void => {
   if (process.env.NODE_ENV === 'development') {
     global._mongoDbCache = db;
   }
 };
 
-export async function connectToDatabase() {
+export async function connectToDatabase(): Promise<Db> {
   // Check global cache first (for development HMR)
   const globalCache = getCachedDb();
   if (globalCache) {
@@ -77,9 +75,6 @@ export async function connectToDatabase() {
   }
 
   try {
-    if (!clientPromise) {
-      throw new Error('MongoDB client not initialized');
-    }
 
     const mongoClient = await clientPromise;
     const dbName = process.env.DB_NAME || 'whizboard';
