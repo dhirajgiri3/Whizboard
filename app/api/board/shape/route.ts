@@ -16,40 +16,47 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const body = await request.json();
-    const { boardId, userId, userName, line, action } = body;
+    const { boardId, userId, userName, shapeElement, action } = body;
 
-    if (!boardId || !userId || !line || !action || userId !== session.user.id) {
+    if (!boardId || !userId || !action || userId !== session.user.id) {
       return NextResponse.json(
         { success: false, error: 'Invalid request' },
         { status: 400 }
       );
     }
 
-    // Publish drawing event based on action type
+    // Publish shape element event based on action type
     const payload = {
       boardId,
       userId,
       userName: userName || session.user.name,
-      line,
+      shapeElement,
       timestamp: Date.now(),
     };
-    
-    if (action === 'start') {
-      pubSub.publish('drawingStarted', boardId, payload);
-    } else if (action === 'update') {
-      pubSub.publish('drawingUpdated', boardId, payload);
-    } else if (action === 'complete') {
-      pubSub.publish('drawingCompleted', boardId, payload);
-    } else {
-      return NextResponse.json(
-        { success: false, error: 'Invalid action' },
-        { status: 400 }
-      );
+
+    switch (action) {
+      case 'create':
+        pubSub.publish('shapeElementCreated', boardId, payload);
+        break;
+      case 'update':
+        pubSub.publish('shapeElementUpdated', boardId, payload);
+        break;
+      case 'delete':
+        pubSub.publish('shapeElementDeleted', boardId, { ...payload, shapeElementId: shapeElement?.id });
+        break;
+      case 'transform':
+        pubSub.publish('shapeElementTransformed', boardId, payload);
+        break;
+      default:
+        return NextResponse.json(
+          { success: false, error: 'Invalid action' },
+          { status: 400 }
+        );
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error('Error broadcasting drawing:', error);
+    logger.error('Error broadcasting shape element:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

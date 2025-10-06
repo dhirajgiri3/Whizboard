@@ -16,28 +16,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const body = await request.json();
-    const { boardId, userId, x, y, name } = body;
+    const { boardId, userId, presence } = body;
 
-    if (!boardId || userId !== session.user.id) {
+    if (!boardId || !userId || userId !== session.user.id) {
       return NextResponse.json(
         { success: false, error: 'Invalid request' },
         { status: 400 }
       );
     }
 
-    // Publish cursor movement event via SSE
-    pubSub.publish('cursorMovement', boardId, {
+    // Publish user presence update event
+    pubSub.publish('userPresenceUpdate', boardId, {
       userId,
-      name: name || session.user.name,
-      x,
-      y,
-      // Note: Extended cursor properties not supported in the current schema
-      // These need to be added to the GraphQL schema if needed
+      presence,
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error('Error broadcasting cursor:', error);
+    logger.error('Error broadcasting user presence:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

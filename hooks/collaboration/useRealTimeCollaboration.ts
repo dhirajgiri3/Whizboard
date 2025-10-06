@@ -101,10 +101,10 @@ export function useRealTimeCollaboration({
   const pendingDrawingUpdateRef = useRef<DrawingLineData | null>(null);
   const lastDrawingUpdateRef = useRef<number>(0);
   
-  // Constants for throttling - Optimized for performance
-  const DRAWING_UPDATE_THROTTLE_MS = 100; // Increased to reduce API calls
-  const CURSOR_THROTTLE_MS = 200; // Increased to reduce cursor updates
-  const PRESENCE_UPDATE_THROTTLE_MS = 10000; // Increased to reduce presence updates
+  // Constants for throttling - Optimized for performance and reduced server load
+  const DRAWING_UPDATE_THROTTLE_MS = 150; // Balanced for smooth drawing with reduced API calls
+  const CURSOR_THROTTLE_MS = 300; // Reduced cursor update frequency
+  const PRESENCE_UPDATE_THROTTLE_MS = 30000; // Reduce presence updates to every 30 seconds
 
   // State for user presence and activity
   const [userPresence, setUserPresence] = useState<UserPresenceData | null>(null);

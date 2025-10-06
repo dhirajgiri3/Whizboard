@@ -9,8 +9,8 @@ type CachedSession = {
 };
 
 const sessionCache = new Map<string, CachedSession>();
-const CACHE_TTL = 60000; // 1 minute cache for sessions
-const MAX_CACHE_SIZE = 1000; // Prevent memory leaks
+const CACHE_TTL = 300000; // 5 minutes cache for sessions (increased from 1 minute)
+const MAX_CACHE_SIZE = 2000; // Prevent memory leaks (increased capacity)
 
 /**
  * Get session with caching to reduce database hits
@@ -67,14 +67,47 @@ export function clearSessionCache(userEmail?: string): void {
   }
 }
 
+// Global session cache for quick access across all API routes
+const globalSessionCache = new Map<string, CachedSession>();
+
 /**
- * Get session with reduced logging overhead
+ * Get session with reduced logging overhead and aggressive caching
  */
 export async function getOptimizedSession(): Promise<Session | null> {
   try {
-    return await getServerSession(authOptions);
+    // Use a global cache key for the current request
+    const cacheKey = 'global-session';
+    const cached = globalSessionCache.get(cacheKey);
+
+    // Use aggressive caching for API routes (30 seconds)
+    if (cached && Date.now() - cached.timestamp < 30000) {
+      return cached.session;
+    }
+
+    const session = await getServerSession(authOptions);
+
+    // Cache the session globally
+    globalSessionCache.set(cacheKey, {
+      session,
+      timestamp: Date.now()
+    });
+
+    // Clean up old cache entries
+    if (globalSessionCache.size > 100) {
+      const firstKey = globalSessionCache.keys().next().value;
+      if (firstKey) globalSessionCache.delete(firstKey);
+    }
+
+    return session;
   } catch {
     // Silently fail for performance
     return null;
   }
+}
+
+/**
+ * Clear global session cache
+ */
+export function clearGlobalSessionCache(): void {
+  globalSessionCache.clear();
 }

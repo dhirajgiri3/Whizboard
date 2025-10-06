@@ -283,6 +283,15 @@ function BoardPageContent() {
     return '#fef3c7';
   });
   
+  // Use a ref to ensure we always have the latest color value
+  // This fixes the bug where clicking immediately after color change uses old color
+  const currentStickyNoteColorRef = useRef(currentStickyNoteColor);
+  
+  // Keep ref in sync with state
+  useEffect(() => {
+    currentStickyNoteColorRef.current = currentStickyNoteColor;
+  }, [currentStickyNoteColor]);
+  
   // User presence state
   const [userPresenceData, setUserPresenceData] = useState<Record<string, any>>({});
 
@@ -339,13 +348,14 @@ function BoardPageContent() {
     }
     
     // Clear pending states when switching tools to prevent conflicts
-    if (pendingFramePreset || isFramePlacementMode) {
+    // But only clear them if we're switching AWAY from the relevant tool
+    if ((pendingFramePreset || isFramePlacementMode) && newTool !== 'frame') {
       setPendingFramePreset(null);
       setIsFramePlacementMode(false);
       document.body.style.cursor = "default";
     }
     
-    if (pendingShapeType || pendingShapeProps) {
+    if ((pendingShapeType || pendingShapeProps) && newTool !== 'shapes') {
       setPendingShapeType(null);
       setPendingShapeProps(null);
       document.body.style.cursor = "default";
@@ -1308,38 +1318,37 @@ function BoardPageContent() {
   // Sticky Notes Handlers
   const handleStickyNoteAdd = useCallback(
     async (stickyNote: StickyNoteElement) => {
-      if (boardId) {
-        try {
-          const { data } = await addBoardAction({
-            variables: {
-              boardId,
-              action: JSON.stringify({
-                type: "add",
-                data: JSON.stringify(stickyNote),
-              }),
-            },
-          });
-          if (data?.addBoardAction) {
-            const allElements = data.addBoardAction.elements || [];
-            const stickyNoteElements = allElements
-              .filter(
-                (el: { type: string; data: string }) =>
-                  (typeof el.data === "string" ? JSON.parse(el.data) : el.data)
-                    .type === "sticky-note"
-              )
-              .map((el: { data: string }) =>
-                typeof el.data === "string" ? JSON.parse(el.data) : el.data
-              );
-            setStickyNotes(stickyNoteElements);
+      if (!boardId) return;
 
-            setHistory(data.addBoardAction.history || []);
-            setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
-            // Use debounced timestamp update to prevent excessive API calls
-            debouncedUpdateTimestamp(boardId);
-          }
-        } catch (err) {
-          logger.error({ err }, "Failed to add sticky note");
+      // Optimistic update: Add sticky note immediately for instant UI response
+      setStickyNotes(prev => {
+        const exists = prev.some(note => note.id === stickyNote.id);
+        return exists ? prev : [...prev, stickyNote];
+      });
+
+      // Persist to server asynchronously
+      try {
+        const { data } = await addBoardAction({
+          variables: {
+            boardId,
+            action: JSON.stringify({
+              type: "add",
+              data: JSON.stringify(stickyNote),
+            }),
+          },
+        });
+
+        if (data?.addBoardAction) {
+          // Update history without refetching all sticky notes
+          setHistory(data.addBoardAction.history || []);
+          setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
+          // Use debounced timestamp update to prevent excessive API calls
+          debouncedUpdateTimestamp(boardId);
         }
+      } catch (err) {
+        logger.error({ err }, "Failed to persist sticky note");
+        // Remove the sticky note on error
+        setStickyNotes(prev => prev.filter(note => note.id !== stickyNote.id));
       }
     },
     [
@@ -1354,35 +1363,32 @@ function BoardPageContent() {
 
   const handleStickyNoteUpdate = useCallback(
     async (updatedStickyNote: StickyNoteElement) => {
-      if (boardId) {
-        try {
-          const { data } = await addBoardAction({
-            variables: {
-              boardId,
-              action: JSON.stringify({
-                type: "update",
-                data: JSON.stringify(updatedStickyNote),
-              }),
-            },
-          });
-          if (data?.addBoardAction) {
-            const allElements = data.addBoardAction.elements || [];
-            const stickyNoteElements = allElements
-              .filter(
-                (el: { type: string; data: string }) =>
-                  (typeof el.data === "string" ? JSON.parse(el.data) : el.data)
-                    .type === "sticky-note"
-              )
-              .map((el: { data: string }) =>
-                typeof el.data === "string" ? JSON.parse(el.data) : el.data
-              );
-            setStickyNotes(stickyNoteElements);
-            // Use debounced timestamp update to prevent excessive API calls
-            debouncedUpdateTimestamp(boardId);
-          }
-        } catch (err) {
-          logger.error({ err }, "Failed to update sticky note");
-        }
+      if (!boardId) return;
+
+      // Optimistic update: Update sticky note immediately
+      setStickyNotes(prev =>
+        prev.map(note =>
+          note.id === updatedStickyNote.id ? updatedStickyNote : note
+        )
+      );
+
+      // Persist to server asynchronously
+      try {
+        await addBoardAction({
+          variables: {
+            boardId,
+            action: JSON.stringify({
+              type: "update",
+              data: JSON.stringify(updatedStickyNote),
+            }),
+          },
+        });
+
+        // Use debounced timestamp update to prevent excessive API calls
+        debouncedUpdateTimestamp(boardId);
+      } catch (err) {
+        logger.error({ err }, "Failed to update sticky note");
+        // Note: Keep the optimistic update even on error for better UX
       }
     },
     [boardId, addBoardAction, debouncedUpdateTimestamp, setStickyNotes]
@@ -3585,6 +3591,7 @@ function BoardPageContent() {
       /* Sticky-note tool                                                   */
       /* ------------------------------------------------------------------ */
       if (tool === "sticky-note") {
+        // Use ref to get the most recent color value to avoid stale closure
         const newSticky: StickyNoteElement = {
           id: `sticky-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           type: "sticky-note",
@@ -3593,7 +3600,7 @@ function BoardPageContent() {
           width: 240,
           height: 240,
           text: "",
-          color: currentStickyNoteColor,
+          color: currentStickyNoteColorRef.current,
           fontSize: 16,
           createdBy: session?.user?.id || "unknown",
           createdAt: Date.now(),
@@ -3660,7 +3667,7 @@ function BoardPageContent() {
       setPendingShapeType,
       setPendingShapeProps,
       tool,
-      currentStickyNoteColor,
+      // currentStickyNoteColor removed - using ref instead to avoid stale closure
       handleStickyNoteAdd,
       setSelectedStickyNote,
       setToolAction,

@@ -199,22 +199,10 @@ export default function ContactPage() {
 
   const officeLocations = [
     {
-      city: "San Francisco",
-      address: "123 Market Street, Suite 456",
-      coordinates: "San Francisco, CA 94102",
-      timezone: "PST (UTC-8)"
-    },
-    {
-      city: "New York",
-      address: "456 Fifth Avenue, 12th Floor", 
-      coordinates: "New York, NY 10018",
-      timezone: "EST (UTC-5)"
-    },
-    {
-      city: "London",
-      address: "789 Oxford Street, Level 3",
-      coordinates: "London, UK W1C 1DX", 
-      timezone: "GMT (UTC+0)"
+      city: "Delhi",
+      address: "New Delhi, India",
+      coordinates: "Delhi, India",
+      timezone: "IST (UTC+5:30)"
     }
   ];
 
