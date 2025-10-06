@@ -898,13 +898,16 @@ export function useRealTimeCollaboration({
       drawingUpdateThrottleRef.current = null;
     }
     if (pendingDrawingUpdateRef.current) {
-      // Use the last pending update for the complete event
-      line = pendingDrawingUpdateRef.current;
+      // Use the last pending update for the complete event to ensure we have the latest points
+      line = { ...line, points: pendingDrawingUpdateRef.current.points };
       pendingDrawingUpdateRef.current = null;
     }
 
-    api.post('/api/board/drawing', { boardId, userId, userName, line, action: 'complete' }).catch(error => {
-      logger.error('Failed to broadcast drawing complete:', error);
+    // Use requestAnimationFrame to ensure the line is fully rendered before broadcasting
+    requestAnimationFrame(() => {
+      api.post('/api/board/drawing', { boardId, userId, userName, line, action: 'complete' }).catch(error => {
+        logger.error('Failed to broadcast drawing complete:', error);
+      });
     });
   }, [isConnected, boardId, userId, userName]);
 

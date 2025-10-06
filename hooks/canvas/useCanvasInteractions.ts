@@ -665,9 +665,15 @@ export function useCanvasInteractions({
 
     const baseWidth = tool === 'highlighter' ? strokeWidth * 2 : strokeWidth;
     const appliedWidth = Math.max(1, Math.round(baseWidth * pressureRef.current));
+
+    // Generate a more unique and stable ID to prevent collisions
+    const timestamp = Date.now();
+    const randomPart = Math.random().toString(36).substring(2, 15);
+    const lineId = `line-${timestamp}-${randomPart}`;
+
     const newLine: ILine = {
-      id: `line-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      points: targetFrame 
+      id: lineId,
+      points: targetFrame
         ? (() => {
             const clippedPoint = handleDrawingInFrame(stagePos, targetFrame);
             return [clippedPoint.x, clippedPoint.y];
@@ -679,11 +685,17 @@ export function useCanvasInteractions({
       frameId: targetFrame?.id,
     };
 
-    setLines(currentLines => [...currentLines, newLine]);
+    // Optimistic update: Add line immediately to local state
+    setLines(currentLines => {
+      const lineExists = currentLines.some(line => line.id === newLine.id);
+      return lineExists ? currentLines : [...currentLines, newLine];
+    });
+
     setIsDrawing(true);
     lastPointer.current = stagePos;
     lastUpdatePoint.current = null; // Reset for new drawing
 
+    // Broadcast the drawing start event for real-time collaboration
     if (onRealTimeDrawingAction) {
       onRealTimeDrawingAction(newLine);
     }
@@ -785,9 +797,15 @@ export function useCanvasInteractions({
           strokeWidth: Math.max(1, Math.round((lastLine.tool === 'highlighter' ? strokeWidth * 2 : strokeWidth) * pressureRef.current)),
         };
 
-        setLines(currentLines => currentLines.map((line, i) =>
-          i === currentLines.length - 1 ? updatedLine : line
-        ));
+        setLines(currentLines => {
+          const lastLineIndex = currentLines.findIndex(line => line.id === lastLine.id);
+          if (lastLineIndex >= 0) {
+            const updatedLines = [...currentLines];
+            updatedLines[lastLineIndex] = updatedLine;
+            return updatedLines;
+          }
+          return currentLines;
+        });
 
         // Check distance threshold before sending real-time update
         const shouldSendUpdate = !lastUpdatePoint.current || 
@@ -825,9 +843,15 @@ export function useCanvasInteractions({
         strokeWidth: Math.max(1, Math.round((lastLine.tool === 'highlighter' ? strokeWidth * 2 : strokeWidth) * pressureRef.current)),
       };
 
-      setLines(currentLines => currentLines.map((line, i) =>
-        i === currentLines.length - 1 ? updatedLine : line
-      ));
+      setLines(currentLines => {
+        const lastLineIndex = currentLines.findIndex(line => line.id === lastLine.id);
+        if (lastLineIndex >= 0) {
+          const updatedLines = [...currentLines];
+          updatedLines[lastLineIndex] = updatedLine;
+          return updatedLines;
+        }
+        return currentLines;
+      });
 
       // Check distance threshold before sending real-time update
       const shouldSendUpdate = !lastUpdatePoint.current || 
@@ -863,7 +887,7 @@ export function useCanvasInteractions({
       }
 
       // Handle tap gesture
-      if (touchGestureRef.current.isTap && 
+      if (touchGestureRef.current.isTap &&
           touchGestureRef.current.touchMoveDistance <= TAP_THRESHOLD &&
           touchDuration < LONG_PRESS_DURATION) {
         // Tap is handled by normal click logic
@@ -880,19 +904,25 @@ export function useCanvasInteractions({
 
     // Frame creation is now handled externally through onCanvasClickAction
 
+    // Critical fix: Store drawing state BEFORE clearing it to prevent race conditions
+    const wasDrawing = isDrawing;
+    const currentTool = tool;
+    const currentLines = linesRef.current;
+
     setIsDrawing(false);
     setIsDrawingInFrame(false);
     setActiveFrameId(null);
     lastPointer.current = null;
     lastUpdatePoint.current = null; // Reset for next drawing
     isPanning.current = false;
-    // Critical fix: Only call onDrawEndAction if we were actually drawing with pen/highlighter
-    if (isDrawing && (tool === 'pen' || tool === 'highlighter')) {
-      // Use ref to get current lines and defer the callback to avoid setState during render
-      const currentLines = linesRef.current;
-      Promise.resolve().then(() => {
+
+    // Fixed: Call onDrawEndAction synchronously with the captured state to prevent race conditions
+    if (wasDrawing && (currentTool === 'pen' || currentTool === 'highlighter') && currentLines.length > 0) {
+      // Ensure we have a valid line to persist
+      const lastLine = currentLines[currentLines.length - 1];
+      if (lastLine && lastLine.points && lastLine.points.length >= 2) {
         onDrawEndAction(currentLines);
-      });
+      }
     }
   }, [isDrawing, tool, onDrawEndAction, resetTouchGesture]);
 

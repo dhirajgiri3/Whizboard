@@ -769,7 +769,10 @@ function BoardPageContent() {
           type: "text",
           ...(element.data as Omit<TextElement, "id" | "type">),
         };
-        setTextElements((prev) => [...prev, newTextElement]);
+        setTextElements((prev) => {
+          const exists = prev.some(text => text.id === element.id);
+          return exists ? prev : [...prev, newTextElement];
+        });
       } else if (element.type === "shape") {
         // Handle shape element added
         const newShapeElement: ShapeElement = {
@@ -777,9 +780,12 @@ function BoardPageContent() {
           type: "shape",
           ...(element.data as Omit<ShapeElement, "id" | "type">),
         };
-        setShapes((prev) => [...prev, newShapeElement]);
+        setShapes((prev) => {
+          const exists = prev.some(shape => shape.id === element.id);
+          return exists ? prev : [...prev, newShapeElement];
+        });
       } else {
-        // Handle line element added
+        // Handle line element added from real-time collaboration
         const newLine: ILine = {
           id: element.id,
           points: (element.data.points as number[]) || [],
@@ -787,7 +793,15 @@ function BoardPageContent() {
           strokeWidth: (element.data.strokeWidth as number) || 3,
           color: (element.data.color as string) || "#000000",
         };
-        setLines((prev) => [...prev, newLine]);
+        setLines((prev) => {
+          // Prevent adding if line already exists (avoid duplicates)
+          const exists = prev.some(line => line.id === element.id);
+          if (exists) {
+            return prev;
+          }
+          // Don't override lines that are currently being persisted locally
+          return [...prev, newLine];
+        });
       }
     }, []),
     onElementUpdated: useCallback((element: any) => {
@@ -825,9 +839,17 @@ function BoardPageContent() {
           color: (element.data.color as string) || "#000000",
         };
         setLines((prev) => {
-          const exists = prev.some((line) => line.id === element.id);
-          if (exists) {
-            return prev.map((line) => (line.id === element.id ? updatedLine : line));
+          const existingLineIndex = prev.findIndex((line) => line.id === element.id);
+          if (existingLineIndex >= 0) {
+            const existingLine = prev[existingLineIndex];
+            // Don't update if the line is currently being persisted locally (avoid conflicts)
+            if ((existingLine as any)._isPersisting) {
+              return prev;
+            }
+            // Update existing line
+            const updatedLines = [...prev];
+            updatedLines[existingLineIndex] = updatedLine;
+            return updatedLines;
           }
           // If the line doesn't exist yet (e.g., missed a 'start' event), append it
           return [...prev, updatedLine];
@@ -1107,12 +1129,16 @@ function BoardPageContent() {
       return;
     }
 
+    // Validate the line has minimum required data
+    if (!drawnLine.points || drawnLine.points.length < 2) {
+      logger.warn({ lineId: drawnLine.id, pointsLength: drawnLine.points?.length }, "Line has insufficient points");
+      return;
+    }
+
     try {
       const lineWithId = {
         ...drawnLine,
-        id:
-          drawnLine.id ||
-          `line-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: drawnLine.id || `line-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`,
       };
 
       // Validate required fields
@@ -1127,7 +1153,25 @@ function BoardPageContent() {
         return;
       }
 
-      // Broadcast drawing completion
+      // Mark line as persisting to prevent UI flickering during server round-trip
+      const optimisticLine = { ...lineWithId, _isPersisting: true };
+
+      // Optimistic update: Add/update line immediately without waiting for server
+      setLines(prevLines => {
+        const existingIndex = prevLines.findIndex(line => line.id === lineWithId.id);
+        if (existingIndex >= 0) {
+          // Update existing line while preserving other lines
+          const updatedLines = [...prevLines];
+          updatedLines[existingIndex] = optimisticLine;
+          return updatedLines;
+        } else {
+          // Add new line only if it doesn't already exist
+          const lineExists = prevLines.some(line => line.id === lineWithId.id);
+          return lineExists ? prevLines : [...prevLines, optimisticLine];
+        }
+      });
+
+      // Broadcast drawing completion immediately for real-time collaboration
       try {
         broadcastDrawingComplete({
           id: lineWithId.id,
@@ -1140,68 +1184,65 @@ function BoardPageContent() {
         logger.warn({ broadcastError }, "Failed to broadcast drawing completion");
       }
 
-      // Add board action
-      const { data } = await addBoardAction({
-        variables: {
-          boardId,
-          action: JSON.stringify({
-            type: "add",
-            data: JSON.stringify(lineWithId),
-          }),
-        },
-      });
+      // Persist to server asynchronously
+      try {
+        const { data } = await addBoardAction({
+          variables: {
+            boardId,
+            action: JSON.stringify({
+              type: "add",
+              data: JSON.stringify(lineWithId),
+            }),
+          },
+        });
 
-      if (!data?.addBoardAction) {
-        logger.warn({ data }, "No data returned from addBoardAction");
-        return;
+        if (data?.addBoardAction) {
+          // Mark the line as successfully persisted (remove _isPersisting flag)
+          setLines(prevLines =>
+            prevLines.map(line =>
+              line.id === lineWithId.id
+                ? { ...line, _isPersisting: false }
+                : line
+            )
+          );
+
+          // Update history without affecting lines state
+          setHistory(data.addBoardAction.history || []);
+          setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
+
+          logger.debug({ lineId: lineWithId.id }, "Line persisted successfully");
+        } else {
+          logger.warn({ data }, "No data returned from addBoardAction");
+          // Remove _isPersisting flag but keep the line
+          setLines(prevLines =>
+            prevLines.map(line =>
+              line.id === lineWithId.id
+                ? { ...line, _isPersisting: false }
+                : line
+            )
+          );
+        }
+      } catch (persistenceError) {
+        logger.error({ persistenceError, lineId: lineWithId.id }, "Failed to persist line");
+
+        // Remove _isPersisting flag but keep the line in local state
+        setLines(prevLines =>
+          prevLines.map(line =>
+            line.id === lineWithId.id
+              ? { ...line, _isPersisting: false, _persistenceError: true }
+              : line
+          )
+        );
       }
 
-      const allElements = data.addBoardAction.elements || [];
-      const lineElements = allElements
-        .filter((el: { data: string }) => {
-          try {
-            const parsed =
-              typeof el.data === "string" ? JSON.parse(el.data) : el.data;
-            return parsed.type !== "sticky-note";
-          } catch (parseError) {
-            logger.warn({ parseError, element: el }, "Failed to parse element data");
-            return false;
-          }
-        })
-        .map((el: { data: string }) => {
-          try {
-            return typeof el.data === "string" ? JSON.parse(el.data) : el.data;
-          } catch (parseError) {
-            logger.warn({ parseError, element: el }, "Failed to parse element data in map");
-            return null;
-          }
-        })
-        .filter(Boolean);
-
-      setLines(lineElements);
-      setHistory(data.addBoardAction.history || []);
-      setHistoryIndex(data.addBoardAction.historyIndex ?? 0);
-      
+      // Debounce timestamp updates to reduce API calls
       try {
-        // Use optimized timestamp update for better performance
         optimizedUpdateTimestamp(boardId);
       } catch (timestampError) {
         logger.warn({ timestampError }, "Failed to update board timestamp");
       }
     } catch (err) {
-      logger.error({ err, boardId, drawnLine }, "Failed to add board action");
-      console.error("Detailed error in handleSetLines:", err);
-      
-      // Try to provide more specific error information
-      if (err instanceof Error) {
-        console.error("Error message:", err.message);
-        console.error("Error stack:", err.stack);
-      }
-      
-      // Check if it's a GraphQL error
-      if (err && typeof err === 'object' && 'graphQLErrors' in err) {
-        console.error("GraphQL errors:", (err as any).graphQLErrors);
-      }
+      logger.error({ err, boardId, drawnLine }, "Failed to process line");
     }
   };
 
