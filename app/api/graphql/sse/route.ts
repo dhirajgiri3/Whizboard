@@ -184,8 +184,8 @@ export async function GET(request: NextRequest) {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive',
-      'Access-Control-Allow-Origin': process.env.NODE_ENV === 'production' 
-        ? 'https://whizboard.cyperstudio.in' 
+      'Access-Control-Allow-Origin': process.env.NODE_ENV === 'production'
+        ? 'https://www.whizboard.space'
         : 'http://localhost:3000',
       'Access-Control-Allow-Credentials': 'true',
     },

@@ -8,6 +8,16 @@ const nextConfig = {
   },
   // Enable Fast Refresh (HMR)
   reactStrictMode: true,
+  // Production optimizations (swcMinify is default in Next.js 15+)
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error'] } : false,
+  },
+  // Optimize package imports
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    },
+  },
   webpack: (config, { isServer, dev }) => {
     if (isServer) {
       // Exclude Konva and react-konva from server-side bundling

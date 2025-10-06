@@ -23,7 +23,12 @@ export async function GET() {
     // Check cache first
     const cached = integrationCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      return NextResponse.json(cached.data);
+      return NextResponse.json(cached.data, {
+        headers: {
+          'Cache-Control': 'private, max-age=30',
+          'X-Cache-Status': 'HIT'
+        }
+      });
     }
 
     const db = await connectToDatabase();
@@ -44,7 +49,12 @@ export async function GET() {
     integrationCache.set(cacheKey, { data: payload, timestamp: Date.now() });
 
     logger.info({ userEmail, ...payload }, 'Integrations status fetched');
-    return NextResponse.json(payload);
+    return NextResponse.json(payload, {
+      headers: {
+        'Cache-Control': 'private, max-age=30',
+        'X-Cache-Status': 'MISS'
+      }
+    });
   } catch (error) {
     logger.error({ error }, 'Integrations GET error');
     return NextResponse.json({ error: 'Failed to load integrations' }, { status: 500 });

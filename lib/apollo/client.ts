@@ -221,8 +221,8 @@ export const client = new ApolloClient({
   defaultOptions: {
     watchQuery: {
       errorPolicy: 'all',
-      fetchPolicy: 'cache-and-network',
-      notifyOnNetworkStatusChange: true,
+      fetchPolicy: 'cache-first', // Changed from 'cache-and-network' to avoid redundant requests
+      nextFetchPolicy: 'cache-first', // Stay cache-first after initial fetch
     },
     query: {
       errorPolicy: 'all',

@@ -2,25 +2,33 @@ import { MongoClient } from 'mongodb';
 import logger from '../logger/logger';
 import '../env';
 
+// Fix EventEmitter memory leak warning in development
+if (process.env.NODE_ENV === 'development') {
+  process.setMaxListeners(20); // Increase limit for Next.js development mode
+}
+
 if (!process.env.MONGODB_URI) {
   throw new Error('Invalid/Missing environment variable: "MONGODB_URI"');
 }
 
 const uri = process.env.MONGODB_URI;
 const options = {
-  serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
-  socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-  connectTimeoutMS: 10000, // Give up initial connection after 10 seconds
-  maxPoolSize: 10, // Maintain up to 10 socket connections
-  minPoolSize: 5, // Maintain a minimum of 5 socket connections
-  maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+  connectTimeoutMS: 10000,
+  maxPoolSize: 10,
+  minPoolSize: 2, // Reduced from 5 to 2 to prevent excess connections
+  maxIdleTimeMS: 30000,
+  // Fix EventEmitter memory leak
+  maxConnecting: 2,
 };
 
-let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
+let client: MongoClient | null = null;
+let clientPromise: Promise<MongoClient> | null = null;
 
 declare global {
-  var _mongoClientPromise: Promise<MongoClient>;
+  var _mongoClientPromise: Promise<MongoClient> | undefined;
+  var _mongoDbCache: any;
 }
 
 if (process.env.NODE_ENV === 'development') {
@@ -30,36 +38,63 @@ if (process.env.NODE_ENV === 'development') {
     client = new MongoClient(uri, options);
     global._mongoClientPromise = client.connect();
     logger.info('Creating new MongoDB connection (development).');
+  } else {
+    logger.debug('Reusing existing MongoDB connection (development).');
   }
   clientPromise = global._mongoClientPromise;
 } else {
   // In production mode, it's best to not use a global variable.
-  client = new MongoClient(uri, options);
-  clientPromise = client.connect();
-  logger.info('Creating new MongoDB connection (production).');
+  if (!client) {
+    client = new MongoClient(uri, options);
+  }
+  if (!clientPromise) {
+    clientPromise = client.connect();
+    logger.info('Creating new MongoDB connection (production).');
+  } else {
+    logger.debug('Reusing existing MongoDB connection (production).');
+  }
 }
 
-// Cache the database connection
-let cachedDb: any = null;
+// Cache the database connection globally
+const getCachedDb = () => {
+  if (process.env.NODE_ENV === 'development') {
+    return global._mongoDbCache;
+  }
+  return null;
+};
+
+const setCachedDb = (db: any) => {
+  if (process.env.NODE_ENV === 'development') {
+    global._mongoDbCache = db;
+  }
+};
 
 export async function connectToDatabase() {
-  // Return cached connection if available
-  if (cachedDb) {
-    return cachedDb;
+  // Check global cache first (for development HMR)
+  const globalCache = getCachedDb();
+  if (globalCache) {
+    return globalCache;
   }
 
   try {
+    if (!clientPromise) {
+      throw new Error('MongoDB client not initialized');
+    }
+
     const mongoClient = await clientPromise;
     const dbName = process.env.DB_NAME || 'whizboard';
     const db = mongoClient.db(dbName);
 
-    // Test the connection only on first connect
-    await db.admin().ping();
+    // Only ping on first connection to verify it works
+    try {
+      await db.admin().ping();
+      logger.info(`Successfully connected to MongoDB database: ${dbName}`);
+    } catch (pingError) {
+      logger.warn('MongoDB ping failed, but connection may still work:', pingError);
+    }
 
-    // Cache the connection
-    cachedDb = db;
-
-    logger.info(`Successfully connected to MongoDB database: ${dbName}`);
+    // Cache the connection globally
+    setCachedDb(db);
 
     return db;
   } catch (error) {

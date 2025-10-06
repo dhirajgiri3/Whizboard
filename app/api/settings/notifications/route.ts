@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/options';
+import { getCachedSession } from '@/lib/auth/session-cache';
 import { connectToDatabase } from '@/lib/database/mongodb';
 import logger from '@/lib/logger/logger';
 
 // Simple in-memory cache for notification settings
 const notificationCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 30000; // 30 seconds cache
+const CACHE_TTL = 60000; // 60 seconds cache (increased from 30s)
 
 type EmailPrefs = {
   boardInvitations: boolean;
@@ -35,7 +34,7 @@ const DEFAULT_PREFS: NotificationPreferences = {
 };
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
+  const session = await getCachedSession();
   if (!session?.user?.email) {
     logger.warn('Unauthorized attempt to get notification preferences');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -47,7 +46,9 @@ export async function GET() {
   // Check cache first
   const cached = notificationCache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return NextResponse.json(cached.data);
+    return NextResponse.json(cached.data, {
+      headers: { 'Cache-Control': 'private, max-age=30' }
+    });
   }
 
   try {
@@ -70,7 +71,9 @@ export async function GET() {
     // Cache the result
     notificationCache.set(cacheKey, { data: merged, timestamp: Date.now() });
 
-    return NextResponse.json(merged);
+    return NextResponse.json(merged, {
+      headers: { 'Cache-Control': 'private, max-age=30' }
+    });
   } catch (error) {
     logger.error({ error }, 'Failed to get notification preferences');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -78,7 +81,7 @@ export async function GET() {
 }
 
 export async function PUT(request: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const session = await getCachedSession();
   if (!session?.user?.email) {
     logger.warn('Unauthorized attempt to update notification preferences');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

@@ -100,8 +100,8 @@ const yoga = createYoga({
     };
   },
   cors: {
-    origin: process.env.NODE_ENV === 'production' 
-      ? ['https://whizboard.cyperstudio.in'] 
+    origin: process.env.NODE_ENV === 'production'
+      ? ['https://www.whizboard.space', 'https://whizboard.space', 'https://whizboard.cyperstudio.in']
       : ['http://localhost:3000'],
     credentials: true,
   },

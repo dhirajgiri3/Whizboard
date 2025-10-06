@@ -122,22 +122,37 @@ const setupGlobalHandlers = (): void => {
   }
 
   // Override console.error to capture errors logged there
-  if (config.captureConsoleErrors) {
+  // ONLY enable in development to prevent production circular reference issues
+  if (config.captureConsoleErrors && process.env.NODE_ENV === 'development') {
     const originalConsoleError = console.error;
+    const errorLoggingInProgress = new WeakSet();
+
     console.error = (...args) => {
       // Call the original console.error
       originalConsoleError.apply(console, args);
-      
+
       // Extract error object if present
       const errorArg = args.find(arg => arg instanceof Error);
-      if (errorArg instanceof Error) {
-        captureError(errorArg, {
-          additionalData: {
-            consoleArgs: args.map(arg => 
-              arg instanceof Error ? arg.message : String(arg)
-            ),
-          },
-        }, ErrorSeverity.WARNING);
+      if (errorArg instanceof Error && !errorLoggingInProgress.has(errorArg)) {
+        errorLoggingInProgress.add(errorArg);
+
+        try {
+          captureError(errorArg, {
+            additionalData: {
+              consoleArgs: args.map(arg => {
+                if (arg instanceof Error) return arg.message;
+                try {
+                  // Safely stringify to prevent circular reference errors
+                  return String(arg);
+                } catch {
+                  return '[Circular]';
+                }
+              }),
+            },
+          }, ErrorSeverity.WARNING);
+        } catch (e) {
+          // Silent fail to prevent recursive errors
+        }
       }
     };
   }

@@ -88,7 +88,7 @@ export const DEVELOPMENT_CONFIG: CRDTProductionConfig = {
  */
 export const PRODUCTION_CONFIG: CRDTProductionConfig = {
   websocket: {
-    url: process.env.NEXT_PUBLIC_WS_URL || 'wss://api.whizboard.cyperstudio.in/ws/crdt',
+    url: process.env.NEXT_PUBLIC_WS_URL || 'wss://ws.whizboard.space/ws/crdt',
     reconnectAttempts: 10,
     reconnectDelay: 2000,
     maxReconnectDelay: 30000,

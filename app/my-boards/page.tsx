@@ -105,7 +105,7 @@ const MyBoardsPage = () => {
   const router = useRouter();
   const { data, loading, error, refetch } = useQuery(GET_MY_BOARDS, {
     errorPolicy: "all",
-    notifyOnNetworkStatusChange: true,
+    fetchPolicy: "cache-first", // Use cache first to avoid redundant requests
     onError: (error) => {
       console.error("Error fetching my boards:", error);
       console.error("Error details:", error.message);
@@ -115,9 +115,10 @@ const MyBoardsPage = () => {
     },
   });
 
+  // Load board usage in parallel, not waiting for boards
   const { data: boardUsageData } = useQuery(GET_BOARD_USAGE, {
     errorPolicy: "all",
-    skip: !data?.myBoards, // Only load after boards are loaded
+    fetchPolicy: "cache-first",
     onError: (error) => {
       console.error("Error fetching board usage:", error);
     },

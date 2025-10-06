@@ -11,8 +11,8 @@ const yoga = createYoga({
   graphiql: process.env.NODE_ENV === 'development',
   landingPage: false,
   cors: {
-    origin: process.env.NODE_ENV === 'production' 
-      ? ['https://whizboard.cyperstudio.in'] 
+    origin: process.env.NODE_ENV === 'production'
+      ? ['https://www.whizboard.space', 'https://whizboard.space', 'https://whizboard.cyperstudio.in']
       : ['http://localhost:3000'],
     credentials: true,
   },
@@ -33,8 +33,8 @@ export async function OPTIONS() {
   return new Response(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': process.env.NODE_ENV === 'production' 
-        ? 'https://whizboard.cyperstudio.in' 
+      'Access-Control-Allow-Origin': process.env.NODE_ENV === 'production'
+        ? 'https://www.whizboard.space'
         : 'http://localhost:3000',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
