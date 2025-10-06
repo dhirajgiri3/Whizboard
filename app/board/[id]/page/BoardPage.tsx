@@ -196,9 +196,10 @@ export default function BoardPage() {
   return (
     <BoardProvider>
       <OptimizedBoardProvider>
-        <CRDTProvider config={crdtConfig}>
+        {/* CRDT temporarily disabled - using SSE-only mode for real-time collaboration */}
+        {/* <CRDTProvider config={crdtConfig}> */}
           <BoardPageContent />
-        </CRDTProvider>
+        {/* </CRDTProvider> */}
       </OptimizedBoardProvider>
     </BoardProvider>
   );
@@ -757,7 +758,7 @@ function BoardPageContent() {
     userId: session?.user?.id || "unknown",
     userName: session?.user?.name || "Unknown User",
     isOwner,
-    useAwareness: process.env.NODE_ENV === 'development', // Enable in development
+    useAwareness: false, // Disabled CRDT - using SSE-only mode for real-time collaboration
     onBoardUpdate,
     onCursorMove,
     onElementAdded: useCallback((element: any) => {

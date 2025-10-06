@@ -185,10 +185,10 @@ export default async function RootLayout({
           </ApolloProvider>
         </AuthSessionProvider>
         
-        {/* Performance monitoring script */}
+        {/* Performance monitoring script - using UMD build for browser compatibility */}
         <Script
           id="web-vitals"
-          src="https://unpkg.com/web-vitals@3/dist/web-vitals.js"
+          src="https://unpkg.com/web-vitals@3/dist/web-vitals.umd.cjs"
           strategy="afterInteractive"
         />
       </body>

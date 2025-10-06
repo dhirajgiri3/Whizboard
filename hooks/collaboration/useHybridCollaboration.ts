@@ -69,19 +69,41 @@ export function useHybridCollaboration(props: UseHybridCollaborationProps) {
     },
   };
 
+  // Effect to handle CRDT availability state updates
+  useEffect(() => {
+    if (!useAwareness && isCRDTAvailable) {
+      setIsCRDTAvailable(false);
+    }
+  }, [useAwareness, isCRDTAvailable]);
+
   // Create a safe version of awareness collaboration that won't throw if CRDT context is missing
   const safeAwarenessCollaboration = (() => {
+    // If awareness is disabled, return dummy immediately
+    if (!useAwareness) {
+      return {
+        isConnected: false,
+        cursors: {},
+        presence: {},
+        connectedUsers: 0,
+        broadcastCursorMovement: () => {},
+        updateUserPresence: () => {},
+        setEditingElement: () => {},
+        clearEditingElement: () => {},
+        updateSelection: () => {},
+        getConnectionStats: () => ({ connectedUsers: 0, localClientId: 0, totalClients: 0 }),
+        getEditingUsers: () => ({}),
+      };
+    }
+
     try {
       // Try to use the CRDT-based collaboration
       return useAwarenessCollaboration(awarenessProps);
     } catch (error) {
-      // If it fails, update state and return a mock implementation
+      // If it fails, log and return mock (state update handled by useEffect)
       if (isCRDTAvailable) {
         console.warn('CRDT Context not available, falling back to legacy collaboration', error);
-        // Use setTimeout to avoid state updates during render
-        setTimeout(() => setIsCRDTAvailable(false), 0);
       }
-      
+
       // Return a dummy implementation with the same interface
       return {
         isConnected: false,

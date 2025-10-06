@@ -415,7 +415,7 @@ const CanvasLayers = memo(function CanvasLayers({
 
       {/* Layer 2: Main Content Layer (All interactive elements) */}
       <Layer
-        hitGraphEnabled={true}
+        listening={true}
         perfectDrawEnabled={false}
         clearBeforeDraw={true}
         imageSmoothingEnabled={false}
