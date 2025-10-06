@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth/options';
 import { googleDriveService } from '@/lib/integrations/googleDriveService';
 import { getToken } from '@/lib/integrations/tokenStore';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
@@ -40,7 +40,11 @@ export async function GET(request: NextRequest) {
       headers['Content-Length'] = String(result.data.byteLength);
     }
     
-    const response = new NextResponse(result.data, { headers });
+    // Convert Buffer to Uint8Array which is compatible with BodyInit
+    const response = new NextResponse(
+      result.data ? new Uint8Array(result.data) : null, 
+      { headers }
+    );
     
     return response;
   } catch (error) {

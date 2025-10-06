@@ -113,7 +113,7 @@
     "playwright": "^1.55.0",
     "snyk": "^1.1298.2",
     "tailwindcss": "^4",
-    "typescript": "^5.8.3",
+    "typescript": "5.9.3",
     "typescript-eslint": "^8.44.0",
     "vitest": "^3.2.4"
   }
