@@ -183,7 +183,8 @@ const MyBoardsPage = () => {
   const getFilteredAndSortedBoards = () => {
     if (!data?.myBoards) return [];
 
-    let boards = data.myBoards;
+    // Create a copy of the array to avoid mutating frozen Apollo cache data in production
+    let boards = [...data.myBoards];
 
     // Filter by search query
     if (searchQuery) {
